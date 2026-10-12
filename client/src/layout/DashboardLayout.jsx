@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 
@@ -19,7 +20,8 @@ const DashboardLayout = () => {
   const [toastTimer, setToastTimer] = useState(null);
 
   const [cardActionNotice, setCardActionNotice] = useState("");
-  const [cardActionNoticeTimer, setCardActionNoticeTimer] = useState(null);
+  const [cardActionNoticeTimer, setCardActionNoticeTimer] =
+    useState(null);
 
   useEffect(() => {
     return () => {
@@ -108,7 +110,8 @@ const DashboardLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#061418] text-[var(--text-primary)]">
+    <div className="min-h-screen bg-[#071326] text-slate-100">
+      {/* Dashboard Navbar */}
       <DashboardNavbar
         ownerName="Your Business"
         onMenuClick={() => setSidebarOpen(true)}
@@ -116,6 +119,7 @@ const DashboardLayout = () => {
         onLogout={handleLogout}
       />
 
+      {/* Mobile Sidebar */}
       <DashboardMobileSidebar
         open={sidebarOpen}
         activeNavItem={activeNavItem}
@@ -125,17 +129,21 @@ const DashboardLayout = () => {
         onLogout={handleLogout}
       />
 
+      {/* Main Dashboard Area */}
       <main className="mx-auto flex max-w-[1500px] items-start gap-5 px-4 py-5 sm:px-6 lg:px-8">
         <DashboardSidebar
           collapsed={sidebarCollapsed}
           activeNavItem={activeNavItem}
           onNavClick={handleNavClick}
-          onToggle={() => setSidebarCollapsed((previous) => !previous)}
+          onToggle={() =>
+            setSidebarCollapsed((previous) => !previous)
+          }
           onPreview={handlePreview}
           onLogout={handleLogout}
         />
 
-        <div className="min-w-0 flex-1">
+        {/* Content Surface */}
+        <div className="min-h-[calc(100vh-116px)] min-w-0 flex-1 rounded-2xl bg-[#0B1B30]/45">
           <Outlet
             context={{
               showToast,
@@ -148,16 +156,21 @@ const DashboardLayout = () => {
         </div>
       </main>
 
-      {showPayModal && <PaymentModal onClose={() => setShowPayModal(false)} />}
+      {/* Payment Modal */}
+      {showPayModal && (
+        <PaymentModal onClose={() => setShowPayModal(false)} />
+      )}
 
+      {/* General Toast */}
       {toastMessage && (
-        <div className="fixed bottom-5 left-1/2 z-[100] -translate-x-1/2 rounded-2xl border border-[#22d3ee]/20 bg-[#0c1f24] px-4 py-3 text-sm font-medium text-[#ecfeff] shadow-2xl">
+        <div className="fixed bottom-5 left-1/2 z-[100] -translate-x-1/2 rounded-xl border border-cyan-300/20 bg-[#10213A] px-4 py-3 text-sm font-medium text-cyan-50 shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
           {toastMessage}
         </div>
       )}
 
+      {/* Card Action Notice */}
       {cardActionNotice && (
-        <div className="fixed bottom-20 left-1/2 z-[99] -translate-x-1/2 rounded-2xl border border-[#10b981]/25 bg-[#122e35] px-4 py-3 text-sm font-medium text-[#ecfeff] shadow-2xl">
+        <div className="fixed bottom-20 left-1/2 z-[99] -translate-x-1/2 rounded-xl border border-cyan-300/20 bg-[#10213A] px-4 py-3 text-sm font-medium text-cyan-50 shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
           {cardActionNotice}
         </div>
       )}

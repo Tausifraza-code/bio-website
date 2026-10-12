@@ -13,9 +13,10 @@ import Leads from "./pages/Leads";
 import ManageProducts from "./pages/ManageProducts";
 import Mini from "./pages/Mini";
 import Payment from "./pages/Payment";
-import QrCode from "./pages/QrCode";
+import QrCode from "./pages/Qr";
 import Refer from "./pages/Refer";
 import SocialCard from "./pages/SocialCard";
+import WebsiteTheme from "./pages/WebsiteTheme";
 
 function App() {
   useEffect(() => {
@@ -54,6 +55,7 @@ function App() {
         <Route path="manageproducts" element={<ManageProducts />} />
         <Route path="mini" element={<Mini />} />
         <Route path="payment" element={<Payment />} />
+        <Route path="theme" element={<WebsiteTheme />} /> 
         <Route path="qrcode" element={<QrCode />} /> 
         <Route path="refer" element={<Refer />} />
         <Route path="/socialcard" element={<SocialCard />} />

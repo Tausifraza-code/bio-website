@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import {
   MapPin,
   Phone,
@@ -10,404 +12,1311 @@ import {
   UserPlus,
   ShieldCheck,
   ShoppingBag,
-  Eye,
   Award,
   Sparkles,
-  ArrowUpRight,
   CheckCircle2,
   Zap,
+  Eye,
+  Check,
+  Send,
+  X,
+  Palette,
+  Maximize2,
+  ScanLine,
+  Sun,
+  Moon,
+  Gem,
+  Crown,
+  Leaf,
+  ChevronRight,
+  MonitorSmartphone,
+  ArrowUpRight,
+  Copy,
 } from "lucide-react";
 
+/* =========================================================
+   THEME DATA
+========================================================= */
+
+const themes = [
+  {
+    id: "executive",
+    name: "Executive Royal",
+    colors: ["#1e3a8a", "#7c3aed"],
+    icon: Crown,
+  },
+  {
+    id: "emerald",
+    name: "Emerald Luxe",
+    colors: ["#10b981", "#14b8a6"],
+    icon: Leaf,
+  },
+  {
+    id: "rose",
+    name: "Rose Gold & Champagne",
+    colors: ["#f43f5e", "#fb923c"],
+    icon: Gem,
+  },
+  {
+    id: "obsidian",
+    name: "Obsidian Noir & Platinum",
+    colors: ["#334155", "#94a3b8"],
+    icon: Moon,
+  },
+  {
+    id: "sunset",
+    name: "Sunset Amber & Coral",
+    colors: ["#f59e0b", "#f97316"],
+    icon: Sun,
+  },
+];
+
+const bannerImages = [
+  "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200",
+  "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1200",
+  "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1200",
+];
+
+/* =========================================================
+   MAIN COMPONENT
+========================================================= */
+
 const Mini = () => {
+  const navigate = useNavigate();
+
+  const [standeeCode, setStandeeCode] = useState("");
+  const [standeeActivated, setStandeeActivated] = useState(false);
+
+  const [activeTheme, setActiveTheme] = useState("sunset");
+  const [isPreviewMode, setIsPreviewMode] = useState(true);
+
+  const [copied, setCopied] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewData, setReviewData] = useState({
+    name: "",
+    review: "",
+  });
+
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    message: "",
+  });
+
+  const [formSubmitted, setFormSubmitted] = useState(false);
+
+  /* =========================================================
+     BUSINESS INFORMATION
+  ========================================================= */
+
+  const businessInfo = {
+    name: "ankit",
+    role: "Business Owner · Professional",
+    location: "Mumbai, Maharashtra, India",
+    status: "Profile Actively Monitored",
+    about:
+      "Welcome to ankit's Business! Contact me directly for appointments, consultations, or business inquiries.",
+    phone: "+91 98765 43210",
+    email: "contact@ankitbusiness.com",
+    website: "www.ankitbusiness.com",
+    address: "Mumbai, Maharashtra, India",
+  };
+
+  const activeThemeData = themes.find(
+    (theme) => theme.id === activeTheme
+  );
+
+  /* =========================================================
+     ACTION HANDLERS
+  ========================================================= */
+
+  const handleActivateStandee = () => {
+    if (!standeeCode.trim()) return;
+
+    setStandeeActivated(true);
+  };
+
+  const handleWhatsApp = () => {
+    window.open(
+      "https://wa.me/919876543210?text=Hi%2C%20I%27m%20interested%20in%20your%20business",
+      "_blank",
+      "noopener,noreferrer"
+    );
+  };
+
+  const handleCall = () => {
+    window.location.href = `tel:${businessInfo.phone.replace(/\s/g, "")}`;
+  };
+
+  const handleShare = async () => {
+    const shareData = {
+      title: businessInfo.name,
+      text: `Check out ${businessInfo.name}'s business`,
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (error) {
+        // User cancelled the share dialog.
+      }
+    } else {
+      handleCopyLink();
+    }
+  };
+
+  const handleSaveContact = () => {
+    const vCard = `BEGIN:VCARD
+VERSION:3.0
+FN:${businessInfo.name}
+TEL:${businessInfo.phone}
+EMAIL:${businessInfo.email}
+URL:${businessInfo.website}
+ADR:;;${businessInfo.address};;;;
+END:VCARD`;
+
+    const blob = new Blob([vCard], {
+      type: "text/vcard;charset=utf-8",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+
+    anchor.href = url;
+    anchor.download = `${businessInfo.name}.vcf`;
+
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+
+    URL.revokeObjectURL(url);
+
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      // Clipboard access can be unavailable in some browsers.
+    }
+  };
+
+  const handleEnquire = () => {
+    document
+      .getElementById("inquiry-form")
+      ?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+    setTimeout(() => {
+      document.getElementById("inquiry-name")?.focus();
+    }, 600);
+  };
+
+  const handleContactClick = (type) => {
+    if (type === "phone") {
+      handleCall();
+    } else if (type === "email") {
+      window.location.href = `mailto:${businessInfo.email}`;
+    } else if (type === "website") {
+      window.open(
+        `https://${businessInfo.website}`,
+        "_blank",
+        "noopener,noreferrer"
+      );
+    } else if (type === "address") {
+      window.open(
+        `https://maps.google.com/?q=${encodeURIComponent(
+          businessInfo.address
+        )}`,
+        "_blank",
+        "noopener,noreferrer"
+      );
+    }
+  };
+
+  const handleFormSubmit = (event) => {
+    event.preventDefault();
+
+    setFormSubmitted(true);
+
+    setTimeout(() => {
+      setFormSubmitted(false);
+
+      setFormData({
+        name: "",
+        phone: "",
+        email: "",
+        message: "",
+      });
+    }, 3000);
+  };
+
+  const handleReviewSubmit = (event) => {
+    event.preventDefault();
+
+    setReviewSubmitted(true);
+
+    setTimeout(() => {
+      setShowReviewModal(false);
+      setReviewSubmitted(false);
+
+      setReviewData({
+        name: "",
+        review: "",
+      });
+
+      setReviewRating(5);
+    }, 2000);
+  };
+
+  /* =========================================================
+     RENDER
+  ========================================================= */
+
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#061418] p-4 sm:p-6 lg:p-8">
-      {/* ==================== BACKGROUND FX ==================== */}
+    <div className="relative min-h-screen overflow-hidden bg-[#071326] text-slate-100 selection:bg-cyan-300/30">
+      {/* BACKGROUND DECORATION */}
+
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.03]"
+        className="pointer-events-none absolute inset-0 opacity-[0.035]"
         style={{
-          backgroundImage: `linear-gradient(#22d3ee 1px, transparent 1px), linear-gradient(90deg, #22d3ee 1px, transparent 1px)`,
-          backgroundSize: "44px 44px",
+          backgroundImage:
+            "radial-gradient(circle, #67e8f9 1px, transparent 1px)",
+          backgroundSize: "30px 30px",
         }}
       />
-      <div className="pointer-events-none absolute -left-40 top-0 h-[500px] w-[500px] rounded-full bg-[#10b981]/20 blur-[120px]" />
-      <div className="pointer-events-none absolute -right-40 top-1/3 h-[500px] w-[500px] rounded-full bg-[#22d3ee]/15 blur-[120px]" />
-      <div className="pointer-events-none absolute bottom-0 left-1/3 h-[400px] w-[400px] rounded-full bg-[#10b981]/10 blur-[120px]" />
 
-      {/* ==================== TOP BAR ==================== */}
-      <div className="relative mx-auto mb-6 max-w-4xl">
-        <div className="relative overflow-hidden rounded-2xl border border-[#22d3ee]/20 bg-white/[0.02] backdrop-blur-2xl">
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#22d3ee]/60 to-transparent" />
+      <div className="pointer-events-none absolute -top-48 left-1/2 h-[500px] w-[900px] -translate-x-1/2 rounded-full bg-cyan-400/[0.07] blur-[150px]" />
 
-          <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#10b981] to-[#22d3ee] shadow-lg shadow-[#10b981]/30">
-                <Eye size={18} className="text-[#061418]" />
-              </div>
+      <div className="pointer-events-none absolute right-[-180px] top-[650px] h-[400px] w-[400px] rounded-full bg-blue-500/[0.06] blur-[130px]" />
+
+      <main className="relative mx-auto max-w-[1600px] px-4 py-5 sm:px-6 sm:py-6 xl:px-8">
+        {/* =====================================================
+            01. STANDEE ACTIVATION
+        ===================================================== */}
+
+        <section className="mb-7">
+          <div className="relative overflow-hidden rounded-[26px] border border-[#29435f] bg-gradient-to-br from-[#10243c] via-[#0b1b30] to-[#08172a] shadow-[0_20px_65px_rgba(0,0,0,0.22)]">
+            <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/70 to-transparent" />
+
+            <div className="pointer-events-none absolute -right-24 -top-32 h-80 w-80 rounded-full bg-cyan-400/[0.08] blur-[90px]" />
+
+            <div className="relative grid grid-cols-1 gap-6 p-5 sm:p-7 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-9 lg:p-8">
               <div>
-                <h2 className="text-sm font-bold text-white">
-                  Public Profile Preview
-                </h2>
-                <p className="text-[11px] text-[#8fb3ba]">
-                  Live preview of your mini website
-                </p>
-              </div>
-            </div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/[0.07] px-3.5 py-2">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-300 opacity-60" />
+                    <span className="relative h-2 w-2 rounded-full bg-cyan-300" />
+                  </span>
 
-            <div className="flex gap-2">
-              <button className="group relative overflow-hidden rounded-xl border border-[#22d3ee]/30 bg-[#22d3ee]/5 px-3.5 py-2 text-[11px] font-bold text-[#22d3ee] transition hover:bg-[#22d3ee]/10">
-                <span className="relative z-10">Share Preview</span>
-              </button>
-              <button className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-[#10b981] to-[#22d3ee] px-3.5 py-2 text-[11px] font-bold text-[#061418] shadow-lg shadow-[#10b981]/30 transition hover:shadow-[#10b981]/50">
-                <span className="relative z-10">Copy Link</span>
-                <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-              </button>
+                  <span className="text-xs font-bold uppercase tracking-[0.14em] text-cyan-200">
+                    Business Setup
+                  </span>
+                </div>
+
+                <h1 className="mt-4 max-w-xl text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-[42px] lg:leading-[1.15]">
+                  Link Your Physical
+                  <span className="mt-1 block bg-gradient-to-r from-cyan-200 via-cyan-300 to-blue-300 bg-clip-text text-transparent">
+                    Counter Standee
+                  </span>
+                </h1>
+
+                <p className="mt-3 max-w-lg text-base leading-7 text-slate-300">
+                  Received your acrylic counter standee? Connect it once to go
+                  live and help customers discover your digital business card.
+                </p>
+
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <span
+                    className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-sm font-semibold ${
+                      standeeActivated
+                        ? "border-emerald-300/25 bg-emerald-300/[0.08] text-emerald-200"
+                        : "border-amber-300/25 bg-amber-300/[0.07] text-amber-200"
+                    }`}
+                  >
+                    {standeeActivated ? (
+                      <CheckCircle2 size={17} />
+                    ) : (
+                      <span className="h-2 w-2 rounded-full bg-amber-300" />
+                    )}
+
+                    {standeeActivated
+                      ? "Standee Activated"
+                      : "Action Required"}
+                  </span>
+
+                  <span className="inline-flex items-center gap-2 text-sm text-slate-300">
+                    <ShieldCheck size={17} className="text-cyan-300" />
+                    One-time setup
+                  </span>
+                </div>
+              </div>
+
+              {/* ACTIVATION CARD */}
+
+              <div className="rounded-[22px] border border-[#38516e] bg-[#08172a]/90 p-5 shadow-xl sm:p-6">
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-300/[0.08]">
+                    <ScanLine size={23} className="text-cyan-200" />
+                  </div>
+
+                  <div>
+                    <h3 className="text-base font-bold text-white">
+                      Activate Your Standee
+                    </h3>
+
+                    <p className="mt-1 text-sm text-slate-300">
+                      Enter your unique standee code
+                    </p>
+                  </div>
+                </div>
+
+                <label
+                  htmlFor="standee-code"
+                  className="mb-2 block text-xs font-bold uppercase tracking-[0.12em] text-slate-300"
+                >
+                  Standee Code
+                </label>
+
+                <input
+                  id="standee-code"
+                  type="text"
+                  value={standeeCode}
+                  onChange={(event) =>
+                    setStandeeCode(event.target.value.toUpperCase())
+                  }
+                  disabled={standeeActivated}
+                  placeholder="E.G., XR-1001 OR SHOPX007"
+                  className="w-full rounded-xl border border-[#38516e] bg-[#10213a] px-4 py-3.5 text-base font-semibold tracking-wider text-white outline-none transition placeholder:text-sm placeholder:font-medium placeholder:tracking-normal placeholder:text-slate-400 focus:border-cyan-300/70 focus:ring-4 focus:ring-cyan-300/[0.08] disabled:cursor-not-allowed disabled:opacity-60"
+                />
+
+                <button
+                  type="button"
+                  onClick={handleActivateStandee}
+                  disabled={standeeActivated || !standeeCode.trim()}
+                  className="mt-3 flex w-full items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-cyan-300 to-blue-400 px-4 py-3.5 text-base font-bold text-[#071326] shadow-[0_8px_24px_rgba(34,211,238,0.12)] transition duration-200 hover:brightness-110 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
+                >
+                  <Check size={18} strokeWidth={2.5} />
+                  {standeeActivated
+                    ? "Standee Activated"
+                    : "Activate Standee"}
+                </button>
+
+                <div className="mt-3 flex items-start gap-2.5 rounded-xl border border-[#29435f]/70 bg-[#10213a]/60 p-3">
+                  <ShieldCheck
+                    size={17}
+                    className="mt-0.5 shrink-0 text-cyan-300"
+                  />
+
+                  <p className="text-sm leading-6 text-slate-300">
+                    Enter the code printed on your physical standee. Once
+                    activated, customers scanning your standee can reach your
+                    page instantly.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </section>
 
-      {/* ==================== MINI WEBSITE CARD ==================== */}
-      <div className="relative mx-auto max-w-2xl">
-        <div className="absolute -inset-1 rounded-[32px] bg-gradient-to-br from-[#10b981]/20 via-[#22d3ee]/10 to-transparent blur-2xl" />
+        {/* =====================================================
+            02. PAGE HEADER
+        ===================================================== */}
 
-        <div className="relative overflow-hidden rounded-[28px] border border-[#22d3ee]/20 bg-[#0c1f24]/90 backdrop-blur-2xl shadow-2xl shadow-black/50">
-          {/* ---------- BANNER ---------- */}
-          <div className="relative h-48 w-full overflow-hidden">
-            <img
-              src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200"
-              alt="banner"
-              className="h-full w-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0c1f24] via-[#0c1f24]/40 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-br from-[#10b981]/30 via-transparent to-[#22d3ee]/20 mix-blend-overlay" />
+        <section className="mb-6">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+            <div>
+              <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-cyan-200">
+                <MonitorSmartphone size={17} />
 
-            {/* Featured badge — emerald -->
-            <div className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-xl border border-[#10b981]/40 bg-[#061418]/80 px-2.5 py-1.5 backdrop-blur-md">
-              <Sparkles size={11} className="text-[#10b981]" />
-              <p className="text-[9px] font-bold uppercase tracking-wider text-[#10b981]">
-                Featured Product
+                <span className="uppercase tracking-[0.14em]">
+                  Website Studio
+                </span>
+              </div>
+
+              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                Live Mini Website{" "}
+                <span className="text-cyan-300">Preview</span>
+              </h2>
+
+              <p className="mt-2 max-w-2xl text-base leading-7 text-slate-300">
+                Experience your digital business card exactly as your
+                prospective customers see it when they open your shared link
+                or scan your QR code.
               </p>
             </div>
 
-            {/* Slideshow dots */}
-            <div className="absolute bottom-3 right-3 flex gap-1.5">
-              {[1, 2, 3].map((n) => (
-                <span
-                  key={n}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                    n === 1
-                      ? "w-5 bg-gradient-to-r from-[#10b981] to-[#22d3ee]"
-                      : "w-1.5 bg-white/40"
-                  }`}
-                />
-              ))}
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => navigate("/theme")}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#38516e] bg-[#10213a] px-5 py-3 text-sm font-semibold text-slate-100 transition hover:border-cyan-300/50 hover:bg-[#142b46] hover:text-cyan-100"
+              >
+                <Palette size={18} />
+                Change Theme
+                <ChevronRight size={16} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsPreviewMode(true)}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-300 to-blue-400 px-5 py-3 text-sm font-bold text-[#071326] shadow-lg shadow-cyan-400/10 transition hover:brightness-110 active:scale-[0.98]"
+              >
+                <Maximize2 size={17} />
+                Full Screen Mode
+              </button>
             </div>
           </div>
+        </section>
 
-          {/* ---------- PROFILE HEADER ---------- */}
-          <div className="relative px-5 pb-5">
-            <div className="-mt-14 mb-3">
-              <div className="relative inline-block">
-                <div className="absolute -inset-1 rounded-[22px] bg-gradient-to-br from-[#10b981] to-[#22d3ee] opacity-60 blur-md" />
-                <div className="relative h-28 w-28 overflow-hidden rounded-2xl border-[3px] border-[#0c1f24] shadow-2xl">
-                  <img
-                    src="https://i.pravatar.cc/200?img=12"
-                    alt="ankit"
-                    className="h-full w-full object-cover"
-                  />
+        {/* =====================================================
+            03. THEME SELECTOR
+        ===================================================== */}
+
+        <section id="theme-selector" className="mb-7 scroll-mt-24">
+          <div className="overflow-hidden rounded-[24px] border border-[#29435f] bg-[#0b1b30] shadow-[0_16px_45px_rgba(0,0,0,0.12)]">
+            <div className="flex flex-col gap-3 border-b border-[#29435f] px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-300/[0.08]">
+                  <Sparkles size={20} className="text-cyan-200" />
                 </div>
-                <div className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#0c1f24] bg-gradient-to-br from-[#10b981] to-[#22d3ee] shadow-lg">
-                  <ShieldCheck size={14} className="text-[#061418]" />
+
+                <div>
+                  <h3 className="text-base font-bold text-white">
+                    Website Appearance
+                  </h3>
+
+                  <p className="mt-1 text-sm text-slate-300">
+                    Choose your preferred visual theme
+                  </p>
                 </div>
               </div>
-            </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-xl font-black tracking-tight text-white">
-                ankit
-              </h3>
-              <span className="inline-flex items-center gap-1 rounded-md border border-[#10b981]/40 bg-[#10b981]/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#10b981]">
-                <CheckCircle2 size={9} />
-                Verified
+              <span className="inline-flex w-fit items-center gap-2 rounded-lg border border-[#38516e] bg-[#10213a] px-3 py-2 text-sm text-slate-300">
+                Active:
+                <span className="font-bold text-cyan-200">
+                  {activeThemeData?.name}
+                </span>
               </span>
             </div>
 
-            <p className="mt-1 text-xs font-medium text-[#8fb3ba]">
-              Business Owner · Professional
-            </p>
+            <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 sm:p-5 md:grid-cols-3 xl:grid-cols-5">
+              {themes.map((theme) => {
+                const isActive = activeTheme === theme.id;
+                const Icon = theme.icon;
 
-            <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-[#8fb3ba]">
-              <MapPin size={11} />
-              Mumbai, Maharashtra, India
-            </p>
-
-            {/* Status pill — cyan -->
-            <div className="mt-3 inline-flex items-center gap-2 rounded-xl border border-[#22d3ee]/30 bg-gradient-to-r from-[#22d3ee]/10 to-[#22d3ee]/5 px-3 py-1.5 backdrop-blur">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#22d3ee] opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#22d3ee]" />
-              </span>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#22d3ee]">
-                Profile Actively Monitored
-              </span>
-            </div>
-
-            {/* ---------- ACTION BUTTONS ---------- */}
-            <div className="mt-5 grid grid-cols-4 gap-2.5">
-              {[
-                {
-                  icon: MessageCircle,
-                  label: "WhatsApp",
-                  gradient: "from-[#10b981] to-[#059669]",
-                },
-                {
-                  icon: Phone,
-                  label: "Call",
-                  gradient: "from-[#22d3ee] to-[#0891b2]",
-                },
-                {
-                  icon: Share2,
-                  label: "Share",
-                  gradient: "from-[#22d3ee] to-[#10b981]",
-                },
-                {
-                  icon: UserPlus,
-                  label: "Save",
-                  gradient: "from-[#10b981] to-[#22d3ee]",
-                },
-              ].map((action, i) => {
-                const Icon = action.icon;
                 return (
                   <button
-                    key={i}
-                    className="group relative flex flex-col items-center gap-2 overflow-hidden rounded-2xl border border-[#22d3ee]/15 bg-white/[0.02] py-3.5 backdrop-blur transition-all hover:border-[#22d3ee]/40 hover:bg-white/[0.05] hover:shadow-lg hover:shadow-[#10b981]/10"
+                    type="button"
+                    key={theme.id}
+                    onClick={() => setActiveTheme(theme.id)}
+                    aria-pressed={isActive}
+                    className={`group relative overflow-hidden rounded-2xl border p-4 text-left transition-all duration-200 ${
+                      isActive
+                        ? "border-cyan-300/60 bg-cyan-300/[0.07] shadow-[0_0_0_1px_rgba(34,211,238,0.10)]"
+                        : "border-[#29435f] bg-[#08172a] hover:border-[#54718e] hover:bg-[#10213a]"
+                    }`}
                   >
-                    <div
-                      className={`flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br ${action.gradient} shadow-lg transition-transform group-hover:scale-110`}
-                    >
-                      <Icon size={15} className="text-[#061418]" />
+                    {isActive && (
+                      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-cyan-300 to-blue-400" />
+                    )}
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex -space-x-1">
+                        {theme.colors.map((color, index) => (
+                          <span
+                            key={`${theme.id}-${index}`}
+                            className="h-8 w-8 rounded-full border-[3px] border-[#0b1b30] shadow-sm"
+                            style={{ backgroundColor: color }}
+                          />
+                        ))}
+                      </div>
+
+                      {isActive && (
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-300 text-[#071326]">
+                          <Check size={14} strokeWidth={3} />
+                        </span>
+                      )}
                     </div>
-                    <span className="text-[10px] font-bold text-[#ecfeff]/80">
-                      {action.label}
-                    </span>
+
+                    <div className="mt-3 flex items-start gap-2.5">
+                      <div
+                        className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                          isActive
+                            ? "bg-cyan-300/15 text-cyan-200"
+                            : "bg-[#132942] text-slate-300"
+                        }`}
+                      >
+                        <Icon size={18} />
+                      </div>
+
+                      <div className="min-w-0">
+                        <p
+                          className={`text-sm font-bold leading-5 ${
+                            isActive ? "text-white" : "text-slate-200"
+                          }`}
+                        >
+                          {theme.name}
+                        </p>
+
+                        <p className="mt-1 text-xs text-slate-300">
+                          {isActive ? "Currently selected" : "Select theme"}
+                        </p>
+                      </div>
+                    </div>
                   </button>
                 );
               })}
             </div>
           </div>
+        </section>
 
-          {/* ---------- ABOUT ---------- */}
-          <Section icon={Award} title="About">
-            <p className="text-xs leading-relaxed text-[#ecfeff]/70">
-              Welcome to ankit's Business! Contact me directly for appointments,
-              consultations, or business inquiries.
-            </p>
-          </Section>
+        {/* =====================================================
+            04. PREVIEW STATUS BAR
+        ===================================================== */}
 
-          {/* ---------- FEATURED PRODUCTS ---------- */}
-          <Section
-            icon={ShoppingBag}
-            title="Featured Products & Services"
-            action={<span className="text-[10px] text-[#8fb3ba]">1 item</span>}
-          >
-            <div className="group relative overflow-hidden rounded-2xl border border-[#22d3ee]/15 bg-gradient-to-br from-[#10b981]/5 to-[#22d3ee]/5 p-4 transition hover:border-[#10b981]/40">
-              <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-[#10b981]/5 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
-
-              <div className="relative flex items-start gap-3">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#10b981]/20 to-[#22d3ee]/20 text-2xl ring-1 ring-[#10b981]/30">
-                  📦
+        {isPreviewMode && (
+          <section className="mb-4">
+            <div className="flex flex-col gap-3 rounded-2xl border border-[#29435f] bg-[#0b1b30] p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-amber-300/20 bg-amber-300/[0.08]">
+                  <Eye size={20} className="text-amber-300" />
                 </div>
 
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-2">
-                    <h5 className="text-sm font-bold text-white">
-                      Featured Business Product
-                    </h5>
-                    <button className="shrink-0 rounded-lg border border-[#22d3ee]/40 bg-[#22d3ee]/5 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-[#22d3ee] transition hover:bg-[#22d3ee]/10">
-                      Enquire
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-base font-bold text-white">
+                      Customer Preview
+                    </h3>
+
+                    <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-300/20 bg-emerald-300/[0.07] px-2 py-1 text-xs font-bold uppercase tracking-wide text-emerald-200">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                      Interactive
+                    </span>
+                  </div>
+
+                  <p className="mt-1 text-sm leading-5 text-slate-300">
+                    Preview the business profile and customer actions.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsPreviewMode(false)}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#38516e] bg-[#10213a] px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:border-cyan-300/40 hover:text-cyan-200"
+              >
+                <X size={16} />
+                Back to Editor
+              </button>
+            </div>
+          </section>
+        )}
+
+        {/* =====================================================
+            05. PREMIUM WEBSITE PREVIEW
+        ===================================================== */}
+
+        {isPreviewMode && (
+          <section className="pb-10">
+            <div className="mx-auto w-full max-w-[1200px]">
+              {/* BROWSER FRAME */}
+
+              <div className="overflow-hidden rounded-[28px] border border-[#45414a] bg-[#17171c] p-2 shadow-[0_30px_100px_rgba(0,0,0,0.42)] sm:rounded-[32px] sm:p-3">
+                <div className="overflow-hidden rounded-[22px] border border-[#34343c] bg-[#111116]">
+                  {/* BROWSER TOP BAR */}
+
+                  <div className="flex items-center justify-between gap-3 border-b border-white/[0.08] bg-[#17171c] px-4 py-3 sm:px-6">
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span className="h-3 w-3 rounded-full bg-rose-400/90" />
+                      <span className="h-3 w-3 rounded-full bg-amber-300/90" />
+                      <span className="h-3 w-3 rounded-full bg-emerald-300/90" />
+                    </div>
+
+                    <div className="flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-[#353b49] bg-[#090b10] px-3 py-2.5 sm:max-w-[440px]">
+                      <ShieldCheck
+                        size={16}
+                        className="shrink-0 text-amber-300"
+                      />
+
+                      <span className="truncate text-sm font-medium text-slate-200">
+                        {businessInfo.website}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleCopyLink}
+                      title="Copy website link"
+                      aria-label="Copy website link"
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#353b49] bg-[#202029] text-slate-200 transition hover:border-amber-300/50 hover:text-amber-200"
+                    >
+                      {copied ? <Check size={18} /> : <Copy size={18} />}
                     </button>
                   </div>
 
-                  <p className="mt-1.5 text-[11px] leading-relaxed text-[#ecfeff]/60">
-                    Quickly inquire about this high-quality premium business
-                    product or service offering.
-                  </p>
+                  {/* CUSTOMER WEBSITE */}
 
-                  <div className="mt-2.5 flex flex-wrap items-center gap-2">
-                    <span className="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[9px] text-[#8fb3ba]">
-                      📁 Catalog
-                    </span>
-                    <span className="inline-flex items-center gap-1 rounded-md border border-[#10b981]/30 bg-[#10b981]/5 px-2 py-0.5 text-[9px] font-bold text-[#10b981]">
-                      <CheckCircle2 size={9} />
-                      Available
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Section>
+                  <div className="bg-gradient-to-b from-[#17171c] via-[#131318] to-[#101014]">
+                    {/* BANNER */}
 
-          {/* ---------- CONTACT ---------- */}
-          <Section icon={Phone} title="Contact & Business Info">
-            <div className="space-y-2">
-              {[
-                {
-                  icon: Phone,
-                  label: "Call Business",
-                  value: "+91 98765 43210",
-                  color: "emerald",
-                },
-                {
-                  icon: Mail,
-                  label: "Email Business",
-                  value: "contact@ankitbusiness.com",
-                  color: "cyan",
-                },
-                {
-                  icon: Globe,
-                  label: "Business Website",
-                  value: "www.ankitbusiness.com",
-                  color: "cyan",
-                },
-                {
-                  icon: MapPin,
-                  label: "Business Address",
-                  value: "Mumbai, Maharashtra, India",
-                  color: "emerald",
-                },
-              ].map((item, i) => {
-                const Icon = item.icon;
-                const colorMap = {
-                  emerald: "from-[#10b981] to-[#059669] shadow-[#10b981]/20",
-                  cyan: "from-[#22d3ee] to-[#0891b2] shadow-[#22d3ee]/20",
-                };
+                    <div className="relative h-56 overflow-hidden sm:h-72 lg:h-[340px]">
+                      {bannerImages.map((image, index) => (
+                        <img
+                          key={image}
+                          src={image}
+                          alt={`Business banner ${index + 1}`}
+                          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
+                            index === currentSlide
+                              ? "opacity-100"
+                              : "opacity-0"
+                          }`}
+                        />
+                      ))}
 
-                return (
-                  <div
-                    key={i}
-                    className="group flex items-center gap-3 rounded-xl border border-[#22d3ee]/10 bg-white/[0.02] p-3 backdrop-blur transition hover:border-[#22d3ee]/30 hover:bg-white/[0.04]"
-                  >
-                    <div
-                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${colorMap[item.color]} shadow-lg transition-transform group-hover:scale-110`}
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/10 to-[#17171c]" />
+
+                      <div className="absolute left-4 top-4 sm:left-7 sm:top-6">
+                        <span className="inline-flex items-center gap-2 rounded-full border border-amber-200/30 bg-[#111116]/75 px-3.5 py-2.5 text-xs font-bold uppercase tracking-[0.12em] text-white shadow-lg backdrop-blur-xl sm:text-sm">
+                          <Sparkles size={16} className="text-amber-300" />
+                          Featured Business
+                        </span>
+                      </div>
+
+                      <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-3 sm:bottom-7 sm:left-7 sm:right-7">
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-100/90 sm:text-sm">
+                            Discover
+                          </p>
+
+                          <p className="mt-1.5 text-2xl font-bold tracking-tight text-white sm:text-3xl lg:text-4xl">
+                            Your Business, Your Identity
+                          </p>
+                        </div>
+
+                        <div className="flex shrink-0 gap-1.5 pb-1">
+                          {bannerImages.map((_, index) => (
+                            <button
+                              key={index}
+                              type="button"
+                              onClick={() => setCurrentSlide(index)}
+                              aria-label={`Show banner ${index + 1}`}
+                              aria-pressed={currentSlide === index}
+                              className={`h-2.5 rounded-full transition-all duration-300 ${
+                                currentSlide === index
+                                  ? "w-8 bg-amber-300"
+                                  : "w-2.5 bg-white/60 hover:bg-white"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* PROFILE */}
+
+                    <div className="px-5 pb-6 sm:px-8 sm:pb-7 lg:px-10">
+                      <div className="-mt-12 mb-5 flex flex-wrap items-end justify-between gap-3 sm:-mt-14">
+                        <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-4 border-[#17171c] bg-[#25242a] shadow-2xl sm:h-28 sm:w-28">
+                          <img
+                            src="https://i.pravatar.cc/200?img=12"
+                            alt={businessInfo.name}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+
+                        <div className="mb-1 inline-flex items-center gap-2 rounded-full border border-amber-200/25 bg-amber-200/[0.07] px-3.5 py-2.5">
+                          <span className="h-2 w-2 rounded-full bg-amber-300" />
+
+                          <span className="text-xs font-bold uppercase tracking-wide text-amber-200 sm:text-sm">
+                            Verified Profile
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2.5">
+                        <h3 className="text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-[42px]">
+                          {businessInfo.name}
+                        </h3>
+
+                        <ShieldCheck
+                          size={24}
+                          className="text-amber-300"
+                        />
+                      </div>
+
+                      <p className="mt-2 text-base font-medium text-slate-300 sm:text-lg">
+                        {businessInfo.role}
+                      </p>
+
+                      <p className="mt-3 flex items-start gap-2 text-sm leading-6 text-slate-300 sm:text-base">
+                        <MapPin
+                          size={18}
+                          className="mt-0.5 shrink-0 text-amber-300"
+                        />
+
+                        {businessInfo.location}
+                      </p>
+
+                      <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-amber-200/20 bg-amber-200/[0.06] px-3.5 py-2.5">
+                        <span className="relative flex h-2 w-2">
+                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-300 opacity-50" />
+                          <span className="relative h-2 w-2 rounded-full bg-amber-300" />
+                        </span>
+
+                        <span className="text-xs font-bold uppercase tracking-wide text-amber-200 sm:text-sm">
+                          {businessInfo.status}
+                        </span>
+                      </div>
+
+                      {/* ACTION BUTTONS */}
+
+                      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                        <ActionButton
+                          icon={MessageCircle}
+                          label="WhatsApp"
+                          onClick={handleWhatsApp}
+                          primary
+                        />
+
+                        <ActionButton
+                          icon={Phone}
+                          label="Call"
+                          onClick={handleCall}
+                        />
+
+                        <ActionButton
+                          icon={copied ? Check : Share2}
+                          label={copied ? "Copied" : "Share"}
+                          onClick={handleShare}
+                        />
+
+                        <ActionButton
+                          icon={saved ? Check : UserPlus}
+                          label={saved ? "Saved" : "Save Contact"}
+                          onClick={handleSaveContact}
+                        />
+                      </div>
+                    </div>
+
+                    {/* ABOUT */}
+
+                    <WarmSection
+                      icon={Award}
+                      title="About the Business"
                     >
-                      <Icon size={15} className="text-[#061418]" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-[#22d3ee]/60">
-                        {item.label}
+                      <div className="rounded-2xl border border-amber-200/15 bg-gradient-to-br from-amber-200/[0.07] to-transparent p-5 sm:p-6">
+                        <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl border border-amber-200/15 bg-amber-200/[0.08]">
+                          <Sparkles size={21} className="text-amber-300" />
+                        </div>
+
+                        <p className="text-base leading-7 text-slate-200 sm:text-lg sm:leading-8">
+                          {businessInfo.about}
+                        </p>
+                      </div>
+                    </WarmSection>
+
+                    {/* PRODUCTS */}
+
+                    <WarmSection
+                      icon={ShoppingBag}
+                      title="Featured Products & Services"
+                      action={
+                        <span className="rounded-lg border border-amber-200/20 bg-amber-200/[0.06] px-3 py-2 text-sm font-semibold text-amber-200">
+                          1 item
+                        </span>
+                      }
+                    >
+                      <div className="group overflow-hidden rounded-2xl border border-white/10 bg-[#17171c] transition duration-300 hover:border-amber-200/30 hover:shadow-lg hover:shadow-black/10">
+                        <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:p-5 lg:gap-5">
+                          <div className="flex h-24 w-full shrink-0 items-center justify-center rounded-xl border border-amber-200/15 bg-gradient-to-br from-amber-200/[0.10] to-orange-300/[0.04] text-4xl sm:h-28 sm:w-28">
+                            📦
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                              <h5 className="text-lg font-bold leading-7 text-white sm:text-xl">
+                                Featured Business Product
+                              </h5>
+
+                              <button
+                                type="button"
+                                onClick={handleEnquire}
+                                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-300 to-orange-300 px-4 py-3 text-sm font-bold text-[#201305] transition hover:brightness-110 active:scale-[0.98]"
+                              >
+                                Enquire Now
+                                <ArrowUpRight size={17} />
+                              </button>
+                            </div>
+
+                            <p className="mt-2 text-sm leading-7 text-slate-300 sm:text-base">
+                              Quickly inquire about this high-quality premium
+                              business product or service offering.
+                            </p>
+
+                            <div className="mt-3 flex flex-wrap items-center gap-2">
+                              <span className="rounded-lg border border-white/[0.10] bg-white/[0.04] px-3 py-2 text-sm text-slate-300">
+                                📁 Catalog
+                              </span>
+
+                              <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200/20 bg-amber-200/[0.06] px-3 py-2 text-sm font-bold text-amber-200">
+                                <CheckCircle2 size={16} />
+                                Available
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </WarmSection>
+
+                    {/* CONTACT */}
+
+                    <WarmSection
+                      icon={Phone}
+                      title="Contact & Business Information"
+                    >
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <ContactRow
+                          icon={Phone}
+                          label="Call Business"
+                          value={businessInfo.phone}
+                          onClick={() => handleContactClick("phone")}
+                        />
+
+                        <ContactRow
+                          icon={Mail}
+                          label="Email Business"
+                          value={businessInfo.email}
+                          onClick={() => handleContactClick("email")}
+                        />
+
+                        <ContactRow
+                          icon={Globe}
+                          label="Business Website"
+                          value={businessInfo.website}
+                          onClick={() => handleContactClick("website")}
+                        />
+
+                        <ContactRow
+                          icon={MapPin}
+                          label="Business Address"
+                          value={businessInfo.address}
+                          onClick={() => handleContactClick("address")}
+                        />
+                      </div>
+                    </WarmSection>
+
+                    {/* REVIEWS */}
+
+                    <WarmSection
+                      icon={Star}
+                      title="Customer Experience & Trust"
+                      action={
+                        <button
+                          type="button"
+                          onClick={() => setShowReviewModal(true)}
+                          className="inline-flex items-center gap-2 rounded-lg border border-amber-200/20 bg-amber-200/[0.07] px-3 py-2 text-sm font-bold text-amber-200 transition hover:bg-amber-200/[0.12]"
+                        >
+                          <Star size={15} />
+                          Write Review
+                        </button>
+                      }
+                    >
+                      <div className="relative overflow-hidden rounded-2xl border border-amber-200/15 bg-gradient-to-br from-amber-200/[0.07] via-transparent to-orange-300/[0.04] p-5 text-center sm:p-7">
+                        <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-amber-300/[0.06] blur-3xl" />
+
+                        <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-amber-200/30 bg-gradient-to-br from-amber-300 to-orange-300 shadow-lg shadow-amber-400/10">
+                          <Star
+                            size={28}
+                            className="fill-white text-white"
+                          />
+                        </div>
+
+                        <p className="relative mt-4 text-lg font-bold text-white sm:text-xl">
+                          Be the First to Share Your Experience
+                        </p>
+
+                        <p className="relative mx-auto mt-2 max-w-lg text-sm leading-7 text-slate-300 sm:text-base">
+                          Your feedback helps others discover and trust this
+                          business.
+                        </p>
+
+                        <button
+                          type="button"
+                          onClick={() => setShowReviewModal(true)}
+                          className="relative mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-300 to-orange-300 px-5 py-3 text-sm font-bold text-[#201305] shadow-lg shadow-amber-500/[0.08] transition hover:brightness-110 active:scale-[0.98]"
+                        >
+                          <Zap size={17} />
+                          Write a Review
+                        </button>
+                      </div>
+                    </WarmSection>
+
+                    {/* INQUIRY FORM */}
+
+                    <WarmSection
+                      icon={Mail}
+                      title="Share Your Contact / Business Inquiry"
+                    >
+                      <form
+                        id="inquiry-form"
+                        onSubmit={handleFormSubmit}
+                        className="rounded-2xl border border-white/10 bg-[#17171c] p-5 sm:p-6"
+                      >
+                        <div className="mb-4">
+                          <h5 className="text-xl font-bold text-white">
+                            Let's Connect
+                          </h5>
+
+                          <p className="mt-1.5 text-sm leading-6 text-slate-300 sm:text-base">
+                            Share your details and message with the business.
+                          </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                          <input
+                            id="inquiry-name"
+                            type="text"
+                            required
+                            value={formData.name}
+                            onChange={(event) =>
+                              setFormData({
+                                ...formData,
+                                name: event.target.value,
+                              })
+                            }
+                            placeholder="Your Name"
+                            className="w-full rounded-xl border border-[#414653] bg-[#101116] px-4 py-3.5 text-base text-white outline-none transition placeholder:text-slate-400 focus:border-amber-300/60 focus:ring-4 focus:ring-amber-300/[0.06]"
+                          />
+
+                          <input
+                            type="tel"
+                            required
+                            value={formData.phone}
+                            onChange={(event) =>
+                              setFormData({
+                                ...formData,
+                                phone: event.target.value,
+                              })
+                            }
+                            placeholder="Phone Number"
+                            className="w-full rounded-xl border border-[#414653] bg-[#101116] px-4 py-3.5 text-base text-white outline-none transition placeholder:text-slate-400 focus:border-amber-300/60 focus:ring-4 focus:ring-amber-300/[0.06]"
+                          />
+                        </div>
+
+                        <input
+                          type="email"
+                          value={formData.email}
+                          onChange={(event) =>
+                            setFormData({
+                              ...formData,
+                              email: event.target.value,
+                            })
+                          }
+                          placeholder="Email Address"
+                          className="mt-3 w-full rounded-xl border border-[#414653] bg-[#101116] px-4 py-3.5 text-base text-white outline-none transition placeholder:text-slate-400 focus:border-amber-300/60 focus:ring-4 focus:ring-amber-300/[0.06]"
+                        />
+
+                        <textarea
+                          rows={4}
+                          value={formData.message}
+                          onChange={(event) =>
+                            setFormData({
+                              ...formData,
+                              message: event.target.value,
+                            })
+                          }
+                          placeholder="Your Message"
+                          className="mt-3 w-full resize-y rounded-xl border border-[#414653] bg-[#101116] px-4 py-3.5 text-base leading-7 text-white outline-none transition placeholder:text-slate-400 focus:border-amber-300/60 focus:ring-4 focus:ring-amber-300/[0.06]"
+                        />
+
+                        <button
+                          type="submit"
+                          disabled={formSubmitted}
+                          className="mt-3 flex w-full items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-amber-300 to-orange-300 px-4 py-3.5 text-base font-bold text-[#201305] shadow-lg shadow-amber-400/[0.08] transition hover:brightness-110 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {formSubmitted ? (
+                            <>
+                              <Check size={18} strokeWidth={2.5} />
+                              Inquiry Sent!
+                            </>
+                          ) : (
+                            <>
+                              <Send size={17} />
+                              Submit Inquiry
+                            </>
+                          )}
+                        </button>
+                      </form>
+                    </WarmSection>
+
+                    {/* FOOTER */}
+
+                    <footer className="border-t border-amber-200/10 bg-[#0c0d12] px-5 py-6 text-center">
+                      <div className="mx-auto mb-3 h-px w-16 bg-gradient-to-r from-transparent via-amber-300/50 to-transparent" />
+
+                      <p className="text-sm text-slate-300 sm:text-base">
+                        Powered by{" "}
+                        <span className="font-bold tracking-wide text-amber-300">
+                          biowebsite
+                        </span>
                       </p>
-                      <p className="truncate text-xs font-semibold text-white">
-                        {item.value}
+
+                      <p className="mt-1.5 text-xs text-slate-400 sm:text-sm">
+                        Your business. Your identity.
                       </p>
-                    </div>
-                    <ArrowUpRight
-                      size={14}
-                      className="shrink-0 text-[#22d3ee]/40 transition group-hover:text-[#22d3ee]"
-                    />
+                    </footer>
                   </div>
-                );
-              })}
+                </div>
+              </div>
+
+              <p className="mt-3 text-center text-sm leading-6 text-slate-300">
+                This is a preview of how your digital business card is
+                presented to customers.
+              </p>
             </div>
-          </Section>
+          </section>
+        )}
+      </main>
 
-          {/* ---------- TESTIMONIAL ---------- */}
-          <Section
-            icon={Star}
-            title="Customer Experience & Trust"
-            action={
-              <button className="rounded-lg border border-[#22d3ee]/40 bg-[#22d3ee]/5 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-[#22d3ee] transition hover:bg-[#22d3ee]/10">
-                Write Review
-              </button>
+      {/* =====================================================
+          06. REVIEW MODAL
+      ===================================================== */}
+
+      {showReviewModal && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#020817]/80 p-4 backdrop-blur-md"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setShowReviewModal(false);
             }
-          >
-            <div className="relative overflow-hidden rounded-2xl border border-[#10b981]/20 bg-gradient-to-br from-[#10b981]/5 via-transparent to-[#22d3ee]/5 p-6 text-center">
-              <div className="pointer-events-none absolute -top-20 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full bg-[#22d3ee]/20 blur-3xl" />
+          }}
+        >
+          <div className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[26px] border border-[#45414a] bg-[#17171c] p-5 shadow-[0_30px_100px_rgba(0,0,0,0.55)] sm:p-7">
+            <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-amber-300/70 to-transparent" />
 
-              <div className="relative">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#10b981] to-[#22d3ee] shadow-xl shadow-[#10b981]/30">
-                  <Star size={24} className="fill-[#061418] text-[#061418]" />
+            <button
+              type="button"
+              onClick={() => setShowReviewModal(false)}
+              aria-label="Close review modal"
+              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl border border-[#45414a] bg-[#22222a] text-slate-300 transition hover:border-rose-300/30 hover:text-rose-200"
+            >
+              <X size={18} />
+            </button>
+
+            {reviewSubmitted ? (
+              <div className="py-10 text-center">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300 to-orange-300 shadow-lg shadow-amber-400/10">
+                  <Check
+                    size={29}
+                    className="text-[#171116]"
+                    strokeWidth={2.5}
+                  />
                 </div>
 
-                <p className="mt-4 text-sm font-bold text-white">
-                  Be the First to Share Your Experience
+                <h3 className="mt-5 text-xl font-bold text-white">
+                  Thank You!
+                </h3>
+
+                <p className="mt-2 text-base text-slate-300">
+                  Thank you for your review!
                 </p>
-                <p className="mx-auto mt-1.5 max-w-xs text-[11px] text-[#ecfeff]/60">
-                  Your feedback helps others discover and trust this business.
+              </div>
+            ) : (
+              <form onSubmit={handleReviewSubmit}>
+                <div className="mb-5 flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-amber-300/20 bg-amber-300/[0.08]">
+                    <Star size={22} className="text-amber-300" />
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-bold text-white">
+                      Write a Review
+                    </h3>
+
+                    <p className="mt-1 text-sm text-slate-300">
+                      Share your experience with this business.
+                    </p>
+                  </div>
+                </div>
+
+                <label
+                  htmlFor="review-name"
+                  className="mb-2 block text-sm font-semibold text-slate-200"
+                >
+                  Your Name
+                </label>
+
+                <input
+                  id="review-name"
+                  required
+                  value={reviewData.name}
+                  onChange={(event) =>
+                    setReviewData({
+                      ...reviewData,
+                      name: event.target.value,
+                    })
+                  }
+                  placeholder="Enter your name"
+                  className="w-full rounded-xl border border-[#45414a] bg-[#101116] px-4 py-3.5 text-base text-white outline-none transition placeholder:text-slate-400 focus:border-amber-300/60 focus:ring-4 focus:ring-amber-300/[0.06]"
+                />
+
+                <p className="mb-3 mt-5 text-sm font-semibold text-slate-200">
+                  Your Rating
                 </p>
 
-                <button className="group mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#10b981] to-[#22d3ee] px-4 py-2.5 text-[11px] font-black uppercase tracking-wider text-[#061418] shadow-lg shadow-[#10b981]/30 transition hover:shadow-[#10b981]/50">
-                  <Zap size={12} className="fill-[#061418]" />
-                  Write a Review
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((number) => (
+                    <button
+                      key={number}
+                      type="button"
+                      onClick={() => setReviewRating(number)}
+                      aria-label={`Rate ${number} out of 5`}
+                      className="transition hover:scale-110"
+                    >
+                      <Star
+                        size={28}
+                        className={
+                          number <= reviewRating
+                            ? "fill-amber-300 text-amber-300"
+                            : "text-slate-500"
+                        }
+                      />
+                    </button>
+                  ))}
+                </div>
+
+                <label
+                  htmlFor="review-message"
+                  className="mb-2 mt-5 block text-sm font-semibold text-slate-200"
+                >
+                  Your Review
+                </label>
+
+                <textarea
+                  id="review-message"
+                  required
+                  rows={4}
+                  value={reviewData.review}
+                  onChange={(event) =>
+                    setReviewData({
+                      ...reviewData,
+                      review: event.target.value,
+                    })
+                  }
+                  placeholder="Tell us about your experience..."
+                  className="w-full resize-y rounded-xl border border-[#45414a] bg-[#101116] px-4 py-3.5 text-base leading-7 text-white outline-none transition placeholder:text-slate-400 focus:border-amber-300/60 focus:ring-4 focus:ring-amber-300/[0.06]"
+                />
+
+                <button
+                  type="submit"
+                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-300 to-orange-300 px-4 py-3.5 text-base font-bold text-[#201305] transition hover:brightness-110 active:scale-[0.99]"
+                >
+                  <Send size={17} />
+                  Submit Review
                 </button>
-              </div>
-            </div>
-          </Section>
-
-          {/* ---------- CTA FORM ---------- */}
-          <Section icon={Mail} title="Share Your Contact / Business Inquiry">
-            <div className="space-y-2.5">
-              <div className="grid grid-cols-2 gap-2.5">
-                <input
-                  placeholder="Your Name"
-                  className="w-full rounded-xl border border-[#22d3ee]/15 bg-white/[0.02] px-4 py-3 text-xs text-white placeholder:text-[#8fb3ba]/40 outline-none backdrop-blur transition focus:border-[#10b981]/60 focus:bg-white/[0.04] focus:shadow-lg focus:shadow-[#10b981]/10"
-                />
-                <input
-                  placeholder="Phone Number"
-                  className="w-full rounded-xl border border-[#22d3ee]/15 bg-white/[0.02] px-4 py-3 text-xs text-white placeholder:text-[#8fb3ba]/40 outline-none backdrop-blur transition focus:border-[#10b981]/60 focus:bg-white/[0.04] focus:shadow-lg focus:shadow-[#10b981]/10"
-                />
-              </div>
-              <input
-                placeholder="Email Address"
-                className="w-full rounded-xl border border-[#22d3ee]/15 bg-white/[0.02] px-4 py-3 text-xs text-white placeholder:text-[#8fb3ba]/40 outline-none backdrop-blur transition focus:border-[#10b981]/60 focus:bg-white/[0.04] focus:shadow-lg focus:shadow-[#10b981]/10"
-              />
-              <textarea
-                rows={3}
-                placeholder="Your Message"
-                className="w-full resize-none rounded-xl border border-[#22d3ee]/15 bg-white/[0.02] px-4 py-3 text-xs text-white placeholder:text-[#8fb3ba]/40 outline-none backdrop-blur transition focus:border-[#10b981]/60 focus:bg-white/[0.04] focus:shadow-lg focus:shadow-[#10b981]/10"
-              />
-              <button className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-[#10b981] to-[#22d3ee] py-3.5 text-xs font-black uppercase tracking-wider text-[#061418] shadow-xl shadow-[#10b981]/30 transition hover:shadow-[#10b981]/50">
-                <span className="relative z-10 flex items-center justify-center gap-2">
-                  <Zap size={13} className="fill-[#061418]" />
-                  Submit Inquiry
-                </span>
-                <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/50 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-              </button>
-            </div>
-          </Section>
-
-          {/* ---------- FOOTER ---------- */}
-          <div className="border-t border-[#22d3ee]/10 px-5 py-4 text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#22d3ee]/15 bg-white/[0.02] px-3 py-1.5 backdrop-blur">
-              <div className="flex h-5 w-5 items-center justify-center rounded-md bg-gradient-to-br from-[#10b981] to-[#22d3ee]">
-                <Eye size={10} className="text-[#061418]" />
-              </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#8fb3ba]">
-                Powered by biowebsite
-              </span>
-            </div>
+              </form>
+            )}
           </div>
-
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#22d3ee]/50 to-transparent" />
         </div>
-      </div>
+      )}
     </div>
   );
 };
 
-/* ==================== REUSABLE SECTION ==================== */
-const Section = ({ icon: Icon, title, action, children }) => (
-  <div className="border-t border-[#22d3ee]/10 px-5 py-5">
-    <div className="mb-3 flex items-center justify-between gap-2">
-      <h4 className="flex items-center gap-2 text-[11px] font-black uppercase tracking-wider text-[#22d3ee]/70">
-        <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[#10b981]/10">
-          <Icon size={12} className="text-[#22d3ee]" />
-        </div>
+/* =========================================================
+   REUSABLE COMPONENTS
+========================================================= */
+
+const ActionButton = ({
+  icon: Icon,
+  label,
+  onClick,
+  primary = false,
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={`group flex min-w-0 flex-col items-center justify-center gap-2.5 rounded-2xl border px-3 py-4 transition duration-200 hover:-translate-y-0.5 active:scale-[0.98] ${
+      primary
+        ? "border-emerald-400/30 bg-emerald-400/[0.10] hover:bg-emerald-400/[0.16]"
+        : "border-white/10 bg-white/[0.025] hover:border-amber-300/30 hover:bg-amber-300/[0.05]"
+    }`}
+  >
+    <span
+      className={`flex h-11 w-11 items-center justify-center rounded-xl transition ${
+        primary
+          ? "bg-emerald-400/15 text-emerald-300"
+          : "bg-amber-300/[0.08] text-amber-200 group-hover:bg-amber-300/[0.14]"
+      }`}
+    >
+      <Icon size={20} />
+    </span>
+
+    <span className="text-center text-sm font-semibold leading-5 text-white">
+      {label}
+    </span>
+  </button>
+);
+
+const ContactRow = ({ icon: Icon, label, value, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="group flex min-w-0 items-center gap-3 rounded-2xl border border-white/10 bg-[#17171c] p-4 text-left transition duration-200 hover:border-amber-300/30 hover:bg-[#202027] active:scale-[0.99]"
+  >
+    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-amber-300/15 bg-amber-300/[0.07] text-amber-200 transition group-hover:bg-amber-300/[0.12]">
+      <Icon size={19} />
+    </span>
+
+    <span className="min-w-0 flex-1">
+      <span className="block text-xs font-bold uppercase tracking-[0.1em] text-slate-400">
+        {label}
+      </span>
+
+      <span className="mt-1.5 block truncate text-sm font-semibold text-white sm:text-base">
+        {value}
+      </span>
+    </span>
+
+    <ChevronRight
+      size={18}
+      className="shrink-0 text-slate-500 transition group-hover:translate-x-0.5 group-hover:text-amber-200"
+    />
+  </button>
+);
+
+const WarmSection = ({ icon: Icon, title, action, children }) => (
+  <section className="border-t border-white/[0.08] px-5 py-5 sm:px-8 sm:py-6 lg:px-10">
+    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <h4 className="flex min-w-0 items-center gap-3 text-sm font-bold leading-6 tracking-wide text-white sm:text-base">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-300/20 bg-amber-300/[0.08]">
+          <Icon size={19} className="text-amber-300" />
+        </span>
+
         {title}
       </h4>
+
       {action}
     </div>
+
     {children}
-  </div>
+  </section>
 );
 
 export default Mini;

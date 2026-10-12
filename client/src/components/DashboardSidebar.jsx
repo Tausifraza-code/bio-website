@@ -42,7 +42,7 @@ const sidebarItems = [
     id: "themes",
     label: "Website Themes",
     icon: Palette,
-    path: "/dashboard",
+    path: "/theme",
     badge: { text: "5 Themes", color: "violet" },
   },
   {
@@ -81,11 +81,11 @@ const sidebarItems = [
 ];
 
 const badgeColors = {
-  amber: "border-amber-400/40 bg-amber-400/10 text-amber-300",
-  violet: "border-violet-400/40 bg-violet-400/10 text-violet-300",
-  slate: "border-white/20 bg-white/5 text-slate-300",
-  rose: "border-rose-400/40 bg-rose-400/10 text-rose-300",
-  emerald: "border-emerald-400/40 bg-emerald-400/10 text-emerald-300",
+  amber: "border-amber-300/25 bg-amber-300/10 text-amber-200",
+  violet: "border-violet-300/25 bg-violet-300/10 text-violet-200",
+  slate: "border-slate-300/20 bg-slate-300/10 text-slate-200",
+  rose: "border-rose-300/25 bg-rose-300/10 text-rose-200",
+  emerald: "border-emerald-300/25 bg-emerald-300/10 text-emerald-200",
 };
 
 const DashboardSidebar = ({
@@ -100,31 +100,47 @@ const DashboardSidebar = ({
   const location = useLocation();
 
   const handleNavigation = (item) => {
-    if (onNavClick) {
-      onNavClick(item.id);
-    }
-
+    onNavClick?.(item.id);
     navigate(item.path);
   };
 
   return (
     <aside
       className={`hidden shrink-0 lg:block ${
-        collapsed ? "w-[68px]" : "w-[260px] xl:w-[275px]"
-      } transition-all duration-300`}
+        collapsed ? "w-[76px]" : "w-[270px] xl:w-[285px]"
+      } transition-[width] duration-300`}
     >
-      <div className="sticky top-[92px] rounded-[24px] border border-emerald-500/15 bg-[#04140f]/80 p-3 shadow-xl shadow-black/30 backdrop-blur-xl">
-        {/* ---------- HEADER ---------- */}
+      <div
+        className={`sticky top-[92px] overflow-hidden rounded-[20px] border border-[#29435f] bg-[#0b1b30] p-2.5 shadow-[0_16px_45px_rgba(0,0,0,0.28)] ${
+          collapsed ? "px-2" : "sm:p-3"
+        }`}
+      >
+        {/* TOP ACCENT */}
+        <div className="absolute left-5 right-5 top-0 h-[2px] rounded-full bg-gradient-to-r from-transparent via-cyan-300 to-transparent opacity-80" />
+
+        {/* HEADER */}
         <div
           className={`mb-3 flex items-center ${
             collapsed ? "justify-center" : "justify-between"
           }`}
         >
           {!collapsed && (
-            <div className="px-2">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-300/80">
-                Navigation
-              </p>
+            <div className="flex items-center gap-2.5 px-1">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-300/10">
+                <MonitorSmartphone
+                  size={20}
+                  className="text-cyan-300"
+                />
+              </div>
+
+              <div>
+                <h2 className="text-base font-bold tracking-wide text-white">
+                  Workspace
+                </h2>
+                <p className="mt-0.5 text-xs text-slate-300">
+                  Manage your business
+                </p>
+              </div>
             </div>
           )}
 
@@ -133,23 +149,37 @@ const DashboardSidebar = ({
             onClick={onToggle}
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/5 text-emerald-300 transition hover:bg-emerald-500/10"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#38516e] bg-[#132942] text-slate-200 transition-all hover:border-cyan-300/50 hover:bg-[#193754] hover:text-cyan-200 active:scale-95"
           >
             {collapsed ? (
-              <ChevronRight size={16} />
+              <ChevronRight size={19} />
             ) : (
-              <ChevronLeft size={16} />
+              <ChevronLeft size={19} />
             )}
           </button>
         </div>
 
-        {/* ---------- MENU ---------- */}
+        {/* SECTION TITLE */}
+        {!collapsed && (
+          <div className="mb-2 flex items-center justify-between px-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
+              Main Navigation
+            </span>
+
+            <span className="rounded-md border border-[#38516e] bg-[#132942] px-2 py-0.5 text-xs font-semibold text-slate-200">
+              {sidebarItems.length}
+            </span>
+          </div>
+        )}
+
+        {/* NAVIGATION ITEMS */}
         <nav className="space-y-1">
           {sidebarItems.map((item) => {
             const Icon = item.icon;
 
             const active =
               location.pathname === item.path ||
+              location.pathname.startsWith(`${item.path}/`) ||
               (activeNavItem === item.id &&
                 location.pathname === item.path);
 
@@ -160,36 +190,46 @@ const DashboardSidebar = ({
                 onClick={() => handleNavigation(item)}
                 title={collapsed ? item.label : undefined}
                 aria-current={active ? "page" : undefined}
-                className={`group flex w-full items-center rounded-xl text-[13px] font-medium transition ${
+                className={`group relative flex w-full items-center rounded-xl border text-sm font-medium transition-all duration-200 ${
                   collapsed
-                    ? "justify-center px-0 py-3"
-                    : "gap-3 px-3 py-2.5"
+                    ? "justify-center px-0 py-2.5"
+                    : "gap-2.5 px-2.5 py-2"
                 } ${
                   active
-                    ? "bg-gradient-to-r from-emerald-400 to-cyan-500 text-[#04140f] shadow-lg shadow-emerald-500/25"
-                    : "text-slate-300 hover:bg-emerald-500/10 hover:text-white"
+                    ? "border-cyan-300/35 bg-gradient-to-r from-cyan-300/15 to-blue-400/[0.07] text-white shadow-[0_4px_15px_rgba(0,0,0,0.12)]"
+                    : "border-transparent bg-transparent text-slate-200 hover:border-[#38516e]/70 hover:bg-[#132942] hover:text-white"
                 }`}
               >
-                <Icon
-                  size={18}
-                  className={`shrink-0 ${
+                {/* ACTIVE INDICATOR */}
+                {active && (
+                  <span className="absolute bottom-1.5 left-0 top-1.5 w-[3px] rounded-r-full bg-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.5)]" />
+                )}
+
+                {/* ICON BOX */}
+                <span
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${
                     active
-                      ? "text-[#04140f]"
-                      : "text-emerald-300/70 group-hover:text-emerald-300"
+                      ? "bg-cyan-300/15 text-cyan-200"
+                      : "bg-[#132942] text-slate-300 group-hover:bg-[#1a3855] group-hover:text-cyan-200"
                   }`}
-                />
+                >
+                  <Icon
+                    size={19}
+                    strokeWidth={active ? 2.2 : 1.9}
+                  />
+                </span>
 
                 {!collapsed && (
                   <>
-                    <span className="flex-1 truncate text-left">
+                    <span className="min-w-0 flex-1 truncate text-left text-sm font-semibold">
                       {item.label}
                     </span>
 
                     {item.badge && (
                       <span
-                        className={`rounded-md border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${
+                        className={`shrink-0 rounded-md border px-1.5 py-0.5 text-[11px] font-bold ${
                           active
-                            ? "border-[#04140f]/30 bg-[#04140f]/20 text-[#04140f]"
+                            ? "border-cyan-300/25 bg-cyan-300/10 text-cyan-100"
                             : badgeColors[item.badge.color]
                         }`}
                       >
@@ -203,47 +243,75 @@ const DashboardSidebar = ({
           })}
         </nav>
 
-        {/* ---------- DIVIDER ---------- */}
-        <div className="my-3 h-px bg-emerald-500/15" />
+        {/* DIVIDER */}
+        <div className="my-3.5 h-px bg-gradient-to-r from-transparent via-[#38516e] to-transparent" />
 
-        {/* ---------- FOOTER ACTIONS ---------- */}
+        {/* QUICK ACTIONS */}
+        {!collapsed && (
+          <p className="mb-2 px-2 text-xs font-bold uppercase tracking-wider text-slate-300">
+            Quick Actions
+          </p>
+        )}
+
         <div className="space-y-1">
+          {/* PREVIEW */}
           <button
             type="button"
             onClick={() =>
               onPreview ? onPreview() : navigate("/preview")
             }
             title={collapsed ? "Open Preview" : undefined}
-            className={`flex w-full items-center rounded-xl text-[13px] font-medium text-slate-300 transition hover:bg-emerald-500/10 hover:text-white ${
+            className={`group flex w-full items-center rounded-xl border border-transparent text-sm font-semibold text-slate-200 transition-all hover:border-cyan-300/20 hover:bg-[#132942] hover:text-white ${
               collapsed
-                ? "justify-center px-0 py-3"
-                : "gap-3 px-3 py-2.5"
+                ? "justify-center px-0 py-2.5"
+                : "gap-2.5 px-2.5 py-2"
             }`}
           >
-            <ExternalLink
-              size={18}
-              className="shrink-0 text-emerald-300/70"
-            />
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#132942] text-cyan-200 transition-colors group-hover:bg-cyan-300/10">
+              <ExternalLink size={19} />
+            </span>
+
             {!collapsed && <span>Open Preview</span>}
           </button>
 
+          {/* LOGOUT */}
           <button
             type="button"
             onClick={onLogout}
             title={collapsed ? "Logout" : undefined}
-            className={`flex w-full items-center rounded-xl text-[13px] font-medium text-slate-300 transition hover:bg-red-500/10 hover:text-red-300 ${
+            className={`group flex w-full items-center rounded-xl border border-transparent text-sm font-semibold text-slate-200 transition-all hover:border-rose-300/20 hover:bg-rose-400/[0.08] hover:text-rose-200 ${
               collapsed
-                ? "justify-center px-0 py-3"
-                : "gap-3 px-3 py-2.5"
+                ? "justify-center px-0 py-2.5"
+                : "gap-2.5 px-2.5 py-2"
             }`}
           >
-            <LogOut
-              size={18}
-              className="shrink-0 text-red-300/70"
-            />
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#132942] text-rose-200 transition-colors group-hover:bg-rose-300/10">
+              <LogOut size={19} />
+            </span>
+
             {!collapsed && <span>Logout</span>}
           </button>
         </div>
+
+        {/* WORKSPACE FOOTER CARD */}
+        {!collapsed && (
+          <div className="mt-3.5 rounded-xl border border-[#38516e]/80 bg-gradient-to-br from-[#132942] to-[#0d2037] p-2.5">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-cyan-300/20 bg-cyan-300/10">
+                <span className="h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_8px_rgba(34,211,238,0.5)]" />
+              </div>
+
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold text-white">
+                  BioWebsite Workspace
+                </p>
+                <p className="mt-0.5 text-xs text-slate-300">
+                  Your business, your identity.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </aside>
   );
