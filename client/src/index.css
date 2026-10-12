@@ -83,6 +83,12 @@ select:focus-visible {
   --accent-strong: #10b981;
   --header-bg: rgba(6, 20, 24, 0.85);
 
+  /* Dashboard tokens */
+  --dash-bg: #061418;
+  --dash-surface: #0c1f24;
+  --dash-surface-raised: #122e35;
+  --dash-border: rgba(34, 211, 238, 0.12);
+
   color-scheme: dark;
 }
 
@@ -100,6 +106,12 @@ select:focus-visible {
   --accent: #0891b2;
   --accent-strong: #059669;
   --header-bg: rgba(240, 253, 249, 0.88);
+
+  /* Dashboard tokens */
+  --dash-bg: #f0fdf9;
+  --dash-surface: #ffffff;
+  --dash-surface-raised: #ecfeff;
+  --dash-border: rgba(6, 95, 70, 0.14);
 
   color-scheme: light;
 }
@@ -149,7 +161,6 @@ body {
   color: #10b981;
 }
 
-/* Primary buttons */
 .hero-section a[href="/register"],
 .hero-section a[href="/preview"] {
   background-color: #10b981;
@@ -163,7 +174,6 @@ body {
   border-color: #059669;
 }
 
-/* Business card */
 .hero-section .hero-card {
   background-color: #0c1f24;
   border-color: rgba(34, 211, 238, 0.22);
@@ -215,7 +225,6 @@ body {
   color: #4b6b70 !important;
 }
 
-/* Light mode hero card */
 :root[data-theme="light"] .hero-section .hero-card,
 [data-theme="light"] .hero-section .hero-card,
 .theme-light .hero-section .hero-card,
@@ -233,7 +242,6 @@ body {
   border-color: rgba(6, 95, 70, 0.18) !important;
 }
 
-/* Card text */
 :root[data-theme="light"] .hero-section .hero-card h2,
 :root[data-theme="light"] .hero-section .hero-card h3,
 [data-theme="light"] .hero-section .hero-card h2,
@@ -252,7 +260,6 @@ body {
   color: #4b6b70 !important;
 }
 
-/* Primary buttons in light hero */
 :root[data-theme="light"] .hero-section a[href="/register"],
 :root[data-theme="light"] .hero-section a[href="/preview"],
 [data-theme="light"] .hero-section a[href="/register"],
@@ -278,7 +285,6 @@ body {
   border-color: #059669 !important;
 }
 
-/* Secondary login button */
 :root[data-theme="light"] .hero-section a[href="/login"],
 [data-theme="light"] .hero-section a[href="/login"],
 .theme-light .hero-section a[href="/login"],
@@ -296,7 +302,6 @@ body {
   border-color: rgba(6, 95, 70, 0.40) !important;
 }
 
-/* Trust pills */
 :root[data-theme="light"] .hero-section .group,
 [data-theme="light"] .hero-section .group,
 .theme-light .hero-section .group,
@@ -384,6 +389,79 @@ body {
 .contact-section select:focus {
   border-color: #10b981 !important;
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18) !important;
+}
+
+/* =========================================
+   DASHBOARD LAYOUT — OUTER SHELL / HEADER / SIDEBAR
+   (Kills old navy/black, applies emerald+cyan)
+========================================= */
+
+/* Outer page background (dashboard shell) */
+.min-h-screen.bg-\[\#080b18\],
+.min-h-screen.bg-\[\#0a0f1f\],
+.min-h-screen.bg-\[\#0d1426\],
+[data-dashboard-shell] {
+  background-color: var(--dash-bg) !important;
+}
+
+/* Header bar */
+.app-shell header,
+header[data-dashboard-header],
+header.sticky.bg-\[\#080b18\],
+header.sticky.bg-\[\#0d1426\] {
+  background-color: var(--dash-surface) !important;
+  border-color: var(--dash-border) !important;
+}
+
+/* Sidebar / nav panel */
+.app-shell aside,
+aside[data-dashboard-sidebar],
+aside.bg-\[\#080b18\],
+aside.bg-\[\#0d1426\] {
+  background-color: var(--dash-surface) !important;
+  border-color: var(--dash-border) !important;
+}
+
+/* Main content area */
+.app-shell main {
+  background-color: var(--dash-bg);
+}
+
+/* Dashboard inner cards (broad override) */
+.app-shell main section {
+  border-color: var(--dash-border);
+}
+
+/* Common old navy values → new tokens */
+.app-shell .bg-\[\#080b18\] { background-color: var(--dash-bg) !important; }
+.app-shell .bg-\[\#0a0f1f\] { background-color: var(--dash-bg) !important; }
+.app-shell .bg-\[\#0d1426\] { background-color: var(--dash-surface) !important; }
+.app-shell .bg-\[\#101629\] { background-color: var(--dash-surface) !important; }
+.app-shell .bg-\[\#0c1f24\] { background-color: var(--dash-surface) !important; }
+.app-shell .bg-\[\#122e35\] { background-color: var(--dash-surface-raised) !important; }
+.app-shell .bg-\[\#151d33\] { background-color: var(--dash-surface-raised) !important; }
+
+/* Old violet brand colors → emerald */
+.app-shell .bg-\[\#5448ea\] { background-color: #10b981 !important; }
+.app-shell .bg-\[\#5b51ef\] { background-color: #10b981 !important; }
+.app-shell .bg-\[\#6257ef\] { background-color: #059669 !important; }
+.app-shell .text-\[\#8b82ff\] { color: #22d3ee !important; }
+.app-shell .text-\[\#5448ea\] { color: #10b981 !important; }
+.app-shell .border-\[\#5448ea\] { border-color: #10b981 !important; }
+.app-shell .bg-\[\#5448ea\]\/10 { background-color: rgba(16, 185, 129, 0.10) !important; }
+.app-shell .bg-\[\#5448ea\]\/15 { background-color: rgba(16, 185, 129, 0.15) !important; }
+.app-shell .bg-\[\#5448ea\]\/20 { background-color: rgba(16, 185, 129, 0.20) !important; }
+.app-shell .border-\[\#5448ea\]\/20 { border-color: rgba(16, 185, 129, 0.20) !important; }
+
+/* Old hover state (violet 6257ef) */
+.app-shell .hover\:bg-\[\#6257ef\]:hover { background-color: #059669 !important; }
+
+/* Input focus rings in dashboard */
+.app-shell main input:focus,
+.app-shell main textarea:focus,
+.app-shell main select:focus {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
 }
 
 /* =========================================

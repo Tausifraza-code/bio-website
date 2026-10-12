@@ -1,9 +1,4 @@
-import React, {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   Sparkles,
@@ -45,19 +40,19 @@ import ContactItem from "../components/ContactItem";
 
 const themes = [
   {
-    id: "violet",
-    name: "Violet",
-    color: "#7c3aed",
+    id: "green",
+    name: "Emerald",
+    color: "#10b981",
+  },
+  {
+    id: "cyan",
+    name: "Ocean Cyan",
+    color: "#06b6d4",
   },
   {
     id: "blue",
-    name: "Ocean",
+    name: "Royal",
     color: "#2563eb",
-  },
-  {
-    id: "green",
-    name: "Emerald",
-    color: "#059669",
   },
   {
     id: "orange",
@@ -67,20 +62,20 @@ const themes = [
 ];
 
 const themeConfigs = {
-  violet: {
-    primary: "#7c3aed",
-    secondary: "#a78bfa",
-    light: "#ede9fe",
+  green: {
+    primary: "#10b981",
+    secondary: "#34d399",
+    light: "#d1fae5",
+  },
+  cyan: {
+    primary: "#06b6d4",
+    secondary: "#22d3ee",
+    light: "#cffafe",
   },
   blue: {
     primary: "#2563eb",
     secondary: "#60a5fa",
     light: "#dbeafe",
-  },
-  green: {
-    primary: "#059669",
-    secondary: "#34d399",
-    light: "#d1fae5",
   },
   orange: {
     primary: "#ea580c",
@@ -90,15 +85,12 @@ const themeConfigs = {
 };
 
 const Dashboard = () => {
-  const {
-    showToast,
-    showCardActionNotice,
-  } = useOutletContext();
+  const { showToast, showCardActionNotice } = useOutletContext();
 
   const [selectedPlan, setSelectedPlan] = useState("pro");
 
   const [activeTheme, setActiveTheme] = useState(() => {
-    return localStorage.getItem("bio-active-theme") || "violet";
+    return localStorage.getItem("bio-active-theme") || "green";
   });
 
   const [previewMode, setPreviewMode] = useState(false);
@@ -116,9 +108,7 @@ const Dashboard = () => {
         return JSON.parse(saved);
       }
 
-      const registered = localStorage.getItem(
-        "bio-registered-user"
-      );
+      const registered = localStorage.getItem("bio-registered-user");
 
       if (registered) {
         const user = JSON.parse(registered);
@@ -135,10 +125,7 @@ const Dashboard = () => {
         };
       }
     } catch (error) {
-      console.error(
-        "Unable to load contact information:",
-        error
-      );
+      console.error("Unable to load contact information:", error);
     }
 
     return {
@@ -159,9 +146,7 @@ const Dashboard = () => {
 
   const [reviewsList, setReviewsList] = useState(() => {
     try {
-      const saved = localStorage.getItem(
-        "bio-customer-reviews"
-      );
+      const saved = localStorage.getItem("bio-customer-reviews");
 
       return saved ? JSON.parse(saved) : [];
     } catch {
@@ -178,9 +163,7 @@ const Dashboard = () => {
 
   const registeredUser = useMemo(() => {
     try {
-      const saved = localStorage.getItem(
-        "bio-registered-user"
-      );
+      const saved = localStorage.getItem("bio-registered-user");
 
       return saved ? JSON.parse(saved) : null;
     } catch {
@@ -201,7 +184,7 @@ const Dashboard = () => {
 
     const total = reviewsList.reduce(
       (sum, review) => sum + Number(review.rating || 0),
-      0
+      0,
     );
 
     return (total / reviewsList.length).toFixed(1);
@@ -209,28 +192,18 @@ const Dashboard = () => {
 
   const amount = selectedPlan === "pro" ? 999 : 499;
 
-  const currentThemeConfig =
-    themeConfigs[activeTheme] || themeConfigs.violet;
+  const currentThemeConfig = themeConfigs[activeTheme] || themeConfigs.green;
 
   useEffect(() => {
-    localStorage.setItem(
-      "bio-active-theme",
-      activeTheme
-    );
+    localStorage.setItem("bio-active-theme", activeTheme);
   }, [activeTheme]);
 
   useEffect(() => {
-    localStorage.setItem(
-      "bio-contact-info",
-      JSON.stringify(contactInfo)
-    );
+    localStorage.setItem("bio-contact-info", JSON.stringify(contactInfo));
   }, [contactInfo]);
 
   useEffect(() => {
-    localStorage.setItem(
-      "bio-customer-reviews",
-      JSON.stringify(reviewsList)
-    );
+    localStorage.setItem("bio-customer-reviews", JSON.stringify(reviewsList));
   }, [reviewsList]);
 
   const handleReviewSubmit = (event) => {
@@ -249,10 +222,7 @@ const Dashboard = () => {
       createdAt: new Date().toISOString(),
     };
 
-    setReviewsList((previous) => [
-      newReview,
-      ...previous,
-    ]);
+    setReviewsList((previous) => [newReview, ...previous]);
 
     setReviewName("");
     setReviewRating(5);
@@ -262,9 +232,7 @@ const Dashboard = () => {
   };
 
   const handleDeleteReview = (id) => {
-    setReviewsList((previous) =>
-      previous.filter((review) => review.id !== id)
-    );
+    setReviewsList((previous) => previous.filter((review) => review.id !== id));
 
     showToast?.("Review deleted.");
   };
@@ -272,11 +240,7 @@ const Dashboard = () => {
   const handleInquirySubmit = (event) => {
     event.preventDefault();
 
-    if (
-      !inquiryName.trim() ||
-      !inquiryPhone.trim() ||
-      !inquiryMessage.trim()
-    ) {
+    if (!inquiryName.trim() || !inquiryPhone.trim() || !inquiryMessage.trim()) {
       showToast?.("Please complete the inquiry form.");
       return;
     }
@@ -292,7 +256,7 @@ const Dashboard = () => {
     ].join("\n");
 
     const url = `https://web.whatsapp.com/send?text=${encodeURIComponent(
-      text
+      text,
     )}`;
 
     window.open(url, "_blank");
@@ -349,10 +313,7 @@ const Dashboard = () => {
 
     reader.onload = () => {
       try {
-        localStorage.setItem(
-          "bio-profile-image",
-          reader.result
-        );
+        localStorage.setItem("bio-profile-image", reader.result);
 
         showToast?.("Profile photo updated.");
       } catch {
@@ -369,17 +330,11 @@ const Dashboard = () => {
           MOBILE QUICK NAV
       ===================================================== */}
       <div className="flex gap-2 overflow-x-auto pb-1 lg:hidden">
-        {[
-          "Overview",
-          "Profile",
-          "Themes",
-          "Preview",
-          "QR Code",
-        ].map((item) => (
+        {["Overview", "Profile", "Themes", "Preview", "QR Code"].map((item) => (
           <button
             key={item}
             type="button"
-            className="shrink-0 rounded-xl bg-[#5448ea] px-4 py-2.5 text-xs font-semibold text-white"
+            className="shrink-0 rounded-xl bg-[#10b981] px-4 py-2.5 text-xs font-semibold text-white"
           >
             {item}
           </button>
@@ -391,17 +346,14 @@ const Dashboard = () => {
       ===================================================== */}
       <section
         id="dashboard-overview"
-        className="rounded-[26px] border border-white/10 bg-[#0d1426] p-5 sm:p-6"
+        className="rounded-[26px] border border-white/10 bg-[#0c1f24] p-5 sm:p-6"
       >
         <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
           <div>
             <div className="mb-2 flex items-center gap-2">
-              <Sparkles
-                size={17}
-                className="text-[#8b82ff]"
-              />
+              <Sparkles size={17} className="text-[#22d3ee]" />
 
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8b82ff]">
+              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#22d3ee]">
                 Digital Business Card
               </span>
             </div>
@@ -411,21 +363,13 @@ const Dashboard = () => {
             </h1>
 
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-              Manage your profile, theme, contact details,
-              reviews and QR code from one dashboard.
+              Manage your profile, theme, contact details, reviews and QR code
+              from one dashboard.
             </p>
           </div>
 
-          <div className="shrink-0 rounded-2xl border border-[#5448ea]/20 bg-[#5448ea]/10 p-4">
+          <div className="shrink-0 rounded-2xl border border-[#10b981]/20 bg-[#10b981]/10 p-4">
             <div className="flex items-center gap-3">
-              {/* <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#5448ea]">
-                {isActivated ? (
-                  <CheckCircle2 size={20} />
-                ) : (
-                  <CreditCardIcon />
-                )}
-              </div> */}
-
               <div>
                 <p className="text-xs font-medium text-slate-400">
                   Current plan
@@ -435,8 +379,8 @@ const Dashboard = () => {
                   {isActivated
                     ? "Activated"
                     : selectedPlan === "pro"
-                    ? "Pro Plan"
-                    : "Basic Plan"}
+                      ? "Pro Plan"
+                      : "Basic Plan"}
                 </p>
               </div>
             </div>
@@ -461,7 +405,7 @@ const Dashboard = () => {
                 onClick={() => setSelectedPlan("basic")}
                 className={`rounded-xl border px-4 py-2.5 text-xs font-semibold transition ${
                   selectedPlan === "basic"
-                    ? "border-[#5448ea] bg-[#5448ea]/15 text-white"
+                    ? "border-[#10b981] bg-[#10b981]/15 text-white"
                     : "border-white/10 bg-white/5 text-slate-400"
                 }`}
               >
@@ -473,7 +417,7 @@ const Dashboard = () => {
                 onClick={() => setSelectedPlan("pro")}
                 className={`rounded-xl border px-4 py-2.5 text-xs font-semibold transition ${
                   selectedPlan === "pro"
-                    ? "border-[#5448ea] bg-[#5448ea]/15 text-white"
+                    ? "border-[#10b981] bg-[#10b981]/15 text-white"
                     : "border-white/10 bg-white/5 text-slate-400"
                 }`}
               >
@@ -484,11 +428,9 @@ const Dashboard = () => {
                 type="button"
                 onClick={() => {
                   setIsActivated(true);
-                  showToast?.(
-                    `Plan selected for ₹${amount}.`
-                  );
+                  showToast?.(`Plan selected for ₹${amount}.`);
                 }}
-                className="rounded-xl bg-[#5448ea] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#6257ef]"
+                className="rounded-xl bg-[#10b981] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#059669]"
               >
                 Activate
               </button>
@@ -506,14 +448,11 @@ const Dashboard = () => {
       {/* =====================================================
           STANDEE
       ===================================================== */}
-      <section className="rounded-[26px] border border-white/10 bg-[#0d1426] p-5 sm:p-6">
+      <section className="rounded-[26px] border border-white/10 bg-[#0c1f24] p-5 sm:p-6">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <QrCode
-                size={18}
-                className="text-[#8b82ff]"
-              />
+              <QrCode size={18} className="text-[#22d3ee]" />
 
               <h2 className="text-base font-bold text-white">
                 Connect Standee
@@ -529,17 +468,15 @@ const Dashboard = () => {
             <input
               type="text"
               value={standeeCode}
-              onChange={(event) =>
-                setStandeeCode(event.target.value)
-              }
+              onChange={(event) => setStandeeCode(event.target.value)}
               placeholder="Enter standee code"
-              className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 focus:border-[#5448ea]/50"
+              className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 focus:border-[#10b981]/50"
             />
 
             <button
               type="button"
               onClick={handleStandee}
-              className="rounded-xl bg-[#5448ea] px-4 py-3 text-xs font-bold text-white transition hover:bg-[#6257ef]"
+              className="rounded-xl bg-[#10b981] px-4 py-3 text-xs font-bold text-white transition hover:bg-[#059669]"
             >
               Connect
             </button>
@@ -552,11 +489,11 @@ const Dashboard = () => {
       ===================================================== */}
       <section
         id="dashboard-profile"
-        className="scroll-mt-28 rounded-[26px] border border-white/10 bg-[#0d1426] p-5 sm:p-6"
+        className="scroll-mt-28 rounded-[26px] border border-white/10 bg-[#0c1f24] p-5 sm:p-6"
       >
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8b82ff]">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#22d3ee]">
               Profile
             </p>
 
@@ -568,7 +505,7 @@ const Dashboard = () => {
           <button
             type="button"
             onClick={() => showToast?.("Profile saved.")}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#5448ea] px-4 py-2.5 text-xs font-bold text-white"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#10b981] px-4 py-2.5 text-xs font-bold text-white"
           >
             <Save size={15} />
             Save Changes
@@ -581,21 +518,17 @@ const Dashboard = () => {
               <div className="relative">
                 <img
                   src={
-                    localStorage.getItem(
-                      "bio-profile-image"
-                    ) ||
+                    localStorage.getItem("bio-profile-image") ||
                     "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80"
                   }
                   alt="Profile"
-                  className="h-28 w-28 rounded-full border-4 border-[#5448ea]/30 object-cover"
+                  className="h-28 w-28 rounded-full border-4 border-[#10b981]/30 object-cover"
                 />
 
                 <button
                   type="button"
-                  onClick={() =>
-                    fileInputRef.current?.click()
-                  }
-                  className="absolute bottom-0 right-0 flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-[#5448ea] text-white shadow-lg"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute bottom-0 right-0 flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-[#10b981] text-white shadow-lg"
                 >
                   <Upload size={15} />
                 </button>
@@ -609,9 +542,7 @@ const Dashboard = () => {
                 />
               </div>
 
-              <p className="mt-4 text-sm font-bold text-white">
-                Profile Photo
-              </p>
+              <p className="mt-4 text-sm font-bold text-white">Profile Photo</p>
 
               <p className="mt-1 text-[11px] leading-5 text-slate-500">
                 JPG, PNG or WEBP
@@ -662,10 +593,7 @@ const Dashboard = () => {
                 placeholder: "Business address",
               },
             ].map((item) => (
-              <label
-                key={item.field}
-                className="block"
-              >
+              <label key={item.field} className="block">
                 <span className="mb-2 block text-xs font-semibold text-slate-400">
                   {item.label}
                 </span>
@@ -674,13 +602,10 @@ const Dashboard = () => {
                   type="text"
                   value={contactInfo[item.field] || ""}
                   onChange={(event) =>
-                    updateContactField(
-                      item.field,
-                      event.target.value
-                    )
+                    updateContactField(item.field, event.target.value)
                   }
                   placeholder={item.placeholder}
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 focus:border-[#5448ea]/50"
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 focus:border-[#10b981]/50"
                 />
               </label>
             ))}
@@ -693,41 +618,32 @@ const Dashboard = () => {
       ===================================================== */}
       <section
         id="dashboard-themes"
-        className="scroll-mt-28 rounded-[26px] border border-white/10 bg-[#0d1426] p-5 sm:p-6"
+        className="scroll-mt-28 rounded-[26px] border border-white/10 bg-[#0c1f24] p-5 sm:p-6"
       >
         <div className="mb-5">
           <div className="flex items-center gap-2">
-            <Palette
-              size={18}
-              className="text-[#8b82ff]"
-            />
+            <Palette size={18} className="text-[#22d3ee]" />
 
-            <h2 className="text-lg font-black text-white">
-              Choose your theme
-            </h2>
+            <h2 className="text-lg font-black text-white">Choose your theme</h2>
           </div>
 
           <p className="mt-1 text-xs text-slate-500">
-            Your selected theme will be applied to the digital
-            visiting card.
+            Your selected theme will be applied to the digital visiting card.
           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {themes.map((theme) => {
-            const selected =
-              activeTheme === theme.id;
+            const selected = activeTheme === theme.id;
 
             return (
               <button
                 key={theme.id}
                 type="button"
-                onClick={() =>
-                  handleThemeSelect(theme.id)
-                }
+                onClick={() => handleThemeSelect(theme.id)}
                 className={`rounded-2xl border p-3 text-left transition ${
                   selected
-                    ? "border-[#5448ea] bg-[#5448ea]/10"
+                    ? "border-[#10b981] bg-[#10b981]/10"
                     : "border-white/10 bg-white/[0.03] hover:bg-white/[0.06]"
                 }`}
               >
@@ -744,10 +660,7 @@ const Dashboard = () => {
                   </span>
 
                   {selected && (
-                    <CheckCircle2
-                      size={16}
-                      className="text-[#8b82ff]"
-                    />
+                    <CheckCircle2 size={16} className="text-[#22d3ee]" />
                   )}
                 </div>
               </button>
@@ -761,7 +674,7 @@ const Dashboard = () => {
       ===================================================== */}
       <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8b82ff]">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#22d3ee]">
             Live Preview
           </p>
 
@@ -782,10 +695,8 @@ const Dashboard = () => {
 
           <button
             type="button"
-            onClick={() =>
-              (window.location.href = "/preview")
-            }
-            className="inline-flex items-center gap-2 rounded-xl bg-[#5448ea] px-3 py-2.5 text-xs font-bold text-white"
+            onClick={() => (window.location.href = "/preview")}
+            className="inline-flex items-center gap-2 rounded-xl bg-[#10b981] px-3 py-2.5 text-xs font-bold text-white"
           >
             <Eye size={15} />
             Open Preview
@@ -797,7 +708,7 @@ const Dashboard = () => {
           DIGITAL CARD
       ===================================================== */}
       <section
-        className="overflow-hidden rounded-[30px] border border-white/10 bg-[#0d1426] shadow-2xl"
+        className="overflow-hidden rounded-[30px] border border-white/10 bg-[#0c1f24] shadow-2xl"
         style={{
           boxShadow: `0 20px 70px ${currentThemeConfig.primary}15`,
         }}
@@ -809,19 +720,16 @@ const Dashboard = () => {
             className="h-full w-full object-cover"
           />
 
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0d1426] via-[#0d1426]/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0c1f24] via-[#0c1f24]/30 to-transparent" />
 
           <div className="absolute right-4 top-4">
             <span
               className="rounded-full px-3 py-1.5 text-[10px] font-bold text-white"
               style={{
-                backgroundColor:
-                  currentThemeConfig.primary,
+                backgroundColor: currentThemeConfig.primary,
               }}
             >
-              {isActivated
-                ? "ACTIVE"
-                : "PREVIEW"}
+              {isActivated ? "ACTIVE" : "PREVIEW"}
             </span>
           </div>
         </div>
@@ -831,19 +739,15 @@ const Dashboard = () => {
             <div className="flex items-end gap-4">
               <img
                 src={
-                  localStorage.getItem(
-                    "bio-profile-image"
-                  ) ||
+                  localStorage.getItem("bio-profile-image") ||
                   "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80"
                 }
                 alt={ownerName}
-                className="h-28 w-28 rounded-3xl border-4 border-[#0d1426] object-cover shadow-xl"
+                className="h-28 w-28 rounded-3xl border-4 border-[#0c1f24] object-cover shadow-xl"
               />
 
               <div className="pb-1">
-                <h3 className="text-xl font-black text-white">
-                  {ownerName}
-                </h3>
+                <h3 className="text-xl font-black text-white">{ownerName}</h3>
 
                 <p className="mt-1 text-xs text-slate-500">
                   Digital Business Profile
@@ -855,9 +759,7 @@ const Dashboard = () => {
               <button
                 type="button"
                 onClick={() =>
-                  showCardActionNotice?.(
-                    "Profile shared successfully."
-                  )
+                  showCardActionNotice?.("Profile shared successfully.")
                 }
                 className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10"
               >
@@ -905,9 +807,9 @@ const Dashboard = () => {
                 if (contactInfo.address) {
                   window.open(
                     `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                      contactInfo.address
+                      contactInfo.address,
                     )}`,
-                    "_blank"
+                    "_blank",
                   );
                 }
               }}
@@ -919,12 +821,9 @@ const Dashboard = () => {
               value={contactInfo.website}
               onClick={() => {
                 if (contactInfo.website) {
-                  const url =
-                    contactInfo.website.startsWith(
-                      "http"
-                    )
-                      ? contactInfo.website
-                      : `https://${contactInfo.website}`;
+                  const url = contactInfo.website.startsWith("http")
+                    ? contactInfo.website
+                    : `https://${contactInfo.website}`;
 
                   window.open(url, "_blank");
                 }
@@ -939,41 +838,31 @@ const Dashboard = () => {
       ===================================================== */}
       <section
         id="dashboard-about"
-        className="rounded-[26px] border border-white/10 bg-[#0d1426] p-5 sm:p-6"
+        className="rounded-[26px] border border-white/10 bg-[#0c1f24] p-5 sm:p-6"
       >
         <div className="flex items-center gap-2">
-          <Building2
-            size={18}
-            className="text-[#8b82ff]"
-          />
+          <Building2 size={18} className="text-[#22d3ee]" />
 
-          <h2 className="text-lg font-black text-white">
-            About business
-          </h2>
+          <h2 className="text-lg font-black text-white">About business</h2>
         </div>
 
         <p className="mt-4 max-w-4xl text-sm leading-7 text-slate-400">
-          Welcome to our digital business profile. Add your
-          business information, services, products and contact
-          details so your customers can easily connect with you.
+          Welcome to our digital business profile. Add your business
+          information, services, products and contact details so your customers
+          can easily connect with you.
         </p>
       </section>
 
       {/* =====================================================
           PRODUCTS
       ===================================================== */}
-      <section className="rounded-[26px] border border-white/10 bg-[#0d1426] p-5 sm:p-6">
+      <section className="rounded-[26px] border border-white/10 bg-[#0c1f24] p-5 sm:p-6">
         <div className="mb-5 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <ShoppingBag
-                size={18}
-                className="text-[#8b82ff]"
-              />
+              <ShoppingBag size={18} className="text-[#22d3ee]" />
 
-              <h2 className="text-lg font-black text-white">
-                Products
-              </h2>
+              <h2 className="text-lg font-black text-white">Products</h2>
             </div>
 
             <p className="mt-1 text-xs text-slate-500">
@@ -983,9 +872,7 @@ const Dashboard = () => {
 
           <button
             type="button"
-            onClick={() =>
-              showToast?.("Product editor opened.")
-            }
+            onClick={() => showToast?.("Product editor opened.")}
             className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10"
           >
             <Plus size={17} />
@@ -993,10 +880,7 @@ const Dashboard = () => {
         </div>
 
         <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-8 text-center">
-          <ShoppingBag
-            size={28}
-            className="mx-auto text-slate-600"
-          />
+          <ShoppingBag size={28} className="mx-auto text-slate-600" />
 
           <p className="mt-3 text-sm font-semibold text-slate-300">
             No products added yet
@@ -1011,11 +895,9 @@ const Dashboard = () => {
       {/* =====================================================
           CONTACT DETAILS
       ===================================================== */}
-      <section className="rounded-[26px] border border-white/10 bg-[#0d1426] p-5 sm:p-6">
+      <section className="rounded-[26px] border border-white/10 bg-[#0c1f24] p-5 sm:p-6">
         <div className="mb-5">
-          <h2 className="text-lg font-black text-white">
-            Contact details
-          </h2>
+          <h2 className="text-lg font-black text-white">Contact details</h2>
 
           <p className="mt-1 text-xs text-slate-500">
             These details are shown on your public profile.
@@ -1023,35 +905,9 @@ const Dashboard = () => {
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <ContactItem
-            icon={Phone}
-            label="Phone"
-            value={contactInfo.phone}
-          />
+          <ContactItem icon={Phone} label="Phone" value={contactInfo.phone} />
 
-          <ContactItem
-            icon={Mail}
-            label="Email"
-            value={contactInfo.email}
-          />
-
-          {/* <ContactItem
-            icon={Instagram}
-            label="Instagram"
-            value={contactInfo.instagram}
-          /> */}
-
-          {/* <ContactItem
-            icon={Facebook}
-            label="Facebook"
-            value={contactInfo.facebook}
-          /> */}
-
-          {/* <ContactItem
-            icon={Linkedin}
-            label="LinkedIn"
-            value={contactInfo.linkedin}
-          /> */}
+          <ContactItem icon={Mail} label="Email" value={contactInfo.email} />
 
           <ContactItem
             icon={MapPin}
@@ -1064,14 +920,11 @@ const Dashboard = () => {
       {/* =====================================================
           REVIEWS
       ===================================================== */}
-      <section className="rounded-[26px] border border-white/10 bg-[#0d1426] p-5 sm:p-6">
+      <section className="rounded-[26px] border border-white/10 bg-[#0c1f24] p-5 sm:p-6">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <Star
-                size={18}
-                className="text-yellow-400"
-              />
+              <Star size={18} className="text-yellow-400" />
 
               <h2 className="text-lg font-black text-white">
                 Customer Reviews
@@ -1104,10 +957,7 @@ const Dashboard = () => {
           <div className="space-y-3">
             {reviewsList.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-white/10 p-7 text-center">
-                <Star
-                  size={28}
-                  className="mx-auto text-slate-700"
-                />
+                <Star size={28} className="mx-auto text-slate-700" />
 
                 <p className="mt-3 text-sm font-semibold text-slate-400">
                   No customer reviews yet
@@ -1126,28 +976,23 @@ const Dashboard = () => {
                       </p>
 
                       <div className="mt-1 flex gap-0.5">
-                        {[1, 2, 3, 4, 5].map(
-                          (star) => (
-                            <Star
-                              key={star}
-                              size={13}
-                              className={
-                                star <=
-                                Number(review.rating)
-                                  ? "fill-yellow-400 text-yellow-400"
-                                  : "text-slate-700"
-                              }
-                            />
-                          )
-                        )}
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            size={13}
+                            className={
+                              star <= Number(review.rating)
+                                ? "fill-yellow-400 text-yellow-400"
+                                : "text-slate-700"
+                            }
+                          />
+                        ))}
                       </div>
                     </div>
 
                     <button
                       type="button"
-                      onClick={() =>
-                        handleDeleteReview(review.id)
-                      }
+                      onClick={() => handleDeleteReview(review.id)}
                       className="text-slate-600 transition hover:text-red-400"
                     >
                       <Trash2 size={15} />
@@ -1166,17 +1011,13 @@ const Dashboard = () => {
             onSubmit={handleReviewSubmit}
             className="rounded-2xl border border-white/10 bg-white/[0.03] p-4"
           >
-            <p className="text-sm font-bold text-white">
-              Add Review
-            </p>
+            <p className="text-sm font-bold text-white">Add Review</p>
 
             <div className="mt-4">
               <input
                 type="text"
                 value={reviewName}
-                onChange={(event) =>
-                  setReviewName(event.target.value)
-                }
+                onChange={(event) => setReviewName(event.target.value)}
                 placeholder="Customer name"
                 className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm text-white outline-none placeholder:text-slate-600"
               />
@@ -1203,9 +1044,7 @@ const Dashboard = () => {
 
             <textarea
               value={reviewMessage}
-              onChange={(event) =>
-                setReviewMessage(event.target.value)
-              }
+              onChange={(event) => setReviewMessage(event.target.value)}
               rows={4}
               placeholder="Write customer review..."
               className="mt-3 w-full resize-none rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm text-white outline-none placeholder:text-slate-600"
@@ -1213,7 +1052,7 @@ const Dashboard = () => {
 
             <button
               type="submit"
-              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#5448ea] px-4 py-3 text-xs font-bold text-white"
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#10b981] px-4 py-3 text-xs font-bold text-white"
             >
               <Send size={14} />
               Add Review
@@ -1225,17 +1064,12 @@ const Dashboard = () => {
       {/* =====================================================
           INQUIRY
       ===================================================== */}
-      <section className="rounded-[26px] border border-white/10 bg-[#0d1426] p-5 sm:p-6">
+      <section className="rounded-[26px] border border-white/10 bg-[#0c1f24] p-5 sm:p-6">
         <div className="mb-5">
           <div className="flex items-center gap-2">
-            <MessageCircle
-              size={18}
-              className="text-[#8b82ff]"
-            />
+            <MessageCircle size={18} className="text-[#22d3ee]" />
 
-            <h2 className="text-lg font-black text-white">
-              Customer Inquiry
-            </h2>
+            <h2 className="text-lg font-black text-white">Customer Inquiry</h2>
           </div>
 
           <p className="mt-1 text-xs text-slate-500">
@@ -1250,9 +1084,7 @@ const Dashboard = () => {
           <input
             type="text"
             value={inquiryName}
-            onChange={(event) =>
-              setInquiryName(event.target.value)
-            }
+            onChange={(event) => setInquiryName(event.target.value)}
             placeholder="Your name"
             className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600"
           />
@@ -1260,9 +1092,7 @@ const Dashboard = () => {
           <input
             type="email"
             value={inquiryEmail}
-            onChange={(event) =>
-              setInquiryEmail(event.target.value)
-            }
+            onChange={(event) => setInquiryEmail(event.target.value)}
             placeholder="Your email"
             className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600"
           />
@@ -1270,18 +1100,14 @@ const Dashboard = () => {
           <input
             type="tel"
             value={inquiryPhone}
-            onChange={(event) =>
-              setInquiryPhone(event.target.value)
-            }
+            onChange={(event) => setInquiryPhone(event.target.value)}
             placeholder="Your phone"
             className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600"
           />
 
           <textarea
             value={inquiryMessage}
-            onChange={(event) =>
-              setInquiryMessage(event.target.value)
-            }
+            onChange={(event) => setInquiryMessage(event.target.value)}
             rows={3}
             placeholder="Your message"
             className="resize-none rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 sm:col-span-2"
@@ -1302,24 +1128,18 @@ const Dashboard = () => {
       ===================================================== */}
       <section
         id="dashboard-qr"
-        className="scroll-mt-28 rounded-[26px] border border-white/10 bg-[#0d1426] p-5 sm:p-6"
+        className="scroll-mt-28 rounded-[26px] border border-white/10 bg-[#0c1f24] p-5 sm:p-6"
       >
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <QrCode
-                size={18}
-                className="text-[#8b82ff]"
-              />
+              <QrCode size={18} className="text-[#22d3ee]" />
 
-              <h2 className="text-lg font-black text-white">
-                Your QR Code
-              </h2>
+              <h2 className="text-lg font-black text-white">Your QR Code</h2>
             </div>
 
             <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">
-              Scan this QR code to open your digital business
-              card.
+              Scan this QR code to open your digital business card.
             </p>
 
             <div className="mt-4 flex flex-wrap gap-2">
@@ -1335,11 +1155,9 @@ const Dashboard = () => {
               <button
                 type="button"
                 onClick={() => {
-                  showToast?.(
-                    "QR download started."
-                  );
+                  showToast?.("QR download started.");
                 }}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#5448ea] px-4 py-2.5 text-xs font-bold text-white"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#10b981] px-4 py-2.5 text-xs font-bold text-white"
               >
                 <Download size={14} />
                 Download QR
@@ -1350,7 +1168,7 @@ const Dashboard = () => {
           <div className="flex justify-center rounded-3xl bg-white p-5">
             <img
               src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
-                `${window.location.origin}/preview`
+                `${window.location.origin}/preview`,
               )}`}
               alt="QR Code"
               className="h-[180px] w-[180px]"
@@ -1364,21 +1182,17 @@ const Dashboard = () => {
       ===================================================== */}
       <section
         id="dashboard-settings"
-        className="scroll-mt-28 rounded-[26px] border border-white/10 bg-[#0d1426] p-5 sm:p-6"
+        className="scroll-mt-28 rounded-[26px] border border-white/10 bg-[#0c1f24] p-5 sm:p-6"
       >
         <div className="flex items-center gap-2">
           <SettingsIcon />
-          <h2 className="text-lg font-black text-white">
-            Settings
-          </h2>
+          <h2 className="text-lg font-black text-white">Settings</h2>
         </div>
 
         <div className="mt-5 space-y-3">
           <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-4">
             <div>
-              <p className="text-sm font-semibold text-white">
-                Public Profile
-              </p>
+              <p className="text-sm font-semibold text-white">Public Profile</p>
 
               <p className="mt-1 text-xs text-slate-500">
                 Allow customers to view your digital card.
@@ -1392,22 +1206,18 @@ const Dashboard = () => {
 
           <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-4">
             <div>
-              <p className="text-sm font-semibold text-white">
-                Current Theme
-              </p>
+              <p className="text-sm font-semibold text-white">Current Theme</p>
 
               <p className="mt-1 text-xs text-slate-500">
-                {themes.find(
-                  (theme) => theme.id === activeTheme
-                )?.name || "Violet"}
+                {themes.find((theme) => theme.id === activeTheme)?.name ||
+                  "Emerald"}
               </p>
             </div>
 
             <div
               className="h-8 w-8 rounded-full"
               style={{
-                backgroundColor:
-                  currentThemeConfig.primary,
+                backgroundColor: currentThemeConfig.primary,
               }}
             />
           </div>
@@ -1426,26 +1236,13 @@ const Dashboard = () => {
   );
 };
 
-/*
-|--------------------------------------------------------------------------
-| Small icon wrappers
-|--------------------------------------------------------------------------
-| These wrappers keep the JSX clean and avoid importing additional
-| icon names only for a couple of locations.
-|--------------------------------------------------------------------------
-*/
-
-// const CreditCardIcon = () => {
-//   return (
-//     <div className="text-white">
-//       <CreditCard size={20} />
-//     </div>
-//   );
-// };
+/* =========================================
+   Icon wrapper
+========================================= */
 
 const SettingsIcon = () => {
   return (
-    <div className="text-[#8b82ff]">
+    <div className="text-[#22d3ee]">
       <Layout size={18} />
     </div>
   );

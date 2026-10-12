@@ -19,8 +19,7 @@ const DashboardLayout = () => {
   const [toastTimer, setToastTimer] = useState(null);
 
   const [cardActionNotice, setCardActionNotice] = useState("");
-  const [cardActionNoticeTimer, setCardActionNoticeTimer] =
-    useState(null);
+  const [cardActionNoticeTimer, setCardActionNoticeTimer] = useState(null);
 
   useEffect(() => {
     return () => {
@@ -109,7 +108,7 @@ const DashboardLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#080b1b] text-slate-100">
+    <div className="min-h-screen bg-[#061418] text-[var(--text-primary)]">
       <DashboardNavbar
         ownerName="Your Business"
         onMenuClick={() => setSidebarOpen(true)}
@@ -131,9 +130,7 @@ const DashboardLayout = () => {
           collapsed={sidebarCollapsed}
           activeNavItem={activeNavItem}
           onNavClick={handleNavClick}
-          onToggle={() =>
-            setSidebarCollapsed((previous) => !previous)
-          }
+          onToggle={() => setSidebarCollapsed((previous) => !previous)}
           onPreview={handlePreview}
           onLogout={handleLogout}
         />
@@ -151,20 +148,16 @@ const DashboardLayout = () => {
         </div>
       </main>
 
-      {showPayModal && (
-        <PaymentModal
-          onClose={() => setShowPayModal(false)}
-        />
-      )}
+      {showPayModal && <PaymentModal onClose={() => setShowPayModal(false)} />}
 
       {toastMessage && (
-        <div className="fixed bottom-5 left-1/2 z-[100] -translate-x-1/2 rounded-2xl border border-white/10 bg-[#11182c] px-4 py-3 text-sm font-medium text-white shadow-2xl">
+        <div className="fixed bottom-5 left-1/2 z-[100] -translate-x-1/2 rounded-2xl border border-[#22d3ee]/20 bg-[#0c1f24] px-4 py-3 text-sm font-medium text-[#ecfeff] shadow-2xl">
           {toastMessage}
         </div>
       )}
 
       {cardActionNotice && (
-        <div className="fixed bottom-20 left-1/2 z-[99] -translate-x-1/2 rounded-2xl border border-[#5448ea]/20 bg-[#151b35] px-4 py-3 text-sm font-medium text-slate-100 shadow-2xl">
+        <div className="fixed bottom-20 left-1/2 z-[99] -translate-x-1/2 rounded-2xl border border-[#10b981]/25 bg-[#122e35] px-4 py-3 text-sm font-medium text-[#ecfeff] shadow-2xl">
           {cardActionNotice}
         </div>
       )}
