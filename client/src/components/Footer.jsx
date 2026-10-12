@@ -1,6 +1,5 @@
 import { CreditCard, ArrowUpRight, Mail, MapPin, Sparkles } from "lucide-react";
 
-// Inline brand SVGs since Lucide does not include third-party brand icons
 const InstagramIcon = ({ size = 18, className = "" }) => (
   <svg
     width={size}
@@ -70,9 +69,10 @@ function Footer() {
   ];
 
   return (
-    <footer className="relative overflow-hidden border-t border-[var(--border-color)] bg-[var(--page-bg)]">
-      {/* Subtle background glow */}
-      <div className="pointer-events-none absolute -bottom-32 left-1/4 h-64 w-64 rounded-full bg-violet-600/[0.06] blur-[100px]" />
+    <footer className="footer-section relative overflow-hidden border-t border-[var(--border-color)] bg-[var(--page-bg)]">
+      {/* Background glows */}
+      <div className="pointer-events-none absolute -bottom-32 left-1/4 h-64 w-64 rounded-full bg-[#10b981]/[0.08] blur-[100px]" />
+      <div className="pointer-events-none absolute -bottom-24 right-1/4 h-56 w-56 rounded-full bg-[#22d3ee]/[0.08] blur-[100px]" />
 
       <div className="relative mx-auto w-full max-w-[1330px] px-5 pb-5 pt-12 sm:px-8 sm:pt-14 lg:px-10 lg:pt-16 xl:px-12">
         {/* Main footer grid */}
@@ -84,15 +84,16 @@ function Footer() {
               aria-label="BIO Website home"
               className="inline-flex items-center gap-3"
             >
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-lg shadow-violet-600/20">
+              <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] border border-emerald-400/40 bg-gradient-to-br from-[#10b981] to-[#22d3ee] text-white shadow-lg shadow-[#10b981]/25">
                 <CreditCard size={23} strokeWidth={1.8} />
+                <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
               </span>
 
               <span>
                 <span className="block text-lg font-extrabold tracking-tight text-[var(--text-primary)]">
                   BIO Website
                 </span>
-                <span className="mt-0.5 block text-[9px] font-bold uppercase tracking-[0.13em] text-[var(--accent)]">
+                <span className="mt-0.5 block text-[9px] font-bold uppercase tracking-[0.13em] text-[#0891b2] dark:text-[#22d3ee]">
                   Smart Business Card &amp; Portfolio
                 </span>
               </span>
@@ -103,14 +104,14 @@ function Footer() {
               your services, save your contact and connect with your business.
             </p>
 
-            {/* Social links */}
+            {/* Social links — emerald hover */}
             <div className="mt-5 flex items-center gap-2.5">
               <a
                 href="#"
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Instagram"
-                className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--surface)] text-[var(--text-secondary)] transition hover:border-violet-500/40 hover:bg-violet-500/10 hover:text-[var(--accent)]"
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--surface)] text-[var(--text-secondary)] transition hover:border-[#10b981]/40 hover:bg-[#10b981]/10 hover:text-[#10b981]"
               >
                 <InstagramIcon size={18} />
               </a>
@@ -120,7 +121,7 @@ function Footer() {
                 target="_blank"
                 rel="noreferrer"
                 aria-label="LinkedIn"
-                className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--surface)] text-[var(--text-secondary)] transition hover:border-violet-500/40 hover:bg-violet-500/10 hover:text-[var(--accent)]"
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--surface)] text-[var(--text-secondary)] transition hover:border-[#10b981]/40 hover:bg-[#10b981]/10 hover:text-[#10b981]"
               >
                 <LinkedinIcon size={18} />
               </a>
@@ -130,7 +131,7 @@ function Footer() {
                 target="_blank"
                 rel="noreferrer"
                 aria-label="YouTube"
-                className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--surface)] text-[var(--text-secondary)] transition hover:border-violet-500/40 hover:bg-violet-500/10 hover:text-[var(--accent)]"
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--surface)] text-[var(--text-secondary)] transition hover:border-[#10b981]/40 hover:bg-[#10b981]/10 hover:text-[#10b981]"
               >
                 <YoutubeIcon size={18} />
               </a>
@@ -148,7 +149,7 @@ function Footer() {
                 <li key={link.label}>
                   <a
                     href={link.href}
-                    className="inline-flex items-center gap-1.5 text-sm text-[var(--text-secondary)] transition hover:text-[var(--accent)]"
+                    className="inline-flex items-center gap-1.5 text-sm text-[var(--text-secondary)] transition hover:text-[#10b981]"
                   >
                     {link.label}
                   </a>
@@ -168,7 +169,7 @@ function Footer() {
                 <li key={service.label}>
                   <a
                     href={service.href}
-                    className="inline-flex items-center gap-1.5 text-sm text-[var(--text-secondary)] transition hover:text-[var(--accent)]"
+                    className="inline-flex items-center gap-1.5 text-sm text-[var(--text-secondary)] transition hover:text-[#10b981]"
                   >
                     {service.label}
                   </a>
@@ -186,27 +187,21 @@ function Footer() {
             <div className="mt-4 space-y-4">
               <a
                 href="mailto:support@visitingcard.pro"
-                className="flex min-w-0 items-start gap-2.5 text-sm text-[var(--text-secondary)] transition hover:text-[var(--accent)]"
+                className="flex min-w-0 items-start gap-2.5 text-sm text-[var(--text-secondary)] transition hover:text-[#10b981]"
               >
-                <Mail
-                  size={17}
-                  className="mt-0.5 shrink-0 text-[var(--accent)]"
-                />
+                <Mail size={17} className="mt-0.5 shrink-0 text-[#10b981]" />
                 <span className="break-all">support@visitingcard.pro</span>
               </a>
 
               <div className="flex items-start gap-2.5 text-sm text-[var(--text-secondary)]">
-                <MapPin
-                  size={17}
-                  className="mt-0.5 shrink-0 text-[var(--accent)]"
-                />
+                <MapPin size={17} className="mt-0.5 shrink-0 text-[#10b981]" />
                 <span>Mumbai, Maharashtra, India</span>
               </div>
             </div>
 
             <a
               href="#contact"
-              className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[var(--accent)] transition hover:gap-3"
+              className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#10b981] transition hover:gap-3"
             >
               Contact our team
               <ArrowUpRight size={16} />
@@ -214,10 +209,10 @@ function Footer() {
           </div>
         </div>
 
-        {/* Get started banner */}
-        <div className="mt-10 flex flex-col gap-4 rounded-[20px] border border-violet-500/20 bg-gradient-to-r from-violet-500/[0.09] to-indigo-500/[0.06] p-5 sm:mt-12 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+        {/* Get started banner — emerald + cyan */}
+        <div className="mt-10 flex flex-col gap-4 rounded-[20px] border border-[#10b981]/25 bg-gradient-to-r from-[#10b981]/[0.08] to-[#22d3ee]/[0.08] p-5 sm:mt-12 sm:flex-row sm:items-center sm:justify-between sm:p-6">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/15 text-[var(--accent)]">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#22d3ee]/10 text-[#0891b2] ring-1 ring-inset ring-[#22d3ee]/30 dark:text-[#22d3ee]">
               <Sparkles size={20} />
             </div>
 
@@ -233,10 +228,14 @@ function Footer() {
 
           <a
             href="/register"
-            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-violet-600/15 transition hover:-translate-y-0.5 hover:brightness-110"
+            className="group relative inline-flex min-h-11 shrink-0 items-center justify-center gap-2 overflow-hidden rounded-xl border border-[#10b981] bg-[#10b981] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-[#10b981]/25 transition hover:-translate-y-0.5 hover:bg-[#059669] hover:shadow-xl hover:shadow-[#10b981]/40"
           >
+            <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
             Create Your Card
-            <ArrowUpRight size={16} />
+            <ArrowUpRight
+              size={16}
+              className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+            />
           </a>
         </div>
 
@@ -249,21 +248,21 @@ function Footer() {
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
             <a
               href="/privacy"
-              className="text-xs text-[var(--text-secondary)] transition hover:text-[var(--accent)]"
+              className="text-xs text-[var(--text-secondary)] transition hover:text-[#10b981]"
             >
               Privacy Policy
             </a>
 
             <a
               href="/terms"
-              className="text-xs text-[var(--text-secondary)] transition hover:text-[var(--accent)]"
+              className="text-xs text-[var(--text-secondary)] transition hover:text-[#10b981]"
             >
               Terms of Service
             </a>
 
             <a
               href="#home"
-              className="text-xs text-[var(--text-secondary)] transition hover:text-[var(--accent)]"
+              className="text-xs text-[var(--text-secondary)] transition hover:text-[#10b981]"
             >
               Back to top ↑
             </a>

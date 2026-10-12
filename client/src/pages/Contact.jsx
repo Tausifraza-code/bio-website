@@ -46,7 +46,6 @@ function Contact() {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-
     setFormData((previous) => ({
       ...previous,
       [name]: value,
@@ -55,7 +54,6 @@ function Contact() {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    // Frontend-only submission: no backend or database yet.
     setSubmitted(true);
   };
 
@@ -72,51 +70,51 @@ function Contact() {
   };
 
   const inputClasses =
-    "w-full min-w-0 rounded-xl border border-[var(--border-color)] bg-[var(--surface-raised)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none transition placeholder:text-[var(--text-secondary)]/60 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20";
+    "w-full min-w-0 rounded-xl border border-[var(--border-color)] bg-[var(--surface-raised)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none transition placeholder:text-[var(--text-secondary)]/60 focus:border-[#10b981] focus:ring-2 focus:ring-[#10b981]/20";
 
   return (
     <section
       id="contact"
-      className="relative overflow-hidden py-10 sm:py-12 lg:py-14"
+      className="contact-section relative overflow-hidden py-10 sm:py-12 lg:py-14"
     >
       {/* Background decoration */}
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute left-[-5%] top-20 h-80 w-80 rounded-full bg-violet-600/[0.08] blur-[120px]" />
-        <div className="absolute right-[-5%] bottom-10 h-80 w-80 rounded-full bg-fuchsia-600/[0.07] blur-[120px]" />
+        <div className="absolute left-[-5%] top-20 h-80 w-80 rounded-full bg-[#10b981]/[0.08] blur-[120px]" />
+        <div className="absolute right-[-5%] bottom-10 h-80 w-80 rounded-full bg-[#22d3ee]/[0.08] blur-[120px]" />
         <div className="absolute inset-0 opacity-[0.035] [background-image:radial-gradient(circle_at_1px_1px,var(--border-color)_1px,transparent_0)] [background-size:24px_24px]" />
       </div>
 
       <div className="mx-auto w-full max-w-[1330px] px-5 sm:px-8 lg:px-10 xl:px-12">
         {/* Section heading */}
         <div className="mx-auto mb-8 max-w-[790px] text-center sm:mb-10">
-          <div className="mb-3.5 inline-flex items-center gap-2 rounded-full border border-violet-500/25 bg-violet-500/[0.07] px-3.5 py-1.5 text-xs font-semibold text-[var(--accent)] shadow-[0_1px_2px_rgba(0,0,0,0.05)] backdrop-blur-sm">
+          <div className="mb-3.5 inline-flex items-center gap-2 rounded-full border border-[#22d3ee]/30 bg-[#22d3ee]/10 px-3.5 py-1.5 text-xs font-semibold text-[#0891b2] shadow-[0_1px_2px_rgba(0,0,0,0.05)] backdrop-blur-sm dark:text-[#22d3ee]">
             <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#10b981] opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#10b981]" />
             </span>
-            <MessageCircle size={14} className="text-[var(--accent)]" />
+            <MessageCircle
+              size={14}
+              className="text-[#0891b2] dark:text-[#22d3ee]"
+            />
             <span>Direct Advisory &amp; Enterprise Support</span>
           </div>
 
-          <h2 className="text-[clamp(28px,3.3vw,44px)] font-extrabold leading-[1.15] tracking-[-0.04em] text-[var(--text-primary)]">
-            Ready to Upgrade Your In-Person &amp; Phone{" "}
-            <span className="bg-gradient-to-r from-violet-500 via-fuchsia-500 to-sky-400 bg-clip-text text-transparent">
-              Sales?
-            </span>
+          <h2 className="text-[clamp(28px,3.3vw,44px)] font-extrabold leading-[1.15] tracking-[-0.04em]">
+            Ready to Upgrade Your In-Person &amp; Phone <span>Sales?</span>
           </h2>
 
           <p className="mx-auto mt-3 max-w-[700px] text-sm leading-relaxed text-[var(--text-secondary)] sm:text-base">
-            Have questions about custom domain setups, multi-branch franchises, or onboarding your team? Reach out and get a customized demo.
+            Have questions about custom domain setups, multi-branch franchises,
+            or onboarding your team? Reach out and get a customized demo.
           </p>
         </div>
 
         {/* Main contact layout */}
         <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-8">
-          {/* Left column: Contact Info & Support */}
+          {/* Left column */}
           <div className="flex min-w-0 flex-col gap-5">
             <div className="relative overflow-hidden rounded-[24px] border border-[var(--border-color)] bg-gradient-to-br from-[var(--surface-raised)]/90 via-[var(--surface)] to-[var(--surface)] p-5 shadow-xl shadow-black/5 backdrop-blur-sm sm:p-6 lg:p-7">
-              {/* Subtle top hairline */}
-              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-400/30 to-transparent" />
+              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#10b981]/50 to-transparent" />
 
               <div className="flex items-center justify-between">
                 <div>
@@ -127,16 +125,16 @@ function Contact() {
                     Dedicated support for onboarding &amp; custom cards
                   </p>
                 </div>
-                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="inline-flex items-center gap-1 rounded-full border border-[#10b981]/30 bg-[#10b981]/10 px-2.5 py-0.5 text-[10px] font-bold text-[#10b981]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#10b981] animate-pulse" />
                   Active Support
                 </span>
               </div>
 
               <div className="mt-5 space-y-3">
-                {/* Address */}
+                {/* Address — emerald */}
                 <div className="group flex items-start gap-3.5 rounded-xl border border-transparent p-2 transition-all hover:border-[var(--border-color)] hover:bg-[var(--surface-raised)]/60">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-violet-500/25 bg-violet-500/10 text-violet-400 transition-transform group-hover:scale-105">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#10b981]/25 bg-[#10b981]/10 text-[#10b981] transition-transform group-hover:scale-105">
                     <MapPin size={18} />
                   </div>
 
@@ -151,9 +149,9 @@ function Contact() {
                   </div>
                 </div>
 
-                {/* Phone */}
+                {/* Phone — cyan */}
                 <div className="group flex items-start gap-3.5 rounded-xl border border-transparent p-2 transition-all hover:border-[var(--border-color)] hover:bg-[var(--surface-raised)]/60">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-500/25 bg-emerald-500/10 text-emerald-400 transition-transform group-hover:scale-105">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#22d3ee]/25 bg-[#22d3ee]/10 text-[#0891b2] transition-transform group-hover:scale-105 dark:text-[#22d3ee]">
                     <Phone size={18} />
                   </div>
 
@@ -164,7 +162,7 @@ function Contact() {
                     <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1">
                       <a
                         href="tel:+919820188287"
-                        className="text-xs sm:text-[13px] font-bold text-[var(--accent)] hover:underline"
+                        className="text-xs sm:text-[13px] font-bold text-[#10b981] hover:underline"
                       >
                         +91 98201 88287
                       </a>
@@ -179,9 +177,9 @@ function Contact() {
                   </div>
                 </div>
 
-                {/* Email */}
+                {/* Email — emerald */}
                 <div className="group flex items-start gap-3.5 rounded-xl border border-transparent p-2 transition-all hover:border-[var(--border-color)] hover:bg-[var(--surface-raised)]/60">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-500/25 bg-sky-500/10 text-sky-400 transition-transform group-hover:scale-105">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#10b981]/25 bg-[#10b981]/10 text-[#10b981] transition-transform group-hover:scale-105">
                     <Mail size={18} />
                   </div>
 
@@ -190,22 +188,22 @@ function Contact() {
                       <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">
                         Direct Email
                       </h4>
-                      <span className="text-[10px] font-medium text-sky-400 bg-sky-500/10 px-1.5 py-0.2 rounded">
+                      <span className="rounded bg-[#22d3ee]/10 px-1.5 py-0.2 text-[10px] font-medium text-[#0891b2] dark:text-[#22d3ee]">
                         ⚡ ~45 min reply
                       </span>
                     </div>
                     <a
                       href="mailto:support@visitingcard.pro"
-                      className="mt-0.5 block break-all text-xs sm:text-[13px] font-bold text-[var(--accent)] hover:underline"
+                      className="mt-0.5 block break-all text-xs sm:text-[13px] font-bold text-[#10b981] hover:underline"
                     >
                       support@visitingcard.pro
                     </a>
                   </div>
                 </div>
 
-                {/* Support hours */}
+                {/* Support hours — cyan */}
                 <div className="group flex items-start gap-3.5 rounded-xl border border-transparent p-2 transition-all hover:border-[var(--border-color)] hover:bg-[var(--surface-raised)]/60">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-500/25 bg-amber-500/10 text-amber-400 transition-transform group-hover:scale-105">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#22d3ee]/25 bg-[#22d3ee]/10 text-[#0891b2] transition-transform group-hover:scale-105 dark:text-[#22d3ee]">
                     <Clock3 size={18} />
                   </div>
 
@@ -221,10 +219,10 @@ function Contact() {
               </div>
             </div>
 
-            {/* Quick FAQ card */}
-            <div className="rounded-[20px] border border-[var(--border-color)] bg-[var(--surface)]/80 p-4 sm:p-5 backdrop-blur-sm transition-colors hover:border-violet-500/30">
+            {/* Quick FAQ card — cyan accent */}
+            <div className="rounded-[20px] border border-[var(--border-color)] bg-[var(--surface)]/80 p-4 sm:p-5 backdrop-blur-sm transition-colors hover:border-[#22d3ee]/40">
               <div className="flex items-start gap-3">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-500/15 text-[var(--accent)] ring-1 ring-inset ring-violet-500/20">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#22d3ee]/10 text-[#0891b2] ring-1 ring-inset ring-[#22d3ee]/25 dark:text-[#22d3ee]">
                   <CircleHelp size={16} />
                 </span>
 
@@ -234,16 +232,18 @@ function Contact() {
                   </h4>
 
                   <p className="mt-1 text-xs leading-relaxed text-[var(--text-secondary)]">
-                    No! The mini website opens instantly inside mobile browsers (Safari, Chrome) via QR code or direct link. Contact details download to native phone address books in 1 tap.
+                    No! The mini website opens instantly inside mobile browsers
+                    (Safari, Chrome) via QR code or direct link. Contact details
+                    download to native phone address books in 1 tap.
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Right column: Interactive Inquiry Form */}
+          {/* Right column: form */}
           <div className="relative min-w-0 overflow-hidden rounded-[24px] border border-[var(--border-color)] bg-gradient-to-br from-[var(--surface-raised)]/95 via-[var(--surface)] to-[var(--surface)] p-5 shadow-xl shadow-black/5 backdrop-blur-md sm:p-7 lg:p-8">
-            <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-400/30 to-transparent" />
+            <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#10b981]/50 to-transparent" />
 
             <div className="flex items-center justify-between">
               <div>
@@ -255,13 +255,12 @@ function Contact() {
                 </p>
               </div>
 
-              <span className="hidden sm:inline-flex items-center gap-1 rounded-full border border-violet-500/20 bg-violet-500/10 px-2.5 py-1 text-[11px] font-semibold text-[var(--accent)]">
+              <span className="hidden items-center gap-1 rounded-full border border-[#22d3ee]/30 bg-[#22d3ee]/10 px-2.5 py-1 text-[11px] font-semibold text-[#0891b2] dark:text-[#22d3ee] sm:inline-flex">
                 <Zap size={11} /> Fast Turnaround
               </span>
             </div>
 
             {submitted ? (
-              /* Success state */
               <div
                 role="status"
                 aria-live="polite"
@@ -277,7 +276,8 @@ function Contact() {
                   </h4>
 
                   <p className="contact-success-desc mt-1 text-xs sm:text-sm leading-relaxed text-emerald-700/90 dark:text-emerald-200/90">
-                    A product specialist will contact you shortly to help configure your digital visiting card profile.
+                    A product specialist will contact you shortly to help
+                    configure your digital visiting card profile.
                   </p>
 
                   <button
@@ -291,14 +291,13 @@ function Contact() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-                {/* Name and email */}
                 <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
                   <div className="min-w-0">
                     <label
                       htmlFor="contact-fullName"
                       className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]"
                     >
-                      Your Full Name <span className="text-rose-400">*</span>
+                      Your Full Name <span className="text-[#10b981]">*</span>
                     </label>
 
                     <input
@@ -320,7 +319,7 @@ function Contact() {
                       htmlFor="contact-email"
                       className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]"
                     >
-                      Email Address <span className="text-rose-400">*</span>
+                      Email Address <span className="text-[#10b981]">*</span>
                     </label>
 
                     <input
@@ -338,7 +337,6 @@ function Contact() {
                   </div>
                 </div>
 
-                {/* Phone and industry */}
                 <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
                   <div className="min-w-0">
                     <label
@@ -370,7 +368,7 @@ function Contact() {
                         Your Industry
                       </label>
 
-                      <span className="text-[10px] font-semibold text-[var(--accent)]">
+                      <span className="text-[10px] font-semibold text-[#0891b2] dark:text-[#22d3ee]">
                         12 Categories
                       </span>
                     </div>
@@ -393,7 +391,7 @@ function Contact() {
                       ))}
                     </select>
 
-                    <div className="mt-1.5 flex items-center gap-1.5 rounded-lg border border-[var(--border-color)]/60 bg-[var(--surface)] px-2.5 py-1 text-xs text-[var(--accent)]">
+                    <div className="mt-1.5 flex items-center gap-1.5 rounded-lg border border-[var(--border-color)]/60 bg-[var(--surface)] px-2.5 py-1 text-xs text-[#0891b2] dark:text-[#22d3ee]">
                       <Search size={12} className="shrink-0 opacity-70" />
                       <input
                         id="industry-search"
@@ -421,7 +419,7 @@ function Contact() {
                                 }));
                                 setSearchIndustry("");
                               }}
-                              className="block w-full rounded-lg px-2.5 py-1.5 text-left text-xs text-[var(--text-primary)] transition hover:bg-violet-500/15"
+                              className="block w-full rounded-lg px-2.5 py-1.5 text-left text-xs text-[var(--text-primary)] transition hover:bg-[#10b981]/15"
                             >
                               {industry}
                             </button>
@@ -436,7 +434,6 @@ function Contact() {
                   </div>
                 </div>
 
-                {/* Message */}
                 <div>
                   <div className="mb-1.5 flex items-center justify-between">
                     <label
@@ -462,12 +459,12 @@ function Contact() {
                   />
                 </div>
 
-                {/* Submit button */}
+                {/* Submit button — emerald */}
                 <button
                   type="submit"
-                  className="group relative flex min-h-[48px] w-full items-center justify-center gap-2 overflow-hidden rounded-xl border border-violet-400/50 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-violet-600/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-violet-600/30 active:scale-95"
+                  className="group relative flex min-h-[48px] w-full items-center justify-center gap-2 overflow-hidden rounded-xl border border-[#10b981] bg-[#10b981] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-[#10b981]/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#059669] hover:shadow-xl hover:shadow-[#10b981]/35 active:scale-95"
                 >
-                  <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent" />
+                  <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
                   <Send
                     size={15}
                     className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
@@ -476,8 +473,13 @@ function Contact() {
                 </button>
 
                 <div className="flex items-center justify-center gap-1.5 text-center text-[11px] text-[var(--text-secondary)]">
-                  <ShieldCheck size={13} className="text-emerald-400 shrink-0" />
-                  <span>Your information is strictly protected. Zero spam guarantee.</span>
+                  <ShieldCheck
+                    size={13}
+                    className="shrink-0 text-[#0891b2] dark:text-[#22d3ee]"
+                  />
+                  <span>
+                    Your information is strictly protected. Zero spam guarantee.
+                  </span>
                 </div>
               </form>
             )}

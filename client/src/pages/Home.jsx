@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import Features from "../components/Features";
+import About from "../pages/About";
 import Contact from "../pages/Contact";
 import Footer from "../components/Footer";
 
@@ -36,6 +37,7 @@ const Home = () => {
       <main>
         <Hero />
         <Features />
+        <About />
         <Contact />
       </main>
 

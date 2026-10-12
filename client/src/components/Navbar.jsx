@@ -25,7 +25,6 @@ function Navbar({ theme, onToggleTheme }) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[var(--border-color)] bg-[var(--header-bg)] backdrop-blur-xl">
-      {/* Same centered width as the rest of the page */}
       <div className="mx-auto w-full max-w-[1300px] px-4 sm:px-6 lg:px-8">
         <div className="flex h-[64px] items-center justify-between gap-2 sm:h-[70px] lg:h-[76px] lg:gap-4">
           {/* Logo */}
@@ -35,27 +34,27 @@ function Navbar({ theme, onToggleTheme }) {
             aria-label="BIO Website home"
             className="group flex shrink-0 items-center gap-2 sm:gap-2.5"
           >
-            <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] border border-violet-400/30 bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-600/20 transition-all duration-200 group-hover:scale-105 group-hover:shadow-violet-600/30 sm:h-10 sm:w-10 lg:h-11 lg:w-11 lg:rounded-[14px]">
+            <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] border border-emerald-400/40 bg-gradient-to-br from-emerald-500 to-cyan-500 text-white shadow-md shadow-emerald-500/25 transition-all duration-200 group-hover:scale-105 group-hover:shadow-emerald-500/40 sm:h-10 sm:w-10 lg:h-11 lg:w-11 lg:rounded-[14px]">
               <CreditCard
                 size={19}
                 className="sm:size-[21px]"
                 strokeWidth={2}
               />
-              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
             </span>
 
             <span className="flex flex-col">
-              <span className="whitespace-nowrap text-[15px] font-extrabold leading-tight tracking-[-0.03em] text-[var(--text-primary)] transition-colors group-hover:text-white sm:text-[16px] xl:text-[18px]">
+              <span className="whitespace-nowrap text-[15px] font-extrabold leading-tight tracking-[-0.03em] text-[var(--text-primary)] transition-colors sm:text-[16px] xl:text-[18px]">
                 BIO Website
               </span>
 
-              <span className="mt-0.5 whitespace-nowrap text-[7.5px] font-bold tracking-[0.06em] text-[var(--accent)] sm:text-[8px] xl:text-[9.5px]">
+              <span className="mt-0.5 whitespace-nowrap text-[7.5px] font-bold tracking-[0.06em] text-cyan-700 sm:text-[8px] xl:text-[9.5px] dark:text-cyan-400">
                 SMART BUSINESS CARD &amp; PORTFOLIO
               </span>
             </span>
           </a>
 
-          {/* Navigation: centered (visible on md/tablet and lg/desktop) */}
+          {/* Navigation */}
           <nav
             aria-label="Main navigation"
             className="hidden items-center justify-center gap-0.5 rounded-full border border-[var(--border-color)] bg-[var(--surface)]/75 p-1 backdrop-blur-md shadow-xs md:flex lg:gap-1"
@@ -77,7 +76,7 @@ function Navbar({ theme, onToggleTheme }) {
               type="button"
               onClick={onToggleTheme}
               aria-label="Toggle color theme"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--surface)] text-[var(--text-secondary)] transition-all duration-200 hover:border-violet-500/40 hover:bg-[var(--surface-raised)] hover:text-amber-400 active:scale-95 lg:h-10 lg:w-10"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--surface)] text-[var(--text-secondary)] transition-all duration-200 hover:border-emerald-500/40 hover:bg-[var(--surface-raised)] active:scale-95 lg:h-10 lg:w-10"
             >
               {theme === "dark" ? (
                 <Sun
@@ -87,24 +86,29 @@ function Navbar({ theme, onToggleTheme }) {
               ) : (
                 <Moon
                   size={17}
-                  className="text-violet-600 transition-transform hover:-rotate-12"
+                  className="text-cyan-600 transition-transform hover:-rotate-12"
                 />
               )}
             </button>
 
+            {/* Customer Login — inactive/secondary style */}
             <Link
               to="/login"
-              className="inline-flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-[var(--border-color)] bg-[var(--surface)] px-2.5 text-xs font-semibold text-[var(--text-primary)] transition-all duration-200 hover:border-violet-500/40 hover:bg-[var(--surface-raised)] active:scale-95 sm:px-2.5 md:text-[11.5px] lg:h-10 lg:px-3.5 lg:text-[13px]"
+              className="inline-flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-[var(--border-color)] bg-[var(--surface)] px-2.5 text-xs font-semibold text-[var(--text-primary)] transition-all duration-200 hover:border-cyan-500/40 hover:bg-[var(--surface-raised)] active:scale-95 sm:px-2.5 md:text-[11.5px] lg:h-10 lg:px-3.5 lg:text-[13px]"
             >
-              <LogIn size={13} className="shrink-0 text-[var(--accent)]" />
+              <LogIn
+                size={13}
+                className="shrink-0 text-cyan-700 dark:text-cyan-400"
+              />
               <span>Customer Login</span>
             </Link>
 
+            {/* Create Card — active/primary style */}
             <Link
               to="/register"
-              className="group relative inline-flex h-9 items-center justify-center gap-1.5 overflow-hidden whitespace-nowrap rounded-xl border border-violet-400/50 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 px-3 text-xs font-bold text-white shadow-md shadow-violet-600/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-violet-600/30 active:scale-95 md:px-3 md:text-[11.5px] lg:h-10 lg:px-4 lg:text-[13px]"
+              className="group relative inline-flex h-9 items-center justify-center gap-1.5 overflow-hidden whitespace-nowrap rounded-xl border border-emerald-500 bg-gradient-to-r from-emerald-500 to-cyan-500 px-3 text-xs font-bold text-white shadow-md shadow-emerald-500/30 transition-all duration-200 hover:-translate-y-0.5 hover:from-emerald-600 hover:to-cyan-600 hover:shadow-lg hover:shadow-emerald-500/40 active:scale-95 md:px-3 md:text-[11.5px] lg:h-10 lg:px-4 lg:text-[13px]"
             >
-              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
               <Sparkles
                 size={13}
                 className="shrink-0 transition-transform group-hover:rotate-12"
@@ -124,7 +128,7 @@ function Navbar({ theme, onToggleTheme }) {
               {theme === "dark" ? (
                 <Sun size={17} className="text-amber-400" />
               ) : (
-                <Moon size={17} className="text-violet-600" />
+                <Moon size={17} className="text-cyan-600" />
               )}
             </button>
 
@@ -163,14 +167,14 @@ function Navbar({ theme, onToggleTheme }) {
                 onClick={closeMenu}
                 className="flex min-w-0 items-center justify-center gap-1.5 rounded-xl border border-[var(--border-color)] bg-[var(--surface)] px-2 py-2.5 text-xs font-semibold text-[var(--text-primary)] active:scale-95"
               >
-                <LogIn size={14} className="text-[var(--accent)]" />
+                <LogIn size={14} className="text-cyan-700 dark:text-cyan-400" />
                 Customer Login
               </Link>
 
               <Link
                 to="/register"
                 onClick={closeMenu}
-                className="flex min-w-0 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-2 py-2.5 text-xs font-bold text-white shadow-sm active:scale-95"
+                className="flex min-w-0 items-center justify-center gap-1.5 rounded-xl border border-emerald-500 bg-gradient-to-r from-emerald-500 to-cyan-500 px-2 py-2.5 text-xs font-bold text-white shadow-sm shadow-emerald-500/25 active:scale-95"
               >
                 <Sparkles size={14} />
                 Create Card

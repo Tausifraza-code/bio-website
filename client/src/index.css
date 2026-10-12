@@ -2,17 +2,21 @@
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .theme-dark, .theme-dark *));
 
+/* =========================================
+   RESET & BASE
+========================================= */
+
 :root {
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
   font-optical-sizing: auto;
   font-weight: 400;
   scroll-behavior: smooth;
+  color-scheme: light;
 }
 
 * {
@@ -28,9 +32,9 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  font-family: inherit;
 }
 
-body,
 button,
 input,
 textarea,
@@ -56,48 +60,55 @@ a:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: 3px solid #8b7cff;
+  outline: 3px solid #22d3ee;
   outline-offset: 4px;
 }
 
+/* =========================================
+   THEME VARIABLES
+========================================= */
+
+/* Dark theme (default) — Emerald + Cyan */
 :root,
 [data-theme="dark"],
 .theme-dark,
 .app-shell {
-  --page-bg: #080b18;
-  --surface: #101629;
-  --surface-raised: #151d33;
-  --text-primary: #f7f8ff;
-  --text-secondary: #a4aec5;
-  --border-color: rgba(164, 174, 197, 0.16);
-  --accent: #8975ff;
-  --accent-strong: #6d55f5;
-  --header-bg: rgba(8, 11, 24, 0.82);
+  --page-bg: #061418;
+  --surface: #0c1f24;
+  --surface-raised: #122e35;
+  --text-primary: #ecfeff;
+  --text-secondary: #8fb3ba;
+  --border-color: rgba(34, 211, 238, 0.18);
+  --accent: #22d3ee;
+  --accent-strong: #10b981;
+  --header-bg: rgba(6, 20, 24, 0.85);
 
   color-scheme: dark;
 }
 
+/* Light theme — Emerald + Cyan */
 :root[data-theme="light"],
 [data-theme="light"],
 .theme-light,
 .app-shell.theme-light {
-  --page-bg: #f7f8fc;
+  --page-bg: #f0fdf9;
   --surface: #ffffff;
-  --surface-raised: #f0f2fb;
-  --text-primary: #171a2b;
-  --text-secondary: #626b82;
-  --border-color: rgba(35, 42, 70, 0.12);
-  --accent: #6047e8;
-  --accent-strong: #5037d3;
-  --header-bg: rgba(247, 248, 252, 0.88);
+  --surface-raised: #ecfeff;
+  --text-primary: #0f2a2e;
+  --text-secondary: #4b6b70;
+  --border-color: rgba(6, 95, 70, 0.15);
+  --accent: #0891b2;
+  --accent-strong: #059669;
+  --header-bg: rgba(240, 253, 249, 0.88);
 
   color-scheme: light;
 }
 
+/* =========================================
+   GLOBAL PAGE
+========================================= */
+
 body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
   background-color: var(--page-bg);
   color: var(--text-primary);
   transition: background-color 250ms ease, color 250ms ease;
@@ -109,6 +120,195 @@ body {
   background: var(--page-bg);
   transition: background-color 250ms ease, color 250ms ease;
 }
+
+/* =========================================
+   HERO SECTION — DARK MODE
+========================================= */
+
+.hero-section {
+  position: relative;
+  isolation: isolate;
+  background-color: #061418;
+  color: #ecfeff;
+
+  --page-bg: #061418;
+  --surface: #0c1f24;
+  --surface-raised: #122e35;
+  --text-primary: #ecfeff;
+  --text-secondary: #8fb3ba;
+  --border-color: rgba(34, 211, 238, 0.18);
+  --accent: #22d3ee;
+  --accent-strong: #10b981;
+}
+
+.hero-section h1 {
+  color: #ecfeff;
+}
+
+.hero-section h1 span {
+  color: #10b981;
+}
+
+/* Primary buttons */
+.hero-section a[href="/register"],
+.hero-section a[href="/preview"] {
+  background-color: #10b981;
+  border-color: #10b981;
+  color: #ffffff;
+}
+
+.hero-section a[href="/register"]:hover,
+.hero-section a[href="/preview"]:hover {
+  background-color: #059669;
+  border-color: #059669;
+}
+
+/* Business card */
+.hero-section .hero-card {
+  background-color: #0c1f24;
+  border-color: rgba(34, 211, 238, 0.22);
+}
+
+.hero-section .hero-card-item {
+  background-color: #122e35;
+  border-color: rgba(34, 211, 238, 0.16);
+}
+
+/* =========================================
+   HERO SECTION — LIGHT MODE
+========================================= */
+
+:root[data-theme="light"] .hero-section,
+[data-theme="light"] .hero-section,
+.theme-light .hero-section,
+.app-shell.theme-light .hero-section {
+  background: #f0fdf9 !important;
+  color: #0f2a2e !important;
+
+  --page-bg: #f0fdf9;
+  --surface: #ffffff;
+  --surface-raised: #ecfeff;
+  --text-primary: #0f2a2e;
+  --text-secondary: #4b6b70;
+  --border-color: rgba(6, 95, 70, 0.20);
+  --accent: #0891b2;
+  --accent-strong: #059669;
+
+  color-scheme: light;
+}
+
+:root[data-theme="light"] .hero-section h1,
+[data-theme="light"] .hero-section h1,
+.theme-light .hero-section h1,
+.app-shell.theme-light .hero-section h1 {
+  color: #0f2a2e !important;
+}
+
+.hero-section h1 span {
+  color: #10b981 !important;
+}
+
+:root[data-theme="light"] .hero-section p,
+[data-theme="light"] .hero-section p,
+.theme-light .hero-section p,
+.app-shell.theme-light .hero-section p {
+  color: #4b6b70 !important;
+}
+
+/* Light mode hero card */
+:root[data-theme="light"] .hero-section .hero-card,
+[data-theme="light"] .hero-section .hero-card,
+.theme-light .hero-section .hero-card,
+.app-shell.theme-light .hero-section .hero-card {
+  background: #ffffff !important;
+  border-color: rgba(6, 95, 70, 0.22) !important;
+  box-shadow: 0 16px 40px rgba(6, 95, 70, 0.08);
+}
+
+:root[data-theme="light"] .hero-section .hero-card-item,
+[data-theme="light"] .hero-section .hero-card-item,
+.theme-light .hero-section .hero-card-item,
+.app-shell.theme-light .hero-section .hero-card-item {
+  background: #ecfeff !important;
+  border-color: rgba(6, 95, 70, 0.18) !important;
+}
+
+/* Card text */
+:root[data-theme="light"] .hero-section .hero-card h2,
+:root[data-theme="light"] .hero-section .hero-card h3,
+[data-theme="light"] .hero-section .hero-card h2,
+[data-theme="light"] .hero-section .hero-card h3,
+.theme-light .hero-section .hero-card h2,
+.theme-light .hero-section .hero-card h3,
+.app-shell.theme-light .hero-section .hero-card h2,
+.app-shell.theme-light .hero-section .hero-card h3 {
+  color: #0f2a2e !important;
+}
+
+:root[data-theme="light"] .hero-section .hero-card p,
+[data-theme="light"] .hero-section .hero-card p,
+.theme-light .hero-section .hero-card p,
+.app-shell.theme-light .hero-section .hero-card p {
+  color: #4b6b70 !important;
+}
+
+/* Primary buttons in light hero */
+:root[data-theme="light"] .hero-section a[href="/register"],
+:root[data-theme="light"] .hero-section a[href="/preview"],
+[data-theme="light"] .hero-section a[href="/register"],
+[data-theme="light"] .hero-section a[href="/preview"],
+.theme-light .hero-section a[href="/register"],
+.theme-light .hero-section a[href="/preview"],
+.app-shell.theme-light .hero-section a[href="/register"],
+.app-shell.theme-light .hero-section a[href="/preview"] {
+  background: #10b981 !important;
+  border-color: #10b981 !important;
+  color: #ffffff !important;
+}
+
+:root[data-theme="light"] .hero-section a[href="/register"]:hover,
+:root[data-theme="light"] .hero-section a[href="/preview"]:hover,
+[data-theme="light"] .hero-section a[href="/register"]:hover,
+[data-theme="light"] .hero-section a[href="/preview"]:hover,
+.theme-light .hero-section a[href="/register"]:hover,
+.theme-light .hero-section a[href="/preview"]:hover,
+.app-shell.theme-light .hero-section a[href="/register"]:hover,
+.app-shell.theme-light .hero-section a[href="/preview"]:hover {
+  background: #059669 !important;
+  border-color: #059669 !important;
+}
+
+/* Secondary login button */
+:root[data-theme="light"] .hero-section a[href="/login"],
+[data-theme="light"] .hero-section a[href="/login"],
+.theme-light .hero-section a[href="/login"],
+.app-shell.theme-light .hero-section a[href="/login"] {
+  background: #ffffff !important;
+  color: #0f2a2e !important;
+  border-color: rgba(6, 95, 70, 0.25) !important;
+}
+
+:root[data-theme="light"] .hero-section a[href="/login"]:hover,
+[data-theme="light"] .hero-section a[href="/login"]:hover,
+.theme-light .hero-section a[href="/login"]:hover,
+.app-shell.theme-light .hero-section a[href="/login"]:hover {
+  background: #ecfeff !important;
+  border-color: rgba(6, 95, 70, 0.40) !important;
+}
+
+/* Trust pills */
+:root[data-theme="light"] .hero-section .group,
+[data-theme="light"] .hero-section .group,
+.theme-light .hero-section .group,
+.app-shell.theme-light .hero-section .group {
+  background-color: #ffffff;
+  border-color: rgba(6, 95, 70, 0.20);
+  color: #4b6b70;
+}
+
+/* =========================================
+   CONTACT SUCCESS STATE (LIGHT)
+========================================= */
 
 .app-shell.theme-light .contact-success-card {
   background-color: rgba(16, 185, 129, 0.08);
@@ -139,6 +339,57 @@ body {
   color: #ffffff;
 }
 
+/* =========================================
+   SECTION HEADINGS — MATCH HERO H1
+========================================= */
+
+.features-section h2,
+.contact-section h2 {
+  color: #ecfeff;
+}
+
+.features-section h2 span,
+.contact-section h2 span {
+  color: #10b981;
+}
+
+:root[data-theme="light"] .features-section h2,
+:root[data-theme="light"] .contact-section h2,
+[data-theme="light"] .features-section h2,
+[data-theme="light"] .contact-section h2,
+.theme-light .features-section h2,
+.theme-light .contact-section h2,
+.app-shell.theme-light .features-section h2,
+.app-shell.theme-light .contact-section h2 {
+  color: #0f2a2e !important;
+}
+
+:root[data-theme="light"] .features-section h2 span,
+:root[data-theme="light"] .contact-section h2 span,
+[data-theme="light"] .features-section h2 span,
+[data-theme="light"] .contact-section h2 span,
+.theme-light .features-section h2 span,
+.theme-light .contact-section h2 span,
+.app-shell.theme-light .features-section h2 span,
+.app-shell.theme-light .contact-section h2 span {
+  color: #10b981 !important;
+}
+
+/* =========================================
+   CONTACT — INPUT FOCUS RING → EMERALD
+========================================= */
+
+.contact-section input:focus,
+.contact-section textarea:focus,
+.contact-section select:focus {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18) !important;
+}
+
+/* =========================================
+   RESPONSIVE CONTAINER
+========================================= */
+
 .container-wide {
   width: min(100% - 48px, 1240px);
   margin-inline: auto;
@@ -150,10 +401,18 @@ body {
   }
 }
 
+/* =========================================
+   TEXT SELECTION
+========================================= */
+
 ::selection {
-  color: white;
-  background: #6d55f5;
+  color: #061418;
+  background: #22d3ee;
 }
+
+/* =========================================
+   REDUCED MOTION
+========================================= */
 
 @media (prefers-reduced-motion: reduce) {
   *,
