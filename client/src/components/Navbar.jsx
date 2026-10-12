@@ -1,188 +1,165 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   CreditCard,
-  LogIn,
   Menu,
   Moon,
   Sun,
-  Sparkles,
   X,
   ArrowRight,
 } from "lucide-react";
 
 function Navbar({ theme, onToggleTheme }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 15);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const navLinks = [
-    { label: "Home", href: "#home" },
-    { label: "Services", href: "#services" },
-    { label: "About", href: "#about" },
+    { label: "Features", href: "#services" },
+    { label: "Why Us", href: "#about" },
     { label: "Contact", href: "#contact" },
   ];
 
   const closeMenu = () => setMenuOpen(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-[var(--border-color)] bg-[var(--header-bg)] backdrop-blur-xl">
-      <div className="mx-auto w-full max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="flex h-[64px] items-center justify-between gap-2 sm:h-[70px] lg:h-[76px] lg:gap-4">
-          {/* Logo */}
+    <header
+      className={`sticky top-0 z-50 w-full transition-all duration-200 ${
+        scrolled
+          ? "border-b border-[var(--border-color)] bg-[var(--page-bg)]/85 backdrop-blur-md"
+          : "border-b border-transparent bg-transparent"
+      }`}
+    >
+      <div className="mx-auto flex h-16 w-full max-w-[1280px] items-center justify-between px-4 sm:px-6 lg:px-8">
+        
+        {/* Brand */}
+        <div className="flex items-center gap-8">
           <a
             href="#home"
             onClick={closeMenu}
-            aria-label="BIO Website home"
-            className="group flex shrink-0 items-center gap-2 sm:gap-2.5"
+            className="flex items-center gap-2.5 text-base font-extrabold tracking-tight text-[var(--text-primary)] transition hover:opacity-90"
           >
-            <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] border border-emerald-400/40 bg-gradient-to-br from-emerald-500 to-cyan-500 text-white shadow-md shadow-emerald-500/25 transition-all duration-200 group-hover:scale-105 group-hover:shadow-emerald-500/40 sm:h-10 sm:w-10 lg:h-11 lg:w-11 lg:rounded-[14px]">
-              <CreditCard
-                size={19}
-                className="sm:size-[21px]"
-                strokeWidth={2}
-              />
-              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
-            </span>
-
-            <span className="flex flex-col">
-              <span className="whitespace-nowrap text-[15px] font-extrabold leading-tight tracking-[-0.03em] text-[var(--text-primary)] transition-colors sm:text-[16px] xl:text-[18px]">
-                BIO Website
-              </span>
-
-              <span className="mt-0.5 whitespace-nowrap text-[7.5px] font-bold tracking-[0.06em] text-cyan-700 sm:text-[8px] xl:text-[9.5px] dark:text-cyan-400">
-                SMART BUSINESS CARD &amp; PORTFOLIO
-              </span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#10b981] text-white shadow-xs">
+              <CreditCard size={17} strokeWidth={2.2} />
+            </div>
+            <span>
+              Bio<span className="text-[#10b981]">Card</span>
             </span>
           </a>
 
-          {/* Navigation */}
-          <nav
-            aria-label="Main navigation"
-            className="hidden items-center justify-center gap-0.5 rounded-full border border-[var(--border-color)] bg-[var(--surface)]/75 p-1 backdrop-blur-md shadow-xs md:flex lg:gap-1"
-          >
+          {/* Desktop Navigation Links */}
+          <nav aria-label="Main navigation" className="hidden md:flex items-center gap-6">
             {navLinks.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
-                className="whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold text-[var(--text-secondary)] transition-all duration-200 hover:bg-[var(--surface-raised)] hover:text-[var(--text-primary)] md:px-2.5 md:py-1 md:text-[11.5px] lg:px-3.5 lg:py-1.5 lg:text-[13px]"
+                className="text-sm font-medium text-[var(--text-secondary)] transition hover:text-[var(--text-primary)]"
+              >
+                {link.label}
+              </a>
+            ))}
+          </nav>
+        </div>
+
+        {/* Desktop Right Actions */}
+        <div className="hidden md:flex items-center gap-3">
+          {/* Theme Switcher */}
+          <button
+            type="button"
+            onClick={onToggleTheme}
+            aria-label="Toggle theme"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-secondary)] transition hover:bg-[var(--surface-raised)] hover:text-[var(--text-primary)]"
+          >
+            {theme === "dark" ? (
+              <Sun size={16} className="text-amber-400" />
+            ) : (
+              <Moon size={16} className="text-cyan-600" />
+            )}
+          </button>
+
+          {/* Login */}
+          <Link
+            to="/login"
+            className="rounded-lg px-3.5 py-1.5 text-sm font-medium text-[var(--text-secondary)] transition hover:text-[var(--text-primary)]"
+          >
+            Log in
+          </Link>
+
+          {/* Primary CTA */}
+          <Link
+            to="/register"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#10b981] px-4 py-2 text-sm font-semibold text-white shadow-xs transition hover:bg-[#059669] active:scale-95"
+          >
+            <span>Create card</span>
+            <ArrowRight size={14} />
+          </Link>
+        </div>
+
+        {/* Mobile Controls */}
+        <div className="flex items-center gap-2 md:hidden">
+          <button
+            type="button"
+            onClick={onToggleTheme}
+            aria-label="Toggle theme"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-secondary)]"
+          >
+            {theme === "dark" ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} className="text-cyan-600" />}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMenuOpen((prev) => !prev)}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-primary)]"
+          >
+            {menuOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
+        </div>
+
+      </div>
+
+      {/* Mobile Drawer */}
+      {menuOpen && (
+        <div className="border-b border-[var(--border-color)] bg-[var(--page-bg)] px-4 py-4 md:hidden shadow-lg">
+          <nav className="flex flex-col gap-3">
+            {navLinks.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                onClick={closeMenu}
+                className="py-1 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
               >
                 {link.label}
               </a>
             ))}
           </nav>
 
-          {/* Desktop and Tablet actions */}
-          <div className="hidden shrink-0 items-center gap-1.5 md:flex lg:gap-2.5">
-            <button
-              type="button"
-              onClick={onToggleTheme}
-              aria-label="Toggle color theme"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--surface)] text-[var(--text-secondary)] transition-all duration-200 hover:border-emerald-500/40 hover:bg-[var(--surface-raised)] active:scale-95 lg:h-10 lg:w-10"
-            >
-              {theme === "dark" ? (
-                <Sun
-                  size={17}
-                  className="text-amber-400 transition-transform hover:rotate-45"
-                />
-              ) : (
-                <Moon
-                  size={17}
-                  className="text-cyan-600 transition-transform hover:-rotate-12"
-                />
-              )}
-            </button>
-
-            {/* Customer Login — inactive/secondary style */}
+          <div className="mt-4 flex flex-col gap-2 border-t border-[var(--border-color)] pt-4">
             <Link
               to="/login"
-              className="inline-flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-[var(--border-color)] bg-[var(--surface)] px-2.5 text-xs font-semibold text-[var(--text-primary)] transition-all duration-200 hover:border-cyan-500/40 hover:bg-[var(--surface-raised)] active:scale-95 sm:px-2.5 md:text-[11.5px] lg:h-10 lg:px-3.5 lg:text-[13px]"
+              onClick={closeMenu}
+              className="py-2 text-center text-sm font-medium text-[var(--text-primary)]"
             >
-              <LogIn
-                size={13}
-                className="shrink-0 text-cyan-700 dark:text-cyan-400"
-              />
-              <span>Customer Login</span>
+              Log in
             </Link>
-
-            {/* Create Card — active/primary style */}
             <Link
               to="/register"
-              className="group relative inline-flex h-9 items-center justify-center gap-1.5 overflow-hidden whitespace-nowrap rounded-xl border border-emerald-500 bg-gradient-to-r from-emerald-500 to-cyan-500 px-3 text-xs font-bold text-white shadow-md shadow-emerald-500/30 transition-all duration-200 hover:-translate-y-0.5 hover:from-emerald-600 hover:to-cyan-600 hover:shadow-lg hover:shadow-emerald-500/40 active:scale-95 md:px-3 md:text-[11.5px] lg:h-10 lg:px-4 lg:text-[13px]"
+              onClick={closeMenu}
+              className="flex items-center justify-center gap-1.5 rounded-lg bg-[#10b981] py-2 text-center text-sm font-semibold text-white"
             >
-              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
-              <Sparkles
-                size={13}
-                className="shrink-0 transition-transform group-hover:rotate-12"
-              />
-              <span>Create Card</span>
+              <span>Create card</span>
+              <ArrowRight size={14} />
             </Link>
           </div>
-
-          {/* Mobile and tablet controls */}
-          <div className="flex items-center justify-self-end gap-2 md:hidden">
-            <button
-              type="button"
-              onClick={onToggleTheme}
-              aria-label="Toggle color theme"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--surface)] text-[var(--text-primary)] transition-all active:scale-95 sm:h-10 sm:w-10"
-            >
-              {theme === "dark" ? (
-                <Sun size={17} className="text-amber-400" />
-              ) : (
-                <Moon size={17} className="text-cyan-600" />
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setMenuOpen((open) => !open)}
-              aria-label={menuOpen ? "Close menu" : "Open menu"}
-              aria-expanded={menuOpen}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--surface)] text-[var(--text-primary)] transition-all active:scale-95 sm:h-10 sm:w-10"
-            >
-              {menuOpen ? <X size={18} /> : <Menu size={18} />}
-            </button>
-          </div>
         </div>
-
-        {/* Mobile dropdown */}
-        {menuOpen && (
-          <div className="border-t border-[var(--border-color)] py-3 md:hidden">
-            <nav aria-label="Mobile navigation" className="flex flex-col gap-1">
-              {navLinks.map((link) => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  onClick={closeMenu}
-                  className="flex items-center justify-between rounded-xl px-4 py-2.5 text-sm font-semibold text-[var(--text-secondary)] transition hover:bg-[var(--surface-raised)] hover:text-[var(--text-primary)]"
-                >
-                  <span>{link.label}</span>
-                  <ArrowRight size={14} className="opacity-50" />
-                </a>
-              ))}
-            </nav>
-
-            <div className="mt-3 grid grid-cols-2 gap-2 border-t border-[var(--border-color)] pt-3">
-              <Link
-                to="/login"
-                onClick={closeMenu}
-                className="flex min-w-0 items-center justify-center gap-1.5 rounded-xl border border-[var(--border-color)] bg-[var(--surface)] px-2 py-2.5 text-xs font-semibold text-[var(--text-primary)] active:scale-95"
-              >
-                <LogIn size={14} className="text-cyan-700 dark:text-cyan-400" />
-                Customer Login
-              </Link>
-
-              <Link
-                to="/register"
-                onClick={closeMenu}
-                className="flex min-w-0 items-center justify-center gap-1.5 rounded-xl border border-emerald-500 bg-gradient-to-r from-emerald-500 to-cyan-500 px-2 py-2.5 text-xs font-bold text-white shadow-sm shadow-emerald-500/25 active:scale-95"
-              >
-                <Sparkles size={14} />
-                Create Card
-              </Link>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </header>
   );
 }

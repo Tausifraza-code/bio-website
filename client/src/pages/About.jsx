@@ -1,333 +1,345 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
-  Target,
-  Sparkles,
+  ArrowRight,
+  ArrowUpRight,
+  BadgeCheck,
+  Building2,
+  Car,
+  Check,
+  CheckCircle2,
+  Compass,
+  ContactRound,
+  FileText,
+  Globe2,
+  HeartHandshake,
+  Layers,
+  MessageCircle,
+  Phone,
+  QrCode,
   Scissors,
+  Share2,
+  ShieldCheck,
   Shirt,
   ShoppingBag,
+  Sparkles,
+  Star,
   Stethoscope,
+  Target,
+  TrendingUp,
+  Users,
   Utensils,
   BriefcaseBusiness,
-  Car,
-  CheckCircle2,
-  XCircle,
-  AlertTriangle,
-  ContactRound,
   Zap,
-  Check,
 } from "lucide-react";
 
-const industries = [
-  { name: "Barber Shops & Grooming", icon: Scissors },
-  { name: "Beauty Parlours & Salons", icon: Sparkles },
-  { name: "Women's Boutiques & Ethnic", icon: ShoppingBag },
-  { name: "Men's Clothing & Tailoring", icon: Shirt },
-  { name: "Children's Clothing & Kids", icon: ShoppingBag },
-  { name: "Doctors, Clinics & Labs", icon: Stethoscope },
-  { name: "Restaurants, Cafes & Sweets", icon: Utensils },
-  { name: "Consultants, CAs & Legal", icon: BriefcaseBusiness },
-  { name: "Automotive & Detailing", icon: Car },
+const stats = [
+  { value: "88%", label: "Paper cards discarded within a week", bad: true },
+  {
+    value: "1-Tap",
+    label: "Direct .VCF phonebook save speed",
+    highlight: true,
+  },
+  { value: "0 Reprints", label: "Instant cloud edits with zero waste" },
+  { value: "24/7", label: "Live WhatsApp inquiries & map navigation" },
 ];
 
-const comparisons = [
+const pillars = [
   {
-    title: "Traditional Paper Cards",
-    label: "Limited & Static",
+    icon: Zap,
+    title: "Zero App Download Friction",
     description:
-      "Easy to misplace, static contact info, no interactive product showcase, and zero analytics on who actually views your card.",
-    highlights: [
-      "Easily lost & forgotten",
-      "Zero live updates",
-      "No product catalog",
-    ],
-    type: "negative",
+      "Clients open your card directly inside Safari or Chrome via QR scan or bio link. No downloads, no passwords, no signup barriers.",
+    tag: "Native Web",
   },
   {
-    title: "Bulky Corporate Websites",
-    label: "Complex & Costly",
+    icon: MessageCircle,
+    title: "Direct WhatsApp Inquiries",
     description:
-      "Heavy setup, monthly upkeep costs, and slow navigation that overwhelm mobile customers looking for quick answers.",
-    highlights: [
-      "High maintenance friction",
-      "Slow mobile browsing",
-      "Complicated to update",
-    ],
-    type: "warning",
+      "Every item in your catalog, service booking, or contact prompt routes straight into your WhatsApp inbox with pre-filled buyer details.",
+    tag: "Instant Leads",
   },
   {
-    title: "BIO Website (Smart Mini Card)",
-    label: "Modern Interactive Hub",
-    badge: "Recommended",
+    icon: QrCode,
+    title: "Dynamic Cloud-Synced QR",
     description:
-      "Share contact details, WhatsApp chat, Google Maps, catalog products, and social links — instantly accessible from one sleek link.",
-    highlights: [
-      "1-Tap VCF Contact Save",
-      "Direct WhatsApp Leads",
-      "Live Product Showcase",
-      "Instant QR Code Access",
-    ],
-    type: "positive",
+      "Change prices, photos, hours, or phone numbers in seconds. Your printed counter stickers and packaging QR codes always reflect latest info.",
+    tag: "Zero Waste",
+  },
+];
+
+const industries = [
+  { name: "Barber Shops & Salons", icon: Scissors, perk: "1-Tap Booking" },
+  { name: "Beauty & Spa Wellness", icon: Sparkles, perk: "Visual Menus" },
+  { name: "Fashion & Boutiques", icon: ShoppingBag, perk: "Photo Catalog" },
+  { name: "Tailoring & Suits", icon: Shirt, perk: "Fabric Gallery" },
+  { name: "Doctors & Clinics", icon: Stethoscope, perk: "Direct Call & Map" },
+  { name: "Cafes & Restaurants", icon: Utensils, perk: "WhatsApp Orders" },
+  { name: "CAs, Lawyers & Tax", icon: BriefcaseBusiness, perk: "Native .VCF" },
+  { name: "Automotive Detailing", icon: Car, perk: "Service Packages" },
+  {
+    name: "Real Estate & Agencies",
+    icon: Building2,
+    perk: "Project Brochures",
+  },
+];
+
+const comparisonPoints = [
+  {
+    feature: "Contact Sharing",
+    oldWay: "Paper Cards: Manual typing numbers, lost in pockets",
+    newWay: "1-Tap .VCF saves name, photo, & number into contacts",
+  },
+  {
+    feature: "Product Catalog",
+    oldWay: "Paper Cards: Static, cannot show new items or discounts",
+    newWay: "Live photo catalog with direct WhatsApp enquiry buttons",
+  },
+  {
+    feature: "Location & Directions",
+    oldWay: "Paper Cards: Customers type address into Google Maps manually",
+    newWay: "1-Tap GPS turn-by-turn navigation directly to your shop",
+  },
+  {
+    feature: "Reprint Costs",
+    oldWay: "Paper Cards: Waste thousands on reprints when details change",
+    newWay: "Cloud-synced forever. Update anything anytime for free",
   },
 ];
 
 function About() {
+  const [selectedIndustry, setSelectedIndustry] = useState(0);
+
   return (
     <section
       id="about"
-      className="relative overflow-hidden py-5 sm:py-5 lg:py-5"
+      className="relative isolate overflow-hidden py-5 sm:py-5 lg:py-5"
     >
-      {/* Background ambient lighting */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute left-[-5%] top-16 h-80 w-80 rounded-full bg-[#10b981]/[0.09] blur-[120px]" />
-        <div className="absolute right-[-5%] bottom-10 h-80 w-80 rounded-full bg-[#22d3ee]/[0.08] blur-[130px]" />
-        {/* Subtle dot grid */}
-        <div className="absolute inset-0 opacity-[0.035] [background-image:radial-gradient(circle_at_1px_1px,var(--border-color)_1px,transparent_0)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_75%_65%_at_50%_45%,#000_20%,transparent_80%)]" />
+      {/* Dynamic ambient backdrop */}
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute left-[-8%] top-1/4 h-[460px] w-[460px] rounded-full bg-[#10b981]/[0.07] blur-[150px]" />
+        <div className="absolute right-[-8%] bottom-1/4 h-[460px] w-[460px] rounded-full bg-[#22d3ee]/[0.07] blur-[150px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border-color)_1px,transparent_1px),linear-gradient(to_bottom,var(--border-color)_1px,transparent_1px)] bg-[size:52px_52px] opacity-[0.08]" />
       </div>
 
-      <div className="mx-auto grid w-full max-w-[1330px] grid-cols-1 items-center gap-10 px-5 sm:px-8 lg:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] lg:gap-12 lg:px-10 xl:gap-16 xl:px-12">
-        {/* Left: Mission & Industry Ecosystem */}
-        <div className="min-w-0">
-          {/* Eyebrow badge */}
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#22d3ee]/25 bg-[#22d3ee]/[0.07] px-3.5 py-1.5 text-xs font-semibold text-[#0891b2] shadow-[0_1px_2px_rgba(0,0,0,0.05)] backdrop-blur-sm dark:text-[#22d3ee]">
+      <div className="mx-auto w-full max-w-[1300px] px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12">
+        {/* ========================================================
+            HEADER / STORYTELLING EYEBROW
+        ======================================================== */}
+        <div className="mx-auto max-w-[780px] text-center">
+          <div className="mb-3.5 inline-flex items-center gap-2 rounded-full border border-[#22d3ee]/30 bg-[#22d3ee]/[0.08] px-4 py-1.5 text-xs font-semibold text-[#0891b2] shadow-xs backdrop-blur-md dark:text-[#22d3ee]">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#10b981] opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-[#10b981]" />
             </span>
-            <Target size={14} className="text-[#0891b2] dark:text-[#22d3ee]" />
-            <span>Our Mission &amp; Background</span>
+            <Target
+              size={14}
+              className="shrink-0 text-[#0891b2] dark:text-[#22d3ee]"
+            />
+            <span>Why BIO Website Exists</span>
           </div>
 
-          {/* Section heading — matches Hero h1 pattern */}
-          <h2 className="max-w-[700px] text-[clamp(28px,3.1vw,42px)] font-extrabold leading-[1.15] tracking-[-0.035em] text-[var(--text-primary)]">
-            Bridging Physical Handshakes with{" "}
-            <span className="text-[#10b981]">Modern Digital Conversion</span>
+          <h2 className="text-[clamp(30px,3.8vw,48px)] font-black leading-[1.12] tracking-[-0.035em] text-[var(--text-primary)]">
+            Built to Turn Fleeting Handshakes into{" "}
+            <span className="bg-gradient-to-r from-[#10b981] via-[#059669] to-[#22d3ee] bg-clip-text text-transparent">
+              Permanent Customers
+            </span>
           </h2>
 
-          {/* Narrative paragraphs */}
-          <div className="mt-4 space-y-3 text-sm leading-relaxed text-[var(--text-secondary)] sm:text-[15px]">
-            <p>
-              At{" "}
-              <strong className="font-semibold text-[var(--text-primary)]">
-                BIO Website
-              </strong>
-              , we recognized a major gap in modern commerce. Thousands of local
-              retail owners and service specialists connect face-to-face every
-              day, yet rely on static paper cards that end up lost in wallets.
-            </p>
+          <p className="mx-auto mt-4 max-w-[620px] text-sm leading-relaxed text-[var(--text-secondary)] sm:text-base">
+            Every day, retail owners and service specialists connect
+            face-to-face. But 88% of paper business cards end up in the trash.
+            We built BIO Website so every connection you make stays permanently
+            inside your customer&apos;s phone.
+          </p>
+        </div>
 
-            <p>
-              Paper cards cannot trigger a one-tap WhatsApp chat, showcase new
-              inventory, or route customers to your shopfront.
-            </p>
-
-            {/* Quick feature benefit pill strip */}
-            <div className="grid grid-cols-3 gap-2 py-1">
-              <div className="flex items-center gap-1.5 rounded-lg border border-[var(--border-color)] bg-[var(--surface)]/70 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--text-primary)] sm:text-xs">
-                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#10b981]/15 text-[#10b981]">
-                  <Check size={10} strokeWidth={3} />
-                </span>
-                <span className="truncate">1-Tap WhatsApp</span>
-              </div>
-              <div className="flex items-center gap-1.5 rounded-lg border border-[var(--border-color)] bg-[var(--surface)]/70 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--text-primary)] sm:text-xs">
-                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#22d3ee]/15 text-[#0891b2] dark:text-[#22d3ee]">
-                  <Check size={10} strokeWidth={3} />
-                </span>
-                <span className="truncate">Live Directions</span>
-              </div>
-              <div className="flex items-center gap-1.5 rounded-lg border border-[var(--border-color)] bg-[var(--surface)]/70 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--text-primary)] sm:text-xs">
-                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#10b981]/15 text-[#10b981]">
-                  <Check size={10} strokeWidth={3} />
-                </span>
-                <span className="truncate">Digital Catalog</span>
-              </div>
-            </div>
-
-            <p>
-              Our{" "}
-              <strong className="font-semibold text-[var(--text-primary)]">
-                Strategic Mini Website
-              </strong>{" "}
-              gives boutique owners, salons, consultants, and clinics a
-              high-converting online profile that customers save and revisit
-              effortlessly.
-            </p>
-          </div>
-
-          {/* Industry chips */}
-          <div className="mt-6">
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] sm:text-[13px]">
-                <span className="h-1.5 w-5 rounded-full bg-gradient-to-r from-[#10b981] to-[#22d3ee]" />
-                Built for Retail &amp; Service Sectors
-              </h3>
-              <span className="rounded-full border border-[#22d3ee]/20 bg-[#22d3ee]/10 px-2.5 py-0.5 text-[11px] font-semibold text-[#0891b2] dark:text-[#22d3ee]">
-                9+ Verticals
+        {/* ========================================================
+            STAT METRICS TICKER BAR
+        ======================================================== */}
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+          {stats.map((s, idx) => (
+            <div
+              key={idx}
+              className={`flex flex-col justify-between rounded-2xl border p-4.5 transition-all ${
+                s.highlight
+                  ? "border-[#10b981]/50 bg-gradient-to-b from-[#10b981]/15 to-[var(--surface)] shadow-sm"
+                  : s.bad
+                    ? "border-rose-500/25 bg-rose-500/[0.04]"
+                    : "border-[var(--border-color)] bg-[var(--surface)]"
+              }`}
+            >
+              <span
+                className={`text-2xl font-black tracking-tight sm:text-3xl ${
+                  s.highlight
+                    ? "text-[#10b981]"
+                    : s.bad
+                      ? "text-rose-400"
+                      : "text-[var(--text-primary)]"
+                }`}
+              >
+                {s.value}
               </span>
+              <p className="mt-2 text-xs leading-relaxed text-[var(--text-secondary)]">
+                {s.label}
+              </p>
             </div>
+          ))}
+        </div>
 
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
-              {industries.map((industry) => {
-                const Icon = industry.icon;
-
-                return (
-                  <div
-                    key={industry.name}
-                    className="group flex min-w-0 items-center gap-2.5 rounded-xl border border-[var(--border-color)] bg-[var(--surface)]/80 px-3 py-2 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#10b981]/40 hover:bg-[var(--surface-raised)] hover:shadow-md hover:shadow-emerald-950/10"
-                  >
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#10b981]/10 text-[#10b981] transition-all duration-200 group-hover:scale-110 group-hover:bg-gradient-to-br group-hover:from-[#10b981] group-hover:to-[#22d3ee] group-hover:text-white">
-                      <Icon size={13} />
-                    </span>
-
-                    <span className="truncate text-xs font-medium text-[var(--text-secondary)] transition-colors duration-200 group-hover:font-semibold group-hover:text-[var(--text-primary)]">
-                      {industry.name}
+        {/* ========================================================
+            3 VALUE PILLARS CARDS
+        ======================================================== */}
+        <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-3">
+          {pillars.map((pillar, i) => {
+            const Icon = pillar.icon;
+            return (
+              <div
+                key={i}
+                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[var(--border-color)] bg-[var(--surface)] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#10b981]/40 hover:shadow-lg hover:shadow-[#10b981]/10"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#10b981]/15 text-[#10b981] ring-1 ring-inset ring-[#10b981]/25 transition-transform duration-300 group-hover:scale-110">
+                      <Icon size={20} strokeWidth={2.2} />
+                    </div>
+                    <span className="rounded-full bg-[var(--surface-raised)] border border-[var(--border-color)] px-2.5 py-0.5 text-[10px] font-semibold text-[var(--text-secondary)]">
+                      {pillar.tag}
                     </span>
                   </div>
-                );
-              })}
+
+                  <h3 className="mt-4 text-base font-bold tracking-tight text-[var(--text-primary)] sm:text-lg">
+                    {pillar.title}
+                  </h3>
+
+                  <p className="mt-2 text-xs leading-relaxed text-[var(--text-secondary)]">
+                    {pillar.description}
+                  </p>
+                </div>
+
+                <div className="mt-5 flex items-center gap-1.5 border-t border-[var(--border-color)]/60 pt-3 text-xs font-semibold text-[#10b981]">
+                  <span>Optimized for Local Commerce</span>
+                  <Check size={14} strokeWidth={3} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* ========================================================
+            SPLIT SECTION: THE COMPARISON + LIVE CTA
+        ======================================================== */}
+        <div className="mt-6 overflow-hidden rounded-[26px] border border-[var(--border-color)] bg-gradient-to-b from-[var(--surface-raised)]/90 via-[var(--surface)] to-[var(--surface)] p-6 shadow-xl sm:p-8 lg:p-10">
+          <div className="flex flex-col gap-3 border-b border-[var(--border-color)]/70 pb-6 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#10b981]/15 text-[#10b981]">
+                  <TrendingUp size={18} />
+                </span>
+                <h3 className="text-xl font-bold tracking-tight text-[var(--text-primary)] sm:text-2xl">
+                  Old Habits vs. Smart Digital Cards
+                </h3>
+              </div>
+              <p className="mt-1 text-xs text-[var(--text-secondary)] sm:text-sm">
+                Why paper cards fail to bring back customers — and how digital
+                cards fix it.
+              </p>
             </div>
+
+            <Link
+              to="/register"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#10b981] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-[#10b981]/25 transition-all hover:bg-[#059669] hover:shadow-lg active:scale-95 w-fit"
+            >
+              <span>Create Your Card</span>
+              <ArrowRight size={14} />
+            </Link>
+          </div>
+
+          {/* 4 Crisp Comparison Rows */}
+          <div className="mt-6 space-y-3">
+            {comparisonPoints.map((pt, idx) => (
+              <div
+                key={idx}
+                className="grid grid-cols-1 gap-2.5 rounded-2xl border border-[var(--border-color)] bg-[var(--surface)] p-4 sm:grid-cols-12 sm:items-center sm:gap-4 transition-all hover:border-[var(--text-secondary)]/30"
+              >
+                <div className="sm:col-span-3">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                    Factor
+                  </span>
+                  <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">
+                    {pt.feature}
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-rose-500/15 bg-rose-500/[0.04] p-3 text-xs sm:col-span-4">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400 block mb-0.5">
+                    Traditional Paper
+                  </span>
+                  <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">
+                    {pt.oldWay}
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-[#10b981]/30 bg-[#10b981]/10 p-3 text-xs sm:col-span-5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#10b981] block mb-0.5">
+                    Smart Bio Website
+                  </span>
+                  <p className="text-[11px] font-medium text-[var(--text-primary)] leading-relaxed">
+                    {pt.newWay}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Right: Comparison Panel */}
-        <div className="relative min-w-0 overflow-hidden rounded-[24px] border border-[var(--border-color)] bg-gradient-to-br from-[var(--surface-raised)]/90 via-[var(--surface)] to-[var(--surface)] p-4 shadow-xl shadow-black/5 backdrop-blur-sm sm:p-6 lg:p-6 xl:p-7">
-          {/* Ambient decorative glows */}
-          <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#10b981]/15 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-[#22d3ee]/15 blur-3xl" />
-
-          {/* Panel header */}
-          <div className="relative mb-4 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#22d3ee]/15 text-[#0891b2] ring-1 ring-inset ring-[#22d3ee]/25 dark:text-[#22d3ee]">
-                <Sparkles size={16} />
-              </span>
-
-              <div>
-                <h3 className="text-sm font-extrabold text-[var(--text-primary)] sm:text-base">
-                  The Strategic Advantage
+        {/* ========================================================
+            VERTICALS GRID (9+ Industries)
+        ======================================================== */}
+        <div className="mt-6">
+          <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="h-1.5 w-6 rounded-full bg-gradient-to-r from-[#10b981] to-[#22d3ee]" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                  Tailored For Your Industry
                 </h3>
-                <p className="text-[11px] text-[var(--text-secondary)]">
-                  How Smart Mini Cards compare to old alternatives
-                </p>
               </div>
+              <h4 className="mt-1 text-lg font-bold tracking-tight text-[var(--text-primary)] sm:text-xl">
+                Ready-to-Use Templates for High-Trust Local Businesses
+              </h4>
             </div>
 
-            <span className="hidden items-center gap-1 rounded-full border border-[#22d3ee]/20 bg-[#22d3ee]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#0891b2] dark:text-[#22d3ee] sm:inline-flex">
-              Side-by-side
+            <span className="rounded-full border border-[#22d3ee]/30 bg-[#22d3ee]/10 px-3 py-1 text-xs font-semibold text-[#0891b2] dark:text-[#22d3ee] w-fit">
+              9+ Verticals Supported
             </span>
           </div>
 
-          {/* Comparisons List */}
-          <div className="relative space-y-2.5">
-            {comparisons.map((item) => {
-              const isPositive = item.type === "positive";
-              const isWarning = item.type === "warning";
-
-              const StatusIcon = isPositive
-                ? CheckCircle2
-                : isWarning
-                  ? AlertTriangle
-                  : XCircle;
-
-              const statusColor = isPositive
-                ? "text-emerald-500 dark:text-emerald-400"
-                : isWarning
-                  ? "text-amber-500 dark:text-amber-400"
-                  : "text-rose-500 dark:text-rose-400";
-
-              const statusBackground = isPositive
-                ? "bg-emerald-500/10 ring-emerald-500/25"
-                : isWarning
-                  ? "bg-amber-500/10 ring-amber-500/25"
-                  : "bg-rose-500/10 ring-rose-500/25";
-
-              const cardStyle = isPositive
-                ? "border-[#10b981]/50 bg-gradient-to-br from-[#10b981]/[0.12] via-[#22d3ee]/[0.06] to-emerald-500/[0.04] shadow-md shadow-emerald-950/15 ring-1 ring-[#10b981]/30"
-                : isWarning
-                  ? "border-[var(--border-color)] bg-[var(--surface)]/60 hover:border-amber-500/30"
-                  : "border-[var(--border-color)] bg-[var(--surface)]/60 hover:border-rose-500/30";
-
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {industries.map((ind, i) => {
+              const Icon = ind.icon;
               return (
                 <div
-                  key={item.title}
-                  className={`group relative overflow-hidden rounded-[16px] border p-3.5 transition-all duration-200 hover:-translate-y-0.5 sm:p-4 ${cardStyle}`}
+                  key={i}
+                  className="flex items-center justify-between rounded-xl border border-[var(--border-color)] bg-[var(--surface)] p-3.5 transition-all hover:border-[#10b981]/40 hover:bg-[var(--surface-raised)]"
                 >
-                  {/* Hairline sheen on hover */}
-                  <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#10b981]/30 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
-                  <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-xs font-bold text-[var(--text-primary)] sm:text-sm">
-                        {item.title}
-                      </h4>
-                      {item.badge && (
-                        <span className="inline-flex items-center gap-1 rounded-md bg-gradient-to-r from-[#10b981] to-[#22d3ee] px-1.5 py-0.5 text-[9px] font-bold text-white shadow-xs">
-                          <Zap size={9} fill="currentColor" />
-                          {item.badge}
-                        </span>
-                      )}
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#10b981]/10 text-[#10b981]">
+                      <Icon size={17} />
                     </div>
-
-                    <span
-                      className={`inline-flex w-fit shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ring-1 ring-inset ${statusBackground} ${statusColor}`}
-                    >
-                      <StatusIcon size={12} />
-                      {item.label}
-                    </span>
-                  </div>
-
-                  <p className="mt-1.5 text-xs leading-relaxed text-[var(--text-secondary)]">
-                    {item.description}
-                  </p>
-
-                  {/* Highlights pills */}
-                  <div className="mt-2.5 flex flex-wrap gap-1.5">
-                    {item.highlights.map((highlight) => (
-                      <span
-                        key={highlight}
-                        className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-medium ${
-                          isPositive
-                            ? "border border-[#10b981]/20 bg-[#10b981]/10 text-[#10b981]"
-                            : isWarning
-                              ? "bg-amber-500/[0.08] text-amber-500/90 dark:text-amber-400/90"
-                              : "bg-rose-500/[0.08] text-rose-500/90 dark:text-rose-400/90"
-                        }`}
-                      >
-                        {isPositive ? (
-                          <Check
-                            size={9}
-                            className="text-emerald-500 dark:text-emerald-400"
-                            strokeWidth={3}
-                          />
-                        ) : (
-                          <span className="h-1 w-1 rounded-full bg-current opacity-60" />
-                        )}
-                        {highlight}
-                      </span>
-                    ))}
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-bold text-[var(--text-primary)]">
+                        {ind.name}
+                      </p>
+                      <p className="text-[10.5px] text-[var(--text-secondary)] flex items-center gap-1">
+                        <span className="h-1 w-1 rounded-full bg-[#10b981]" />
+                        {ind.perk}
+                      </p>
+                    </div>
                   </div>
                 </div>
               );
             })}
-          </div>
-
-          {/* Bottom note */}
-          <div className="relative mt-3.5 flex items-center gap-3 rounded-[14px] border border-[var(--border-color)] bg-[var(--surface)]/90 p-3 transition-colors duration-200 hover:border-[#10b981]/30">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#10b981]/20 to-[#22d3ee]/20 text-[#10b981] ring-1 ring-inset ring-[#10b981]/20">
-              <ContactRound size={16} />
-            </div>
-
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-[var(--text-primary)]">
-                One link. A complete business identity.
-              </p>
-              <p className="truncate text-[11px] text-[var(--text-secondary)]">
-                Make it effortless for customers to discover, connect &amp;
-                revisit.
-              </p>
-            </div>
-
-            <span className="hidden shrink-0 items-center gap-1 rounded-full bg-[#10b981]/10 px-2 py-0.5 text-[10px] font-semibold text-[#10b981] sm:inline-flex">
-              <Zap size={10} /> Fast Setup
-            </span>
           </div>
         </div>
       </div>
