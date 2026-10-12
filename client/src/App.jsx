@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
@@ -6,10 +7,22 @@ import AuthPage from "./pages/AuthPage";
 import CardPreview from "./pages/CardPreview";
 import Dashboard from "./pages/Dashboard";
 
+import DashboardLayout from "./layout/DashboardLayout";
+import EditProfile from "./pages/EditProfile";
+import Leads from "./pages/Leads";
+import ManageProducts from "./pages/ManageProducts";
+import Mini from "./pages/Mini";
+import Payment from "./pages/Payment";
+import QrCode from "./pages/QrCode";
+import Refer from "./pages/Refer";
+import SocialCard from "./pages/SocialCard";
+
 function App() {
   useEffect(() => {
     try {
-      const savedTheme = localStorage.getItem("bio-theme") || "dark";
+      const savedTheme =
+        localStorage.getItem("bio-theme") || "dark";
+
       document.documentElement.dataset.theme = savedTheme;
     } catch {
       document.documentElement.dataset.theme = "dark";
@@ -29,11 +42,28 @@ function App() {
       <Route path="/preview" element={<CardPreview />} />
       <Route path="/card-preview" element={<CardPreview />} />
 
-      {/* Admin / Customer Dashboard */}
-      <Route path="/dashboard" element={<Dashboard />} />
+      {/* Dashboard Layout with Outlet */}
+      <Route element={<DashboardLayout />}>
+        <Route
+          path="/dashboard"
+          element={<Dashboard />}
+        />
+
+        <Route path="editprofile" element={<EditProfile />} />
+        <Route path="leads" element={<Leads />} />
+        <Route path="manageproducts" element={<ManageProducts />} />
+        <Route path="mini" element={<Mini />} />
+        <Route path="payment" element={<Payment />} />
+        <Route path="qrcode" element={<QrCode />} /> 
+        <Route path="refer" element={<Refer />} />
+        <Route path="/socialcard" element={<SocialCard />} />
+      </Route>
 
       {/* Unknown URL */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route
+        path="*"
+        element={<Navigate to="/" replace />}
+      />
     </Routes>
   );
 }
