@@ -1,0 +1,167 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .theme-dark, .theme-dark *));
+
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  font-optical-sizing: auto;
+  font-weight: 400;
+  scroll-behavior: smooth;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  scroll-padding-top: 90px;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+body,
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  text-decoration: none;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid #8b7cff;
+  outline-offset: 4px;
+}
+
+:root,
+[data-theme="dark"],
+.theme-dark,
+.app-shell {
+  --page-bg: #080b18;
+  --surface: #101629;
+  --surface-raised: #151d33;
+  --text-primary: #f7f8ff;
+  --text-secondary: #a4aec5;
+  --border-color: rgba(164, 174, 197, 0.16);
+  --accent: #8975ff;
+  --accent-strong: #6d55f5;
+  --header-bg: rgba(8, 11, 24, 0.82);
+
+  color-scheme: dark;
+}
+
+:root[data-theme="light"],
+[data-theme="light"],
+.theme-light,
+.app-shell.theme-light {
+  --page-bg: #f7f8fc;
+  --surface: #ffffff;
+  --surface-raised: #f0f2fb;
+  --text-primary: #171a2b;
+  --text-secondary: #626b82;
+  --border-color: rgba(35, 42, 70, 0.12);
+  --accent: #6047e8;
+  --accent-strong: #5037d3;
+  --header-bg: rgba(247, 248, 252, 0.88);
+
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--page-bg);
+  color: var(--text-primary);
+  transition: background-color 250ms ease, color 250ms ease;
+}
+
+.app-shell {
+  min-height: 100vh;
+  color: var(--text-primary);
+  background: var(--page-bg);
+  transition: background-color 250ms ease, color 250ms ease;
+}
+
+.app-shell.theme-light .contact-success-card {
+  background-color: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.app-shell.theme-light .contact-success-title {
+  color: #064e3b;
+}
+
+.app-shell.theme-light .contact-success-desc {
+  color: #065f46;
+}
+
+.app-shell.theme-light .contact-success-icon {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #059669;
+}
+
+.app-shell.theme-light .contact-success-btn {
+  background-color: #059669;
+  color: #ffffff;
+  border-color: #047857;
+}
+
+.app-shell.theme-light .contact-success-btn:hover {
+  background-color: #047857;
+  color: #ffffff;
+}
+
+.container-wide {
+  width: min(100% - 48px, 1240px);
+  margin-inline: auto;
+}
+
+@media (max-width: 640px) {
+  .container-wide {
+    width: min(100% - 32px, 1240px);
+  }
+}
+
+::selection {
+  color: white;
+  background: #6d55f5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
