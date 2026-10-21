@@ -1,5 +1,5 @@
-
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import {
   Upload,
@@ -7,7 +7,6 @@ import {
   Trash2,
   RefreshCw,
   Info,
-  Sparkles,
   Check,
   ChevronDown,
   Link as LinkIcon,
@@ -52,13 +51,7 @@ const Divider = () => (
   <div className="my-7 h-px bg-gradient-to-r from-transparent via-[#38516e] to-transparent sm:my-8" />
 );
 
-const Section = ({
-  icon: Icon,
-  title,
-  subtitle,
-  children,
-  className = "",
-}) => (
+const Section = ({ icon: Icon, title, subtitle, children, className = "" }) => (
   <section className={`min-w-0 ${className}`}>
     <div className="mb-5 flex items-start gap-3.5">
       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/20 bg-gradient-to-br from-cyan-300/15 to-blue-400/5 text-cyan-200 shadow-inner shadow-cyan-300/5">
@@ -113,9 +106,7 @@ const Field = ({
       {...props}
     />
 
-    {hint && (
-      <p className="mt-1.5 text-xs leading-5 text-slate-400">{hint}</p>
-    )}
+    {hint && <p className="mt-1.5 text-xs leading-5 text-slate-400">{hint}</p>}
   </div>
 );
 
@@ -134,9 +125,7 @@ const ImageUploader = ({
       <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
         <div>
           <p className="text-sm font-bold text-white">{title}</p>
-          <p className="mt-1 text-xs text-slate-400">
-            {recommendation}
-          </p>
+          <p className="mt-1 text-xs text-slate-400">{recommendation}</p>
         </div>
 
         <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#38516e] bg-[#0b1b30] text-cyan-200">
@@ -147,9 +136,7 @@ const ImageUploader = ({
       <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center">
         <div
           className={`relative shrink-0 overflow-hidden rounded-2xl border border-[#38516e] bg-[#0b1b30] ${
-            kind === "banner"
-              ? "h-24 w-full sm:w-36"
-              : "h-24 w-24"
+            kind === "banner" ? "h-24 w-full sm:w-36" : "h-24 w-24"
           }`}
         >
           {image ? (
@@ -215,14 +202,12 @@ const ImageUploader = ({
 const EditProfile = () => {
   /* IMAGE STATES */
 
-  const [avatar, setAvatar] = useState(
-    "https://i.pravatar.cc/200?img=12"
-  );
+  const [avatar, setAvatar] = useState("https://i.pravatar.cc/200?img=12");
 
   const [logo, setLogo] = useState(null);
 
   const [banner, setBanner] = useState(
-    "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200"
+    "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200",
   );
 
   const [qrCode, setQrCode] = useState(null);
@@ -260,6 +245,62 @@ const EditProfile = () => {
     upiId: "",
   });
 
+  // LOAD SAVED PROFILE DATA
+  useEffect(() => {
+    try {
+      const savedData = localStorage.getItem("bioProfileData");
+
+      if (!savedData) return;
+
+      const profile = JSON.parse(savedData);
+
+      // Load saved text fields without removing default fields
+      setFormData((prev) => ({
+        ...prev,
+        ...profile,
+      }));
+
+      // Restore images only when their URLs can be reused.
+      // Blob URLs are temporary and cannot survive a page refresh.
+      const isReusableImage = (url) =>
+        typeof url === "string" && url.length > 0 && !url.startsWith("blob:");
+
+      if (isReusableImage(profile.avatar)) {
+        setAvatar(profile.avatar);
+      } else if (profile.avatar === null) {
+        setAvatar(null);
+      }
+
+      if (isReusableImage(profile.logo)) {
+        setLogo(profile.logo);
+      } else if (profile.logo === null) {
+        setLogo(null);
+      }
+
+      if (isReusableImage(profile.banner)) {
+        setBanner(profile.banner);
+      } else if (profile.banner === null) {
+        setBanner(null);
+      }
+
+      if (isReusableImage(profile.qrCode)) {
+        setQrCode(profile.qrCode);
+      } else if (profile.qrCode === null) {
+        setQrCode(null);
+      }
+
+      if (profile.activeTheme) {
+        setActiveTheme(profile.activeTheme);
+      }
+
+      if (profile.selectedPlan) {
+        setSelectedPlan(profile.selectedPlan);
+      }
+    } catch (error) {
+      console.error("Error loading saved profile:", error);
+    }
+  }, []);
+
   /* IMAGE UPLOAD */
 
   const handleUpload = (type) => (event) => {
@@ -281,16 +322,33 @@ const EditProfile = () => {
       return;
     }
 
-    const url = URL.createObjectURL(file);
+    // QR code ko permanent data URL mein convert karo
+    if (type === "qr") {
+      const reader = new FileReader();
 
-    const setters = {
-      avatar: setAvatar,
-      logo: setLogo,
-      banner: setBanner,
-      qr: setQrCode,
-    };
+      reader.onload = () => {
+        setQrCode(reader.result);
+        setSaved(false);
+      };
 
-    setters[type]?.(url);
+      reader.onerror = () => {
+        alert("QR code read nahi ho paya. Please try again.");
+      };
+
+      reader.readAsDataURL(file);
+    } else {
+      // Baaki images ka existing behavior preserve karo
+      const url = URL.createObjectURL(file);
+
+      const setters = {
+        avatar: setAvatar,
+        logo: setLogo,
+        banner: setBanner,
+      };
+
+      setters[type]?.(url);
+      setSaved(false);
+    }
 
     event.target.value = "";
   };
@@ -334,7 +392,7 @@ const EditProfile = () => {
 
         handleChange(
           "mapLink",
-          `https://maps.google.com/?q=${latitude},${longitude}`
+          `https://maps.google.com/?q=${latitude},${longitude}`,
         );
 
         setCapturingGPS(false);
@@ -343,13 +401,13 @@ const EditProfile = () => {
         setCapturingGPS(false);
 
         alert(
-          "Unable to access your location. Please allow location permission and try again."
+          "Unable to access your location. Please allow location permission and try again.",
         );
       },
       {
         enableHighAccuracy: true,
         timeout: 10000,
-      }
+      },
     );
   };
 
@@ -357,13 +415,31 @@ const EditProfile = () => {
     setSaving(true);
     setSaved(false);
 
-    // UI-only save simulation. Connect your API here for permanent storage.
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    try {
+      const profileDataToSave = {
+        ...formData,
+        avatar,
+        logo,
+        banner,
+        qrCode,
+        activeTheme,
+        selectedPlan,
+      };
 
-    setSaving(false);
-    setSaved(true);
+      localStorage.setItem("bioProfileData", JSON.stringify(profileDataToSave));
 
-    setTimeout(() => setSaved(false), 2500);
+      window.dispatchEvent(new Event("bioProfileUpdated"));
+      setSaved(true);
+
+      setTimeout(() => {
+        setSaved(false);
+      }, 2500);
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      alert("Profile save nahi hua. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   /* DATA */
@@ -397,8 +473,7 @@ const EditProfile = () => {
       id: "obsidian",
       name: "Obsidian Noir & Platinum",
       category: "Barber & Executive",
-      description:
-        "Smoked glass, titanium graphite and platinum chrome for...",
+      description: "Smoked glass, titanium graphite and platinum chrome for...",
       colors: ["#334155", "#94a3b8"],
     },
     {
@@ -433,9 +508,7 @@ const EditProfile = () => {
     "@ibl",
   ];
 
-  const activeThemeData = themes.find(
-    (theme) => theme.id === activeTheme
-  );
+  const activeThemeData = themes.find((theme) => theme.id === activeTheme);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#0b1b30] px-3 py-5 text-white sm:px-5 sm:py-7 lg:px-8">
@@ -473,8 +546,8 @@ const EditProfile = () => {
               </h1>
 
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
-                Manage your business identity, branding, contact information
-                and digital visiting card from one place.
+                Manage your business identity, branding, contact information and
+                digital visiting card from one place.
               </p>
 
               <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-medium text-slate-300">
@@ -581,11 +654,7 @@ const EditProfile = () => {
               subtitle="Choose the appearance of your public visiting card. Your selected theme is highlighted below."
             >
               <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-[#29435f] bg-[#0b1b30]/70 p-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-300/10 text-cyan-200">
-                    <Sparkles size={19} />
-                  </div>
-
+                <div className="flex items-center">
                   <div>
                     <p className="text-sm font-bold text-white">
                       Available designs
@@ -604,9 +673,7 @@ const EditProfile = () => {
                     }}
                   />
 
-                  <span className="text-xs text-slate-300">
-                    Active theme:
-                  </span>
+                  <span className="text-xs text-slate-300">Active theme:</span>
 
                   <span className="text-xs font-bold text-cyan-200">
                     {activeThemeData?.name}
@@ -719,9 +786,7 @@ const EditProfile = () => {
                   <Field
                     label="First Name"
                     value={formData.firstName}
-                    onChange={(e) =>
-                      handleChange("firstName", e.target.value)
-                    }
+                    onChange={(e) => handleChange("firstName", e.target.value)}
                     placeholder="First name"
                     required
                   />
@@ -729,9 +794,7 @@ const EditProfile = () => {
                   <Field
                     label="Last Name"
                     value={formData.lastName}
-                    onChange={(e) =>
-                      handleChange("lastName", e.target.value)
-                    }
+                    onChange={(e) => handleChange("lastName", e.target.value)}
                     placeholder="Last name"
                     required
                   />
@@ -812,9 +875,7 @@ const EditProfile = () => {
                       onChange={(e) =>
                         handleChange(
                           "subdomain",
-                          e.target.value
-                            .toLowerCase()
-                            .replace(/\s+/g, "-")
+                          e.target.value.toLowerCase().replace(/\s+/g, "-"),
                         )
                       }
                       className="min-w-0 flex-1 bg-transparent px-2 py-3 font-mono text-sm text-cyan-100 outline-none"
@@ -864,19 +925,14 @@ const EditProfile = () => {
                   label="Job Title / Role"
                   icon={Briefcase}
                   value={formData.jobTitle}
-                  onChange={(e) =>
-                    handleChange("jobTitle", e.target.value)
-                  }
+                  onChange={(e) => handleChange("jobTitle", e.target.value)}
                   placeholder="Business Owner / Professional"
                 />
 
                 <Field
                   label="Short Headline / Slogan"
-                  icon={Sparkles}
                   value={formData.headline}
-                  onChange={(e) =>
-                    handleChange("headline", e.target.value)
-                  }
+                  onChange={(e) => handleChange("headline", e.target.value)}
                   placeholder="Your short tagline"
                 />
               </div>
@@ -942,9 +998,7 @@ const EditProfile = () => {
                   icon={MessageSquare}
                   type="tel"
                   value={formData.whatsapp}
-                  onChange={(e) =>
-                    handleChange("whatsapp", e.target.value)
-                  }
+                  onChange={(e) => handleChange("whatsapp", e.target.value)}
                   placeholder="918956235689"
                 />
 
@@ -983,9 +1037,7 @@ const EditProfile = () => {
                   <Field
                     label="Shop / Unit Number"
                     value={formData.shopUnit}
-                    onChange={(e) =>
-                      handleChange("shopUnit", e.target.value)
-                    }
+                    onChange={(e) => handleChange("shopUnit", e.target.value)}
                     placeholder="E.g. Shop 12, Ground Floor"
                   />
 
@@ -1015,9 +1067,7 @@ const EditProfile = () => {
                   <Field
                     label="Pincode"
                     value={formData.pincode}
-                    onChange={(e) =>
-                      handleChange("pincode", e.target.value)
-                    }
+                    onChange={(e) => handleChange("pincode", e.target.value)}
                     placeholder="E.g. 400070"
                   />
                 </div>
@@ -1026,9 +1076,7 @@ const EditProfile = () => {
                   <Field
                     label="Landmark (Optional)"
                     value={formData.landmark}
-                    onChange={(e) =>
-                      handleChange("landmark", e.target.value)
-                    }
+                    onChange={(e) => handleChange("landmark", e.target.value)}
                     placeholder="E.g. Opposite Phoenix Marketcity, Gate 2"
                   />
                 </div>
@@ -1046,9 +1094,7 @@ const EditProfile = () => {
                     <input
                       type="url"
                       value={formData.mapLink}
-                      onChange={(e) =>
-                        handleChange("mapLink", e.target.value)
-                      }
+                      onChange={(e) => handleChange("mapLink", e.target.value)}
                       placeholder="https://maps.app.goo.gl/..."
                       className={`${inputCls} min-w-0 flex-1`}
                     />
@@ -1065,7 +1111,9 @@ const EditProfile = () => {
                         <Navigation size={16} className="text-cyan-200" />
                       )}
 
-                      {capturingGPS ? "Capturing Location..." : "Capture My GPS"}
+                      {capturingGPS
+                        ? "Capturing Location..."
+                        : "Capture My GPS"}
                     </button>
                   </div>
 
@@ -1113,9 +1161,7 @@ const EditProfile = () => {
                   icon={Globe}
                   type="url"
                   value={formData.websiteUrl}
-                  onChange={(e) =>
-                    handleChange("websiteUrl", e.target.value)
-                  }
+                  onChange={(e) => handleChange("websiteUrl", e.target.value)}
                   placeholder="https://..."
                 />
               </div>
@@ -1190,9 +1236,9 @@ const EditProfile = () => {
                   </div>
 
                   <p className="mt-4 text-xs leading-5 text-slate-400">
-                    Select a handle to update the suffix of your UPI ID.
-                    Confirm the final ID with your payment provider before
-                    publishing it.
+                    Select a handle to update the suffix of your UPI ID. Confirm
+                    the final ID with your payment provider before publishing
+                    it.
                   </p>
                 </div>
               </div>
@@ -1204,8 +1250,7 @@ const EditProfile = () => {
                   </div>
 
                   <div className="min-w-0">
-                    <p className="flex flex-wrap items-center gap-2 text-sm font-bold text-cyan-100">
-                      <Sparkles size={15} />
+                    <p className="flex flex-wrap items-center text-sm font-bold text-cyan-100">
                       UPI Payment Setup
                     </p>
 
@@ -1275,19 +1320,14 @@ const EditProfile = () => {
                         </div>
 
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-bold text-white">
-                            1 Year
-                          </p>
+                          <p className="text-sm font-bold text-white">1 Year</p>
                           <p className="mt-1 text-lg font-extrabold text-cyan-200">
                             ₹499
                           </p>
                         </div>
 
                         {selectedPlan === "1year" && (
-                          <Check
-                            size={18}
-                            className="shrink-0 text-cyan-200"
-                          />
+                          <Check size={18} className="shrink-0 text-cyan-200" />
                         )}
                       </button>
 
@@ -1324,10 +1364,7 @@ const EditProfile = () => {
                         </div>
 
                         {selectedPlan === "3years" && (
-                          <Check
-                            size={18}
-                            className="shrink-0 text-cyan-200"
-                          />
+                          <Check size={18} className="shrink-0 text-cyan-200" />
                         )}
                       </button>
                     </div>
@@ -1338,14 +1375,13 @@ const EditProfile = () => {
                       type="button"
                       onClick={() => {
                         alert(
-                          "Connect your payment and launch flow to enable this action."
+                          "Connect your payment and launch flow to enable this action.",
                         );
                       }}
                       className={`${secondaryButtonCls} flex-1`}
                     >
                       <Rocket size={17} className="text-cyan-200" />
-                      Launch Card · ₹
-                      {selectedPlan === "1year" ? "499" : "799"}
+                      Launch Card · ₹{selectedPlan === "1year" ? "499" : "799"}
                     </button>
 
                     <button
@@ -1389,9 +1425,8 @@ const EditProfile = () => {
                       </p>
 
                       <p className="mt-1 text-xs leading-5 text-slate-300">
-                        This demo currently updates the interface only.
-                        Connect your backend/API to save profile changes
-                        permanently.
+                        This demo currently updates the interface only. Connect
+                        your backend/API to save profile changes permanently.
                       </p>
                     </div>
                   </div>
@@ -1404,11 +1439,7 @@ const EditProfile = () => {
         {/* FOOTER */}
 
         <footer className="mt-6 flex flex-col items-center justify-between gap-2 border-t border-[#29435f] py-5 text-center sm:flex-row sm:text-left">
-          <div className="flex items-center gap-2 text-sm font-bold text-slate-300">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-cyan-300/20 bg-cyan-300/10 text-cyan-200">
-              <Sparkles size={14} />
-            </div>
-
+          <div className="flex items-center text-sm font-bold text-slate-300">
             BioWebsite
           </div>
 

@@ -5,7 +5,6 @@ import {
   Send,
   Check,
   Loader2,
-  Sparkles,
   User,
   Mail,
   Phone,
@@ -195,11 +194,7 @@ const Leads = () => {
             <div className="h-1 w-full bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-300" />
 
             <div className="p-5 sm:p-7">
-              <div className="mb-6 flex items-start gap-3.5">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-400/10">
-                  <Sparkles size={19} className="text-cyan-300" />
-                </div>
-
+              <div className="mb-6 flex items-start">
                 <div>
                   <h2 className="text-base font-bold text-white sm:text-lg">
                     Send an Inquiry
@@ -396,10 +391,6 @@ const Leads = () => {
               <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-cyan-300/[0.07] blur-2xl" />
 
               <div className="relative">
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-300/10">
-                  <Sparkles size={18} className="text-cyan-300" />
-                </div>
-
                 <h3 className="text-sm font-bold text-white">
                   Grow your inquiries
                 </h3>

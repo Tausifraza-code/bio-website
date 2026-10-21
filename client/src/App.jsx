@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
@@ -18,11 +17,18 @@ import Refer from "./pages/Refer";
 import SocialCard from "./pages/SocialCard";
 import WebsiteTheme from "./pages/WebsiteTheme";
 
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+
+// admin imports
+
+import AdminLayout from "./admin/components/AdminLayout";
+import AdminDashboard from "./admin/pages/AdminDashboard";
+
 function App() {
   useEffect(() => {
     try {
-      const savedTheme =
-        localStorage.getItem("bio-theme") || "dark";
+      const savedTheme = localStorage.getItem("bio-theme") || "dark";
 
       document.documentElement.dataset.theme = savedTheme;
     } catch {
@@ -45,27 +51,32 @@ function App() {
 
       {/* Dashboard Layout with Outlet */}
       <Route element={<DashboardLayout />}>
-        <Route
-          path="/dashboard"
-          element={<Dashboard />}
-        />
+        <Route path="/dashboard" element={<Dashboard />} />
 
         <Route path="editprofile" element={<EditProfile />} />
         <Route path="leads" element={<Leads />} />
         <Route path="manageproducts" element={<ManageProducts />} />
         <Route path="mini" element={<Mini />} />
         <Route path="payment" element={<Payment />} />
-        <Route path="theme" element={<WebsiteTheme />} /> 
-        <Route path="qrcode" element={<QrCode />} /> 
+        <Route path="theme" element={<WebsiteTheme />} />
+        <Route path="qrcode" element={<QrCode />} />
         <Route path="refer" element={<Refer />} />
         <Route path="/socialcard" element={<SocialCard />} />
       </Route>
 
+
+      {/* Admin Pages */}
+      <Route element={<AdminLayout />}>
+        <Route path="/admin" element={<AdminDashboard />} />
+      </Route>
+
+      {/* Password Reset Pages */}
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+
+      <Route path="/reset-password" element={<ResetPassword />} />
+
       {/* Unknown URL */}
-      <Route
-        path="*"
-        element={<Navigate to="/" replace />}
-      />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

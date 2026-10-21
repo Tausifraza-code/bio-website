@@ -1,0 +1,30 @@
+const express = require("express");
+const { protect } = require("../middleware/auth.middleware");
+const { adminOnly } = require("../middleware/admin.middleware");
+
+const { getReferralReport } = require("../controllers/referral.controller");
+const { adminLogin } = require("../controllers/admin.controller");
+const {
+  getAdminDashboard,
+} = require("../controllers/adminDashboard.controller");
+
+const router = express.Router();
+
+// Admin login
+router.post("/login", adminLogin);
+
+router.get("/adminpanel", protect, adminOnly, (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Welcome to Admin Panel",
+    admin: {
+      id: req.user._id,
+      fullName: req.user.fullName,
+      role: req.user.role,
+    },
+  });
+});
+
+router.get("/referrals", protect, adminOnly, getReferralReport);
+router.get("/dashboard", protect, adminOnly, getAdminDashboard);
+module.exports = router;

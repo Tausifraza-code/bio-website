@@ -8,7 +8,6 @@ import {
   ChevronDown,
   Check,
   Loader2,
-  Sparkles,
   Users,
   ExternalLink,
   Trash2,
@@ -349,11 +348,7 @@ const SocialCards = () => {
         {/* Quick Add */}
         <section className="mt-6 overflow-hidden rounded-3xl border border-[#29435f] bg-[#10243b] shadow-xl shadow-black/10">
           <div className="border-b border-[#29435f] px-5 py-5 sm:px-6">
-            <div className="flex items-start gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-cyan-300/20 bg-[#193754]">
-                <Sparkles size={17} className="text-cyan-300" />
-              </div>
-
+            <div className="flex items-start">
               <div>
                 <h2 className="text-sm font-bold text-white">
                   Quick Add Platform

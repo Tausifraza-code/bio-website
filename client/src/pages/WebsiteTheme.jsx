@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import {
   Palette,
-  Sparkles,
   Check,
   Crown,
   Leaf,
@@ -202,11 +201,7 @@ const WebsiteThemes = () => {
           <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-cyan-300/[0.06] blur-3xl" />
 
           <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-300/10 text-cyan-300">
-                <Sparkles size={21} />
-              </div>
-
+            <div className="flex items-center">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                   Currently Selected
@@ -384,11 +379,7 @@ const WebsiteThemes = () => {
         <section className="relative mt-7 overflow-hidden rounded-2xl border border-[#29435f] bg-[#0b1b30] p-5 sm:p-6">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/70 to-transparent" />
 
-          <div className="mb-5 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-300/10 text-cyan-300">
-              <Sparkles size={19} />
-            </div>
-
+          <div className="mb-5 flex items-center">
             <div>
               <h2 className="text-lg font-bold">Active Theme Details</h2>
               <p className="mt-1 text-sm text-slate-400">

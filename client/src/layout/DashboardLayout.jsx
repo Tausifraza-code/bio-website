@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 
@@ -20,8 +19,7 @@ const DashboardLayout = () => {
   const [toastTimer, setToastTimer] = useState(null);
 
   const [cardActionNotice, setCardActionNotice] = useState("");
-  const [cardActionNoticeTimer, setCardActionNoticeTimer] =
-    useState(null);
+  const [cardActionNoticeTimer, setCardActionNoticeTimer] = useState(null);
 
   useEffect(() => {
     return () => {
@@ -64,9 +62,8 @@ const DashboardLayout = () => {
   };
 
   const handlePreview = () => {
-    window.location.href = "/preview";
+    navigate("/preview");
   };
-
   const handleLogout = () => {
     window.location.href = "/";
   };
@@ -135,9 +132,7 @@ const DashboardLayout = () => {
           collapsed={sidebarCollapsed}
           activeNavItem={activeNavItem}
           onNavClick={handleNavClick}
-          onToggle={() =>
-            setSidebarCollapsed((previous) => !previous)
-          }
+          onToggle={() => setSidebarCollapsed((previous) => !previous)}
           onPreview={handlePreview}
           onLogout={handleLogout}
         />
@@ -157,9 +152,7 @@ const DashboardLayout = () => {
       </main>
 
       {/* Payment Modal */}
-      {showPayModal && (
-        <PaymentModal onClose={() => setShowPayModal(false)} />
-      )}
+      {showPayModal && <PaymentModal onClose={() => setShowPayModal(false)} />}
 
       {/* General Toast */}
       {toastMessage && (

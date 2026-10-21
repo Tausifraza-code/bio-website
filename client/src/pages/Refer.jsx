@@ -5,7 +5,6 @@ import {
   Copy,
   Check,
   MessageCircle,
-  Sparkles,
   TrendingUp,
   Clock,
   Users,
@@ -181,8 +180,7 @@ const Refer = () => {
               </div>
             </div>
 
-            <div className="flex shrink-0 items-center gap-2 self-start rounded-xl border border-[#38516e] bg-[#0b1b30]/70 px-3.5 py-2.5 sm:self-center">
-              <Sparkles size={15} className="text-cyan-300" />
+            <div className="flex shrink-0 items-center self-start rounded-xl border border-[#38516e] bg-[#0b1b30]/70 px-3.5 py-2.5 sm:self-center">
               <span className="text-xs font-semibold text-slate-200">
                 Invite. Activate. Earn.
               </span>

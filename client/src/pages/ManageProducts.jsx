@@ -14,7 +14,6 @@ import {
   ArrowUpRight,
   Layers,
   ShoppingBag,
-  Sparkles,
 } from "lucide-react";
 
 const MAX_PRODUCTS = 20;
@@ -238,8 +237,7 @@ const ManageProducts = () => {
 
                 <div className="min-w-0">
                   <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-300/20 bg-cyan-300/[0.07] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-cyan-200">
-                      <Sparkles size={11} />
+                    <span className="inline-flex items-center rounded-full border border-cyan-300/20 bg-cyan-300/[0.07] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-cyan-200">
                       Product Manager
                     </span>
 

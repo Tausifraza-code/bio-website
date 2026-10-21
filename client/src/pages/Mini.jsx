@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -13,7 +13,6 @@ import {
   ShieldCheck,
   ShoppingBag,
   Award,
-  Sparkles,
   CheckCircle2,
   Zap,
   Eye,
@@ -84,10 +83,46 @@ const bannerImages = [
 const Mini = () => {
   const navigate = useNavigate();
 
+  const [profileData, setProfileData] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("bioProfileData") || "null");
+    } catch {
+      return null;
+    }
+  });
+
+  // STEP 2: Saved theme load karo
+  const [activeTheme, setActiveTheme] = useState(
+    () => profileData?.activeTheme || "sunset",
+  );
+
+  // STEP 3: Profile data ko refresh karo
+  useEffect(() => {
+    const loadProfile = () => {
+      try {
+        const savedProfile = JSON.parse(
+          localStorage.getItem("bioProfileData") || "null",
+        );
+
+        setProfileData(savedProfile);
+        setActiveTheme(savedProfile?.activeTheme || "sunset");
+      } catch (error) {
+        console.error("Unable to load profile:", error);
+      }
+    };
+
+    window.addEventListener("storage", loadProfile);
+    window.addEventListener("bioProfileUpdated", loadProfile);
+
+    return () => {
+      window.removeEventListener("storage", loadProfile);
+      window.removeEventListener("bioProfileUpdated", loadProfile);
+    };
+  }, []);
+
   const [standeeCode, setStandeeCode] = useState("");
   const [standeeActivated, setStandeeActivated] = useState(false);
 
-  const [activeTheme, setActiveTheme] = useState("sunset");
   const [isPreviewMode, setIsPreviewMode] = useState(true);
 
   const [copied, setCopied] = useState(false);
@@ -117,21 +152,113 @@ const Mini = () => {
   ========================================================= */
 
   const businessInfo = {
-    name: "ankit",
-    role: "Business Owner · Professional",
-    location: "Mumbai, Maharashtra, India",
+    name:
+      [profileData?.firstName, profileData?.lastName]
+        .filter(Boolean)
+        .join(" ") || "Your Name",
+
+    role: profileData?.jobTitle || "Business Owner · Professional",
+
+    location:
+      [profileData?.city, profileData?.state, profileData?.pincode]
+        .filter(Boolean)
+        .join(", ") || "Location not added",
+
     status: "Profile Actively Monitored",
+
     about:
-      "Welcome to ankit's Business! Contact me directly for appointments, consultations, or business inquiries.",
-    phone: "+91 98765 43210",
-    email: "contact@ankitbusiness.com",
-    website: "www.ankitbusiness.com",
-    address: "Mumbai, Maharashtra, India",
+      profileData?.bio ||
+      profileData?.headline ||
+      "Welcome to my business! Contact me for business inquiries.",
+
+    phone: profileData?.phone || "",
+
+    whatsapp: profileData?.whatsapp || "",
+
+    email: profileData?.email || "",
+
+    website: profileData?.website || profileData?.websiteUrl || "",
+
+    address:
+      [
+        profileData?.shopUnit,
+        profileData?.area,
+        profileData?.city,
+        profileData?.state,
+        profileData?.pincode,
+      ]
+        .filter(Boolean)
+        .join(", ") || "Address not added",
+
+    logo: profileData?.logo || null,
+
+    avatar: profileData?.avatar || null,
+
+    banner: profileData?.banner || null,
+
+    qrCode: profileData?.qrCode || null,
+
+    industry: profileData?.industry || "",
+
+    businessName: profileData?.businessName || "My Business",
+
+    headline: profileData?.headline || "",
+
+    businessHours: profileData?.businessHours || "",
+
+    mapLink: profileData?.mapLink || "",
+
+    upiId: profileData?.upiId || "",
   };
 
-  const activeThemeData = themes.find(
-    (theme) => theme.id === activeTheme
-  );
+  const activeThemeData = themes.find((theme) => theme.id === activeTheme);
+
+  const themeStyles = {
+    executive: {
+      primary: "#1e3a8a",
+      secondary: "#7c3aed",
+      background: "#0f172a",
+      surface: "#172554",
+      text: "#ffffff",
+    },
+    emerald: {
+      primary: "#10b981",
+      secondary: "#14b8a6",
+      background: "#062c25",
+      surface: "#104438",
+      text: "#ecfdf5",
+    },
+    rose: {
+      primary: "#f43f5e",
+      secondary: "#fb923c",
+      background: "#2b1420",
+      surface: "#49202f",
+      text: "#fff1f2",
+    },
+    obsidian: {
+      primary: "#94a3b8",
+      secondary: "#475569",
+      background: "#09090b",
+      surface: "#18181b",
+      text: "#f4f4f5",
+    },
+    sunset: {
+      primary: "#f59e0b",
+      secondary: "#f97316",
+      background: "#24130b",
+      surface: "#3b2113",
+      text: "#fff7ed",
+    },
+  };
+
+  const currentTheme = themeStyles[activeTheme] || themeStyles.sunset;
+  const themeVariables = {
+    "--profile-primary": currentTheme.primary,
+    "--profile-secondary": currentTheme.secondary,
+    "--profile-background": currentTheme.background,
+    "--profile-surface": currentTheme.surface,
+    "--profile-text": currentTheme.text,
+  };
 
   /* =========================================================
      ACTION HANDLERS
@@ -144,10 +271,21 @@ const Mini = () => {
   };
 
   const handleWhatsApp = () => {
+    const number = businessInfo.whatsapp || businessInfo.phone;
+
+    if (!number) {
+      alert("WhatsApp number is not available.");
+      return;
+    }
+
+    const cleanNumber = number.replace(/\D/g, "");
+
     window.open(
-      "https://wa.me/919876543210?text=Hi%2C%20I%27m%20interested%20in%20your%20business",
+      `https://wa.me/${cleanNumber}?text=${encodeURIComponent(
+        "Hi, I'm interested in your business.",
+      )}`,
       "_blank",
-      "noopener,noreferrer"
+      "noopener,noreferrer",
     );
   };
 
@@ -215,12 +353,10 @@ END:VCARD`;
   };
 
   const handleEnquire = () => {
-    document
-      .getElementById("inquiry-form")
-      ?.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
+    document.getElementById("inquiry-form")?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
 
     setTimeout(() => {
       document.getElementById("inquiry-name")?.focus();
@@ -233,18 +369,20 @@ END:VCARD`;
     } else if (type === "email") {
       window.location.href = `mailto:${businessInfo.email}`;
     } else if (type === "website") {
-      window.open(
-        `https://${businessInfo.website}`,
-        "_blank",
-        "noopener,noreferrer"
-      );
+      if (!businessInfo.website) return;
+
+      const websiteUrl = /^https?:\/\//i.test(businessInfo.website)
+        ? businessInfo.website
+        : `https://${businessInfo.website}`;
+
+      window.open(websiteUrl, "_blank", "noopener,noreferrer");
     } else if (type === "address") {
       window.open(
         `https://maps.google.com/?q=${encodeURIComponent(
-          businessInfo.address
+          businessInfo.address,
         )}`,
         "_blank",
-        "noopener,noreferrer"
+        "noopener,noreferrer",
       );
     }
   };
@@ -355,9 +493,7 @@ END:VCARD`;
                       <span className="h-2 w-2 rounded-full bg-amber-300" />
                     )}
 
-                    {standeeActivated
-                      ? "Standee Activated"
-                      : "Action Required"}
+                    {standeeActivated ? "Standee Activated" : "Action Required"}
                   </span>
 
                   <span className="inline-flex items-center gap-2 text-sm text-slate-300">
@@ -412,9 +548,7 @@ END:VCARD`;
                   className="mt-3 flex w-full items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-cyan-300 to-blue-400 px-4 py-3.5 text-base font-bold text-[#071326] shadow-[0_8px_24px_rgba(34,211,238,0.12)] transition duration-200 hover:brightness-110 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
                 >
                   <Check size={18} strokeWidth={2.5} />
-                  {standeeActivated
-                    ? "Standee Activated"
-                    : "Activate Standee"}
+                  {standeeActivated ? "Standee Activated" : "Activate Standee"}
                 </button>
 
                 <div className="mt-3 flex items-start gap-2.5 rounded-xl border border-[#29435f]/70 bg-[#10213a]/60 p-3">
@@ -450,14 +584,13 @@ END:VCARD`;
               </div>
 
               <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                Live Mini Website{" "}
-                <span className="text-cyan-300">Preview</span>
+                Live Mini Website <span className="text-cyan-300">Preview</span>
               </h2>
 
               <p className="mt-2 max-w-2xl text-base leading-7 text-slate-300">
                 Experience your digital business card exactly as your
-                prospective customers see it when they open your shared link
-                or scan your QR code.
+                prospective customers see it when they open your shared link or
+                scan your QR code.
               </p>
             </div>
 
@@ -491,11 +624,7 @@ END:VCARD`;
         <section id="theme-selector" className="mb-7 scroll-mt-24">
           <div className="overflow-hidden rounded-[24px] border border-[#29435f] bg-[#0b1b30] shadow-[0_16px_45px_rgba(0,0,0,0.12)]">
             <div className="flex flex-col gap-3 border-b border-[#29435f] px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-300/[0.08]">
-                  <Sparkles size={20} className="text-cyan-200" />
-                </div>
-
+              <div className="flex items-center">
                 <div>
                   <h3 className="text-base font-bold text-white">
                     Website Appearance
@@ -672,19 +801,32 @@ END:VCARD`;
 
                   {/* CUSTOMER WEBSITE */}
 
-                  <div className="bg-gradient-to-b from-[#17171c] via-[#131318] to-[#101014]">
+                  <div
+                    style={{
+                      ...themeVariables,
+                      background: `linear-gradient(
+    180deg,
+    ${currentTheme.background} 0%,
+    ${currentTheme.surface} 55%,
+    ${currentTheme.background} 100%
+  )`,
+                      color: currentTheme.text,
+                    }}
+                    className="transition-colors duration-500"
+                  >
                     {/* BANNER */}
 
                     <div className="relative h-56 overflow-hidden sm:h-72 lg:h-[340px]">
-                      {bannerImages.map((image, index) => (
+                      {(businessInfo.banner
+                        ? [businessInfo.banner]
+                        : bannerImages
+                      ).map((image, index) => (
                         <img
                           key={image}
                           src={image}
                           alt={`Business banner ${index + 1}`}
                           className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
-                            index === currentSlide
-                              ? "opacity-100"
-                              : "opacity-0"
+                            index === currentSlide ? "opacity-100" : "opacity-0"
                           }`}
                         />
                       ))}
@@ -692,8 +834,7 @@ END:VCARD`;
                       <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/10 to-[#17171c]" />
 
                       <div className="absolute left-4 top-4 sm:left-7 sm:top-6">
-                        <span className="inline-flex items-center gap-2 rounded-full border border-amber-200/30 bg-[#111116]/75 px-3.5 py-2.5 text-xs font-bold uppercase tracking-[0.12em] text-white shadow-lg backdrop-blur-xl sm:text-sm">
-                          <Sparkles size={16} className="text-amber-300" />
+                        <span className="inline-flex items-center rounded-full border border-amber-200/30 bg-[#111116]/75 px-3.5 py-2.5 text-xs font-bold uppercase tracking-[0.12em] text-white shadow-lg backdrop-blur-xl sm:text-sm">
                           Featured Business
                         </span>
                       </div>
@@ -734,16 +875,31 @@ END:VCARD`;
                       <div className="-mt-12 mb-5 flex flex-wrap items-end justify-between gap-3 sm:-mt-14">
                         <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-4 border-[#17171c] bg-[#25242a] shadow-2xl sm:h-28 sm:w-28">
                           <img
-                            src="https://i.pravatar.cc/200?img=12"
+                            src={
+                              businessInfo.avatar ||
+                              "https://i.pravatar.cc/200?img=12"
+                            }
                             alt={businessInfo.name}
                             className="h-full w-full object-cover"
                           />
                         </div>
 
-                        <div className="mb-1 inline-flex items-center gap-2 rounded-full border border-amber-200/25 bg-amber-200/[0.07] px-3.5 py-2.5">
-                          <span className="h-2 w-2 rounded-full bg-amber-300" />
+                        <div
+                          className="mb-1 inline-flex items-center gap-2 rounded-full border px-3.5 py-2.5"
+                          style={{
+                            borderColor: currentTheme.primary,
+                            backgroundColor: `${currentTheme.primary}1a`,
+                          }}
+                        >
+                          <span
+                            className="h-2 w-2 rounded-full"
+                            style={{ backgroundColor: currentTheme.primary }}
+                          />
 
-                          <span className="text-xs font-bold uppercase tracking-wide text-amber-200 sm:text-sm">
+                          <span
+                            className="text-xs font-bold uppercase tracking-wide sm:text-sm"
+                            style={{ color: currentTheme.text }}
+                          >
                             Verified Profile
                           </span>
                         </div>
@@ -754,10 +910,7 @@ END:VCARD`;
                           {businessInfo.name}
                         </h3>
 
-                        <ShieldCheck
-                          size={24}
-                          className="text-amber-300"
-                        />
+                        <ShieldCheck size={24} className="text-amber-300" />
                       </div>
 
                       <p className="mt-2 text-base font-medium text-slate-300 sm:text-lg">
@@ -819,12 +972,9 @@ END:VCARD`;
                     <WarmSection
                       icon={Award}
                       title="About the Business"
+                      theme={currentTheme}
                     >
                       <div className="rounded-2xl border border-amber-200/15 bg-gradient-to-br from-amber-200/[0.07] to-transparent p-5 sm:p-6">
-                        <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl border border-amber-200/15 bg-amber-200/[0.08]">
-                          <Sparkles size={21} className="text-amber-300" />
-                        </div>
-
                         <p className="text-base leading-7 text-slate-200 sm:text-lg sm:leading-8">
                           {businessInfo.about}
                         </p>
@@ -836,28 +986,55 @@ END:VCARD`;
                     <WarmSection
                       icon={ShoppingBag}
                       title="Featured Products & Services"
+                      theme={currentTheme}
                       action={
-                        <span className="rounded-lg border border-amber-200/20 bg-amber-200/[0.06] px-3 py-2 text-sm font-semibold text-amber-200">
+                        <span
+                          className="rounded-lg border px-3 py-2 text-sm font-semibold"
+                          style={{
+                            borderColor: `${currentTheme.primary}40`,
+                            backgroundColor: `${currentTheme.primary}14`,
+                            color: currentTheme.text,
+                          }}
+                        >
                           1 item
                         </span>
                       }
                     >
-                      <div className="group overflow-hidden rounded-2xl border border-white/10 bg-[#17171c] transition duration-300 hover:border-amber-200/30 hover:shadow-lg hover:shadow-black/10">
+                      <div
+                        className="group overflow-hidden rounded-2xl border border-white/10 transition duration-300 hover:border-[var(--profile-primary)] hover:shadow-lg hover:shadow-black/10"
+                        style={{
+                          backgroundColor: currentTheme.surface,
+                          color: currentTheme.text,
+                        }}
+                      >
                         <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:p-5 lg:gap-5">
-                          <div className="flex h-24 w-full shrink-0 items-center justify-center rounded-xl border border-amber-200/15 bg-gradient-to-br from-amber-200/[0.10] to-orange-300/[0.04] text-4xl sm:h-28 sm:w-28">
+                          <div
+                            className="flex h-24 w-full shrink-0 items-center justify-center rounded-xl border text-4xl sm:h-28 sm:w-28"
+                            style={{
+                              borderColor: `${currentTheme.primary}40`,
+                              background: `linear-gradient(135deg, ${currentTheme.primary}24, ${currentTheme.secondary}10)`,
+                            }}
+                          >
                             📦
                           </div>
 
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                              <h5 className="text-lg font-bold leading-7 text-white sm:text-xl">
+                              <h5
+                                className="text-lg font-bold leading-7 sm:text-xl"
+                                style={{ color: currentTheme.text }}
+                              >
                                 Featured Business Product
                               </h5>
 
                               <button
                                 type="button"
                                 onClick={handleEnquire}
-                                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-300 to-orange-300 px-4 py-3 text-sm font-bold text-[#201305] transition hover:brightness-110 active:scale-[0.98]"
+                                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition hover:brightness-110 active:scale-[0.98]"
+                                style={{
+                                  background: `linear-gradient(90deg, ${currentTheme.primary}, ${currentTheme.secondary})`,
+                                  color: currentTheme.text,
+                                }}
                               >
                                 Enquire Now
                                 <ArrowUpRight size={17} />
@@ -874,7 +1051,14 @@ END:VCARD`;
                                 📁 Catalog
                               </span>
 
-                              <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200/20 bg-amber-200/[0.06] px-3 py-2 text-sm font-bold text-amber-200">
+                              <span
+                                className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-bold"
+                                style={{
+                                  borderColor: `${currentTheme.primary}40`,
+                                  backgroundColor: `${currentTheme.primary}14`,
+                                  color: currentTheme.text,
+                                }}
+                              >
                                 <CheckCircle2 size={16} />
                                 Available
                               </span>
@@ -889,12 +1073,14 @@ END:VCARD`;
                     <WarmSection
                       icon={Phone}
                       title="Contact & Business Information"
+                      theme={currentTheme}
                     >
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <ContactRow
                           icon={Phone}
                           label="Call Business"
                           value={businessInfo.phone}
+                          theme={currentTheme}
                           onClick={() => handleContactClick("phone")}
                         />
 
@@ -902,6 +1088,7 @@ END:VCARD`;
                           icon={Mail}
                           label="Email Business"
                           value={businessInfo.email}
+                          theme={currentTheme}
                           onClick={() => handleContactClick("email")}
                         />
 
@@ -909,6 +1096,7 @@ END:VCARD`;
                           icon={Globe}
                           label="Business Website"
                           value={businessInfo.website}
+                          theme={currentTheme}
                           onClick={() => handleContactClick("website")}
                         />
 
@@ -916,6 +1104,7 @@ END:VCARD`;
                           icon={MapPin}
                           label="Business Address"
                           value={businessInfo.address}
+                          theme={currentTheme}
                           onClick={() => handleContactClick("address")}
                         />
                       </div>
@@ -926,6 +1115,7 @@ END:VCARD`;
                     <WarmSection
                       icon={Star}
                       title="Customer Experience & Trust"
+                      theme={currentTheme}
                       action={
                         <button
                           type="button"
@@ -941,10 +1131,7 @@ END:VCARD`;
                         <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-amber-300/[0.06] blur-3xl" />
 
                         <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-amber-200/30 bg-gradient-to-br from-amber-300 to-orange-300 shadow-lg shadow-amber-400/10">
-                          <Star
-                            size={28}
-                            className="fill-white text-white"
-                          />
+                          <Star size={28} className="fill-white text-white" />
                         </div>
 
                         <p className="relative mt-4 text-lg font-bold text-white sm:text-xl">
@@ -972,11 +1159,16 @@ END:VCARD`;
                     <WarmSection
                       icon={Mail}
                       title="Share Your Contact / Business Inquiry"
+                      theme={currentTheme}
                     >
                       <form
                         id="inquiry-form"
                         onSubmit={handleFormSubmit}
-                        className="rounded-2xl border border-white/10 bg-[#17171c] p-5 sm:p-6"
+                        className="rounded-2xl border border-white/10 p-5 sm:p-6"
+                        style={{
+                          backgroundColor: currentTheme.surface,
+                          color: currentTheme.text,
+                        }}
                       >
                         <div className="mb-4">
                           <h5 className="text-xl font-bold text-white">
@@ -1001,7 +1193,11 @@ END:VCARD`;
                               })
                             }
                             placeholder="Your Name"
-                            className="w-full rounded-xl border border-[#414653] bg-[#101116] px-4 py-3.5 text-base text-white outline-none transition placeholder:text-slate-400 focus:border-amber-300/60 focus:ring-4 focus:ring-amber-300/[0.06]"
+                            className="w-full rounded-xl border bg-[var(--profile-surface)] px-4 py-3.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[var(--profile-primary)] focus:ring-4 focus:ring-[var(--profile-primary)]/10"
+                            style={{
+                              borderColor: `${currentTheme.primary}66`,
+                              color: currentTheme.text,
+                            }}
                           />
 
                           <input
@@ -1015,7 +1211,11 @@ END:VCARD`;
                               })
                             }
                             placeholder="Phone Number"
-                            className="w-full rounded-xl border border-[#414653] bg-[#101116] px-4 py-3.5 text-base text-white outline-none transition placeholder:text-slate-400 focus:border-amber-300/60 focus:ring-4 focus:ring-amber-300/[0.06]"
+                            className="w-full rounded-xl border bg-[var(--profile-surface)] px-4 py-3.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[var(--profile-primary)] focus:ring-4 focus:ring-[var(--profile-primary)]/10"
+                            style={{
+                              borderColor: `${currentTheme.primary}66`,
+                              color: currentTheme.text,
+                            }}
                           />
                         </div>
 
@@ -1029,7 +1229,11 @@ END:VCARD`;
                             })
                           }
                           placeholder="Email Address"
-                          className="mt-3 w-full rounded-xl border border-[#414653] bg-[#101116] px-4 py-3.5 text-base text-white outline-none transition placeholder:text-slate-400 focus:border-amber-300/60 focus:ring-4 focus:ring-amber-300/[0.06]"
+                          className="mt-3 w-full rounded-xl border bg-[var(--profile-surface)] px-4 py-3.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[var(--profile-primary)] focus:ring-4 focus:ring-[var(--profile-primary)]/10"
+                          style={{
+                            borderColor: `${currentTheme.primary}66`,
+                            color: currentTheme.text,
+                          }}
                         />
 
                         <textarea
@@ -1042,13 +1246,21 @@ END:VCARD`;
                             })
                           }
                           placeholder="Your Message"
-                          className="mt-3 w-full resize-y rounded-xl border border-[#414653] bg-[#101116] px-4 py-3.5 text-base leading-7 text-white outline-none transition placeholder:text-slate-400 focus:border-amber-300/60 focus:ring-4 focus:ring-amber-300/[0.06]"
+                          className="mt-3 w-full resize-y rounded-xl border bg-[var(--profile-surface)] px-4 py-3.5 text-base leading-7 outline-none transition placeholder:text-slate-400 focus:border-[var(--profile-primary)] focus:ring-4 focus:ring-[var(--profile-primary)]/10"
+                          style={{
+                            borderColor: `${currentTheme.primary}66`,
+                            color: currentTheme.text,
+                          }}
                         />
 
                         <button
                           type="submit"
                           disabled={formSubmitted}
-                          className="mt-3 flex w-full items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-amber-300 to-orange-300 px-4 py-3.5 text-base font-bold text-[#201305] shadow-lg shadow-amber-400/[0.08] transition hover:brightness-110 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+                          className="mt-3 flex w-full items-center justify-center gap-2.5 rounded-xl px-4 py-3.5 text-base font-bold shadow-lg transition hover:brightness-110 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+                          style={{
+                            background: `linear-gradient(90deg, ${currentTheme.primary}, ${currentTheme.secondary})`,
+                            color: currentTheme.text,
+                          }}
                         >
                           {formSubmitted ? (
                             <>
@@ -1065,14 +1277,72 @@ END:VCARD`;
                       </form>
                     </WarmSection>
 
+                    {/* QR CODE SECTION */}
+                    {businessInfo.qrCode && (
+                      <WarmSection
+                        icon={ScanLine}
+                        title="Scan & Connect"
+                        theme={currentTheme}
+                      >
+                        <div
+                          className="flex flex-col items-center rounded-2xl border p-6 text-center sm:p-8"
+                          style={{
+                            borderColor: `${currentTheme.primary}55`,
+                            backgroundColor: `${currentTheme.primary}12`,
+                          }}
+                        >
+                          <h5
+                            className="text-xl font-bold"
+                            style={{ color: currentTheme.text }}
+                          >
+                            Connect With Us
+                          </h5>
+
+                          <p className="mt-2 max-w-md text-sm leading-6 text-slate-300">
+                            Scan this QR code to connect with our business.
+                          </p>
+
+                          <div
+                            className="mt-5 rounded-2xl border bg-white p-4 shadow-lg"
+                            style={{
+                              borderColor: `${currentTheme.primary}66`,
+                            }}
+                          >
+                            <img
+                              src={businessInfo.qrCode}
+                              alt="Business QR Code"
+                              className="h-48 w-48 object-contain sm:h-56 sm:w-56"
+                            />
+                          </div>
+
+                          <p className="mt-4 text-xs text-slate-400">
+                            Scan using your phone camera
+                          </p>
+                        </div>
+                      </WarmSection>
+                    )}
+
                     {/* FOOTER */}
 
-                    <footer className="border-t border-amber-200/10 bg-[#0c0d12] px-5 py-6 text-center">
-                      <div className="mx-auto mb-3 h-px w-16 bg-gradient-to-r from-transparent via-amber-300/50 to-transparent" />
+                    <footer
+                      className="border-t px-5 py-6 text-center"
+                      style={{
+                        borderColor: `${currentTheme.primary}40`,
+                        backgroundColor: currentTheme.surface,
+                        color: currentTheme.text,
+                      }}
+                    >
+                      <div
+                        className="mx-auto mb-3 h-px w-16"
+                        style={{ backgroundColor: currentTheme.primary }}
+                      />
 
                       <p className="text-sm text-slate-300 sm:text-base">
                         Powered by{" "}
-                        <span className="font-bold tracking-wide text-amber-300">
+                        <span
+                          className="font-bold tracking-wide"
+                          style={{ color: currentTheme.primary }}
+                        >
                           biowebsite
                         </span>
                       </p>
@@ -1086,8 +1356,8 @@ END:VCARD`;
               </div>
 
               <p className="mt-3 text-center text-sm leading-6 text-slate-300">
-                This is a preview of how your digital business card is
-                presented to customers.
+                This is a preview of how your digital business card is presented
+                to customers.
               </p>
             </div>
           </section>
@@ -1243,12 +1513,7 @@ END:VCARD`;
    REUSABLE COMPONENTS
 ========================================================= */
 
-const ActionButton = ({
-  icon: Icon,
-  label,
-  onClick,
-  primary = false,
-}) => (
+const ActionButton = ({ icon: Icon, label, onClick, primary = false }) => (
   <button
     type="button"
     onClick={onClick}
@@ -1274,39 +1539,70 @@ const ActionButton = ({
   </button>
 );
 
-const ContactRow = ({ icon: Icon, label, value, onClick }) => (
+const ContactRow = ({ icon: Icon, label, value, onClick, theme }) => (
   <button
     type="button"
     onClick={onClick}
-    className="group flex min-w-0 items-center gap-3 rounded-2xl border border-white/10 bg-[#17171c] p-4 text-left transition duration-200 hover:border-amber-300/30 hover:bg-[#202027] active:scale-[0.99]"
+    className="group flex min-w-0 items-center gap-3 rounded-2xl border p-4 text-left transition duration-200 hover:border-[var(--profile-primary)] hover:brightness-110 active:scale-[0.99]"
+    style={{
+      backgroundColor: theme.surface,
+      borderColor: `${theme.primary}40`,
+      color: theme.text,
+    }}
   >
-    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-amber-300/15 bg-amber-300/[0.07] text-amber-200 transition group-hover:bg-amber-300/[0.12]">
+    <span
+      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition"
+      style={{
+        borderColor: `${theme.primary}55`,
+        backgroundColor: `${theme.primary}20`,
+        color: theme.text,
+      }}
+    >
       <Icon size={19} />
     </span>
 
     <span className="min-w-0 flex-1">
-      <span className="block text-xs font-bold uppercase tracking-[0.1em] text-slate-400">
+      <span
+        className="block text-xs font-bold uppercase tracking-[0.1em] opacity-70"
+        style={{ color: theme.text }}
+      >
         {label}
       </span>
 
-      <span className="mt-1.5 block truncate text-sm font-semibold text-white sm:text-base">
+      <span
+        className="mt-1.5 block truncate text-sm font-semibold sm:text-base"
+        style={{ color: theme.text }}
+      >
         {value}
       </span>
     </span>
 
     <ChevronRight
       size={18}
-      className="shrink-0 text-slate-500 transition group-hover:translate-x-0.5 group-hover:text-amber-200"
+      className="shrink-0 transition group-hover:translate-x-0.5"
+      style={{ color: theme.primary }}
     />
   </button>
 );
 
-const WarmSection = ({ icon: Icon, title, action, children }) => (
-  <section className="border-t border-white/[0.08] px-5 py-5 sm:px-8 sm:py-6 lg:px-10">
+const WarmSection = ({ icon: Icon, title, action, children, theme }) => (
+  <section
+    className="border-t px-5 py-5 sm:px-8 sm:py-6 lg:px-10"
+    style={{ borderColor: `${theme.primary}30` }}
+  >
     <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-      <h4 className="flex min-w-0 items-center gap-3 text-sm font-bold leading-6 tracking-wide text-white sm:text-base">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-300/20 bg-amber-300/[0.08]">
-          <Icon size={19} className="text-amber-300" />
+      <h4
+        className="flex min-w-0 items-center gap-3 text-sm font-bold leading-6 tracking-wide sm:text-base"
+        style={{ color: theme.text }}
+      >
+        <span
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border"
+          style={{
+            borderColor: `${theme.primary}55`,
+            backgroundColor: `${theme.primary}20`,
+          }}
+        >
+          <Icon size={19} style={{ color: theme.text }} />
         </span>
 
         {title}

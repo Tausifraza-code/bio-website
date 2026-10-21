@@ -9,7 +9,6 @@ import {
   MessageSquare,
   ScanLine,
   Loader2,
-  Sparkles,
   ShieldCheck,
   AlertCircle,
   Lock,
@@ -249,9 +248,8 @@ const Qr = () => {
                   "Demo mode: connect your payment gateway to activate this card."
                 )
               }
-              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-cyan-300/20 bg-[#193754] px-4 py-3 text-xs font-bold text-cyan-200 transition hover:border-cyan-300/40 hover:bg-[#21415f] active:scale-[0.98]"
+              className="inline-flex shrink-0 items-center justify-center rounded-xl border border-cyan-300/20 bg-[#193754] px-4 py-3 text-xs font-bold text-cyan-200 transition hover:border-cyan-300/40 hover:bg-[#21415f] active:scale-[0.98]"
             >
-              <Sparkles size={14} />
               Pay ₹499 & Activate
             </button>
           </div>
