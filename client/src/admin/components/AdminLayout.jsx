@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Navigate, Outlet, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 
 import AdminSidebar from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
+import { adminLogout } from "../../redux/slice/adminSlice";
 
 export default function AdminLayout() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
+  const adminToken = useSelector((state) => state.admin.token);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [theme, setTheme] = useState(() => {
@@ -18,13 +22,12 @@ export default function AdminLayout() {
   });
 
   useEffect(() => {
-    // Use the same theme attribute as the existing BIO website.
     document.documentElement.dataset.theme = theme;
 
     try {
       localStorage.setItem("adminTheme", theme);
     } catch {
-      // Theme remains functional if localStorage is unavailable.
+      // Theme preference is optional.
     }
   }, [theme]);
 
@@ -41,9 +44,14 @@ export default function AdminLayout() {
   }, []);
 
   const handleLogout = useCallback(() => {
-    localStorage.removeItem("bioToken");
-    navigate("/login", { replace: true });
-  }, [navigate]);
+    dispatch(adminLogout());
+    navigate("/admin/login", { replace: true });
+  }, [dispatch, navigate]);
+
+  // Protect the admin dashboard.
+  if (!adminToken) {
+    return <Navigate to="/admin/login" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#07111f] dark:text-white">

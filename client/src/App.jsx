@@ -24,6 +24,9 @@ import ResetPassword from "./pages/ResetPassword";
 
 import AdminLayout from "./admin/components/AdminLayout";
 import AdminDashboard from "./admin/pages/AdminDashboard";
+import AdminLogin from "./admin/pages/AdminLogin";
+import AdminUsers from "./admin/pages/AdminUsers";
+import AdminReferrals from "./admin/pages/AdminReferrals";
 
 function App() {
   useEffect(() => {
@@ -64,10 +67,14 @@ function App() {
         <Route path="/socialcard" element={<SocialCard />} />
       </Route>
 
+      {/* Admin Login — public login page */}
+      <Route path="/admin/login" element={<AdminLogin />} />
 
-      {/* Admin Pages */}
+      {/* Admin Dashboard */}
       <Route element={<AdminLayout />}>
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/users" element={<AdminUsers />} />
+        <Route path="/admin/referrals" element={<AdminReferrals />} />
       </Route>
 
       {/* Password Reset Pages */}

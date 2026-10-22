@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../redux/api";
 
 import {
   Upload,
@@ -31,6 +32,8 @@ import {
   Palette,
 } from "lucide-react";
 
+import { useDispatch, useSelector } from "react-redux";
+import { fetchMyProfile, saveMyProfile } from "../redux/slice/profileSlice";
 /* ==================== SHARED STYLES ==================== */
 
 const inputCls =
@@ -200,15 +203,21 @@ const ImageUploader = ({
 /* ==================== MAIN COMPONENT ==================== */
 
 const EditProfile = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const {
+    profile,
+    loading,
+    saving: reduxSaving,
+  } = useSelector((state) => state.profile);
+
   /* IMAGE STATES */
 
-  const [avatar, setAvatar] = useState("https://i.pravatar.cc/200?img=12");
+  const [avatar, setAvatar] = useState(null);
 
   const [logo, setLogo] = useState(null);
 
-  const [banner, setBanner] = useState(
-    "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200",
-  );
+  const [banner, setBanner] = useState(null);
 
   const [qrCode, setQrCode] = useState(null);
 
@@ -216,141 +225,121 @@ const EditProfile = () => {
 
   const [activeTheme, setActiveTheme] = useState("sunset");
   const [selectedPlan, setSelectedPlan] = useState("1year");
-  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [capturingGPS, setCapturingGPS] = useState(false);
 
   const [formData, setFormData] = useState({
-    firstName: "ankit",
+    firstName: "",
     lastName: "",
-    businessName: "ankit's Business",
-    industry: "General Service Provider / Other",
-    subdomain: "ankits-business",
-    jobTitle: "Business Owner / Professional",
-    headline: "Welcome to my official digital visiting card & mini website",
-    bio: "Welcome to ankit's Business! Contact me directly for appointments, consultations, orders, or service inquiries.",
-    phone: "8956235689",
-    whatsapp: "918956235689",
-    email: "ankit123@gmail.com",
-    website: "https://digital-eight-liart.vercel.app/card-ankits-business",
+    businessName: "",
+    industry: "",
+    subdomain: "",
+    jobTitle: "",
+    headline: "",
+    bio: "",
+    phone: "",
+    whatsapp: "",
+    email: "",
+    website: "",
+    websiteUrl: "",
     shopUnit: "",
     area: "",
-    city: "India",
+    city: "",
     state: "",
     pincode: "",
     landmark: "",
     mapLink: "",
-    businessHours: "Mon - Sat: 9:30 AM - 7:30 PM | Sun: Closed",
-    websiteUrl: "https://digital-eight-liart.vercel.app/?card",
+    businessHours: "",
     upiId: "",
   });
 
-  // LOAD SAVED PROFILE DATA
   useEffect(() => {
-    try {
-      const savedData = localStorage.getItem("bioProfileData");
+    dispatch(fetchMyProfile());
+  }, [dispatch]);
 
-      if (!savedData) return;
+  useEffect(() => {
+    if (!profile) return;
 
-      const profile = JSON.parse(savedData);
+    setFormData((prev) => ({
+      ...prev,
+      ...profile,
+    }));
 
-      // Load saved text fields without removing default fields
-      setFormData((prev) => ({
-        ...prev,
-        ...profile,
-      }));
+    setAvatar(profile.avatar || null);
+    setLogo(profile.logo || null);
+    setBanner(profile.banner || null);
+    setQrCode(profile.qrCode || null);
 
-      // Restore images only when their URLs can be reused.
-      // Blob URLs are temporary and cannot survive a page refresh.
-      const isReusableImage = (url) =>
-        typeof url === "string" && url.length > 0 && !url.startsWith("blob:");
-
-      if (isReusableImage(profile.avatar)) {
-        setAvatar(profile.avatar);
-      } else if (profile.avatar === null) {
-        setAvatar(null);
-      }
-
-      if (isReusableImage(profile.logo)) {
-        setLogo(profile.logo);
-      } else if (profile.logo === null) {
-        setLogo(null);
-      }
-
-      if (isReusableImage(profile.banner)) {
-        setBanner(profile.banner);
-      } else if (profile.banner === null) {
-        setBanner(null);
-      }
-
-      if (isReusableImage(profile.qrCode)) {
-        setQrCode(profile.qrCode);
-      } else if (profile.qrCode === null) {
-        setQrCode(null);
-      }
-
-      if (profile.activeTheme) {
-        setActiveTheme(profile.activeTheme);
-      }
-
-      if (profile.selectedPlan) {
-        setSelectedPlan(profile.selectedPlan);
-      }
-    } catch (error) {
-      console.error("Error loading saved profile:", error);
+    if (profile.activeTheme) {
+      setActiveTheme(profile.activeTheme);
     }
-  }, []);
+
+    if (profile.selectedPlan) {
+      setSelectedPlan(profile.selectedPlan);
+    }
+  }, [profile]);
 
   /* IMAGE UPLOAD */
-
-  const handleUpload = (type) => (event) => {
+  const handleUpload = (type) => async (event) => {
     const file = event.target.files?.[0];
 
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      alert("Please select a valid image file.");
-      event.target.value = "";
+    if (!file) {
+      console.error("No image file selected");
       return;
     }
 
-    const maxSize = 5 * 1024 * 1024;
+    const allowedFields = ["avatar", "logo", "banner", "qrCode"];
 
-    if (file.size > maxSize) {
-      alert("Image size should be less than 5 MB.");
-      event.target.value = "";
+    if (!allowedFields.includes(type)) {
+      alert("Invalid image type");
       return;
     }
 
-    // QR code ko permanent data URL mein convert karo
-    if (type === "qr") {
-      const reader = new FileReader();
+    try {
+      const formData = new FormData();
 
-      reader.onload = () => {
-        setQrCode(reader.result);
-        setSaved(false);
-      };
+      // Backend middleware upload.single("image") expects "image"
+      formData.append("image", file, file.name);
 
-      reader.onerror = () => {
-        alert("QR code read nahi ho paya. Please try again.");
-      };
+      // Controller reads req.body.field
+      formData.append("field", type);
 
-      reader.readAsDataURL(file);
-    } else {
-      // Baaki images ka existing behavior preserve karo
-      const url = URL.createObjectURL(file);
+      const { data } = await api.post("/profile/upload-image", formData, {
+        headers: {
+          "Content-Type": undefined,
+        },
+      });
+
+      if (!data.success) {
+        throw new Error(data.message || "Image upload failed");
+      }
+
+      const imageUrl = data.profile?.[type] || data.imageUrl;
+
+      if (!imageUrl || imageUrl.startsWith("blob:")) {
+        throw new Error("Permanent image URL was not returned");
+      }
 
       const setters = {
         avatar: setAvatar,
         logo: setLogo,
         banner: setBanner,
+        qrCode: setQrCode,
       };
 
-      setters[type]?.(url);
+      setters[type](imageUrl);
       setSaved(false);
-    }
 
-    event.target.value = "";
+      console.log(`${type} uploaded successfully:`, imageUrl);
+    } catch (error) {
+      console.error("Image upload failed:", error.response?.data || error);
+
+      alert(
+        error.response?.data?.message || error.message || "Image upload failed",
+      );
+    } finally {
+      event.target.value = "";
+    }
   };
 
   /* CLEAN UP TEMPORARY IMAGE URLS */
@@ -412,33 +401,31 @@ const EditProfile = () => {
   };
 
   const handleSave = async () => {
-    setSaving(true);
     setSaved(false);
 
+    const profileDataToSave = {
+      ...formData,
+      avatar,
+      logo,
+      banner,
+      qrCode,
+      activeTheme,
+      selectedPlan,
+    };
+
     try {
-      const profileDataToSave = {
-        ...formData,
-        avatar,
-        logo,
-        banner,
-        qrCode,
-        activeTheme,
-        selectedPlan,
-      };
+      await dispatch(saveMyProfile(profileDataToSave)).unwrap();
 
-      localStorage.setItem("bioProfileData", JSON.stringify(profileDataToSave));
-
-      window.dispatchEvent(new Event("bioProfileUpdated"));
       setSaved(true);
-
-      setTimeout(() => {
-        setSaved(false);
-      }, 2500);
+      navigate("/mini", { replace: true });
     } catch (error) {
-      console.error("Error saving profile:", error);
-      alert("Profile save nahi hua. Please try again.");
-    } finally {
-      setSaving(false);
+      console.error("Profile save failed:", error);
+
+      alert(
+        typeof error === "string"
+          ? error
+          : "Profile save nahi hua. Please try again.",
+      );
     }
   };
 
@@ -1387,10 +1374,15 @@ const EditProfile = () => {
                     <button
                       type="button"
                       onClick={handleSave}
-                      disabled={saving}
+                      disabled={loading || reduxSaving}
                       className={`${primaryButtonCls} flex-1`}
                     >
-                      {saving ? (
+                      {loading ? (
+                        <>
+                          <Loader2 size={17} className="animate-spin" />
+                          Loading profile...
+                        </>
+                      ) : reduxSaving ? (
                         <>
                           <Loader2 size={17} className="animate-spin" />
                           Saving...
