@@ -2,8 +2,16 @@ const express = require("express");
 const { protect } = require("../middleware/auth.middleware");
 const { adminOnly } = require("../middleware/admin.middleware");
 
-const { getReferralReport } = require("../controllers/referral.controller");
+const {
+  getReferralReport,
+  getReferredUsers,
+} = require("../controllers/referral.controller");
 const { adminLogin } = require("../controllers/admin.controller");
+const {
+  getAdminUsers,
+  verifyUserProfile,
+  unverifyUserProfile,
+} = require("../controllers/adminUsers.controller");
 const {
   getAdminDashboard,
 } = require("../controllers/adminDashboard.controller");
@@ -26,5 +34,15 @@ router.get("/adminpanel", protect, adminOnly, (req, res) => {
 });
 
 router.get("/referrals", protect, adminOnly, getReferralReport);
+router.get("/referrals/:userId/users", protect, adminOnly, getReferredUsers);
 router.get("/dashboard", protect, adminOnly, getAdminDashboard);
+router.get("/users", protect, adminOnly, getAdminUsers);
+router.patch("/users/:userId/verify", protect, adminOnly, verifyUserProfile);
+
+router.patch(
+  "/users/:userId/unverify",
+  protect,
+  adminOnly,
+  unverifyUserProfile,
+);
 module.exports = router;

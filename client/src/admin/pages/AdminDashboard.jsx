@@ -61,6 +61,7 @@ const formatDate = (date) => {
   }
 
   return parsedDate.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -215,7 +216,7 @@ export default function AdminDashboard() {
                   </div>
 
                   <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
-                    {activity.role === "admin" ? "Admin" : "User"}
+                    Registered
                   </span>
                 </div>
               ))

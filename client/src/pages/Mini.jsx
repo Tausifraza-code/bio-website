@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { fetchMyProfile } from "../redux/slice/profileSlice";
 
 import {
   MapPin,
@@ -70,6 +72,28 @@ const themes = [
   },
 ];
 
+const hasValidProfile = (profile) => {
+  if (!profile || typeof profile !== "object") return false;
+
+  const firstName = profile.firstName?.trim() || "";
+  const lastName = profile.lastName?.trim() || "";
+  const businessName = profile.businessName?.trim() || "";
+
+  const isDemo =
+    /^(ankit'?s business|my business|your name)$/i.test(businessName) ||
+    /^(ankit|your name)$/i.test(firstName);
+
+  if (isDemo) return false;
+
+  return Boolean(
+    firstName ||
+    lastName ||
+    businessName ||
+    profile.phone?.trim() ||
+    profile.email?.trim(),
+  );
+};
+
 const bannerImages = [
   "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200",
   "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1200",
@@ -82,43 +106,43 @@ const bannerImages = [
 
 const Mini = () => {
   const navigate = useNavigate();
-
-  const [profileData, setProfileData] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("bioProfileData") || "null");
-    } catch {
-      return null;
-    }
-  });
-
-  // STEP 2: Saved theme load karo
-  const [activeTheme, setActiveTheme] = useState(
-    () => profileData?.activeTheme || "sunset",
+  const dispatch = useDispatch();
+  const { profile, isVerified, loading } = useSelector(
+    (state) => state.profile,
   );
 
-  // STEP 3: Profile data ko refresh karo
+  const [profileChecked, setProfileChecked] = useState(false);
+  const [activeTheme, setActiveTheme] = useState("sunset");
+
   useEffect(() => {
-    const loadProfile = () => {
-      try {
-        const savedProfile = JSON.parse(
-          localStorage.getItem("bioProfileData") || "null",
-        );
+    let mounted = true;
 
-        setProfileData(savedProfile);
-        setActiveTheme(savedProfile?.activeTheme || "sunset");
-      } catch (error) {
-        console.error("Unable to load profile:", error);
-      }
-    };
+    dispatch(fetchMyProfile())
+      .unwrap()
+      .then((savedProfile) => {
+        if (!mounted) return;
 
-    window.addEventListener("storage", loadProfile);
-    window.addEventListener("bioProfileUpdated", loadProfile);
+        if (!hasValidProfile(savedProfile)) {
+          navigate("/editprofile", { replace: true });
+          return;
+        }
+
+        setActiveTheme(savedProfile.activeTheme || "sunset");
+        setProfileChecked(true);
+      })
+      .catch((error) => {
+        if (!mounted) return;
+
+        console.error("Profile load failed:", error);
+        navigate("/editprofile", { replace: true });
+      });
 
     return () => {
-      window.removeEventListener("storage", loadProfile);
-      window.removeEventListener("bioProfileUpdated", loadProfile);
+      mounted = false;
     };
-  }, []);
+  }, [dispatch, navigate]);
+
+  const profileData = profile || {};
 
   const [standeeCode, setStandeeCode] = useState("");
   const [standeeActivated, setStandeeActivated] = useState(false);
@@ -152,12 +176,11 @@ const Mini = () => {
   ========================================================= */
 
   const businessInfo = {
-    name:
-      [profileData?.firstName, profileData?.lastName]
-        .filter(Boolean)
-        .join(" ") || "Your Name",
+    name: [profileData.firstName, profileData.lastName]
+      .filter(Boolean)
+      .join(" "),
 
-    role: profileData?.jobTitle || "Business Owner · Professional",
+    role: profileData.jobTitle || "",
 
     location:
       [profileData?.city, profileData?.state, profileData?.pincode]
@@ -209,6 +232,8 @@ const Mini = () => {
     mapLink: profileData?.mapLink || "",
 
     upiId: profileData?.upiId || "",
+
+    isVerified: isVerified === true,
   };
 
   const activeThemeData = themes.find((theme) => theme.id === activeTheme);
@@ -312,33 +337,119 @@ const Mini = () => {
   };
 
   const handleSaveContact = () => {
-    const vCard = `BEGIN:VCARD
-VERSION:3.0
-FN:${businessInfo.name}
-TEL:${businessInfo.phone}
-EMAIL:${businessInfo.email}
-URL:${businessInfo.website}
-ADR:;;${businessInfo.address};;;;
-END:VCARD`;
+    const escapeVCard = (value = "") =>
+      String(value)
+        .trim()
+        .replace(/\\/g, "\\\\")
+        .replace(/\n/g, "\\n")
+        .replace(/,/g, "\\,")
+        .replace(/;/g, "\\;");
 
-    const blob = new Blob([vCard], {
+    const lines = ["BEGIN:VCARD", "VERSION:3.0"];
+
+    const fullName = [profileData.firstName, profileData.lastName]
+      .filter((value) => value?.trim())
+      .join(" ")
+      .trim();
+
+    const displayName = fullName || profileData.businessName?.trim() || "";
+
+    if (displayName) {
+      lines.push(`FN:${escapeVCard(displayName)}`);
+    }
+
+    if (profileData.businessName?.trim()) {
+      lines.push(`ORG:${escapeVCard(profileData.businessName)}`);
+    }
+
+    if (profileData.jobTitle?.trim()) {
+      lines.push(`TITLE:${escapeVCard(profileData.jobTitle)}`);
+    }
+
+    if (profileData.phone?.trim()) {
+      lines.push(`TEL;TYPE=CELL:${escapeVCard(profileData.phone)}`);
+    }
+
+    if (profileData.whatsapp?.trim()) {
+      lines.push(
+        `item1.URL:${escapeVCard(
+          `https://wa.me/${profileData.whatsapp.replace(/\D/g, "")}`,
+        )}`,
+        "item1.X-ABLabel:WhatsApp",
+      );
+    }
+
+    if (profileData.email?.trim()) {
+      lines.push(`EMAIL:${escapeVCard(profileData.email)}`);
+    }
+
+    const website =
+      profileData.website?.trim() || profileData.websiteUrl?.trim();
+
+    if (website) {
+      const websiteUrl = /^https?:\/\//i.test(website)
+        ? website
+        : `https://${website}`;
+
+      lines.push(`URL:${escapeVCard(websiteUrl)}`);
+    }
+
+    const address = [
+      profileData.shopUnit,
+      profileData.area,
+      profileData.landmark,
+      profileData.city,
+      profileData.state,
+      profileData.pincode,
+    ]
+      .filter((value) => value?.trim())
+      .join(", ");
+
+    if (address) {
+      lines.push(`ADR;TYPE=WORK:;;${escapeVCard(address)};;;;`);
+    }
+
+    if (profileData.bio?.trim()) {
+      lines.push(`NOTE:${escapeVCard(profileData.bio)}`);
+    } else if (profileData.headline?.trim()) {
+      lines.push(`NOTE:${escapeVCard(profileData.headline)}`);
+    }
+
+    // Contact file mein koi useful detail na ho toh download na karein.
+    if (
+      !displayName &&
+      !profileData.phone?.trim() &&
+      !profileData.email?.trim()
+    ) {
+      alert("Contact download karne ke liye pehle profile details add karein.");
+      return;
+    }
+
+    lines.push("END:VCARD");
+
+    const blob = new Blob([`${lines.join("\r\n")}\r\n`], {
       type: "text/vcard;charset=utf-8",
     });
 
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
 
+    const filename = (displayName || "contact")
+      .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-")
+      .trim();
+
     anchor.href = url;
-    anchor.download = `${businessInfo.name}.vcf`;
+    anchor.download = `${filename || "contact"}.vcf`;
 
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
 
-    URL.revokeObjectURL(url);
+    // Download start hone ke baad temporary URL release karein.
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 
     setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    window.setTimeout(() => setSaved(false), 2000);
   };
 
   const handleCopyLink = async () => {
@@ -425,6 +536,10 @@ END:VCARD`;
   /* =========================================================
      RENDER
   ========================================================= */
+
+  if (loading || !profileChecked || !profile) {
+    return null;
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#071326] text-slate-100 selection:bg-cyan-300/30">
@@ -874,35 +989,32 @@ END:VCARD`;
                     <div className="px-5 pb-6 sm:px-8 sm:pb-7 lg:px-10">
                       <div className="-mt-12 mb-5 flex flex-wrap items-end justify-between gap-3 sm:-mt-14">
                         <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-4 border-[#17171c] bg-[#25242a] shadow-2xl sm:h-28 sm:w-28">
-                          <img
-                            src={
-                              businessInfo.avatar ||
-                              "https://i.pravatar.cc/200?img=12"
-                            }
-                            alt={businessInfo.name}
-                            className="h-full w-full object-cover"
-                          />
+                          {businessInfo.avatar && (
+                            <img
+                              src={businessInfo.avatar}
+                              alt={businessInfo.name}
+                              className="h-full w-full object-cover"
+                            />
+                          )}
                         </div>
 
-                        <div
-                          className="mb-1 inline-flex items-center gap-2 rounded-full border px-3.5 py-2.5"
-                          style={{
-                            borderColor: currentTheme.primary,
-                            backgroundColor: `${currentTheme.primary}1a`,
-                          }}
-                        >
+                        {loading ? (
                           <span
-                            className="h-2 w-2 rounded-full"
-                            style={{ backgroundColor: currentTheme.primary }}
-                          />
-
-                          <span
-                            className="text-xs font-bold uppercase tracking-wide sm:text-sm"
-                            style={{ color: currentTheme.text }}
+                            role="status"
+                            className="mb-1 inline-flex items-center gap-2 rounded-full border border-slate-400/30 bg-slate-400/10 px-3.5 py-2.5 text-xs font-bold uppercase tracking-wide text-slate-300 sm:text-sm"
                           >
-                            Verified Profile
+                            Checking verification...
                           </span>
-                        </div>
+                        ) : isVerified === true ? (
+                          <span className="mb-1 inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3.5 py-2.5 text-xs font-bold uppercase tracking-wide text-emerald-300 sm:text-sm">
+                            <ShieldCheck size={16} />✓ Verified
+                          </span>
+                        ) : isVerified === false ? (
+                          <span className="mb-1 inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-3.5 py-2.5 text-xs font-bold uppercase tracking-wide text-amber-300 sm:text-sm">
+                            <ShieldCheck size={16} />
+                            Not Verified
+                          </span>
+                        ) : null}
                       </div>
 
                       <div className="flex flex-wrap items-center gap-2.5">
@@ -910,7 +1022,21 @@ END:VCARD`;
                           {businessInfo.name}
                         </h3>
 
-                        <ShieldCheck size={24} className="text-amber-300" />
+                        {loading ? (
+                          <span role="status">Checking verification...</span>
+                        ) : isVerified === true ? (
+                          <span
+                            title="Verified business profile"
+                            className="inline-flex items-center gap-1 rounded-full bg-emerald-400/10 px-2.5 py-1 text-sm font-bold text-emerald-300"
+                          >
+                            <Check size={16} strokeWidth={3} />
+                            Verified
+                          </span>
+                        ) : isVerified === false ? (
+                          <span className="rounded-full bg-amber-400/10 px-2.5 py-1 text-xs font-semibold text-amber-300">
+                            Not Verified
+                          </span>
+                        ) : null}
                       </div>
 
                       <p className="mt-2 text-base font-medium text-slate-300 sm:text-lg">
@@ -941,9 +1067,9 @@ END:VCARD`;
 
                       <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
                         <ActionButton
-                          icon={MessageCircle}
-                          label="WhatsApp"
-                          onClick={handleWhatsApp}
+                          icon={saved ? Check : UserPlus}
+                          label={saved ? "Saved" : "Save Contact"}
+                          onClick={handleSaveContact}
                           primary
                         />
 
@@ -954,15 +1080,9 @@ END:VCARD`;
                         />
 
                         <ActionButton
-                          icon={copied ? Check : Share2}
-                          label={copied ? "Copied" : "Share"}
-                          onClick={handleShare}
-                        />
-
-                        <ActionButton
-                          icon={saved ? Check : UserPlus}
-                          label={saved ? "Saved" : "Save Contact"}
-                          onClick={handleSaveContact}
+                          icon={MessageCircle}
+                          label="WhatsApp"
+                          onClick={handleWhatsApp}
                         />
                       </div>
                     </div>

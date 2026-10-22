@@ -6,10 +6,10 @@ const ReferralLog = require("../models/ReferralLog");
 const getAdminDashboard = async (req, res) => {
   try {
     const [totalUsers, totalReferralSignups, recentUsers] = await Promise.all([
-      User.countDocuments(),
+      User.countDocuments({ role: "user" }),
       ReferralLog.countDocuments(),
-      User.find()
-        .select("fullName email role createdAt")
+      User.find({ role: "user" })
+        .select("fullName email createdAt")
         .sort({ createdAt: -1, _id: -1 })
         .limit(5)
         .lean(),
