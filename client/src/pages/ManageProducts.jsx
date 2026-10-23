@@ -1,5 +1,6 @@
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Package,
   Plus,
@@ -11,38 +12,86 @@ import {
   Check,
   Save,
   Loader2,
-  ArrowUpRight,
   Layers,
   ShoppingBag,
+  Tag,
+  Eye,
 } from "lucide-react";
+import {
+  createProduct,
+  getMyProducts,
+  updateProduct,
+  deleteProduct,
+} from "../redux/slice/productSlice";
 
 const MAX_PRODUCTS = 20;
+const MAX_IMAGES = 8;
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
 const initialFormData = {
   name: "",
-  price: "",
   description: "",
-  image1: null,
-  image2: null,
-  ctaText: "Inquire Now",
+  price: "",
+  category: "General",
+  type: "product",
+  status: "active",
 };
 
 const ManageProducts = () => {
-  const [products, setProducts] = useState([]);
+  const dispatch = useDispatch();
+
+  const {
+    products = [],
+    loading,
+    creating,
+    updating,
+    deleting,
+    error: productError,
+  } = useSelector((state) => state.product || {});
+
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [formError, setFormError] = useState("");
-
+  const [existingImages, setExistingImages] = useState([]);
+  const [newImages, setNewImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
   const [formData, setFormData] = useState({ ...initialFormData });
 
+  const saving = Boolean(creating || updating);
+
+  useEffect(() => {
+    dispatch(getMyProducts());
+  }, [dispatch]);
+
+  useEffect(() => {
+    return () => {
+      imagePreviews.forEach((image) => {
+        if (image.preview?.startsWith("blob:")) {
+          URL.revokeObjectURL(image.preview);
+        }
+      });
+    };
+  }, [imagePreviews]);
+
   const usedCount = products.length;
-  const remainingCount = MAX_PRODUCTS - usedCount;
-  const progress = (usedCount / MAX_PRODUCTS) * 100;
+  const remainingCount = Math.max(0, MAX_PRODUCTS - usedCount);
+  const progress = Math.min(100, (usedCount / MAX_PRODUCTS) * 100);
+
+  const releaseNewImagePreviews = () => {
+    imagePreviews.forEach((image) => {
+      if (image.preview?.startsWith("blob:")) {
+        URL.revokeObjectURL(image.preview);
+      }
+    });
+  };
 
   const resetForm = () => {
+    releaseNewImagePreviews();
     setFormData({ ...initialFormData });
+    setExistingImages([]);
+    setNewImages([]);
+    setImagePreviews([]);
     setEditingId(null);
     setSaved(false);
     setFormError("");
@@ -68,16 +117,23 @@ const ManageProducts = () => {
   };
 
   const handleEdit = (product) => {
+    releaseNewImagePreviews();
+
     setFormData({
-      name: product.name,
-      price: product.price,
-      description: product.description,
-      image1: product.image1,
-      image2: product.image2,
-      ctaText: product.ctaText,
+      name: product.name || "",
+      description: product.description || "",
+      price: String(product.price ?? ""),
+      category: product.category || "General",
+      type: product.type || "product",
+      status: product.status || "active",
     });
 
-    setEditingId(product.id);
+    setExistingImages(
+      Array.isArray(product.images) ? product.images : []
+    );
+    setNewImages([]);
+    setImagePreviews([]);
+    setEditingId(product._id);
     setFormError("");
     setSaved(false);
     setShowForm(true);
@@ -90,51 +146,83 @@ const ManageProducts = () => {
     }, 100);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     const confirmed = window.confirm(
       "Are you sure you want to delete this product?"
     );
 
     if (!confirmed) return;
 
-    setProducts((prev) => prev.filter((product) => product.id !== id));
+    setFormError("");
 
-    if (editingId === id) {
-      handleCloseForm();
+    try {
+      await dispatch(deleteProduct(id)).unwrap();
+
+      if (editingId === id) {
+        handleCloseForm();
+      }
+    } catch (err) {
+      setFormError(
+        typeof err === "string" ? err : "Failed to delete product."
+      );
     }
   };
 
-  const handleImageUpload = (field) => (event) => {
-    const file = event.target.files?.[0];
+  const handleImageUpload = (event) => {
+    const files = Array.from(event.target.files || []);
+    event.target.value = "";
 
-    if (!file) return;
+    if (!files.length) return;
 
-    if (!file.type.startsWith("image/")) {
-      setFormError("Please select a valid image file.");
-      event.target.value = "";
+    const remainingImageSlots =
+      MAX_IMAGES - existingImages.length - newImages.length;
+
+    if (files.length > remainingImageSlots) {
+      setFormError(
+        `You can upload a maximum of ${MAX_IMAGES} images per product. ` +
+          `${remainingImageSlots} slot(s) remaining.`
+      );
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setFormError("Image size must be 5 MB or less.");
-      event.target.value = "";
-      return;
-    }
-
-    const imageUrl = URL.createObjectURL(file);
-
-    setFormData((prev) => {
-      if (prev[field]?.startsWith?.("blob:")) {
-        URL.revokeObjectURL(prev[field]);
+    for (const file of files) {
+      if (!file.type.startsWith("image/")) {
+        setFormError("Please select valid image files.");
+        return;
       }
 
-      return {
-        ...prev,
-        [field]: imageUrl,
-      };
-    });
+      if (file.size > MAX_IMAGE_SIZE) {
+        setFormError(
+          `"${file.name}" exceeds the 5 MB image size limit.`
+        );
+        return;
+      }
+    }
 
+    const selectedFiles = files;
+    const selectedPreviews = selectedFiles.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+      name: file.name,
+    }));
+
+    setNewImages((prev) => [...prev, ...selectedFiles]);
+    setImagePreviews((prev) => [...prev, ...selectedPreviews]);
     setFormError("");
+    setSaved(false);
+  };
+
+  const removeNewImage = (index) => {
+    const image = imagePreviews[index];
+
+    if (image?.preview?.startsWith("blob:")) {
+      URL.revokeObjectURL(image.preview);
+    }
+
+    setNewImages((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+    setFormError("");
+    setSaved(false);
   };
 
   const handleChange = (field, value) => {
@@ -147,59 +235,110 @@ const ManageProducts = () => {
     setSaved(false);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.name.trim()) {
       setFormError("Please enter a product or service name.");
       return;
     }
 
-    if (!formData.price.trim()) {
-      setFormError("Please enter the price or pricing terms.");
+    if (formData.name.trim().length > 150) {
+      setFormError("Name must be 150 characters or fewer.");
       return;
     }
 
-    if (!formData.image1) {
-      setFormError("Please upload a main cover image.");
+    if (!formData.description.trim()) {
+      setFormError("Please enter a product description.");
+      return;
+    }
+
+    if (formData.description.trim().length > 5000) {
+      setFormError("Description must be 5000 characters or fewer.");
+      return;
+    }
+
+    if (
+      formData.price.trim() === "" ||
+      !Number.isFinite(Number(formData.price)) ||
+      Number(formData.price) < 0
+    ) {
+      setFormError("Enter a valid non-negative numeric price.");
+      return;
+    }
+
+    if (!["product", "service"].includes(formData.type)) {
+      setFormError("Please select a valid product type.");
+      return;
+    }
+
+    if (!["active", "inactive"].includes(formData.status)) {
+      setFormError("Please select a valid status.");
+      return;
+    }
+
+    if (!formData.category.trim() || formData.category.length > 100) {
+      setFormError(
+        "Category is required and must be 100 characters or fewer."
+      );
+      return;
+    }
+
+    if (
+      existingImages.length + newImages.length > MAX_IMAGES
+    ) {
+      setFormError(`A product can have a maximum of ${MAX_IMAGES} images.`);
       return;
     }
 
     if (!editingId && usedCount >= MAX_PRODUCTS) {
-      setFormError(`You can add a maximum of ${MAX_PRODUCTS} products.`);
+      setFormError(
+        `You can add a maximum of ${MAX_PRODUCTS} products.`
+      );
       return;
     }
 
-    setSaving(true);
     setFormError("");
+    setSaved(false);
 
-    // Preserve the existing simulated save behavior.
-    setTimeout(() => {
+    const productData = {
+      name: formData.name.trim(),
+      description: formData.description.trim(),
+      price: Number(formData.price),
+      category: formData.category.trim(),
+      type: formData.type,
+      images: newImages,
+    };
+
+    // The controller sets new products to active automatically.
+    // Status is supported by the update controller.
+    if (editingId) {
+      productData.status = formData.status;
+    }
+
+    try {
       if (editingId) {
-        setProducts((prev) =>
-          prev.map((product) =>
-            product.id === editingId
-              ? { ...product, ...formData }
-              : product
-          )
-        );
+        await dispatch(
+          updateProduct({
+            id: editingId,
+            productData,
+          })
+        ).unwrap();
       } else {
-        setProducts((prev) => [
-          ...prev,
-          {
-            id: Date.now(),
-            ...formData,
-          },
-        ]);
+        await dispatch(createProduct(productData)).unwrap();
       }
 
-      setSaving(false);
       setSaved(true);
 
       setTimeout(() => {
-        setSaved(false);
         setShowForm(false);
         resetForm();
-      }, 1000);
-    }, 600);
+      }, 900);
+    } catch (err) {
+      setFormError(
+        typeof err === "string"
+          ? err
+          : "Unable to save product. Please try again."
+      );
+    }
   };
 
   return (
@@ -220,11 +359,9 @@ const ManageProducts = () => {
       </div>
 
       <div className="relative mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-9 lg:px-8">
-
         {/* Page heading */}
         <section className="relative overflow-hidden rounded-3xl border border-[#29435f] bg-[#10243b] shadow-2xl shadow-black/10">
           <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-300 to-transparent" />
-
           <div className="absolute -right-12 -top-16 h-52 w-52 rounded-full border border-cyan-300/[0.07]" />
           <div className="absolute -right-4 -top-8 h-36 w-36 rounded-full border border-cyan-300/[0.07]" />
 
@@ -252,8 +389,8 @@ const ManageProducts = () => {
                   </h1>
 
                   <p className="mt-2 max-w-xl text-xs leading-6 text-slate-300 sm:text-sm">
-                    Build your business portfolio with product images,
-                    pricing and custom inquiry buttons.
+                    Manage your products and services, pricing, categories,
+                    and images in one place.
                   </p>
                 </div>
               </div>
@@ -272,8 +409,8 @@ const ManageProducts = () => {
                 {showForm
                   ? "Close Form"
                   : remainingCount === 0
-                  ? "Limit Reached"
-                  : "Add Product"}
+                    ? "Limit Reached"
+                    : "Add Product"}
               </button>
             </div>
 
@@ -317,9 +454,13 @@ const ManageProducts = () => {
 
           <StatCard
             icon={ImageIcon}
-            label="Image Slots"
-            value={usedCount * 2}
-            detail="Maximum 2 images per product"
+            label="Total Images"
+            value={products.reduce(
+              (total, product) =>
+                total + (product.images?.length || 0),
+              0
+            )}
+            detail="Images across your products"
           />
         </section>
 
@@ -348,7 +489,7 @@ const ManageProducts = () => {
                     </h2>
 
                     <p className="mt-1 text-xs leading-5 text-slate-300">
-                      Add the details customers will see on your business card.
+                      Add the product or service details and images.
                     </p>
                   </div>
                 </div>
@@ -363,7 +504,7 @@ const ManageProducts = () => {
                 </button>
               </div>
 
-              {/* Product details */}
+              {/* Basic information */}
               <div className="rounded-2xl border border-[#29435f] bg-[#0b1b30]/70 p-4 sm:p-5">
                 <SectionHeading number="01" title="Basic Information" />
 
@@ -371,7 +512,7 @@ const ManageProducts = () => {
                   <FormField label="Product / Service Name" required>
                     <input
                       type="text"
-                      maxLength={100}
+                      maxLength={150}
                       value={formData.name}
                       onChange={(e) =>
                         handleChange("name", e.target.value)
@@ -379,27 +520,80 @@ const ManageProducts = () => {
                       placeholder="e.g. Premium Hair Styling"
                       className={inputCls}
                     />
+                    <p className="mt-1.5 text-right text-[10px] text-slate-400">
+                      {formData.name.length}/150 characters
+                    </p>
                   </FormField>
 
-                  <FormField label="Price / Pricing Terms" required>
+                  <FormField label="Price" required>
                     <input
-                      type="text"
-                      maxLength={100}
+                      type="number"
+                      min="0"
+                      step="any"
                       value={formData.price}
                       onChange={(e) =>
                         handleChange("price", e.target.value)
                       }
-                      placeholder="e.g. ₹499 or Contact for pricing"
+                      placeholder="e.g. 499"
                       className={inputCls}
                     />
                   </FormField>
+
+                  <FormField label="Category" required>
+                    <input
+                      type="text"
+                      maxLength={100}
+                      value={formData.category}
+                      onChange={(e) =>
+                        handleChange("category", e.target.value)
+                      }
+                      placeholder="e.g. Electronics"
+                      className={inputCls}
+                    />
+                  </FormField>
+
+                  <FormField label="Type" required>
+                    <select
+                      value={formData.type}
+                      onChange={(e) =>
+                        handleChange("type", e.target.value)
+                      }
+                      className={inputCls}
+                    >
+                      <option value="product" className="bg-[#132942]">
+                        Product
+                      </option>
+                      <option value="service" className="bg-[#132942]">
+                        Service
+                      </option>
+                    </select>
+                  </FormField>
+
+                  {editingId && (
+                    <FormField label="Status" required>
+                      <select
+                        value={formData.status}
+                        onChange={(e) =>
+                          handleChange("status", e.target.value)
+                        }
+                        className={inputCls}
+                      >
+                        <option value="active" className="bg-[#132942]">
+                          Active
+                        </option>
+                        <option value="inactive" className="bg-[#132942]">
+                          Inactive
+                        </option>
+                      </select>
+                    </FormField>
+                  )}
                 </div>
 
                 <div className="mt-5">
-                  <FormField label="Description">
+                  <FormField label="Description" required>
                     <textarea
                       rows={4}
-                      maxLength={1000}
+                      maxLength={5000}
                       value={formData.description}
                       onChange={(e) =>
                         handleChange("description", e.target.value)
@@ -408,7 +602,7 @@ const ManageProducts = () => {
                       className={`${inputCls} resize-y leading-6`}
                     />
                     <p className="mt-1.5 text-right text-[10px] text-slate-400">
-                      {formData.description.length}/1000 characters
+                      {formData.description.length}/5000 characters
                     </p>
                   </FormField>
                 </div>
@@ -419,50 +613,116 @@ const ManageProducts = () => {
                 <SectionHeading number="02" title="Product Images" />
 
                 <p className="mt-2 text-xs leading-5 text-slate-300">
-                  Add a main cover image and an optional second image.
-                  Maximum image size: 5 MB each.
+                  Upload up to {MAX_IMAGES} images. Each image can be
+                  up to 5 MB. Supported formats include JPEG, PNG, WebP
+                  and GIF.
                 </p>
 
-                <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
-                  <ImageUpload
-                    title="Main Cover Image"
-                    description="Primary image displayed on your product card."
-                    image={formData.image1}
-                    required
-                    onChange={handleImageUpload("image1")}
-                  />
+                {editingId && existingImages.length > 0 && (
+                  <div className="mt-5">
+                    <p className="mb-3 text-xs font-bold text-slate-200">
+                      Existing Images ({existingImages.length})
+                    </p>
 
-                  <ImageUpload
-                    title="Secondary Image"
-                    description="An additional product angle or detail."
-                    image={formData.image2}
-                    onChange={handleImageUpload("image2")}
-                  />
-                </div>
-              </div>
-
-              {/* CTA */}
-              <div className="mt-5 rounded-2xl border border-[#29435f] bg-[#0b1b30]/70 p-4 sm:p-5">
-                <SectionHeading number="03" title="Inquiry Button" />
-
-                <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-[1fr_auto] sm:items-end">
-                  <FormField label="Button Text">
-                    <input
-                      type="text"
-                      maxLength={40}
-                      value={formData.ctaText}
-                      onChange={(e) =>
-                        handleChange("ctaText", e.target.value)
-                      }
-                      placeholder="Inquire Now"
-                      className={inputCls}
-                    />
-                  </FormField>
-
-                  <div className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-cyan-300 px-5 py-3 text-xs font-bold text-[#071729]">
-                    {formData.ctaText.trim() || "Inquire Now"}
-                    <ArrowUpRight size={15} />
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                      {existingImages.map((image, index) => (
+                        <div
+                          key={image._id || image.url || index}
+                          className="overflow-hidden rounded-xl border border-[#29435f] bg-[#10243b]"
+                        >
+                          <div className="h-28 bg-[#132942] sm:h-32">
+                            <img
+                              src={image.url}
+                              alt={image.alt || formData.name}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                          <div className="flex items-center gap-1.5 px-2.5 py-2 text-[10px] text-slate-300">
+                            <Eye size={12} className="shrink-0 text-cyan-300" />
+                            Existing image {index + 1}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
+                )}
+
+                {imagePreviews.length > 0 && (
+                  <div className="mt-5">
+                    <p className="mb-3 text-xs font-bold text-slate-200">
+                      Newly Selected Images ({imagePreviews.length})
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                      {imagePreviews.map((image, index) => (
+                        <div
+                          key={`${image.name}-${index}`}
+                          className="overflow-hidden rounded-xl border border-[#29435f] bg-[#10243b]"
+                        >
+                          <div className="relative h-28 bg-[#132942] sm:h-32">
+                            <img
+                              src={image.preview}
+                              alt={image.name}
+                              className="h-full w-full object-cover"
+                            />
+
+                            <button
+                              type="button"
+                              onClick={() => removeNewImage(index)}
+                              aria-label={`Remove ${image.name}`}
+                              className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-[#071729]/90 text-white transition hover:bg-red-500"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+
+                          <p
+                            className="truncate px-2.5 py-2 text-[10px] text-slate-300"
+                            title={image.name}
+                          >
+                            {image.name}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-5">
+                  <label
+                    className={`flex min-h-36 w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-[#38516e] bg-[#10243b] px-4 py-6 text-center transition ${
+                      existingImages.length + newImages.length >= MAX_IMAGES
+                        ? "cursor-not-allowed opacity-50"
+                        : "cursor-pointer hover:border-cyan-300/50 hover:bg-[#132942]"
+                    }`}
+                  >
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-300/20 bg-[#193754]">
+                      <Upload size={21} className="text-cyan-300" />
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-bold text-white">
+                        {existingImages.length + newImages.length >= MAX_IMAGES
+                          ? "Maximum Images Reached"
+                          : "Choose Images to Upload"}
+                      </p>
+                      <p className="mt-1 text-[10px] leading-5 text-slate-400">
+                        {existingImages.length + newImages.length} of{" "}
+                        {MAX_IMAGES} images selected
+                      </p>
+                    </div>
+
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      className="hidden"
+                      disabled={
+                        existingImages.length + newImages.length >= MAX_IMAGES
+                      }
+                      onChange={handleImageUpload}
+                    />
+                  </label>
                 </div>
               </div>
 
@@ -473,6 +733,15 @@ const ManageProducts = () => {
                   className="mt-5 rounded-xl border border-red-400/25 bg-red-400/[0.08] px-4 py-3 text-xs leading-5 text-red-200"
                 >
                   {formError}
+                </div>
+              )}
+
+              {productError && (
+                <div
+                  role="alert"
+                  className="mt-3 rounded-xl border border-red-400/25 bg-red-400/[0.08] px-4 py-3 text-xs leading-5 text-red-200"
+                >
+                  {productError}
                 </div>
               )}
 
@@ -538,18 +807,32 @@ const ManageProducts = () => {
             )}
           </div>
 
-          {products.length > 0 ? (
+          {(productError || formError) && !showForm && (
+            <div
+              role="alert"
+              className="mb-4 rounded-xl border border-red-400/25 bg-red-400/[0.08] px-4 py-3 text-xs leading-5 text-red-200"
+            >
+              {formError || productError}
+            </div>
+          )}
+
+          {loading ? (
+            <div className="flex items-center justify-center gap-2 rounded-2xl border border-[#29435f] bg-[#10243b] py-12 text-sm text-slate-300">
+              <Loader2 size={18} className="animate-spin text-cyan-300" />
+              Loading products...
+            </div>
+          ) : products.length > 0 ? (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {products.map((product, index) => (
                 <article
-                  key={product.id}
+                  key={product._id}
                   className="group overflow-hidden rounded-2xl border border-[#29435f] bg-[#10243b] transition duration-300 hover:-translate-y-0.5 hover:border-cyan-300/30 hover:shadow-xl hover:shadow-black/10"
                 >
                   <div className="relative h-44 overflow-hidden bg-[#132942] sm:h-48">
-                    {product.image1 ? (
+                    {product.images?.[0]?.url ? (
                       <img
-                        src={product.image1}
-                        alt={product.name}
+                        src={product.images[0].url}
+                        alt={product.images[0].alt || product.name}
                         className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
                       />
                     ) : (
@@ -563,16 +846,20 @@ const ManageProducts = () => {
 
                     <div className="absolute inset-0 bg-gradient-to-t from-[#071729]/80 via-transparent to-transparent" />
 
-                    <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-[#0b1b30]/85 px-2.5 py-1.5 text-[10px] font-semibold text-white backdrop-blur-md">
+                    <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-[#0b1b30]/85 px-2.5 py-1.5 text-[10px] font-semibold capitalize text-white backdrop-blur-md">
                       <Package size={12} className="text-cyan-300" />
-                      Product {index + 1}
+                      {product.type || "product"}
                     </span>
 
-                    {product.image2 && (
-                      <span className="absolute right-3 top-3 rounded-lg border border-white/10 bg-[#0b1b30]/85 px-2.5 py-1.5 text-[10px] font-semibold text-white backdrop-blur-md">
-                        2 images
-                      </span>
-                    )}
+                    <span
+                      className={`absolute right-3 top-3 rounded-lg border px-2.5 py-1.5 text-[10px] font-semibold capitalize backdrop-blur-md ${
+                        product.status === "active"
+                          ? "border-emerald-300/20 bg-emerald-400/15 text-emerald-200"
+                          : "border-amber-300/20 bg-amber-400/15 text-amber-200"
+                      }`}
+                    >
+                      {product.status || "active"}
+                    </span>
 
                     <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4">
                       <h3 className="min-w-0 text-base font-bold text-white sm:text-lg">
@@ -580,7 +867,7 @@ const ManageProducts = () => {
                       </h3>
 
                       <div className="shrink-0 rounded-lg border border-cyan-300/20 bg-[#132942]/95 px-3 py-2 text-xs font-bold text-cyan-200 backdrop-blur">
-                        {product.price}
+                        {Number(product.price).toLocaleString()}
                       </div>
                     </div>
                   </div>
@@ -590,18 +877,55 @@ const ManageProducts = () => {
                       {product.description || "No description provided."}
                     </p>
 
-                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[#29435f] pt-4">
-                      <div className="min-w-0">
-                        <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-400">
-                          Inquiry button
-                        </p>
-
-                        <p className="mt-1 truncate text-xs font-semibold text-cyan-200">
-                          {product.ctaText || "Inquire Now"}
+                    <div className="mt-4 grid grid-cols-2 gap-3">
+                      <div className="rounded-xl border border-[#29435f] bg-[#0b1b30]/60 p-3">
+                        <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.12em] text-slate-400">
+                          <Tag size={12} className="text-cyan-300" />
+                          Category
+                        </div>
+                        <p className="mt-1.5 truncate text-xs font-semibold text-slate-200">
+                          {product.category || "General"}
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="rounded-xl border border-[#29435f] bg-[#0b1b30]/60 p-3">
+                        <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.12em] text-slate-400">
+                          <ImageIcon size={12} className="text-cyan-300" />
+                          Images
+                        </div>
+                        <p className="mt-1.5 text-xs font-semibold text-slate-200">
+                          {product.images?.length || 0} / {MAX_IMAGES}
+                        </p>
+                      </div>
+                    </div>
+
+                    {product.images?.length > 1 && (
+                      <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+                        {product.images.slice(1).map((image, imageIndex) => (
+                          <img
+                            key={image._id || image.url || imageIndex}
+                            src={image.thumbnailUrl || image.url}
+                            alt={
+                              image.alt ||
+                              `${product.name} image ${imageIndex + 2}`
+                            }
+                            className="h-14 w-14 shrink-0 rounded-lg border border-[#29435f] object-cover"
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="mt-4 flex items-center justify-between gap-3 border-t border-[#29435f] pt-4">
+                      <div className="min-w-0">
+                        <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-400">
+                          Product ID
+                        </p>
+                        <p className="mt-1 truncate text-[10px] text-slate-300">
+                          {product._id}
+                        </p>
+                      </div>
+
+                      <div className="flex shrink-0 items-center gap-2">
                         <button
                           type="button"
                           onClick={() => handleEdit(product)}
@@ -614,12 +938,17 @@ const ManageProducts = () => {
 
                         <button
                           type="button"
-                          onClick={() => handleDelete(product.id)}
+                          onClick={() => handleDelete(product._id)}
+                          disabled={deleting}
                           title="Delete product"
                           aria-label={`Delete ${product.name}`}
-                          className="flex h-9 w-9 items-center justify-center rounded-xl border border-red-400/20 bg-red-400/[0.05] text-red-300 transition hover:border-red-400/40 hover:bg-red-400/[0.12]"
+                          className="flex h-9 w-9 items-center justify-center rounded-xl border border-red-400/20 bg-red-400/[0.05] text-red-300 transition hover:border-red-400/40 hover:bg-red-400/[0.12] disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                          <Trash2 size={14} />
+                          {deleting ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            <Trash2 size={14} />
+                          )}
                         </button>
                       </div>
                     </div>
@@ -641,8 +970,8 @@ const ManageProducts = () => {
                 </h3>
 
                 <p className="relative mx-auto mt-2 max-w-sm text-xs leading-6 text-slate-300">
-                  Add your first product or service with images, pricing and
-                  an inquiry button to build your business portfolio.
+                  Add your first product or service with images, pricing,
+                  category and description to build your business portfolio.
                 </p>
 
                 <button
@@ -694,7 +1023,6 @@ const SectionHeading = ({ number, title }) => (
     <span className="flex h-8 w-9 items-center justify-center rounded-lg border border-cyan-300/20 bg-[#193754] text-[10px] font-bold tracking-wider text-cyan-200">
       {number}
     </span>
-
     <h3 className="text-sm font-bold text-white">{title}</h3>
   </div>
 );
@@ -705,64 +1033,7 @@ const FormField = ({ label, required = false, children }) => (
       {label}
       {required && <span className="text-cyan-300">*</span>}
     </label>
-
     {children}
-  </div>
-);
-
-const ImageUpload = ({
-  title,
-  description,
-  image,
-  required = false,
-  onChange,
-}) => (
-  <div className="min-w-0 rounded-2xl border border-[#29435f] bg-[#10243b] p-3.5 sm:p-4">
-    <div className="mb-3">
-      <p className="text-xs font-bold text-white">
-        {title}
-        {required && <span className="ml-1 text-cyan-300">*</span>}
-      </p>
-
-      <p className="mt-1 text-[10px] leading-5 text-slate-300">
-        {description}
-      </p>
-    </div>
-
-    <div className="relative flex h-40 items-center justify-center overflow-hidden rounded-xl border border-[#29435f] bg-[#0b1b30]">
-      {image ? (
-        <img
-          src={image}
-          alt={title}
-          className="h-full w-full object-cover"
-        />
-      ) : (
-        <div className="flex flex-col items-center gap-2 px-3 text-center">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#29435f] bg-[#132942]">
-            <ImageIcon size={21} className="text-slate-300" />
-          </div>
-
-          <span className="text-xs font-semibold text-slate-200">
-            No image selected
-          </span>
-
-          <span className="text-[10px] text-slate-400">
-            JPG, PNG or WebP · Up to 5 MB
-          </span>
-        </div>
-      )}
-    </div>
-
-    <label className="mt-3 flex min-h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#38516e] bg-[#132942] px-3 py-2.5 text-xs font-semibold text-slate-200 transition hover:border-cyan-300/40 hover:bg-[#193754] hover:text-cyan-200">
-      <Upload size={14} />
-      {image ? "Change Image" : "Upload Image"}
-      <input
-        type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif"
-        className="hidden"
-        onChange={onChange}
-      />
-    </label>
   </div>
 );
 

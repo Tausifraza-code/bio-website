@@ -20,6 +20,7 @@ import WebsiteTheme from "./pages/WebsiteTheme";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 
+
 // admin imports
 
 import AdminLayout from "./admin/components/AdminLayout";
@@ -27,6 +28,7 @@ import AdminDashboard from "./admin/pages/AdminDashboard";
 import AdminLogin from "./admin/pages/AdminLogin";
 import AdminUsers from "./admin/pages/AdminUsers";
 import AdminReferrals from "./admin/pages/AdminReferrals";
+import Gallery from "./pages/Gallery";
 
 function App() {
   useEffect(() => {
@@ -59,6 +61,7 @@ function App() {
         <Route path="editprofile" element={<EditProfile />} />
         <Route path="leads" element={<Leads />} />
         <Route path="manageproducts" element={<ManageProducts />} />
+        <Route path="gallery" element={<Gallery />} />
         <Route path="mini" element={<Mini />} />
         <Route path="payment" element={<Navigate to="/mini" replace />} />
         <Route path="theme" element={<WebsiteTheme />} />

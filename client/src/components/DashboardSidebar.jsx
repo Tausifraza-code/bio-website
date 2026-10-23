@@ -15,6 +15,7 @@ import {
   ChevronRight,
   LogOut,
   ExternalLink,
+  Images
 } from "lucide-react";
 
 const sidebarItems = [
@@ -49,6 +50,14 @@ const sidebarItems = [
     label: "Manage Products",
     icon: Package,
     path: "/manageproducts",
+    badge: { text: "1", color: "slate" },
+  },
+
+   {
+    id: "Gallery",
+    label: "Gallery Section",
+    icon: Images,
+    path: "/gallery",
     badge: { text: "1", color: "slate" },
   },
 
