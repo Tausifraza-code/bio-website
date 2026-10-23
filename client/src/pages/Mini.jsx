@@ -4,6 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { fetchMyProfile } from "../redux/slice/profileSlice";
 import { fetchContactButtons } from "../redux/slice/contactButtonsSlice";
 import Payment from "./Payment";
+import { getMyProducts } from "../redux/slice/productSlice";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Navigation, Pagination } from "swiper/modules";
+
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
 import {
   FaInstagram,
@@ -125,12 +132,17 @@ const Mini = () => {
   const { profile, isVerified, loading } = useSelector(
     (state) => state.profile,
   );
+
+  const { products= [], loading: productsLoading } = 
+    useSelector((state) => state.product || {} );
+
   const { buttons: contactButtons = [], loaded: contactButtonsLoaded } =
     useSelector((state) => state.contactButtons || {});
 
   const [profileChecked, setProfileChecked] = useState(false);
   const [activeTheme, setActiveTheme] = useState("sunset");
   const [showPayment, setShowPayment] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -159,6 +171,10 @@ const Mini = () => {
       mounted = false;
     };
   }, [dispatch, navigate]);
+
+  useEffect(() => {
+    dispatch(getMyProducts());
+  },[dispatch]);
 
   useEffect(() => {
     if (!contactButtonsLoaded) dispatch(fetchContactButtons());
@@ -1139,7 +1155,7 @@ const Mini = () => {
                       {/* ACTION BUTTONS */}
 
                       {visibleButtons.length > 0 && (
-                      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                      <div className="mt-5 grid grid-cols-3 gap-3 sm:grid-cols-8">
                         {visibleButtons.map((button) => {
                           const buttonIcons = {
                             link: ArrowUpRight,
@@ -1271,90 +1287,167 @@ const Mini = () => {
 
                     {/* PRODUCTS */}
 
-                    <WarmSection
-                      icon={ShoppingBag}
-                      title="Featured Products & Services"
-                      theme={currentTheme}
-                      action={
-                        <span
-                          className="rounded-lg border px-3 py-2 text-sm font-semibold"
-                          style={{
-                            borderColor: `${currentTheme.primary}40`,
-                            backgroundColor: `${currentTheme.primary}14`,
-                            color: currentTheme.text,
-                          }}
-                        >
-                          1 item
-                        </span>
-                      }
-                    >
-                      <div
-                        className="group overflow-hidden rounded-2xl border border-white/10 transition duration-300 hover:border-[var(--profile-primary)] hover:shadow-lg hover:shadow-black/10"
-                        style={{
-                          backgroundColor: currentTheme.surface,
-                          color: currentTheme.text,
-                        }}
-                      >
-                        <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:p-5 lg:gap-5">
-                          <div
-                            className="flex h-24 w-full shrink-0 items-center justify-center rounded-xl border text-4xl sm:h-28 sm:w-28"
-                            style={{
-                              borderColor: `${currentTheme.primary}40`,
-                              background: `linear-gradient(135deg, ${currentTheme.primary}24, ${currentTheme.secondary}10)`,
-                            }}
-                          >
-                            📦
-                          </div>
+<WarmSection
+  icon={ShoppingBag}
+  title="Featured Products & Services"
+  theme={currentTheme}
+  action={
+    <span
+      className="rounded-lg border px-3 py-2 text-sm font-semibold"
+      style={{
+        borderColor: `${currentTheme.primary}40`,
+        backgroundColor: `${currentTheme.primary}14`,
+        color: currentTheme.text,
+      }}
+    >
+      {products.length} {products.length === 1 ? "item" : "items"}
+    </span>
+  }
+>
+  {products.length > 0 ? (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      {products.map((product) => (
+        <div
+          key={product._id}
+          onClick={() => setSelectedProduct(product)}
+          className="group cursor-pointer overflow-hidden rounded-2xl border border-white/10 transition duration-300 hover:border-[var(--profile-primary)] hover:shadow-lg hover:shadow-black/10"
+          style={{
+            backgroundColor: currentTheme.surface,
+            color: currentTheme.text,
+          }}
+        >
+          {/* PRODUCT IMAGE SWIPER — AUTO SLIDE, NO ARROWS */}
+          {Array.isArray(product.images) && product.images.length > 0 ? (
+            <div className="relative">
+              <Swiper
+                modules={[Autoplay, Pagination]}
+                autoplay={{
+                  delay: 2500,
+                  disableOnInteraction: false,
+                  pauseOnMouseEnter: true,
+                }}
+                loop={product.images.length > 1}
+                pagination={{
+                  clickable: true,
+                }}
+                spaceBetween={0}
+                slidesPerView={1}
+                className="product-swiper h-40 w-full"
+              >
+                {product.images.map((image, index) => (
+                  <SwiperSlide key={image._id || index}>
+                    <div className="h-40 w-full overflow-hidden bg-black/20">
+                      <img
+                        src={image.url}
+                        alt={image.alt || product.name}
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
+                      />
+                    </div>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
 
-                          <div className="min-w-0 flex-1">
-                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                              <h5
-                                className="text-lg font-bold leading-7 sm:text-xl"
-                                style={{ color: currentTheme.text }}
-                              >
-                                Featured Business Product
-                              </h5>
+              {/* CLICK TO VIEW */}
+              <div className="pointer-events-none absolute bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-md border border-white/20 bg-black/60 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur-sm">
+                Click to view
+              </div>
+            </div>
+          ) : (
+            <div
+              className="flex h-40 cursor-pointer items-center justify-center text-5xl"
+              style={{
+                background: `linear-gradient(135deg, ${currentTheme.primary}24, ${currentTheme.secondary}10)`,
+              }}
+            >
+              📦
+            </div>
+          )}
 
-                              <button
-                                type="button"
-                                onClick={handleEnquire}
-                                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition hover:brightness-110 active:scale-[0.98]"
-                                style={{
-                                  background: `linear-gradient(90deg, ${currentTheme.primary}, ${currentTheme.secondary})`,
-                                  color: currentTheme.text,
-                                }}
-                              >
-                                Enquire Now
-                                <ArrowUpRight size={17} />
-                              </button>
-                            </div>
+          {/* PRODUCT INFO — COMPACT */}
+          <div className="p-3.5">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <h5
+                  className="text-base font-bold leading-6"
+                  style={{ color: currentTheme.text }}
+                >
+                  {product.name}
+                </h5>
 
-                            <p className="mt-2 text-sm leading-7 text-slate-300 sm:text-base">
-                              Quickly inquire about this high-quality premium
-                              business product or service offering.
-                            </p>
+                <span
+                  className="mt-1.5 inline-flex rounded-md border px-2.5 py-1 text-[11px] font-semibold"
+                  style={{
+                    borderColor: `${currentTheme.primary}40`,
+                    backgroundColor: `${currentTheme.primary}14`,
+                    color: currentTheme.text,
+                  }}
+                >
+                  {product.category || "General"}
+                </span>
+              </div>
 
-                            <div className="mt-3 flex flex-wrap items-center gap-2">
-                              <span className="rounded-lg border border-white/[0.10] bg-white/[0.04] px-3 py-2 text-sm text-slate-300">
-                                📁 Catalog
-                              </span>
+              <span
+                className="shrink-0 text-base font-extrabold"
+                style={{ color: currentTheme.primary }}
+              >
+                ₹{Number(product.price || 0).toLocaleString("en-IN")}
+              </span>
+            </div>
 
-                              <span
-                                className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-bold"
-                                style={{
-                                  borderColor: `${currentTheme.primary}40`,
-                                  backgroundColor: `${currentTheme.primary}14`,
-                                  color: currentTheme.text,
-                                }}
-                              >
-                                <CheckCircle2 size={16} />
-                                Available
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </WarmSection>
+            <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-300 sm:text-sm">
+              {product.description}
+            </p>
+
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-400/20 bg-emerald-400/[0.08] px-2 py-1 text-[11px] font-bold text-emerald-300">
+                <CheckCircle2 size={13} />
+                {product.status === "active" ? "Available" : "Unavailable"}
+              </span>
+
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setSelectedProduct(product);
+                }}
+                className="ml-auto inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition hover:brightness-110 active:scale-[0.98]"
+                style={{
+                  background: `linear-gradient(90deg, ${currentTheme.primary}, ${currentTheme.secondary})`,
+                  color: currentTheme.text,
+                }}
+              >
+                View Product
+                <ArrowUpRight size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div
+      className="rounded-2xl border p-8 text-center"
+      style={{
+        borderColor: `${currentTheme.primary}30`,
+        backgroundColor: `${currentTheme.primary}08`,
+      }}
+    >
+      <ShoppingBag
+        size={35}
+        className="mx-auto"
+        style={{ color: currentTheme.primary }}
+      />
+
+      <p className="mt-3 text-base font-semibold text-white">
+        No products available
+      </p>
+
+      <p className="mt-1 text-sm text-slate-400">
+        Products and services will appear here.
+      </p>
+    </div>
+  )}
+</WarmSection>
 
                     {/* CONTACT */}
 
@@ -1774,7 +1867,111 @@ const Mini = () => {
       </main>
 
       {/* =====================================================
-          06. REVIEW MODAL
+          06. PRODUCT DETAILS MODAL
+      ===================================================== */}
+
+      {selectedProduct && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#020817]/80 p-4 backdrop-blur-md"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setSelectedProduct(null);
+            }
+          }}
+        >
+          <div className="relative max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-[26px] border border-[#45414a] bg-[#17171c] shadow-[0_30px_100px_rgba(0,0,0,0.55)]">
+            <button
+              type="button"
+              onClick={() => setSelectedProduct(null)}
+              aria-label="Close product details"
+              className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-xl border border-[#45414a] bg-[#22222a]/90 text-slate-300 backdrop-blur transition hover:border-rose-300/30 hover:text-rose-200"
+            >
+              <X size={18} />
+            </button>
+
+            {/* MODAL IMAGE SWIPER */}
+            {Array.isArray(selectedProduct.images) &&
+            selectedProduct.images.length > 0 ? (
+              <Swiper
+                modules={[Navigation, Pagination]}
+                navigation={selectedProduct.images.length > 1}
+                pagination={{ clickable: true }}
+                spaceBetween={0}
+                slidesPerView={1}
+                className="product-modal-swiper h-60 w-full sm:h-80"
+              >
+                {selectedProduct.images.map((image, index) => (
+                  <SwiperSlide key={image._id || index}>
+                    <img
+                      src={image.url}
+                      alt={image.alt || selectedProduct.name}
+                      className="h-full w-full object-cover"
+                    />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            ) : (
+              <div
+                className="flex h-60 items-center justify-center text-7xl sm:h-80"
+                style={{
+                  background: `linear-gradient(135deg, ${currentTheme.primary}30, ${currentTheme.secondary}15)`,
+                }}
+              >
+                📦
+              </div>
+            )}
+
+            {/* MODAL CONTENT */}
+            <div className="p-5 sm:p-7">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h3 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                    {selectedProduct.name}
+                  </h3>
+
+                  <span className="mt-2 inline-flex rounded-lg border border-white/15 bg-white/[0.06] px-3 py-1.5 text-xs font-semibold text-slate-200">
+                    {selectedProduct.category || "General"}
+                  </span>
+                </div>
+
+                <span className="text-2xl font-extrabold text-amber-300 sm:text-3xl">
+                  ₹{Number(selectedProduct.price || 0).toLocaleString("en-IN")}
+                </span>
+              </div>
+
+              <p className="mt-4 text-sm leading-7 text-slate-300 sm:text-base sm:leading-8">
+                {selectedProduct.description}
+              </p>
+
+              <div className="mt-5 flex flex-wrap items-center gap-3">
+                <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/20 bg-emerald-400/[0.08] px-3 py-2 text-sm font-bold text-emerald-300">
+                  <CheckCircle2 size={16} />
+                  {selectedProduct.status === "active"
+                    ? "Available"
+                    : "Unavailable"}
+                </span>
+
+                {businessInfo.whatsapp || businessInfo.phone ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedProduct(null);
+                      handleWhatsApp();
+                    }}
+                    className="ml-auto inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-400 to-emerald-500 px-4 py-2.5 text-sm font-bold text-[#062c25] transition hover:brightness-110 active:scale-[0.98]"
+                  >
+                    <FaWhatsapp size={16} />
+                    Enquire on WhatsApp
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================
+          07. REVIEW MODAL
       ===================================================== */}
 
       {showReviewModal && (

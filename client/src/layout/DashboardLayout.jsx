@@ -127,7 +127,7 @@ const DashboardLayout = () => {
       />
 
       {/* Main Dashboard Area */}
-      <main className="mx-auto flex max-w-[1500px] items-start gap-5 px-4 py-5 sm:px-6 lg:px-8">
+      <main className="mx-auto flex max-w-[1500px] items-start gap-5 px-2 py-1 sm:px-6 lg:px-8">
         <DashboardSidebar
           collapsed={sidebarCollapsed}
           activeNavItem={activeNavItem}

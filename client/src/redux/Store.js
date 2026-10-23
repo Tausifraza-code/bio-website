@@ -5,6 +5,7 @@ import profileReducer from "./slice/profileSlice";
 import socialCardsReducer from "./slice/socialCardsSlice";
 import contactButtonsReducer from "./slice/contactButtonsSlice";
 import productSlice from "./slice/productSlice";
+import galleryReducer from "./slice/productSlice";
 
 const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ const store = configureStore({
     socialCards: socialCardsReducer,
     contactButtons: contactButtonsReducer,
     product: productSlice,
+    gallery: galleryReducer,
   },
 });
 

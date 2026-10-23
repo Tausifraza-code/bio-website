@@ -334,7 +334,7 @@ const SocialCards = () => {
         />
       </div>
 
-      <div className="relative mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-9 lg:px-8">
+      <div className="relative mx-auto max-w-6xl px-1 py-7 sm:px-6 sm:py-9 lg:px-8">
         {/* Header */}
         <section className="relative overflow-hidden rounded-3xl border border-[#29435f] bg-[#10243b] shadow-2xl shadow-black/10">
           <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-300 to-transparent" />
@@ -385,7 +385,7 @@ const SocialCards = () => {
         </section>
 
         {/* Stats */}
-        <section className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <section className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
           <StatCard
             icon={Share2}
             title="Connected Profiles"
@@ -413,17 +413,17 @@ const SocialCards = () => {
           <div className="border-b border-[#29435f] px-5 py-5 sm:px-6">
             <div className="flex items-start">
               <div>
-                <h2 className="text-sm font-bold text-white">
+                <h2 className="text-sm font-bold text-white pt-2">
                   Quick Add Platform
                 </h2>
-                <p className="mt-1 text-xs leading-5 text-slate-300">
+                <p className="mt-1 text-xs leading-5 text-slate-300 mb-2">
                   Select a platform to start creating its profile card.
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3 sm:p-5 lg:grid-cols-6">
+          <div className="grid grid-cols-4 gap-3 p-3 sm:grid-cols-3 sm:p-2 lg:grid-cols-8">
             {QUICK_PLATFORMS.map((platform) => {
               const Icon = platform.icon;
 
@@ -435,7 +435,7 @@ const SocialCards = () => {
                   className="group flex min-h-[104px] flex-col items-center justify-center gap-3 rounded-2xl border border-[#29435f] bg-[#0b1b30] px-2 py-4 transition hover:-translate-y-0.5 hover:border-cyan-300/40 hover:bg-[#132942] active:scale-[0.98]"
                 >
                   <span
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10"
+                    className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10"
                     style={{ backgroundColor: `${platform.color}20` }}
                   >
                     <Icon size={19} style={{ color: platform.color }} />
