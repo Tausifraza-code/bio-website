@@ -1,4 +1,5 @@
-﻿import {
+﻿
+import {
   ArrowRight,
   ArrowUpRight,
   BadgeCheck,
@@ -29,7 +30,7 @@ function Hero() {
       className="relative w-full bg-[#eaf8f4] pt-[76px] dark:bg-[#0b1b30]"
     >
       {/* HERO PANEL */}
-      <div className="relative isolate overflow-hidden rounded-b-none border-b border-[#d7e3eb] bg-[#eaf8f4] dark:border-[#29435f] dark:bg-[#0b1b30] ">
+      <div className="relative isolate overflow-hidden rounded-b-none border-b border-[#d7e3eb] bg-[#eaf8f4] dark:border-[#29435f] dark:bg-[#0b1b30]">
         {/* Background decoration */}
         <div className="pointer-events-none absolute inset-0 -z-0 overflow-hidden">
           <div className="absolute -right-20 top-0 h-72 w-72 rounded-full bg-cyan-400/[0.08] blur-[100px] dark:bg-cyan-400/[0.07]" />
@@ -37,10 +38,12 @@ function Hero() {
         </div>
 
         {/* Content-driven layout */}
-        <div className="relative z-10 mx-auto grid w-full max-w-[1240px] grid-cols-1 items-center gap-8 px-4 pb-0 pt-10 sm:pt-12 lg:pt-14 sm:px-6 sm:pb-0 sm:pt-10 md:gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-5 lg:px-2 lg:py-0 xl:gap-8 xl:px-4">
+        <div className="relative z-10 mx-auto grid w-full max-w-[1240px] grid-cols-1 items-center gap-8 px-4 pb-0  sm:px-6 sm:pb-0 sm:pt-10 md:gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-5 lg:px-2 lg:py-0 lg:pt-14 xl:gap-8 xl:px-4">
+
           {/* LEFT CONTENT */}
-          <div className="order-2 mx-auto w-full max-w-[650px] text-center lg:order-1 lg:mx-0 lg:text-left">
-            <div className="mb-4 inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full border border-[#d7e3eb] bg-white px-3 py-2 text-[10px] font-bold text-cyan-700 shadow-sm dark:border-[#29435f] dark:bg-[#132942] dark:text-[#22d3ee] sm:mb-5 sm:px-3.5 sm:text-xs lg:justify-start">
+          {/* Mobile: text first | Desktop: left */}
+          <div className="order-1 mx-auto w-full max-w-[650px] text-center lg:order-1 lg:mx-0 lg:text-left">
+            <div className="mb-2 inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full border border-[#d7e3eb] bg-white px-3 py-2 text-[10px] font-bold text-cyan-700 shadow-sm dark:border-[#29435f] dark:bg-[#132942] dark:text-[#22d3ee] sm:mb-5 sm:px-3.5 sm:text-xs lg:justify-start">
               <span>BIO WEBSITE</span>
               <span className="h-1 w-1 rounded-full bg-[#0891b2] dark:bg-[#22d3ee]" />
               <span>YOUR DIGITAL BUSINESS IDENTITY</span>
@@ -76,17 +79,17 @@ function Hero() {
               </span>
             </h1>
 
-            <p className="mx-auto mt-7 max-w-[570px] text-[15px] leading-[1.8] text-[#64748b] dark:text-[#a5b4c7] sm:mt-8 sm:text-[17px] sm:leading-[1.85] lg:mx-0">
+            <p className="mx-auto mt-4 max-w-[570px] text-[15px] leading-[1.8] text-[#64748b] dark:text-[#a5b4c7] sm:mt-8 sm:text-[17px] sm:leading-[1.85] lg:mx-0">
               Your digital visiting card, products, services and contact details
               — beautifully organised in one place. Make it easier for customers
               to discover you, remember you and connect with you.
             </p>
 
             {/* CTA BUTTONS */}
-            <div className="mt-7 flex flex-col items-stretch justify-center gap-3 min-[430px]:flex-row min-[430px]:items-center lg:mt-8 lg:justify-start">
+            <div className="mt-4 flex flex-col items-stretch justify-center gap-3 min-[430px]:flex-row min-[430px]:items-center lg:mt-8 lg:justify-start">
               <a
                 href="/register"
-                className="group inline-flex min-h-[58px] items-center justify-center gap-3 rounded-full bg-cyan-400 px-7 py-4 text-[15px] font-bold text-[#f1f6f9] hover:text-[#0b1b30] shadow-sm transition duration-300 hover:-translate-y-1 hover:bg-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 sm:px-8"
+                className="group inline-flex items-center justify-center gap-3 rounded-full bg-cyan-400 px-7 py-4 text-[15px] font-bold text-[#f1f6f9] shadow-sm transition duration-300 hover:-translate-y-1 hover:bg-cyan-300 hover:text-[#0b1b30] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 sm:px-8"
               >
                 Create Your Mini Website
                 <ArrowRight
@@ -109,7 +112,7 @@ function Hero() {
               {benefits.map((benefit) => (
                 <span
                   key={benefit}
-                  className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#64748b] dark:text-[#94a3b8] sm:text-xs"
+                  className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#64748b] dark:text-[#94a3b8] sm:text-xs"
                 >
                   <CheckCircle2
                     size={14}
@@ -121,7 +124,7 @@ function Hero() {
             </div>
 
             {/* TRUST INDICATOR */}
-            <div className="mt-5 flex items-center justify-center gap-3 lg:justify-start">
+            <div className="mt-3 flex items-center justify-center gap-3 lg:justify-start">
               <div className="flex -space-x-2">
                 {[
                   "photo-1500648767791-00dcc994a43e",
@@ -144,11 +147,11 @@ function Hero() {
                     fill="currentColor"
                     className="text-amber-500"
                   />
-                  <span className="text-xs font-bold text-[#0b1b30] dark:text-white">
+                  <span className="text-sm font-bold text-[#0b1b30] dark:text-white">
                     Built for modern businesses
                   </span>
                 </div>
-                <p className="mt-0.5 text-[11px] text-[#64748b] dark:text-[#94a3b8]">
+                <p className="mt-0.5 text-[12px] text-[#64748b] dark:text-[#94a3b8]">
                   One profile. Everything connected.
                 </p>
               </div>
@@ -156,7 +159,8 @@ function Hero() {
           </div>
 
           {/* RIGHT: TWO DIFFERENT DIGITAL VISITING CARDS */}
-          <div className="order-1 relative mx-auto flex min-h-[390px] w-full max-w-[500px] items-center justify-center sm:min-h-[440px] lg:order-2 lg:min-h-[500px]">
+          {/* Mobile: image/cards second | Desktop: right */}
+          <div className="order-2 relative mx-auto flex min-h-[390px] w-full max-w-[500px] items-center justify-center sm:min-h-[440px] lg:order-2 lg:min-h-[500px]">
             {/* Soft background glow */}
             <div className="pointer-events-none absolute inset-10 rounded-full bg-cyan-400/10 blur-[70px]" />
 
@@ -184,7 +188,7 @@ function Hero() {
 
               {/* Consultant profile */}
               <div className="px-3 pb-3 sm:px-4 sm:pb-4">
-                {/* Profile image and identity: one aligned row */}
+                {/* Profile image and identity */}
                 <div className="flex items-center gap-3">
                   <img
                     src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=160&h=160&q=85"
@@ -219,6 +223,7 @@ function Hero() {
                     </div>
                   </div>
                 </div>
+
                 {/* Divider and social handles */}
                 <div className="mt-3 flex items-center justify-between gap-2 border-t border-[#b9e2d8] pt-3 dark:border-[#315e59]">
                   <div className="flex items-center gap-1.5 sm:gap-2">
@@ -249,9 +254,11 @@ function Hero() {
                 <span className="flex h-6 w-6 items-center justify-center rounded-md bg-white/70 text-[9px] font-black dark:bg-[#0b302b]">
                   in
                 </span>
+
                 <span className="flex h-6 w-6 items-center justify-center rounded-md bg-white/70 text-[9px] font-black dark:bg-[#0b302b]">
                   X
                 </span>
+
                 <span className="truncate text-[9px] opacity-80">
                   @arjun.advisory
                 </span>
@@ -269,6 +276,7 @@ function Hero() {
                   alt="Modern barbershop banner"
                   className="h-full w-full object-cover"
                 />
+
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0b1b30]/85 via-[#0b1b30]/10 to-transparent" />
 
                 <span className="absolute left-3 top-3 rounded-full border border-white/25 bg-[#0b1b30]/75 px-2.5 py-1 text-[9px] font-bold text-white backdrop-blur">
@@ -296,6 +304,7 @@ function Hero() {
                       <h3 className="truncate text-sm font-black sm:text-base">
                         Rajesh Sharma
                       </h3>
+
                       <BadgeCheck
                         size={14}
                         className="shrink-0 text-cyan-500"
@@ -336,9 +345,11 @@ function Hero() {
                     <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#d7e3eb] bg-[#f1f6f9] text-[9px] font-black dark:border-[#29435f] dark:bg-[#132942]">
                       ig
                     </span>
+
                     <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#d7e3eb] bg-[#f1f6f9] text-[9px] font-black dark:border-[#29435f] dark:bg-[#132942]">
                       in
                     </span>
+
                     <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#d7e3eb] bg-[#f1f6f9] text-[9px] font-black dark:border-[#29435f] dark:bg-[#132942]">
                       X
                     </span>
@@ -360,10 +371,12 @@ function Hero() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-400/15 text-cyan-700 dark:text-cyan-300">
                 <ShieldCheck size={17} />
               </div>
+
               <div>
                 <p className="text-[9px] font-bold text-cyan-700 dark:text-cyan-300">
                   YOUR IDENTITY
                 </p>
+
                 <p className="mt-0.5 text-[10px] font-bold text-[#0b1b30] dark:text-white">
                   One smart link
                 </p>
@@ -376,35 +389,7 @@ function Hero() {
         <div className="h-12 sm:h-12 lg:h-12" />
       </div>
 
-      {/* BRAND STRIP */}
-      {/* <div className="mx-auto grid w-full max-w-[1240px] grid-cols-1 items-center gap-5 px-4 py-2 sm:px-6 sm:py-2 md:grid-cols-[1fr_2fr] md:gap-8 lg:px-8">
-        <div className="text-center md:text-left">
-          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#64748b] dark:text-[#94a3b8] sm:text-xs">
-            BUILT FOR BUSINESSES THAT WANT TO STAND OUT
-          </p>
-          <p className="mt-1 text-xs text-[#64748b] dark:text-[#94a3b8]">
-            Everything your customers need, in one place.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-3 items-center justify-items-center gap-x-3 gap-y-4 sm:grid-cols-5 sm:gap-5">
-          {[
-            { name: "NEXORA", icon: Globe2 },
-            { name: "Logoipsum", icon: ContactRound },
-            { name: "CIRCLY", icon: ShieldCheck },
-            { name: "MONO", icon: ShoppingBag },
-            { name: "LUMIO", icon: MessageCircle },
-          ].map(({ name, icon: Icon }) => (
-            <div
-              key={name}
-              className="flex items-center justify-center gap-1.5 text-xs font-black tracking-tight text-[#64748b] dark:text-[#94a3b8] sm:text-sm"
-            >
-              <Icon size={17} className="text-[#0891b2] dark:text-[#22d3ee]" />
-              <span>{name}</span>
-            </div>
-          ))}
-        </div>
-      </div> */}
+     
     </section>
   );
 }
