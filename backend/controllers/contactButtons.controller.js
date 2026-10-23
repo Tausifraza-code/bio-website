@@ -133,7 +133,7 @@ exports.saveContactButtons = async (req, res) => {
         $setOnInsert: { userId: req.user._id },
       },
       {
-        new: true,
+        returnDocument: "after",
         upsert: true,
         runValidators: true,
         setDefaultsOnInsert: true,

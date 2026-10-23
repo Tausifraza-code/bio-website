@@ -8,8 +8,8 @@ const authRoutes = require("./routes/auth.routes");
 const adminRoutes = require("./routes/admin.routes");
 const profileRoutes = require("./routes/profile.routes");
 const contactButtonsRoutes = require("./routes/contactButtons.routes");
-const express = require("express");
-const cors = require("cors");
+const productRoutes = require("./routes/product.route");
+
 const connectDB = require("./config/db");
 
 const app = express();
@@ -60,6 +60,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/contact-buttons", contactButtonsRoutes);
+app.use("/api/products", productRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({
