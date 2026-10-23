@@ -11,10 +11,10 @@ import EditProfile from "./pages/EditProfile";
 import Leads from "./pages/Leads";
 import ManageProducts from "./pages/ManageProducts";
 import Mini from "./pages/Mini";
-import Payment from "./pages/Payment";
 import QrCode from "./pages/Qr";
 import Refer from "./pages/Refer";
 import SocialCard from "./pages/SocialCard";
+import ContactButtons from "./pages/ContactButtons";
 import WebsiteTheme from "./pages/WebsiteTheme";
 
 import ForgotPassword from "./pages/ForgotPassword";
@@ -60,11 +60,12 @@ function App() {
         <Route path="leads" element={<Leads />} />
         <Route path="manageproducts" element={<ManageProducts />} />
         <Route path="mini" element={<Mini />} />
-        <Route path="payment" element={<Payment />} />
+        <Route path="payment" element={<Navigate to="/mini" replace />} />
         <Route path="theme" element={<WebsiteTheme />} />
         <Route path="qrcode" element={<QrCode />} />
         <Route path="refer" element={<Refer />} />
-        <Route path="/socialcard" element={<SocialCard />} />
+        <Route path="contact-buttons" element={<ContactButtons />} />
+        <Route path="socialcard" element={<SocialCard />} />
       </Route>
 
       {/* Admin Login — public login page */}

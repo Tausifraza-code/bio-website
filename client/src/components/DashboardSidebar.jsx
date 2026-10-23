@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -51,6 +50,15 @@ const sidebarItems = [
     icon: Package,
     path: "/manageproducts",
     badge: { text: "1", color: "slate" },
+  },
+
+  {
+    id: "contactbuttons",
+    label: "Contact Buttons",
+    description: "Manage mini website actions",
+    icon: MessagesSquare,
+    path: "/contact-buttons",
+    badge: "Manage",
   },
   {
     id: "socialcard",
@@ -127,10 +135,7 @@ const DashboardSidebar = ({
           {!collapsed && (
             <div className="flex items-center gap-2.5 px-1">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-300/10">
-                <MonitorSmartphone
-                  size={20}
-                  className="text-cyan-300"
-                />
+                <MonitorSmartphone size={20} className="text-cyan-300" />
               </div>
 
               <div>
@@ -151,11 +156,7 @@ const DashboardSidebar = ({
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#38516e] bg-[#132942] text-slate-200 transition-all hover:border-cyan-300/50 hover:bg-[#193754] hover:text-cyan-200 active:scale-95"
           >
-            {collapsed ? (
-              <ChevronRight size={19} />
-            ) : (
-              <ChevronLeft size={19} />
-            )}
+            {collapsed ? <ChevronRight size={19} /> : <ChevronLeft size={19} />}
           </button>
         </div>
 
@@ -180,8 +181,7 @@ const DashboardSidebar = ({
             const active =
               location.pathname === item.path ||
               location.pathname.startsWith(`${item.path}/`) ||
-              (activeNavItem === item.id &&
-                location.pathname === item.path);
+              (activeNavItem === item.id && location.pathname === item.path);
 
             return (
               <button
@@ -213,10 +213,7 @@ const DashboardSidebar = ({
                       : "bg-[#132942] text-slate-300 group-hover:bg-[#1a3855] group-hover:text-cyan-200"
                   }`}
                 >
-                  <Icon
-                    size={19}
-                    strokeWidth={active ? 2.2 : 1.9}
-                  />
+                  <Icon size={19} strokeWidth={active ? 2.2 : 1.9} />
                 </span>
 
                 {!collapsed && (
@@ -257,14 +254,10 @@ const DashboardSidebar = ({
           {/* PREVIEW */}
           <button
             type="button"
-            onClick={() =>
-              onPreview ? onPreview() : navigate("/preview")
-            }
+            onClick={() => (onPreview ? onPreview() : navigate("/preview"))}
             title={collapsed ? "Open Preview" : undefined}
             className={`group flex w-full items-center rounded-xl border border-transparent text-sm font-semibold text-slate-200 transition-all hover:border-cyan-300/20 hover:bg-[#132942] hover:text-white ${
-              collapsed
-                ? "justify-center px-0 py-2.5"
-                : "gap-2.5 px-2.5 py-2"
+              collapsed ? "justify-center px-0 py-2.5" : "gap-2.5 px-2.5 py-2"
             }`}
           >
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#132942] text-cyan-200 transition-colors group-hover:bg-cyan-300/10">
@@ -280,9 +273,7 @@ const DashboardSidebar = ({
             onClick={onLogout}
             title={collapsed ? "Logout" : undefined}
             className={`group flex w-full items-center rounded-xl border border-transparent text-sm font-semibold text-slate-200 transition-all hover:border-rose-300/20 hover:bg-rose-400/[0.08] hover:text-rose-200 ${
-              collapsed
-                ? "justify-center px-0 py-2.5"
-                : "gap-2.5 px-2.5 py-2"
+              collapsed ? "justify-center px-0 py-2.5" : "gap-2.5 px-2.5 py-2"
             }`}
           >
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#132942] text-rose-200 transition-colors group-hover:bg-rose-300/10">

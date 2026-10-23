@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -56,6 +55,15 @@ const sidebarItems = [
     icon: Package,
     path: "/manageproducts",
     badge: "1",
+  },
+
+  {
+    id: "contactbuttons",
+    label: "Contact Buttons",
+    description: "Manage mini website actions",
+    icon: MessagesSquare,
+    path: "/contact-buttons",
+    badge: "Manage",
   },
   {
     id: "socialcard",
@@ -149,10 +157,7 @@ const DashboardMobileSidebar = ({
         <div className="flex shrink-0 items-center justify-between border-b border-[#29435f] px-4 py-4">
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/25 bg-cyan-300/10">
-              <MonitorSmartphone
-                size={23}
-                className="text-cyan-300"
-              />
+              <MonitorSmartphone size={23} className="text-cyan-300" />
             </div>
 
             <div className="min-w-0">
@@ -181,9 +186,7 @@ const DashboardMobileSidebar = ({
           <div className="rounded-2xl border border-[#38516e]/80 bg-gradient-to-br from-[#132942] to-[#0d2037] p-3">
             <div className="flex items-center gap-3">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-white">
-                  BioWebsite
-                </p>
+                <p className="text-sm font-bold text-white">BioWebsite</p>
 
                 <p className="mt-1 text-xs text-slate-300">
                   Your business, your identity.
@@ -244,10 +247,7 @@ const DashboardMobileSidebar = ({
                       : "bg-[#132942] text-slate-300 group-hover:bg-[#1a3855] group-hover:text-cyan-200"
                   }`}
                 >
-                  <Icon
-                    size={20}
-                    strokeWidth={active ? 2.2 : 1.9}
-                  />
+                  <Icon size={20} strokeWidth={active ? 2.2 : 1.9} />
                 </span>
 
                 {/* LABEL AND DESCRIPTION */}

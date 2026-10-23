@@ -1,5 +1,9 @@
-
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchSocialCards,
+  saveSocialCards,
+} from "../redux/slice/socialCardsSlice";
 import {
   Share2,
   Plus,
@@ -145,12 +149,23 @@ const PLATFORMS = {
     placeholderHandle: "@yourhandle",
     description: "Join the conversation.",
   },
+  custom: {
+    id: "custom",
+    name: "Custom Platform",
+    icon: Globe,
+    color: "#22d3ee",
+    placeholderUrl: "https://",
+    placeholderHandle: "@username",
+    description: "Connect your online profile.",
+  },
 };
 
 const QUICK_PLATFORMS = Object.values(PLATFORMS);
 
 const INITIAL_FORM = {
   platform: "instagram",
+  platformName: "",
+  icon: "link",
   handle: "",
   audience: "",
   url: "",
@@ -161,16 +176,36 @@ const INITIAL_FORM = {
 };
 
 const SocialCards = () => {
-  const [cards, setCards] = useState([]);
+  const dispatch = useDispatch();
+  const {
+    cards,
+    loading,
+    saving: reduxSaving,
+    error: reduxError,
+    loaded,
+  } = useSelector((state) => state.socialCards);
+
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
-
   const [formData, setFormData] = useState({ ...INITIAL_FORM });
 
-  const currentPlatform =
-    PLATFORMS[formData.platform] || PLATFORMS.instagram;
+  useEffect(() => {
+    if (!loaded && !loading) {
+      dispatch(fetchSocialCards());
+    }
+  }, [dispatch, loaded, loading]);
+
+  const currentPlatform = PLATFORMS[formData.platform] || {
+    id: formData.platform,
+    name: formData.platformName || "Custom Platform",
+    icon: Globe,
+    color: "#22d3ee",
+    placeholderUrl: "https://",
+    placeholderHandle: "@username",
+    description: "Connect your online profile.",
+  };
 
   const CurrentIcon = currentPlatform.icon;
 
@@ -186,7 +221,7 @@ const SocialCards = () => {
   };
 
   const closeModal = () => {
-    if (saving) return;
+    if (saving || reduxSaving) return;
 
     setModalOpen(false);
     setError("");
@@ -203,7 +238,7 @@ const SocialCards = () => {
     setSaved(false);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.handle.trim() && !formData.url.trim()) {
       setError("Please enter a username or profile URL.");
       return;
@@ -223,21 +258,27 @@ const SocialCards = () => {
       }
     }
 
+    const platform = PLATFORMS[formData.platform];
+    const newCard = {
+      ...formData,
+      platformName:
+        formData.platform === "custom"
+          ? formData.platformName.trim()
+          : platform?.name || formData.platformName || formData.platform,
+      icon:
+        formData.platform === "custom"
+          ? formData.icon || "link"
+          : formData.platform,
+      handle: formData.handle.trim(),
+      url: formData.url.trim(),
+      id: `social-${Date.now()}`,
+    };
+
     setSaving(true);
     setError("");
 
-    setTimeout(() => {
-      setCards((prev) => [
-        ...prev,
-        {
-          id: Date.now(),
-          ...formData,
-          handle: formData.handle.trim(),
-          url: formData.url.trim(),
-        },
-      ]);
-
-      setSaving(false);
+    try {
+      await dispatch(saveSocialCards([...cards, newCard])).unwrap();
       setSaved(true);
 
       setTimeout(() => {
@@ -245,13 +286,35 @@ const SocialCards = () => {
         setModalOpen(false);
         setFormData({ ...INITIAL_FORM });
       }, 800);
-    }, 600);
+    } catch (err) {
+      setError(
+        typeof err === "string"
+          ? err
+          : "Unable to save your social profile. Please try again.",
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (!window.confirm("Delete this social media profile card?")) return;
 
-    setCards((prev) => prev.filter((card) => card.id !== id));
+    setError("");
+
+    const updatedCards = cards.filter(
+      (card) => String(card.id || card._id) !== String(id),
+    );
+
+    try {
+      await dispatch(saveSocialCards(updatedCards)).unwrap();
+    } catch (err) {
+      setError(
+        typeof err === "string"
+          ? err
+          : "Unable to delete the social profile. Please try again.",
+      );
+    }
   };
 
   return (
@@ -293,13 +356,13 @@ const SocialCards = () => {
                     </span>
 
                     <span className="rounded-full border border-[#38516e] bg-[#132942] px-2.5 py-1 text-[10px] font-semibold text-slate-300">
-                      {cards.length} {cards.length === 1 ? "Profile" : "Profiles"}
+                      {cards.length}{" "}
+                      {cards.length === 1 ? "Profile" : "Profiles"}
                     </span>
                   </div>
 
                   <h1 className="text-xl font-bold tracking-tight text-white sm:text-2xl lg:text-3xl">
-                    Social Media{" "}
-                    <span className="text-cyan-300">Cards</span>
+                    Social Media <span className="text-cyan-300">Cards</span>
                   </h1>
 
                   <p className="mt-2 max-w-xl text-xs leading-6 text-slate-300 sm:text-sm">
@@ -411,7 +474,24 @@ const SocialCards = () => {
             )}
           </div>
 
-          {cards.length === 0 ? (
+          {reduxError && (
+            <p
+              role="alert"
+              className="mb-4 rounded-xl border border-red-400/25 bg-red-400/[0.08] px-4 py-3 text-xs leading-5 text-red-200"
+            >
+              {reduxError}
+            </p>
+          )}
+
+          {loading && cards.length === 0 ? (
+            <div
+              role="status"
+              className="flex items-center justify-center gap-2 rounded-3xl border border-[#29435f] bg-[#10243b] px-5 py-12 text-sm text-slate-300"
+            >
+              <Loader2 size={18} className="animate-spin" />
+              Loading social profiles...
+            </div>
+          ) : cards.length === 0 ? (
             <div className="relative overflow-hidden rounded-3xl border border-dashed border-[#38516e] bg-[#10243b]/80 px-5 py-12 text-center sm:py-16">
               <div className="absolute left-1/2 top-0 h-32 w-64 -translate-x-1/2 rounded-full bg-cyan-300/[0.06] blur-3xl" />
 
@@ -424,8 +504,8 @@ const SocialCards = () => {
               </h3>
 
               <p className="relative mx-auto mt-2 max-w-sm text-xs leading-6 text-slate-300">
-                Add your first profile to give visitors a direct way to find
-                and follow your business online.
+                Add your first profile to give visitors a direct way to find and
+                follow your business online.
               </p>
 
               <button
@@ -440,7 +520,11 @@ const SocialCards = () => {
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {cards.map((card) => {
-                const platform = PLATFORMS[card.platform];
+                const platform = PLATFORMS[card.platform] || {
+                  name: card.platformName || card.platform || "Social Profile",
+                  icon: Globe,
+                  color: "#22d3ee",
+                };
                 const Icon = platform.icon;
 
                 return (
@@ -493,7 +577,7 @@ const SocialCards = () => {
 
                         <button
                           type="button"
-                          onClick={() => handleDelete(card.id)}
+                          onClick={() => handleDelete(card.id || card._id)}
                           aria-label={`Delete ${platform.name} profile`}
                           title="Delete profile"
                           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#38516e] bg-[#132942] text-slate-300 transition hover:border-red-400/40 hover:bg-red-400/[0.08] hover:text-red-300"
@@ -587,7 +671,7 @@ const SocialCards = () => {
                 <button
                   type="button"
                   onClick={closeModal}
-                  disabled={saving}
+                  disabled={saving || reduxSaving}
                   aria-label="Close dialog"
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#29435f] bg-[#132942] text-slate-300 transition hover:border-cyan-300/30 hover:text-cyan-200 disabled:opacity-50"
                 >
@@ -632,6 +716,21 @@ const SocialCards = () => {
                 </div>
               </Field>
 
+              {formData.platform === "custom" && (
+                <Field label="Custom Platform Name">
+                  <input
+                    type="text"
+                    maxLength={60}
+                    value={formData.platformName || ""}
+                    onChange={(event) =>
+                      handleChange("platformName", event.target.value)
+                    }
+                    placeholder="e.g. Telegram, Pinterest, GitHub"
+                    className={inputCls}
+                  />
+                </Field>
+              )}
+
               {/* Username and audience */}
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <Field label="Username / Handle">
@@ -667,9 +766,7 @@ const SocialCards = () => {
                   type="url"
                   maxLength={500}
                   value={formData.url}
-                  onChange={(event) =>
-                    handleChange("url", event.target.value)
-                  }
+                  onChange={(event) => handleChange("url", event.target.value)}
                   placeholder={currentPlatform.placeholderUrl}
                   className={inputCls}
                 />
@@ -703,9 +800,7 @@ const SocialCards = () => {
                       <button
                         key={option.id}
                         type="button"
-                        onClick={() =>
-                          handleChange("thumbnail", option.id)
-                        }
+                        onClick={() => handleChange("thumbnail", option.id)}
                         className={`flex min-h-11 items-center justify-center gap-2 rounded-xl border px-3 py-3 text-xs font-semibold transition ${
                           active
                             ? "border-cyan-300/50 bg-cyan-300/[0.08] text-cyan-200 ring-2 ring-cyan-300/[0.07]"
@@ -776,7 +871,7 @@ const SocialCards = () => {
               <button
                 type="button"
                 onClick={closeModal}
-                disabled={saving}
+                disabled={saving || reduxSaving}
                 className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#38516e] bg-[#132942] px-5 py-3 text-xs font-semibold text-slate-200 transition hover:bg-[#193754] disabled:opacity-50"
               >
                 Cancel
@@ -785,10 +880,10 @@ const SocialCards = () => {
               <button
                 type="button"
                 onClick={handleSubmit}
-                disabled={saving || saved}
+                disabled={saving || reduxSaving || saved}
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-cyan-300 px-5 py-3 text-xs font-bold text-[#071729] transition hover:bg-cyan-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {saving ? (
+                {saving || reduxSaving ? (
                   <>
                     <Loader2 size={15} className="animate-spin" />
                     Adding Profile...

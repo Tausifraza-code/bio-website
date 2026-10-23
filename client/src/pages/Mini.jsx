@@ -2,6 +2,20 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { fetchMyProfile } from "../redux/slice/profileSlice";
+import { fetchContactButtons } from "../redux/slice/contactButtonsSlice";
+import Payment from "./Payment";
+
+import {
+  FaInstagram,
+  FaLinkedinIn,
+  FaFacebookF,
+  FaYoutube,
+  FaWhatsapp,
+  FaTelegram,
+  FaXTwitter,
+  FaGlobe,
+  FaLink,
+} from "react-icons/fa6";
 
 import {
   MapPin,
@@ -33,6 +47,7 @@ import {
   MonitorSmartphone,
   ArrowUpRight,
   Copy,
+  IndianRupee,
 } from "lucide-react";
 
 /* =========================================================
@@ -110,9 +125,12 @@ const Mini = () => {
   const { profile, isVerified, loading } = useSelector(
     (state) => state.profile,
   );
+  const { buttons: contactButtons = [], loaded: contactButtonsLoaded } =
+    useSelector((state) => state.contactButtons || {});
 
   const [profileChecked, setProfileChecked] = useState(false);
   const [activeTheme, setActiveTheme] = useState("sunset");
+  const [showPayment, setShowPayment] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -142,7 +160,17 @@ const Mini = () => {
     };
   }, [dispatch, navigate]);
 
+  useEffect(() => {
+    if (!contactButtonsLoaded) dispatch(fetchContactButtons());
+  }, [dispatch, contactButtonsLoaded]);
+
   const profileData = profile || {};
+  const buttonSource = Array.isArray(profileData.contactButtons)
+    ? profileData.contactButtons
+    : contactButtons;
+  const visibleButtons = [...buttonSource]
+    .filter((button) => button.enabled)
+    .sort((a, b) => a.order - b.order);
 
   const [standeeCode, setStandeeCode] = useState("");
   const [standeeActivated, setStandeeActivated] = useState(false);
@@ -495,6 +523,51 @@ const Mini = () => {
         "_blank",
         "noopener,noreferrer",
       );
+    } else if (type === "upi") {
+      if (!profileData.upiId?.trim()) {
+        alert("UPI ID is not available.");
+        return;
+      }
+
+      setShowPayment(true);
+    }
+  };
+
+  const handleConfiguredButton = (button) => {
+    switch (button.actionType) {
+      case "call":
+        handleCall();
+        break;
+      case "whatsapp":
+        handleWhatsApp();
+        break;
+      case "email":
+        if (businessInfo.email) window.location.href = `mailto:${businessInfo.email}`;
+        break;
+      case "directions":
+        window.open(
+          profileData.mapLink || `https://maps.google.com/?q=${encodeURIComponent(businessInfo.address)}`,
+          "_blank",
+          "noopener,noreferrer",
+        );
+        break;
+      case "share":
+        handleShare();
+        break;
+      case "website":
+      case "customLink":
+        if (button.customUrl) {
+          window.open(button.customUrl, "_blank", "noopener,noreferrer");
+        }
+        break;
+      case "saveContact":
+        handleSaveContact();
+        break;
+      case "upi":
+        handleContactClick("upi");
+        break;
+      default:
+        break;
     }
   };
 
@@ -1065,26 +1138,121 @@ const Mini = () => {
 
                       {/* ACTION BUTTONS */}
 
+                      {visibleButtons.length > 0 && (
                       <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                        <ActionButton
-                          icon={saved ? Check : UserPlus}
-                          label={saved ? "Saved" : "Save Contact"}
-                          onClick={handleSaveContact}
-                          primary
-                        />
+                        {visibleButtons.map((button) => {
+                          const buttonIcons = {
+                            link: ArrowUpRight,
+                            phone: Phone,
+                            whatsapp: MessageCircle,
+                            email: Mail,
+                            location: MapPin,
+                            share: Share2,
+                            website: Globe,
+                            contact: UserPlus,
+                            upi: IndianRupee,
+                          };
+                          const ButtonIcon = buttonIcons[button.icon] || ArrowUpRight;
 
-                        <ActionButton
-                          icon={Phone}
-                          label="Call"
-                          onClick={handleCall}
-                        />
-
-                        <ActionButton
-                          icon={MessageCircle}
-                          label="WhatsApp"
-                          onClick={handleWhatsApp}
-                        />
+                          return (
+                            <ActionButton
+                              key={button._id || button.id || button.buttonId || `${button.actionType}-${button.order}`}
+                              icon={button.actionType === "saveContact" && saved ? Check : ButtonIcon}
+                              label={button.actionType === "saveContact" && saved ? "Saved" : button.label}
+                              onClick={() => handleConfiguredButton(button)}
+                              primary={button.actionType === "saveContact"}
+                            />
+                          );
+                        })}
                       </div>
+                      )}
+
+                      {/* DYNAMIC SOCIAL PROFILE SHORTCUTS */}
+                      {Array.isArray(profileData.socialCards) &&
+                        profileData.socialCards.some((card) =>
+                          card.url?.trim(),
+                        ) && (
+                          <div className="mt-4 flex flex-wrap gap-2.5">
+                            {profileData.socialCards
+                              .filter((card) => card.url?.trim())
+                              .map((card, index) => {
+                                const platformKey =
+                                  `${card.platform || ""} ${card.platformName || ""} ${card.icon || ""}`.toLowerCase();
+                                const platformName =
+                                  card.platformName ||
+                                  (card.platform
+                                    ? card.platform.charAt(0).toUpperCase() +
+                                      card.platform.slice(1)
+                                    : "Social Profile");
+                                const rawUrl = card.url.trim();
+                                const socialUrl = /^https?:\/\//i.test(rawUrl)
+                                  ? rawUrl
+                                  : `https://${rawUrl}`;
+                                const SocialIcon = platformKey.includes(
+                                  "instagram",
+                                )
+                                  ? FaInstagram
+                                  : platformKey.includes("linkedin")
+                                    ? FaLinkedinIn
+                                    : platformKey.includes("facebook")
+                                      ? FaFacebookF
+                                      : platformKey.includes("youtube")
+                                        ? FaYoutube
+                                        : platformKey.includes("whatsapp")
+                                          ? FaWhatsapp
+                                          : platformKey.includes("telegram")
+                                            ? FaTelegram
+                                            : platformKey.includes("twitter") ||
+                                                /\bx\b/.test(platformKey)
+                                              ? FaXTwitter
+                                              : platformKey.includes(
+                                                    "custom",
+                                                  ) ||
+                                                  platformKey.includes("link")
+                                                ? FaLink
+                                                : FaGlobe;
+
+                                return (
+                                  <a
+                                    key={
+                                      card._id ||
+                                      card.id ||
+                                      `${card.platform}-${index}`
+                                    }
+                                    href={socialUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    aria-label={`Open ${platformName} profile`}
+                                    className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 transition hover:-translate-y-0.5 hover:brightness-110"
+                                    style={{
+                                      borderColor: `${currentTheme.primary}45`,
+                                      backgroundColor: `${currentTheme.primary}10`,
+                                      color: currentTheme.text,
+                                    }}
+                                  >
+                                    <span
+                                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                                      style={{
+                                        backgroundColor: `${currentTheme.primary}20`,
+                                      }}
+                                    >
+                                      <SocialIcon
+                                        size={16}
+                                        aria-hidden="true"
+                                      />
+                                    </span>
+                                    <span className="text-sm font-semibold">
+                                      {platformName}
+                                    </span>
+                                    <ArrowUpRight
+                                      size={14}
+                                      className="shrink-0 opacity-70"
+                                    />
+                                  </a>
+                                );
+                              })}
+                          </div>
+                        )}
                     </div>
 
                     {/* ABOUT */}
@@ -1227,7 +1395,128 @@ const Mini = () => {
                           theme={currentTheme}
                           onClick={() => handleContactClick("address")}
                         />
+
+                        {businessInfo.upiId && (
+                          <ContactRow
+                            icon={IndianRupee}
+                            label="Pay with UPI"
+                            value={businessInfo.upiId}
+                            theme={currentTheme}
+                            onClick={() => handleContactClick("upi")}
+                          />
+                        )}
                       </div>
+
+                      {/* SOCIAL PROFILES SAVED FROM THE DASHBOARD */}
+                      {Array.isArray(profileData.socialCards) &&
+                        profileData.socialCards.length > 0 && (
+                          <div
+                            className="mt-5 border-t pt-5"
+                            style={{ borderColor: `${currentTheme.primary}40` }}
+                          >
+                            <div className="mb-3">
+                              <h4
+                                className="text-lg font-bold"
+                                style={{ color: currentTheme.text }}
+                              >
+                                Social Media & Profiles
+                              </h4>
+                              <p className="mt-1 text-sm text-slate-300">
+                                Connect with us on our social platforms.
+                              </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                              {profileData.socialCards.map((social, index) => {
+                                const socialName =
+                                  social.platform === "custom"
+                                    ? social.platformName || "Social Profile"
+                                    : social.platformName ||
+                                      (social.platform
+                                        ? social.platform
+                                            .charAt(0)
+                                            .toUpperCase() +
+                                          social.platform.slice(1)
+                                        : "Social Profile");
+                                const rawUrl = (social.url || "").trim();
+                                const socialUrl = rawUrl
+                                  ? /^https?:\/\//i.test(rawUrl)
+                                    ? rawUrl
+                                    : `https://${rawUrl}`
+                                  : "";
+
+                                return (
+                                  <a
+                                    key={
+                                      social._id ||
+                                      social.id ||
+                                      `${social.platform}-${index}`
+                                    }
+                                    href={socialUrl || undefined}
+                                    target={socialUrl ? "_blank" : undefined}
+                                    rel={
+                                      socialUrl
+                                        ? "noopener noreferrer"
+                                        : undefined
+                                    }
+                                    onClick={
+                                      !socialUrl
+                                        ? (event) => event.preventDefault()
+                                        : undefined
+                                    }
+                                    className={`group flex min-w-0 items-center gap-3 rounded-2xl border p-4 transition ${
+                                      socialUrl
+                                        ? "hover:-translate-y-0.5 hover:shadow-lg"
+                                        : "cursor-default"
+                                    }`}
+                                    style={{
+                                      borderColor: `${currentTheme.primary}40`,
+                                      backgroundColor: `${currentTheme.primary}0D`,
+                                      color: currentTheme.text,
+                                    }}
+                                  >
+                                    <span
+                                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border"
+                                      style={{
+                                        borderColor: `${currentTheme.primary}45`,
+                                        backgroundColor: `${currentTheme.primary}20`,
+                                        color: currentTheme.primary,
+                                      }}
+                                    >
+                                      <Globe size={20} />
+                                    </span>
+                                    <span className="min-w-0 flex-1">
+                                      <span className="block truncate text-sm font-bold">
+                                        {socialName}
+                                      </span>
+                                      {social.handle && (
+                                        <span
+                                          className="mt-1 block truncate text-sm"
+                                          style={{
+                                            color: currentTheme.primary,
+                                          }}
+                                        >
+                                          {social.handle}
+                                        </span>
+                                      )}
+                                      {social.description && (
+                                        <span className="mt-1 block break-words text-xs text-slate-300">
+                                          {social.description}
+                                        </span>
+                                      )}
+                                    </span>
+                                    {socialUrl && (
+                                      <ArrowUpRight
+                                        size={17}
+                                        className="shrink-0 opacity-70 transition group-hover:opacity-100"
+                                      />
+                                    )}
+                                  </a>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
                     </WarmSection>
 
                     {/* REVIEWS */}
@@ -1625,6 +1914,14 @@ const Mini = () => {
           </div>
         </div>
       )}
+
+      <Payment
+        isOpen={showPayment}
+        onClose={() => setShowPayment(false)}
+        upiId={profileData.upiId || ""}
+        businessName={profileData.businessName || "My Business"}
+        businessImage={profileData.logo || profileData.avatar || ""}
+      />
     </div>
   );
 };

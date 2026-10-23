@@ -70,6 +70,57 @@ const miniProfileSchema = new mongoose.Schema(
       default: [],
     },
 
+    contactButtons: {
+      type: [
+        {
+          buttonId: {
+            type: String,
+            required: true,
+            trim: true,
+          },
+          label: {
+            type: String,
+            required: true,
+            trim: true,
+          },
+          icon: {
+            type: String,
+            default: "link",
+            trim: true,
+          },
+          actionType: {
+            type: String,
+            required: true,
+            enum: [
+              "call",
+              "whatsapp",
+              "email",
+              "directions",
+              "share",
+              "website",
+              "saveContact",
+              "upi",
+              "customLink",
+            ],
+          },
+          enabled: {
+            type: Boolean,
+            default: true,
+          },
+          order: {
+            type: Number,
+            default: 0,
+          },
+          customUrl: {
+            type: String,
+            trim: true,
+            default: "",
+          },
+        },
+      ],
+      default: [],
+    },
+
     avatar: { type: String, default: null },
     logo: { type: String, default: null },
     banner: { type: String, default: null },
