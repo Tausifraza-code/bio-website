@@ -290,18 +290,20 @@ const updateProduct = async (req, res) => {
     }
 
     // temporary logs
-    console.log(
-      "Uploaded files:",
-      (req.files || []).map((file) => file.originalname),
-    );
-    console.log("Existing image count:", product.images.length);
-    console.log(
-      "Existing images:",
-      product.images.map((image) => ({
-        id: image._id.toString(),
-        url: image.url,
-      })),
-    );
+    // console.log(
+    //   "Uploaded files:",
+    //   (req.files || []).map((file) => file.originalname),
+    // );
+
+    //temporary logs
+    // console.log("Existing image count:", product.images.length);
+    // console.log(
+    //   "Existing images:",
+    //   product.images.map((image) => ({
+    //     id: image._id.toString(),
+    //     url: image.url,
+    //   })),
+    // );
 
     const updates = {};
 
@@ -329,35 +331,18 @@ const updateProduct = async (req, res) => {
       updates.status = req.body.status;
     }
 
-    const existingImages = product.images || [];
-    const uniqueExistingImages = existingImages.filter(
-      (image, index, images) =>
-        images.findIndex((item) => item.url === image.url) === index,
-    );
-
-    if (uniqueExistingImages.length !== existingImages.length) {
-      updates.images = uniqueExistingImages;
-    }
-
     const newFiles = req.files || [];
 
     if (newFiles.length > 0) {
-      // Existing image URLs se duplicates remove karo.
-      const uniqueExistingImages = existingImages.filter(
-        (image, index, images) =>
-          images.findIndex((item) => item.url === image.url) === index,
-      );
+      if (product.images.length + newFiles.length > 8) {
+        return res.status(400).json({
+          success: false,
+          message: "Maximum 8 images are allowed per product/service.",
+        });
+      }
 
-      // Sirf nayi uploaded files ko ImgBB par upload karo.
       const uploadedImages = await uploadProductImages(newFiles);
-
-      // Existing aur new images ko combine karke unique rakho.
-      const combinedImages = [...uniqueExistingImages, ...uploadedImages];
-
-      updates.images = combinedImages.filter(
-        (image, index, images) =>
-          images.findIndex((item) => item.url === image.url) === index,
-      );
+      updates.images = [...product.images, ...uploadedImages];
     }
 
     const updatedProduct = await Product.findOneAndUpdate(

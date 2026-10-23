@@ -63,17 +63,11 @@ const Gallery = ({ theme = defaultTheme }) => {
           </div>
 
           <div>
-            <h2
-              className="text-xl font-bold"
-              style={{ color: theme.text }}
-            >
+            <h2 className="text-xl font-bold" style={{ color: theme.text }}>
               Gallery
             </h2>
 
-            <p
-              className="text-sm"
-              style={{ color: theme.muted }}
-            >
+            <p className="text-sm" style={{ color: theme.muted }}>
               Add photos to showcase your business
             </p>
           </div>
@@ -95,10 +89,7 @@ const Gallery = ({ theme = defaultTheme }) => {
               background: `${theme.primary}15`,
             }}
           >
-            <Upload
-              size={25}
-              style={{ color: theme.primary }}
-            />
+            <Upload size={25} style={{ color: theme.primary }} />
           </div>
 
           <h3
@@ -108,10 +99,7 @@ const Gallery = ({ theme = defaultTheme }) => {
             Add Gallery Images
           </h3>
 
-          <p
-            className="text-sm mb-4"
-            style={{ color: theme.muted }}
-          >
+          <p className="text-sm mb-4" style={{ color: theme.muted }}>
             Upload photos of your business, products or services
           </p>
 
@@ -143,10 +131,7 @@ const Gallery = ({ theme = defaultTheme }) => {
       {images.length > 0 && (
         <div className="mt-6">
           <div className="flex items-center justify-between mb-4">
-            <h3
-              className="text-sm font-semibold"
-              style={{ color: theme.text }}
-            >
+            <h3 className="text-sm font-semibold" style={{ color: theme.text }}>
               Selected Images
             </h3>
 
@@ -205,14 +190,9 @@ const Gallery = ({ theme = defaultTheme }) => {
             color: theme.muted,
           }}
         >
-          <Images
-            size={28}
-            className="mx-auto mb-2 opacity-50"
-          />
+          <Images size={28} className="mx-auto mb-2 opacity-50" />
 
-          <p className="text-sm">
-            No gallery images added yet
-          </p>
+          <p className="text-sm">No gallery images added yet</p>
         </div>
       )}
     </div>
