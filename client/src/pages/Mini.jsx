@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { fetchMyProfile } from "../redux/slice/profileSlice";
@@ -55,6 +55,7 @@ import {
   ArrowUpRight,
   Copy,
   IndianRupee,
+  Image as ImageIcon,
 } from "lucide-react";
 
 /* =========================================================
@@ -123,6 +124,47 @@ const bannerImages = [
 ];
 
 /* =========================================================
+   GALLERY HELPERS
+========================================================= */
+
+const normalizeGalleryImages = (raw) => {
+  if (!Array.isArray(raw)) return [];
+
+  return raw
+    .map((item, index) => {
+      if (typeof item === "string") {
+        const url = item.trim();
+        return url ? { url, alt: `Gallery image ${index + 1}`, caption: "" } : null;
+      }
+
+      if (!item || typeof item !== "object") return null;
+
+      const url = [item.url, item.src, item.image, item.imageUrl, item.path].find(
+        (value) => typeof value === "string" && value.trim(),
+      );
+
+      if (!url) return null;
+
+      const caption =
+        typeof item.caption === "string" && item.caption.trim()
+          ? item.caption.trim()
+          : typeof item.title === "string" && item.title.trim()
+            ? item.title.trim()
+            : "";
+
+      return {
+        url: url.trim(),
+        alt:
+          (typeof item.alt === "string" && item.alt.trim()) ||
+          caption ||
+          `Gallery image ${index + 1}`,
+        caption,
+      };
+    })
+    .filter(Boolean);
+};
+
+/* =========================================================
    MAIN COMPONENT
 ========================================================= */
 
@@ -133,8 +175,9 @@ const Mini = () => {
     (state) => state.profile,
   );
 
-  const { products= [], loading: productsLoading } = 
-    useSelector((state) => state.product || {} );
+  const { products = [], loading: productsLoading } = useSelector(
+    (state) => state.product || {},
+  );
 
   const { buttons: contactButtons = [], loaded: contactButtonsLoaded } =
     useSelector((state) => state.contactButtons || {});
@@ -143,6 +186,7 @@ const Mini = () => {
   const [activeTheme, setActiveTheme] = useState("sunset");
   const [showPayment, setShowPayment] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedGalleryImage, setSelectedGalleryImage] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -174,13 +218,15 @@ const Mini = () => {
 
   useEffect(() => {
     dispatch(getMyProducts());
-  },[dispatch]);
+  }, [dispatch]);
 
   useEffect(() => {
     if (!contactButtonsLoaded) dispatch(fetchContactButtons());
   }, [dispatch, contactButtonsLoaded]);
 
   const profileData = profile || {};
+  const productList = Array.isArray(products) ? products : [];
+
   const buttonSource = Array.isArray(profileData.contactButtons)
     ? profileData.contactButtons
     : contactButtons;
@@ -279,6 +325,44 @@ const Mini = () => {
 
     isVerified: isVerified === true,
   };
+
+  /* ---------------------------------------------------------
+     GALLERY DATA (profile gallery, fallback = product images)
+  --------------------------------------------------------- */
+
+  const galleryImages = useMemo(() => {
+    const fromProfile = normalizeGalleryImages(
+      profileData.gallery ||
+        profileData.galleryImages ||
+        profileData.businessGallery ||
+        profileData.images,
+    );
+
+    if (fromProfile.length > 0) return fromProfile;
+
+    // Fallback: product images (taaki gallery section khaali na dikhe)
+    const fromProducts = [];
+    productList.forEach((product) => {
+      if (!Array.isArray(product?.images)) return;
+      product.images.forEach((image) => {
+        if (image?.url) {
+          fromProducts.push({
+            url: image.url,
+            alt: image.alt || product.name || "Gallery image",
+            caption: product.name || "",
+          });
+        }
+      });
+    });
+
+    return fromProducts;
+  }, [
+    profileData.gallery,
+    profileData.galleryImages,
+    profileData.businessGallery,
+    profileData.images,
+    productList,
+  ]);
 
   const activeThemeData = themes.find((theme) => theme.id === activeTheme);
 
@@ -1018,6 +1102,57 @@ const Mini = () => {
                     }}
                     className="transition-colors duration-500"
                   >
+                    {/* SWIPER THEMING (product cards / gallery / modal) */}
+                    <style>{`
+                      .product-cards-swiper,
+                      .gallery-swiper,
+                      .product-modal-swiper {
+                        --swiper-theme-color: ${currentTheme.primary};
+                        --swiper-navigation-color: ${currentTheme.primary};
+                        --swiper-navigation-size: 16px;
+                      }
+
+                      .product-cards-swiper .swiper-button-next,
+                      .product-cards-swiper .swiper-button-prev {
+                        width: 34px;
+                        height: 34px;
+                        border-radius: 9999px;
+                        background: rgba(0, 0, 0, 0.55);
+                        border: 1px solid ${currentTheme.primary}55;
+                        backdrop-filter: blur(6px);
+                        color: ${currentTheme.primary};
+                      }
+
+                      .product-cards-swiper .swiper-button-next::after,
+                      .product-cards-swiper .swiper-button-prev::after {
+                        font-size: 13px;
+                        font-weight: 800;
+                      }
+
+                      .product-cards-swiper .swiper-button-disabled {
+                        opacity: 0.3;
+                      }
+
+                      .product-cards-swiper .swiper-pagination-bullet,
+                      .gallery-swiper .swiper-pagination-bullet,
+                      .product-modal-swiper .swiper-pagination-bullet {
+                        background: ${currentTheme.text};
+                        opacity: 0.35;
+                      }
+
+                      .product-cards-swiper .swiper-pagination-bullet-active,
+                      .gallery-swiper .swiper-pagination-bullet-active,
+                      .product-modal-swiper .swiper-pagination-bullet-active {
+                        background: ${currentTheme.primary};
+                        opacity: 1;
+                      }
+
+                      .product-cards-swiper .swiper-slide,
+                      .gallery-swiper .swiper-slide {
+                        height: auto;
+                      }
+                    `}</style>
+
                     {/* BANNER */}
 
                     <div className="relative h-56 overflow-hidden sm:h-72 lg:h-[340px]">
@@ -1285,169 +1420,293 @@ const Mini = () => {
                       </div>
                     </WarmSection>
 
-                    {/* PRODUCTS */}
+                    {/* =================================================
+                        PRODUCTS  (CARD SWIPE — IMAGE STATIC)
+                    ================================================= */}
 
-<WarmSection
-  icon={ShoppingBag}
-  title="Featured Products & Services"
-  theme={currentTheme}
-  action={
-    <span
-      className="rounded-lg border px-3 py-2 text-sm font-semibold"
-      style={{
-        borderColor: `${currentTheme.primary}40`,
-        backgroundColor: `${currentTheme.primary}14`,
-        color: currentTheme.text,
-      }}
-    >
-      {products.length} {products.length === 1 ? "item" : "items"}
-    </span>
-  }
->
-  {products.length > 0 ? (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-      {products.map((product) => (
-        <div
-          key={product._id}
-          onClick={() => setSelectedProduct(product)}
-          className="group cursor-pointer overflow-hidden rounded-2xl border border-white/10 transition duration-300 hover:border-[var(--profile-primary)] hover:shadow-lg hover:shadow-black/10"
-          style={{
-            backgroundColor: currentTheme.surface,
-            color: currentTheme.text,
-          }}
-        >
-          {/* PRODUCT IMAGE SWIPER — AUTO SLIDE, NO ARROWS */}
-          {Array.isArray(product.images) && product.images.length > 0 ? (
-            <div className="relative">
-              <Swiper
-                modules={[Autoplay, Pagination]}
-                autoplay={{
-                  delay: 2500,
-                  disableOnInteraction: false,
-                  pauseOnMouseEnter: true,
-                }}
-                loop={product.images.length > 1}
-                pagination={{
-                  clickable: true,
-                }}
-                spaceBetween={0}
-                slidesPerView={1}
-                className="product-swiper h-40 w-full"
-              >
-                {product.images.map((image, index) => (
-                  <SwiperSlide key={image._id || index}>
-                    <div className="h-40 w-full overflow-hidden bg-black/20">
-                      <img
-                        src={image.url}
-                        alt={image.alt || product.name}
-                        className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
-                      />
-                    </div>
-                  </SwiperSlide>
-                ))}
-              </Swiper>
+                    <WarmSection
+                      icon={ShoppingBag}
+                      title="Featured Products & Services"
+                      theme={currentTheme}
+                      action={
+                        <span
+                          className="rounded-lg border px-3 py-2 text-sm font-semibold"
+                          style={{
+                            borderColor: `${currentTheme.primary}40`,
+                            backgroundColor: `${currentTheme.primary}14`,
+                            color: currentTheme.text,
+                          }}
+                        >
+                          {productList.length}{" "}
+                          {productList.length === 1 ? "item" : "items"}
+                        </span>
+                      }
+                    >
+                      {productList.length > 0 ? (
+                        <div className="px-1">
+                          <Swiper
+                            modules={[Navigation, Pagination]}
+                            spaceBetween={16}
+                            slidesPerView={1}
+                            navigation={productList.length > 1}
+                            pagination={{
+                              clickable: true,
+                              dynamicBullets: productList.length > 3,
+                            }}
+                            breakpoints={{
+                              640: { slidesPerView: 2, spaceBetween: 16 },
+                              1024: { slidesPerView: 3, spaceBetween: 18 },
+                            }}
+                            className="product-cards-swiper pb-11"
+                          >
+                            {productList.map((product) => {
+                              const productImages = Array.isArray(product.images)
+                                ? product.images.filter((img) => img?.url)
+                                : [];
+                              const coverImage = productImages[0] || null;
+                              const extraCount = productImages.length - 1;
 
-              {/* CLICK TO VIEW */}
-              <div className="pointer-events-none absolute bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-md border border-white/20 bg-black/60 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur-sm">
-                Click to view
-              </div>
-            </div>
-          ) : (
-            <div
-              className="flex h-40 cursor-pointer items-center justify-center text-5xl"
-              style={{
-                background: `linear-gradient(135deg, ${currentTheme.primary}24, ${currentTheme.secondary}10)`,
-              }}
-            >
-              📦
-            </div>
-          )}
+                              return (
+                                <SwiperSlide
+                                  key={product._id}
+                                  className="h-auto"
+                                >
+                                  <div
+                                    onClick={() => setSelectedProduct(product)}
+                                    className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-white/10 transition duration-300 hover:border-[var(--profile-primary)] hover:shadow-lg hover:shadow-black/10"
+                                    style={{
+                                      backgroundColor: currentTheme.surface,
+                                      color: currentTheme.text,
+                                    }}
+                                  >
+                                    {/* STATIC COVER IMAGE */}
+                                    {coverImage ? (
+                                      <div className="relative h-40 w-full overflow-hidden bg-black/20">
+                                        <img
+                                          src={coverImage.url}
+                                          alt={coverImage.alt || product.name}
+                                          className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                                        />
 
-          {/* PRODUCT INFO — COMPACT */}
-          <div className="p-3.5">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0">
-                <h5
-                  className="text-base font-bold leading-6"
-                  style={{ color: currentTheme.text }}
-                >
-                  {product.name}
-                </h5>
+                                        {extraCount > 0 && (
+                                          <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-md border border-white/20 bg-black/60 px-2 py-1 text-[10px] font-bold text-white backdrop-blur-sm">
+                                            <ImageIcon size={11} />
+                                            +{extraCount}
+                                          </span>
+                                        )}
 
-                <span
-                  className="mt-1.5 inline-flex rounded-md border px-2.5 py-1 text-[11px] font-semibold"
-                  style={{
-                    borderColor: `${currentTheme.primary}40`,
-                    backgroundColor: `${currentTheme.primary}14`,
-                    color: currentTheme.text,
-                  }}
-                >
-                  {product.category || "General"}
-                </span>
-              </div>
+                                        <div className="pointer-events-none absolute bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-md border border-white/20 bg-black/60 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur-sm">
+                                          Tap to view
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div
+                                        className="flex h-40 items-center justify-center text-5xl"
+                                        style={{
+                                          background: `linear-gradient(135deg, ${currentTheme.primary}24, ${currentTheme.secondary}10)`,
+                                        }}
+                                      >
+                                        📦
+                                      </div>
+                                    )}
 
-              <span
-                className="shrink-0 text-base font-extrabold"
-                style={{ color: currentTheme.primary }}
-              >
-                ₹{Number(product.price || 0).toLocaleString("en-IN")}
-              </span>
-            </div>
+                                    {/* PRODUCT INFO — COMPACT */}
+                                    <div className="flex flex-1 flex-col p-3.5">
+                                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                        <div className="min-w-0">
+                                          <h5
+                                            className="text-base font-bold leading-6"
+                                            style={{ color: currentTheme.text }}
+                                          >
+                                            {product.name}
+                                          </h5>
 
-            <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-300 sm:text-sm">
-              {product.description}
-            </p>
+                                          <span
+                                            className="mt-1.5 inline-flex rounded-md border px-2.5 py-1 text-[11px] font-semibold"
+                                            style={{
+                                              borderColor: `${currentTheme.primary}40`,
+                                              backgroundColor: `${currentTheme.primary}14`,
+                                              color: currentTheme.text,
+                                            }}
+                                          >
+                                            {product.category || "General"}
+                                          </span>
+                                        </div>
 
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-400/20 bg-emerald-400/[0.08] px-2 py-1 text-[11px] font-bold text-emerald-300">
-                <CheckCircle2 size={13} />
-                {product.status === "active" ? "Available" : "Unavailable"}
-              </span>
+                                        <span
+                                          className="shrink-0 text-base font-extrabold"
+                                          style={{ color: currentTheme.primary }}
+                                        >
+                                          ₹
+                                          {Number(
+                                            product.price || 0,
+                                          ).toLocaleString("en-IN")}
+                                        </span>
+                                      </div>
 
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setSelectedProduct(product);
-                }}
-                className="ml-auto inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition hover:brightness-110 active:scale-[0.98]"
-                style={{
-                  background: `linear-gradient(90deg, ${currentTheme.primary}, ${currentTheme.secondary})`,
-                  color: currentTheme.text,
-                }}
-              >
-                View Product
-                <ArrowUpRight size={14} />
-              </button>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  ) : (
-    <div
-      className="rounded-2xl border p-8 text-center"
-      style={{
-        borderColor: `${currentTheme.primary}30`,
-        backgroundColor: `${currentTheme.primary}08`,
-      }}
-    >
-      <ShoppingBag
-        size={35}
-        className="mx-auto"
-        style={{ color: currentTheme.primary }}
-      />
+                                      <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-300 sm:text-sm">
+                                        {product.description}
+                                      </p>
 
-      <p className="mt-3 text-base font-semibold text-white">
-        No products available
-      </p>
+                                      <div className="mt-auto flex flex-wrap items-center gap-2 pt-3">
+                                        <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-400/20 bg-emerald-400/[0.08] px-2 py-1 text-[11px] font-bold text-emerald-300">
+                                          <CheckCircle2 size={13} />
+                                          {product.status === "active"
+                                            ? "Available"
+                                            : "Unavailable"}
+                                        </span>
 
-      <p className="mt-1 text-sm text-slate-400">
-        Products and services will appear here.
-      </p>
-    </div>
-  )}
-</WarmSection>
+                                        <button
+                                          type="button"
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            setSelectedProduct(product);
+                                          }}
+                                          className="ml-auto inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition hover:brightness-110 active:scale-[0.98]"
+                                          style={{
+                                            background: `linear-gradient(90deg, ${currentTheme.primary}, ${currentTheme.secondary})`,
+                                            color: currentTheme.text,
+                                          }}
+                                        >
+                                          View Product
+                                          <ArrowUpRight size={14} />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </SwiperSlide>
+                              );
+                            })}
+                          </Swiper>
+                        </div>
+                      ) : (
+                        <div
+                          className="rounded-2xl border p-8 text-center"
+                          style={{
+                            borderColor: `${currentTheme.primary}30`,
+                            backgroundColor: `${currentTheme.primary}08`,
+                          }}
+                        >
+                          <ShoppingBag
+                            size={35}
+                            className="mx-auto"
+                            style={{ color: currentTheme.primary }}
+                          />
+
+                          <p className="mt-3 text-base font-semibold text-white">
+                            No products available
+                          </p>
+
+                          <p className="mt-1 text-sm text-slate-400">
+                            Products and services will appear here.
+                          </p>
+                        </div>
+                      )}
+                    </WarmSection>
+
+                    {/* =================================================
+                        GALLERY  (FEATURED PRODUCTS KE NICHE)
+                    ================================================= */}
+
+                    <WarmSection
+                      icon={ImageIcon}
+                      title="Business Gallery"
+                      theme={currentTheme}
+                      action={
+                        <span
+                          className="rounded-lg border px-3 py-2 text-sm font-semibold"
+                          style={{
+                            borderColor: `${currentTheme.primary}40`,
+                            backgroundColor: `${currentTheme.primary}14`,
+                            color: currentTheme.text,
+                          }}
+                        >
+                          {galleryImages.length}{" "}
+                          {galleryImages.length === 1 ? "photo" : "photos"}
+                        </span>
+                      }
+                    >
+                      {galleryImages.length > 0 ? (
+                        <div className="px-1">
+                          <Swiper
+                            modules={[Navigation, Pagination]}
+                            spaceBetween={12}
+                            slidesPerView={1.15}
+                            navigation={galleryImages.length > 2}
+                            pagination={{
+                              clickable: true,
+                              dynamicBullets: galleryImages.length > 4,
+                            }}
+                            breakpoints={{
+                              480: { slidesPerView: 2, spaceBetween: 12 },
+                              768: { slidesPerView: 3, spaceBetween: 14 },
+                              1100: { slidesPerView: 4, spaceBetween: 14 },
+                            }}
+                            className="gallery-swiper pb-11"
+                          >
+                            {galleryImages.map((image, index) => (
+                              <SwiperSlide
+                                key={`${image.url}-${index}`}
+                                className="h-auto"
+                              >
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedGalleryImage(image)}
+                                  className="group relative block h-full w-full overflow-hidden rounded-2xl border transition duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20"
+                                  style={{
+                                    borderColor: `${currentTheme.primary}40`,
+                                    backgroundColor: currentTheme.surface,
+                                  }}
+                                  aria-label={`View ${image.alt}`}
+                                >
+                                  <div className="h-40 w-full overflow-hidden sm:h-44">
+                                    <img
+                                      src={image.url}
+                                      alt={image.alt}
+                                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                                    />
+                                  </div>
+
+                                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-80" />
+
+                                  <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 p-3">
+                                    <span className="truncate text-left text-xs font-semibold text-white sm:text-sm">
+                                      {image.caption || image.alt}
+                                    </span>
+
+                                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/25 bg-black/50 text-white backdrop-blur-sm">
+                                      <Maximize2 size={13} />
+                                    </span>
+                                  </div>
+                                </button>
+                              </SwiperSlide>
+                            ))}
+                          </Swiper>
+                        </div>
+                      ) : (
+                        <div
+                          className="rounded-2xl border p-8 text-center"
+                          style={{
+                            borderColor: `${currentTheme.primary}30`,
+                            backgroundColor: `${currentTheme.primary}08`,
+                          }}
+                        >
+                          <ImageIcon
+                            size={35}
+                            className="mx-auto"
+                            style={{ color: currentTheme.primary }}
+                          />
+
+                          <p className="mt-3 text-base font-semibold text-white">
+                            No gallery photos yet
+                          </p>
+
+                          <p className="mt-1 text-sm text-slate-400">
+                            Business photos will appear here.
+                          </p>
+                        </div>
+                      )}
+                    </WarmSection>
 
                     {/* CONTACT */}
 
@@ -1867,7 +2126,7 @@ const Mini = () => {
       </main>
 
       {/* =====================================================
-          06. PRODUCT DETAILS MODAL
+          06. PRODUCT DETAILS MODAL (IMAGE SWIPE + PAY UPI)
       ===================================================== */}
 
       {selectedProduct && (
@@ -1889,26 +2148,33 @@ const Mini = () => {
               <X size={18} />
             </button>
 
-            {/* MODAL IMAGE SWIPER */}
+            {/* MODAL IMAGE SWIPER (swipeable) */}
             {Array.isArray(selectedProduct.images) &&
-            selectedProduct.images.length > 0 ? (
+            selectedProduct.images.filter((image) => image?.url).length > 0 ? (
               <Swiper
                 modules={[Navigation, Pagination]}
-                navigation={selectedProduct.images.length > 1}
+                navigation={
+                  selectedProduct.images.filter((image) => image?.url).length > 1
+                }
                 pagination={{ clickable: true }}
                 spaceBetween={0}
                 slidesPerView={1}
+                loop={
+                  selectedProduct.images.filter((image) => image?.url).length > 1
+                }
                 className="product-modal-swiper h-60 w-full sm:h-80"
               >
-                {selectedProduct.images.map((image, index) => (
-                  <SwiperSlide key={image._id || index}>
-                    <img
-                      src={image.url}
-                      alt={image.alt || selectedProduct.name}
-                      className="h-full w-full object-cover"
-                    />
-                  </SwiperSlide>
-                ))}
+                {selectedProduct.images
+                  .filter((image) => image?.url)
+                  .map((image, index) => (
+                    <SwiperSlide key={image._id || index}>
+                      <img
+                        src={image.url}
+                        alt={image.alt || selectedProduct.name}
+                        className="h-full w-full object-cover"
+                      />
+                    </SwiperSlide>
+                  ))}
               </Swiper>
             ) : (
               <div
@@ -1951,6 +2217,26 @@ const Mini = () => {
                     : "Unavailable"}
                 </span>
 
+                {/* PAY WITH UPI */}
+                {businessInfo.upiId && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedProduct(null);
+                      handleContactClick("upi");
+                    }}
+                    className="inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold transition hover:brightness-110 active:scale-[0.98]"
+                    style={{
+                      borderColor: `${currentTheme.primary}55`,
+                      backgroundColor: `${currentTheme.primary}18`,
+                      color: currentTheme.text,
+                    }}
+                  >
+                    <IndianRupee size={16} />
+                    Pay with UPI
+                  </button>
+                )}
+
                 {businessInfo.whatsapp || businessInfo.phone ? (
                   <button
                     type="button"
@@ -1971,7 +2257,49 @@ const Mini = () => {
       )}
 
       {/* =====================================================
-          07. REVIEW MODAL
+          07. GALLERY LIGHTBOX
+      ===================================================== */}
+
+      {selectedGalleryImage && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#020817]/85 p-4 backdrop-blur-md"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setSelectedGalleryImage(null);
+            }
+          }}
+        >
+          <div className="relative w-full max-w-3xl">
+            <button
+              type="button"
+              onClick={() => setSelectedGalleryImage(null)}
+              aria-label="Close gallery image"
+              className="absolute -top-3 right-0 z-20 flex h-10 w-10 items-center justify-center rounded-xl border border-[#45414a] bg-[#22222a]/90 text-slate-300 backdrop-blur transition hover:border-rose-300/30 hover:text-rose-200 sm:-right-3"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="overflow-hidden rounded-[24px] border border-[#45414a] bg-[#17171c]">
+              <img
+                src={selectedGalleryImage.url}
+                alt={selectedGalleryImage.alt}
+                className="max-h-[75vh] w-full object-contain"
+              />
+
+              {selectedGalleryImage.caption && (
+                <div className="border-t border-white/10 px-5 py-4">
+                  <p className="text-sm font-semibold text-white">
+                    {selectedGalleryImage.caption}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================
+          08. REVIEW MODAL
       ===================================================== */}
 
       {showReviewModal && (

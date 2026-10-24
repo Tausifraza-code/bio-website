@@ -5,7 +5,7 @@ import profileReducer from "./slice/profileSlice";
 import socialCardsReducer from "./slice/socialCardsSlice";
 import contactButtonsReducer from "./slice/contactButtonsSlice";
 import productSlice from "./slice/productSlice";
-import galleryReducer from "./slice/productSlice";
+import galleryReducer from "./slice/gallerySlice";
 
 const store = configureStore({
   reducer: {
