@@ -6,6 +6,7 @@ import socialCardsReducer from "./slice/socialCardsSlice";
 import contactButtonsReducer from "./slice/contactButtonsSlice";
 import productSlice from "./slice/productSlice";
 import galleryReducer from "./slice/gallerySlice";
+import paymentSettingsReducer from "./slice/paymentSettingsSlice";
 
 const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ const store = configureStore({
     contactButtons: contactButtonsReducer,
     product: productSlice,
     gallery: galleryReducer,
+    paymentSettings: paymentSettingsReducer,
   },
 });
 

@@ -10,6 +10,7 @@ const profileRoutes = require("./routes/profile.routes");
 const contactButtonsRoutes = require("./routes/contactButtons.routes");
 const productRoutes = require("./routes/product.route");
 const galleryRoutes = require("./routes/gallery.route");
+const paymentSettingsRoutes = require("./routes/paymentSettings.routes");
 
 const connectDB = require("./config/db");
 
@@ -63,6 +64,7 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/contact-buttons", contactButtonsRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/gallery", galleryRoutes);
+app.use("/api/payment-settings", paymentSettingsRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({

@@ -136,7 +136,7 @@ export default function HowItWorks() {
               href="/register"
               className="mt-8 inline-flex min-h-[58px] items-center justify-center rounded-full bg-cyan-400 px-9 py-4 text-base font-bold text-white hover:text-[#0b1b30] shadow-lg shadow-cyan-400/20 transition-all duration-300 hover:-translate-y-1 hover:bg-cyan-300 hover:shadow-cyan-400/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 dark:bg-[#22d3ee] dark:hover:text-[#0b1b30] dark:text-white dark:hover:bg-[#67e8f9] dark:focus-visible:ring-offset-[#0b1b30]"
             >
-              <span>Create my free card</span>
+              <span>Create your card</span>
               <ArrowUpRight
                 className="ml-2 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                 size={19}

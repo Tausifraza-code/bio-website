@@ -381,7 +381,7 @@ export default function Testimonials() {
               href="/register"
               className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-[#0891b2] px-7 py-3.5 text-sm font-bold text-white shadow-sm shadow-[#0891b2]/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#0e7490] dark:bg-[#22d3ee] dark:text-[#0b1b30] dark:hover:bg-[#67e8f9]"
             >
-              Create your free card
+              Create your card
               <ArrowUpRight
                 size={15}
                 className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"

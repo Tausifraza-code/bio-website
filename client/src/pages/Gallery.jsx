@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Images, Plus, Trash2, Upload, Loader2 } from "lucide-react";
@@ -57,13 +56,19 @@ const Gallery = ({ theme = defaultTheme }) => {
     const validFiles = files.filter(
       (file) =>
         file.size <= 5 * 1024 * 1024 &&
-        ["image/jpeg", "image/png", "image/jpg", "image/webp", "image/gif"].includes(
-          file.type
-        )
+        [
+          "image/jpeg",
+          "image/png",
+          "image/jpg",
+          "image/webp",
+          "image/gif",
+        ].includes(file.type),
     );
 
     if (validFiles.length !== files.length) {
-      alert("Only JPEG, PNG, JPG, WEBP, and GIF images up to 5MB each are allowed.");
+      alert(
+        "Only JPEG, PNG, JPG, WEBP, and GIF images up to 5MB each are allowed.",
+      );
     }
 
     setSelectedImages((prev) => {
@@ -110,7 +115,7 @@ const Gallery = ({ theme = defaultTheme }) => {
       uploadGalleryImages({
         images: selectedImages.map((image) => image.file),
         title: title.trim(),
-      })
+      }),
     );
 
     if (uploadGalleryImages.fulfilled.match(result)) {
@@ -133,7 +138,7 @@ const Gallery = ({ theme = defaultTheme }) => {
   // Delete image from backend
   const handleDeleteImage = async (id) => {
     const confirmed = window.confirm(
-      "Are you sure you want to delete this gallery image?"
+      "Are you sure you want to delete this gallery image?",
     );
 
     if (!confirmed) return;

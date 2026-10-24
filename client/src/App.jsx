@@ -16,10 +16,10 @@ import Refer from "./pages/Refer";
 import SocialCard from "./pages/SocialCard";
 import ContactButtons from "./pages/ContactButtons";
 import WebsiteTheme from "./pages/WebsiteTheme";
+import UpiPaymentSettings from "./pages/UpiPaymentSettings";
 
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-
 
 // admin imports
 
@@ -69,6 +69,7 @@ function App() {
         <Route path="refer" element={<Refer />} />
         <Route path="contact-buttons" element={<ContactButtons />} />
         <Route path="socialcard" element={<SocialCard />} />
+        <Route path="/upi-payments" element={<UpiPaymentSettings />} />
       </Route>
 
       {/* Admin Login — public login page */}

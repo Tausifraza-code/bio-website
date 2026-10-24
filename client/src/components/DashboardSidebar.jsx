@@ -15,7 +15,7 @@ import {
   ChevronRight,
   LogOut,
   ExternalLink,
-  Images
+  Images,
 } from "lucide-react";
 
 const sidebarItems = [
@@ -35,7 +35,7 @@ const sidebarItems = [
     id: "payment",
     label: "UPI & Payments",
     icon: Wallet,
-    path: "/payment",
+    path: "/upi-payments",
     badge: { text: "Setup", color: "amber" },
   },
   {
@@ -53,7 +53,7 @@ const sidebarItems = [
     badge: { text: "1", color: "slate" },
   },
 
-   {
+  {
     id: "Gallery",
     label: "Gallery Section",
     icon: Images,
