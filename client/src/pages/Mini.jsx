@@ -7,6 +7,7 @@ import Payment from "./Payment";
 import { getMyProducts } from "../redux/slice/productSlice";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
+import ProfileQRCode from "../components/ProfileQRCode";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -134,14 +135,20 @@ const normalizeGalleryImages = (raw) => {
     .map((item, index) => {
       if (typeof item === "string") {
         const url = item.trim();
-        return url ? { url, alt: `Gallery image ${index + 1}`, caption: "" } : null;
+        return url
+          ? { url, alt: `Gallery image ${index + 1}`, caption: "" }
+          : null;
       }
 
       if (!item || typeof item !== "object") return null;
 
-      const url = [item.url, item.src, item.image, item.imageUrl, item.path].find(
-        (value) => typeof value === "string" && value.trim(),
-      );
+      const url = [
+        item.url,
+        item.src,
+        item.image,
+        item.imageUrl,
+        item.path,
+      ].find((value) => typeof value === "string" && value.trim());
 
       if (!url) return null;
 
@@ -642,11 +649,13 @@ const Mini = () => {
         handleWhatsApp();
         break;
       case "email":
-        if (businessInfo.email) window.location.href = `mailto:${businessInfo.email}`;
+        if (businessInfo.email)
+          window.location.href = `mailto:${businessInfo.email}`;
         break;
       case "directions":
         window.open(
-          profileData.mapLink || `https://maps.google.com/?q=${encodeURIComponent(businessInfo.address)}`,
+          profileData.mapLink ||
+            `https://maps.google.com/?q=${encodeURIComponent(businessInfo.address)}`,
           "_blank",
           "noopener,noreferrer",
         );
@@ -1290,32 +1299,46 @@ const Mini = () => {
                       {/* ACTION BUTTONS */}
 
                       {visibleButtons.length > 0 && (
-                      <div className="mt-5 grid grid-cols-3 gap-3 sm:grid-cols-8">
-                        {visibleButtons.map((button) => {
-                          const buttonIcons = {
-                            link: ArrowUpRight,
-                            phone: Phone,
-                            whatsapp: MessageCircle,
-                            email: Mail,
-                            location: MapPin,
-                            share: Share2,
-                            website: Globe,
-                            contact: UserPlus,
-                            upi: IndianRupee,
-                          };
-                          const ButtonIcon = buttonIcons[button.icon] || ArrowUpRight;
+                        <div className="mt-5 grid grid-cols-3 gap-3 sm:grid-cols-8">
+                          {visibleButtons.map((button) => {
+                            const buttonIcons = {
+                              link: ArrowUpRight,
+                              phone: Phone,
+                              whatsapp: MessageCircle,
+                              email: Mail,
+                              location: MapPin,
+                              share: Share2,
+                              website: Globe,
+                              contact: UserPlus,
+                              upi: IndianRupee,
+                            };
+                            const ButtonIcon =
+                              buttonIcons[button.icon] || ArrowUpRight;
 
-                          return (
-                            <ActionButton
-                              key={button._id || button.id || button.buttonId || `${button.actionType}-${button.order}`}
-                              icon={button.actionType === "saveContact" && saved ? Check : ButtonIcon}
-                              label={button.actionType === "saveContact" && saved ? "Saved" : button.label}
-                              onClick={() => handleConfiguredButton(button)}
-                              primary={button.actionType === "saveContact"}
-                            />
-                          );
-                        })}
-                      </div>
+                            return (
+                              <ActionButton
+                                key={
+                                  button._id ||
+                                  button.id ||
+                                  button.buttonId ||
+                                  `${button.actionType}-${button.order}`
+                                }
+                                icon={
+                                  button.actionType === "saveContact" && saved
+                                    ? Check
+                                    : ButtonIcon
+                                }
+                                label={
+                                  button.actionType === "saveContact" && saved
+                                    ? "Saved"
+                                    : button.label
+                                }
+                                onClick={() => handleConfiguredButton(button)}
+                                primary={button.actionType === "saveContact"}
+                              />
+                            );
+                          })}
+                        </div>
                       )}
 
                       {/* DYNAMIC SOCIAL PROFILE SHORTCUTS */}
@@ -1460,7 +1483,9 @@ const Mini = () => {
                             className="product-cards-swiper pb-11"
                           >
                             {productList.map((product) => {
-                              const productImages = Array.isArray(product.images)
+                              const productImages = Array.isArray(
+                                product.images,
+                              )
                                 ? product.images.filter((img) => img?.url)
                                 : [];
                               const coverImage = productImages[0] || null;
@@ -1490,8 +1515,7 @@ const Mini = () => {
 
                                         {extraCount > 0 && (
                                           <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-md border border-white/20 bg-black/60 px-2 py-1 text-[10px] font-bold text-white backdrop-blur-sm">
-                                            <ImageIcon size={11} />
-                                            +{extraCount}
+                                            <ImageIcon size={11} />+{extraCount}
                                           </span>
                                         )}
 
@@ -1535,7 +1559,9 @@ const Mini = () => {
 
                                         <span
                                           className="shrink-0 text-base font-extrabold"
-                                          style={{ color: currentTheme.primary }}
+                                          style={{
+                                            color: currentTheme.primary,
+                                          }}
                                         >
                                           ₹
                                           {Number(
@@ -2154,13 +2180,15 @@ const Mini = () => {
               <Swiper
                 modules={[Navigation, Pagination]}
                 navigation={
-                  selectedProduct.images.filter((image) => image?.url).length > 1
+                  selectedProduct.images.filter((image) => image?.url).length >
+                  1
                 }
                 pagination={{ clickable: true }}
                 spaceBetween={0}
                 slidesPerView={1}
                 loop={
-                  selectedProduct.images.filter((image) => image?.url).length > 1
+                  selectedProduct.images.filter((image) => image?.url).length >
+                  1
                 }
                 className="product-modal-swiper h-60 w-full sm:h-80"
               >

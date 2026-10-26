@@ -7,6 +7,7 @@ import contactButtonsReducer from "./slice/contactButtonsSlice";
 import productSlice from "./slice/productSlice";
 import galleryReducer from "./slice/gallerySlice";
 import paymentSettingsReducer from "./slice/paymentSettingsSlice";
+import qrReducer from "./slice/qrSlice";
 
 const store = configureStore({
   reducer: {
@@ -18,6 +19,7 @@ const store = configureStore({
     product: productSlice,
     gallery: galleryReducer,
     paymentSettings: paymentSettingsReducer,
+    qr: qrReducer,
   },
 });
 

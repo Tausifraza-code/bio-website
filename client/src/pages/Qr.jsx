@@ -1,5 +1,13 @@
+import React, { useEffect, useRef, useState } from "react";
+import { Html5Qrcode } from "html5-qrcode";
+import QRCode from "qrcode";
 
-import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  bindPhysicalQR,
+  clearQRMessages,
+  fetchMyBoundQR,
+} from "../redux/slice/qrSlice";
 import {
   Copy,
   Check,
@@ -23,11 +31,268 @@ const Qr = () => {
   const [standeeCode, setStandeeCode] = useState("");
   const [standeeActivated, setStandeeActivated] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [qrImage, setQrImage] = useState("");
+  const [decodedQRUrl, setDecodedQRUrl] = useState("");
+  const [qrPath, setQrPath] = useState("");
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [qrBusy, setQrBusy] = useState(false);
+  const [qrMessage, setQrMessage] = useState("");
+  const scannerRef = useRef(null);
+  const scannerInstanceRef = useRef(null);
+  const dispatch = useDispatch();
 
-  const directCardLink =
-    "https://digital-eight-liart.vercel.app/card/ankits-business";
+  const { boundQR, binding, fetching, successMessage, error } = useSelector(
+    (state) => state.qr,
+  );
 
-  const customSubdomain = "https://ankit-business.yourdomain.com";
+  const directCardLink = boundQR?.subdomain
+    ? `${window.location.origin}/card-preview/${encodeURIComponent(
+        boundQR.subdomain,
+      )}`
+    : "";
+
+  const customSubdomain = boundQR?.subdomain
+    ? `${window.location.origin}/card-preview/${encodeURIComponent(
+        boundQR.subdomain,
+      )}`
+    : "";
+
+  const apiBaseUrl =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+  const backendOrigin = apiBaseUrl.replace(/\/api\/?$/, "").replace(/\/+$/, "");
+  const businessName =
+    boundQR?.businessName || boundQR?.subdomain || "Your Business";
+  const qrPublicUrl = boundQR?.qrPath
+    ? `${backendOrigin}${boundQR.qrPath}`
+    : "";
+  const profileUrl = boundQR?.subdomain
+    ? `${window.location.origin}/card-preview/${encodeURIComponent(
+        boundQR.subdomain,
+      )}`
+    : "";
+  const whatsappMessage =
+    `Check out my ${businessName} Mini Website Card! ` +
+    `${qrPublicUrl} Visit my digital business card for more information.`;
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
+    whatsappMessage,
+  )}`;
+
+  useEffect(() => {
+    dispatch(fetchMyBoundQR());
+
+    return () => {
+      dispatch(clearQRMessages());
+    };
+  }, [dispatch]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function generateQRImage() {
+      if (!qrPublicUrl) {
+        setQrImage("");
+        return;
+      }
+
+      try {
+        const image = await QRCode.toDataURL(qrPublicUrl, {
+          width: 1000,
+          margin: 2,
+          errorCorrectionLevel: "H",
+        });
+
+        if (!cancelled) setQrImage(image);
+      } catch (error) {
+        console.error("QR image generation failed:", error);
+        if (!cancelled) setQrImage("");
+      }
+    }
+
+    generateQRImage();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [qrPublicUrl]);
+
+  useEffect(
+    () => () => {
+      const scanner = scannerInstanceRef.current;
+
+      if (!scanner) return;
+
+      void scanner
+        .stop()
+        .catch((error) => {
+          console.error("Unable to stop QR scanner during cleanup:", error);
+        })
+        .finally(() => {
+          try {
+            scanner.clear();
+          } catch (error) {
+            console.error("Unable to clear QR scanner during cleanup:", error);
+          }
+        });
+    },
+    [],
+  );
+
+  const handleDecodedQR = (decodedText) => {
+    try {
+      const parsed = new URL(decodedText);
+      console.log("Decoded QR URL:", decodedText);
+      console.log("Decoded pathname:", parsed.pathname);
+
+      if (!["http:", "https:"].includes(parsed.protocol)) {
+        throw new Error("Unsupported QR URL protocol.");
+      }
+
+      const existingPath = parsed.pathname.replace(/\/+$/, "");
+
+      if (!existingPath || existingPath === "/") {
+        throw new Error("The QR URL does not contain an existing path.");
+      }
+
+      setDecodedQRUrl(decodedText);
+      setQrPath(existingPath);
+      setQrMessage(
+        "QR decoded successfully. Verify the original URL before binding.",
+      );
+    } catch (error) {
+      setQrMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to read a valid QR URL.",
+      );
+    }
+  };
+
+  const startQRScanner = async () => {
+    if (!scannerRef.current || scannerInstanceRef.current) return;
+
+    setQrMessage("");
+
+    const scanner = new Html5Qrcode(scannerRef.current.id);
+    scannerInstanceRef.current = scanner;
+
+    try {
+      await scanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 240, height: 240 } },
+        async (decodedText) => {
+          handleDecodedQR(decodedText);
+
+          try {
+            await scanner.stop();
+            scanner.clear();
+          } catch (error) {
+            console.error("Unable to stop QR scanner after decoding:", error);
+            setQrMessage(
+              "QR decoded, but the camera could not be stopped cleanly.",
+            );
+          }
+
+          scannerInstanceRef.current = null;
+          setScannerOpen(false);
+        },
+        () => {},
+      );
+
+      setScannerOpen(true);
+    } catch (error) {
+      console.error("QR camera could not start:", error);
+
+      try {
+        scanner.clear();
+      } catch (cleanupError) {
+        console.error(
+          "Unable to clear QR scanner after startup failure:",
+          cleanupError,
+        );
+      }
+
+      scannerInstanceRef.current = null;
+      setQrMessage(
+        "Camera could not start. Allow camera access or upload a QR image.",
+      );
+    }
+  };
+
+  const handleQRImageUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setQrBusy(true);
+    setQrMessage("");
+
+    let scanner;
+
+    try {
+      scanner = new Html5Qrcode("qr-file-reader");
+
+      const decodedText = await scanner.scanFile(file, true);
+      handleDecodedQR(decodedText);
+    } catch (error) {
+      console.error("Unable to decode uploaded QR image:", error);
+      setQrMessage("Could not decode this image. Try a clearer QR photo.");
+    } finally {
+      if (scanner) {
+        try {
+          scanner.clear();
+        } catch (error) {
+          console.error("Unable to clear uploaded QR scanner:", error);
+          setQrMessage(
+            "QR image was processed, but its reader could not be cleared.",
+          );
+        }
+      }
+
+      setQrBusy(false);
+      event.target.value = "";
+    }
+  };
+
+  const stopQRScanner = async () => {
+    const scanner = scannerInstanceRef.current;
+    let stopFailed = false;
+
+    if (scanner) {
+      try {
+        await scanner.stop();
+      } catch (error) {
+        console.error("Unable to stop QR scanner:", error);
+        stopFailed = true;
+      }
+
+      try {
+        scanner.clear();
+      } catch (error) {
+        console.error("Unable to clear QR scanner:", error);
+        stopFailed = true;
+      }
+    }
+
+    scannerInstanceRef.current = null;
+    setScannerOpen(false);
+
+    if (stopFailed) {
+      setQrMessage(
+        "Camera could not be stopped cleanly. Please check camera access.",
+      );
+    }
+  };
+
+  const handleBindPhysicalQR = async () => {
+    if (!qrPath) return;
+
+    dispatch(clearQRMessages());
+
+    try {
+      await dispatch(bindPhysicalQR({ qrPath })).unwrap();
+    } catch (err) {
+      console.error("QR binding failed:", err);
+    }
+  };
 
   /* ==================== COPY LINK ==================== */
 
@@ -59,41 +324,21 @@ const Qr = () => {
 
   /* ==================== DOWNLOAD QR ==================== */
 
-  const handleDownloadQR = async () => {
+  const handleDownloadQR = () => {
+    if (!qrImage || !boundQR) return;
+
     setDownloading(true);
-
     try {
-      const qrUrl =
-        `https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&data=${encodeURIComponent(
-          directCardLink
-        )}&bgcolor=ffffff&color=000000&margin=20`;
-
-      const response = await fetch(qrUrl);
-
-      if (!response.ok) {
-        throw new Error("QR code download failed");
-      }
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
-
-      anchor.href = url;
-      anchor.download = "ankits-business-qr.png";
+      anchor.href = qrImage;
+      anchor.download = `business-qr-${boundQR.qrPath
+        .replace(/^\/+/, "")
+        .replace(/[^a-zA-Z0-9_-]/g, "-")}.png`;
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
-
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (error) {
       console.error("QR download failed:", error);
-      window.open(
-        `https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&data=${encodeURIComponent(
-          directCardLink
-        )}`,
-        "_blank",
-        "noopener,noreferrer"
-      );
     } finally {
       setDownloading(false);
     }
@@ -133,15 +378,9 @@ const Qr = () => {
   /* ==================== WHATSAPP SHARE ==================== */
 
   const handleWhatsAppShare = () => {
-    const message =
-      `Check out my Mini Website Card!\n\n${directCardLink}\n\n` +
-      "Visit my digital business card for more information.";
+    if (!qrPublicUrl) return;
 
-    window.open(
-      `https://wa.me/?text=${encodeURIComponent(message)}`,
-      "_blank",
-      "noopener,noreferrer"
-    );
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
 
   /* ==================== STANDEE ==================== */
@@ -191,8 +430,8 @@ const Qr = () => {
               </h1>
 
               <p className="mt-2 max-w-xl text-xs leading-6 text-slate-400 sm:text-sm">
-                Share your business card online, download your QR code,
-                and help customers connect with your business.
+                Share your business card online, download your QR code, and help
+                customers connect with your business.
               </p>
             </div>
           </div>
@@ -200,7 +439,8 @@ const Qr = () => {
           <button
             type="button"
             onClick={handleWhatsAppShare}
-            className="inline-flex min-h-11 items-center justify-center gap-2 self-start rounded-xl bg-cyan-300 px-4 py-3 text-xs font-bold text-[#0b1b30] transition hover:bg-cyan-200 active:scale-[0.98] sm:self-center"
+            disabled={!qrPublicUrl}
+            className="inline-flex min-h-11 items-center justify-center gap-2 self-start rounded-xl bg-cyan-300 px-4 py-3 text-xs font-bold text-[#0b1b30] transition hover:bg-cyan-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 sm:self-center"
           >
             <MessageSquare size={15} />
             Share Website
@@ -209,7 +449,7 @@ const Qr = () => {
         </header>
 
         {/* ==================== ACTIVATION BANNER ==================== */}
-
+        {/* 
         <section className="mb-6 overflow-hidden rounded-2xl border border-[#38516e] bg-[#10243b]">
           <div className="h-1 bg-gradient-to-r from-cyan-300 via-blue-400 to-cyan-300" />
 
@@ -231,8 +471,8 @@ const Qr = () => {
                 </div>
 
                 <p className="mt-1.5 text-xs leading-6 text-slate-400">
-                  One-time payment of ₹499 is shown for activation.
-                  Confirm payment status before enabling live services.
+                  One-time payment of ₹499 is shown for activation. Confirm
+                  payment status before enabling live services.
                 </p>
 
                 <p className="mt-1 text-[11px] text-slate-500">
@@ -245,7 +485,7 @@ const Qr = () => {
               type="button"
               onClick={() =>
                 window.alert(
-                  "Demo mode: connect your payment gateway to activate this card."
+                  "Demo mode: connect your payment gateway to activate this card.",
                 )
               }
               className="inline-flex shrink-0 items-center justify-center rounded-xl border border-cyan-300/20 bg-[#193754] px-4 py-3 text-xs font-bold text-cyan-200 transition hover:border-cyan-300/40 hover:bg-[#21415f] active:scale-[0.98]"
@@ -253,7 +493,7 @@ const Qr = () => {
               Pay ₹499 & Activate
             </button>
           </div>
-        </section>
+        </section> */}
 
         {/* ==================== BUSINESS LINKS ==================== */}
 
@@ -262,21 +502,151 @@ const Qr = () => {
             icon={Link2}
             label="Direct Card Link"
             description="Your public business card URL"
-            value={directCardLink}
+            value={profileUrl || directCardLink}
             copied={copiedField === "direct"}
-            onCopy={() => handleCopy(directCardLink, "direct")}
+            onCopy={() => handleCopy(profileUrl || directCardLink, "direct")}
             tag="Direct access"
           />
 
           <LinkCard
             icon={Globe}
-            label="Custom Subdomain"
-            description="Your branded business URL"
-            value={customSubdomain}
+            label="Business Profile URL"
+            description="Your dynamic public business profile URL"
+            value={customSubdomain || "Create and save your profile first"}
             copied={copiedField === "subdomain"}
-            onCopy={() => handleCopy(customSubdomain, "subdomain")}
-            tag="Preview"
+            onCopy={() => {
+              if (customSubdomain) {
+                handleCopy(customSubdomain, "subdomain");
+              }
+            }}
+            tag="Profile"
           />
+        </section>
+
+        {/* ==================== BIND EXISTING QR ==================== */}
+
+        <section className="mb-6 rounded-2xl border border-[#29435f] bg-[#10243b] p-5 sm:p-6">
+          <h2 className="text-lg font-bold text-white">
+            Bind Existing Physical QR
+          </h2>
+
+          <p className="mt-2 text-sm leading-6 text-slate-400">
+            Scan your already-printed QR or upload its image. We will read the
+            original URL and preserve its existing path.
+          </p>
+
+          <div className="mt-5 flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={startQRScanner}
+              disabled={scannerOpen || qrBusy}
+              className="rounded-xl bg-cyan-300 px-4 py-3 text-sm font-bold text-[#0b1b30] disabled:opacity-50"
+            >
+              Scan with Camera
+            </button>
+
+            <label
+              className={`rounded-xl border border-[#38516e] px-4 py-3 text-sm font-semibold text-white ${
+                qrBusy || scannerOpen
+                  ? "cursor-not-allowed opacity-50"
+                  : "cursor-pointer"
+              }`}
+            >
+              Upload QR Image
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={qrBusy || scannerOpen}
+                onChange={handleQRImageUpload}
+              />
+            </label>
+          </div>
+
+          <div
+            id="qr-camera-reader"
+            ref={scannerRef}
+            aria-hidden={!scannerOpen}
+            className={`mt-5 max-w-md overflow-hidden rounded-xl ${
+              scannerOpen ? "" : "hidden"
+            }`}
+          />
+
+          {scannerOpen && (
+            <button
+              type="button"
+              onClick={stopQRScanner}
+              className="mt-3 rounded-lg border border-[#38516e] px-4 py-2 text-sm text-white"
+            >
+              Stop Camera
+            </button>
+          )}
+
+          <div id="qr-file-reader" className="hidden" />
+
+          {qrMessage && (
+            <p className="mt-4 text-sm text-cyan-200" role="status">
+              {qrMessage}
+            </p>
+          )}
+
+          {qrBusy && (
+            <p className="mt-2 text-sm text-slate-400" aria-live="polite">
+              Decoding QR image…
+            </p>
+          )}
+
+          {decodedQRUrl && (
+            <div className="mt-5 rounded-xl border border-[#38516e] bg-[#0b1b30] p-4">
+              <p className="text-xs font-semibold text-slate-400">
+                Original decoded URL
+              </p>
+
+              <p className="mt-2 break-all text-sm text-white">
+                {decodedQRUrl}
+              </p>
+
+              <p className="mt-4 text-xs font-semibold text-slate-400">
+                Existing QR path
+              </p>
+
+              <p className="mt-1 font-mono text-sm text-cyan-200">{qrPath}</p>
+
+              <p className="mt-3 text-xs leading-5 text-amber-200">
+                Verify that this QR belongs to your business before binding.
+                Decoding the URL does not itself change the printed QR
+                destination.
+              </p>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={handleBindPhysicalQR}
+            disabled={!qrPath || binding}
+            className="mt-4 w-full rounded-xl bg-cyan-300 px-4 py-3 text-sm font-bold text-[#0b1b30] transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {binding ? "Binding QR..." : "Bind QR to My Profile"}
+          </button>
+
+          {successMessage && (
+            <p className="mt-3 text-sm text-emerald-500" role="status">
+              {successMessage}
+            </p>
+          )}
+
+          {error && (
+            <p className="mt-3 text-sm text-red-500" role="alert">
+              {error}
+            </p>
+          )}
+
+          {boundQR && boundQR.qrPath === qrPath && (
+            <div className="mt-3 text-sm text-slate-300">
+              <p>QR Path: {boundQR.qrPath}</p>
+              <p>Profile: {boundQR.subdomain}</p>
+            </div>
+          )}
         </section>
 
         {/* ==================== QR CODE WORKSPACE ==================== */}
@@ -304,12 +674,12 @@ const Qr = () => {
             <div className="flex flex-col items-center justify-center border-b border-[#29435f] bg-[#0b1b30]/50 p-6 sm:p-8 lg:border-b-0 lg:border-r">
               <div className="mb-5 flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-300/20 bg-[#193754] text-lg font-bold text-cyan-200">
-                  A
+                  {(businessName || "Your Business").charAt(0).toUpperCase()}
                 </div>
 
                 <div>
                   <h3 className="text-sm font-bold text-white">
-                    ankit's Business
+                    {businessName}
                   </h3>
 
                   <p className="mt-1 text-[11px] text-slate-400">
@@ -318,22 +688,37 @@ const Qr = () => {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-[#38516e] bg-white p-3 shadow-xl shadow-black/20">
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(
-                    directCardLink
-                  )}&bgcolor=ffffff&color=000000&margin=10`}
-                  alt="QR code for ankit's Business"
-                  className="h-52 w-52 sm:h-60 sm:w-60"
-                />
+              <div className="flex min-h-60 min-w-60 items-center justify-center rounded-2xl border border-[#38516e] bg-white p-3 shadow-xl shadow-black/20">
+                {fetching ? (
+                  <p className="text-sm text-slate-600">
+                    Loading your saved QR code...
+                  </p>
+                ) : qrImage ? (
+                  <img
+                    src={qrImage}
+                    alt="Bound business QR code"
+                    className="mx-auto h-60 w-60 rounded-xl bg-white p-2"
+                  />
+                ) : (
+                  <p className="max-w-48 text-center text-sm text-slate-600">
+                    Bind a QR code to display it here.
+                  </p>
+                )}
               </div>
 
-              <div className="mt-4 flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-300/[0.07] px-3 py-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-300" />
-                <span className="text-[10px] font-semibold text-amber-200">
-                  Activation pending
-                </span>
-              </div>
+              {boundQR && (
+                <div className="mt-4 max-w-sm text-center">
+                  <p className="font-semibold text-white">
+                    Profile: {boundQR.subdomain}
+                  </p>
+                  <p className="text-sm text-slate-400">
+                    QR Path: {boundQR.qrPath}
+                  </p>
+                  <p className="break-all text-sm text-cyan-200">
+                    {qrPublicUrl}
+                  </p>
+                </div>
+              )}
 
               <p className="mt-3 max-w-xs text-center text-[11px] leading-5 text-slate-500">
                 Scan the QR code using a phone camera to open the configured
@@ -360,8 +745,13 @@ const Qr = () => {
               <div className="mt-6 space-y-3">
                 <button
                   type="button"
-                  onClick={() => handleCopy(directCardLink, "qrlink")}
-                  className="flex w-full items-center justify-between gap-3 rounded-xl border border-[#38516e] bg-[#0b1b30] p-4 text-left transition hover:border-cyan-300/40 hover:bg-[#132942]"
+                  onClick={() => {
+                    if (qrPublicUrl) {
+                      handleCopy(qrPublicUrl, "qrlink");
+                    }
+                  }}
+                  disabled={!qrPublicUrl}
+                  className="flex w-full items-center justify-between gap-3 rounded-xl border border-[#38516e] bg-[#0b1b30] p-4 text-left transition hover:border-cyan-300/40 hover:bg-[#132942] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <span className="flex items-center gap-3">
                     <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-cyan-300/10">
@@ -391,7 +781,7 @@ const Qr = () => {
                 <button
                   type="button"
                   onClick={handleDownloadQR}
-                  disabled={downloading}
+                  disabled={!qrImage || downloading}
                   className="flex w-full items-center justify-between gap-3 rounded-xl bg-cyan-300 p-4 text-left text-[#0b1b30] transition hover:bg-cyan-200 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span className="flex items-center gap-3">
@@ -405,7 +795,9 @@ const Qr = () => {
 
                     <span>
                       <span className="block text-xs font-bold">
-                        {downloading ? "Preparing download..." : "Download QR code"}
+                        {downloading
+                          ? "Preparing download..."
+                          : "Download QR code"}
                       </span>
 
                       <span className="mt-1 block text-[10px] text-[#0b1b30]/70">
@@ -420,7 +812,8 @@ const Qr = () => {
                 <button
                   type="button"
                   onClick={handleWhatsAppShare}
-                  className="flex w-full items-center justify-between gap-3 rounded-xl border border-[#38516e] bg-[#0b1b30] p-4 text-left transition hover:border-cyan-300/40 hover:bg-[#132942]"
+                  disabled={!qrPublicUrl}
+                  className="flex w-full items-center justify-between gap-3 rounded-xl border border-[#38516e] bg-[#0b1b30] p-4 text-left transition hover:border-cyan-300/40 hover:bg-[#132942] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <span className="flex items-center gap-3">
                     <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-cyan-300/10">
@@ -450,8 +843,8 @@ const Qr = () => {
 
                 <p className="text-[10px] leading-5 text-slate-400">
                   Anyone with your public link may be able to access your
-                  business card. Verify that your URL is correct before
-                  printing or distributing the QR code.
+                  business card. Verify that your URL is correct before printing
+                  or distributing the QR code.
                 </p>
               </div>
             </div>
@@ -491,8 +884,8 @@ const Qr = () => {
 
                   <p className="mt-1 text-xs leading-5 text-slate-400">
                     Code {standeeCode} has been marked activated in this
-                    session. A backend connection is required for actual
-                    standee verification.
+                    session. A backend connection is required for actual standee
+                    verification.
                   </p>
                 </div>
               </div>

@@ -17,7 +17,7 @@ import SocialCard from "./pages/SocialCard";
 import ContactButtons from "./pages/ContactButtons";
 import WebsiteTheme from "./pages/WebsiteTheme";
 import UpiPaymentSettings from "./pages/UpiPaymentSettings";
-
+import TestQRGenerator from "./pages/TestQRGenerator";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 
@@ -53,10 +53,12 @@ function App() {
       {/* Preview Pages */}
       <Route path="/preview" element={<CardPreview />} />
       <Route path="/card-preview" element={<CardPreview />} />
+      <Route path="/card-preview/:subdomain" element={<CardPreview />} />
 
       {/* Dashboard Layout with Outlet */}
       <Route element={<DashboardLayout />}>
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/qr-test" element={<TestQRGenerator />} />
 
         <Route path="editprofile" element={<EditProfile />} />
         <Route path="leads" element={<Leads />} />

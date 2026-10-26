@@ -1,11 +1,22 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchMyPaymentSettings,
   savePaymentSettings,
   clearPaymentSettingsMessage,
 } from "../redux/slice/paymentSettingsSlice";
-import { IndianRupee, Save, CheckCircle2 } from "lucide-react";
+import {
+  IndianRupee,
+  Upload,
+  Camera,
+  Save,
+  Clock3,
+  CheckCircle2,
+  AlertCircle,
+  QrCode,
+  ShieldCheck,
+  X,
+} from "lucide-react";
 
 const BANK_HANDLES = [
   "@okaxis",
@@ -17,6 +28,8 @@ const BANK_HANDLES = [
   "@icici",
   "@barodampay",
 ];
+
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
 const inputClass =
   "w-full rounded-xl border border-[#38516e] bg-[#132942] px-4 py-3.5 text-sm text-white placeholder:text-slate-400/70 outline-none transition focus:border-cyan-300/60 focus:ring-4 focus:ring-cyan-300/[0.07]";
@@ -32,8 +45,14 @@ export default function UpiPaymentSettings() {
   } = useSelector((state) => state.paymentSettings);
 
   const [upiId, setUpiId] = useState("");
+  const [qrFile, setQrFile] = useState(null);
+  const [qrPreview, setQrPreview] = useState("");
   const [formError, setFormError] = useState("");
   const [notice, setNotice] = useState("");
+
+  const status = settings?.status || "not_configured";
+  const rejectionReason = settings?.rejectionReason || "";
+  const savedQrUrl = settings?.qrImage?.url || "";
 
   useEffect(() => {
     dispatch(fetchMyPaymentSettings());
@@ -43,7 +62,17 @@ export default function UpiPaymentSettings() {
     if (!settings) return;
 
     setUpiId(settings.upiId || "");
+    setQrPreview(settings.qrImage?.url || "");
+    setQrFile(null);
   }, [settings]);
+
+  useEffect(() => {
+    return () => {
+      if (qrPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(qrPreview);
+      }
+    };
+  }, [qrPreview]);
 
   const handleHandleSuggestion = (handle) => {
     const prefix = upiId.trim().split("@")[0];
@@ -56,6 +85,36 @@ export default function UpiPaymentSettings() {
     setUpiId(`${prefix}${handle}`);
     setFormError("");
     setNotice("");
+  };
+
+  const handleQrUpload = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) return;
+
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setFormError("Please upload a JPG, PNG or WEBP image.");
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE) {
+      setFormError("Image size must not exceed 5 MB.");
+      return;
+    }
+
+    setQrFile(file);
+    setQrPreview(URL.createObjectURL(file));
+    setFormError("");
+    setNotice("");
+  };
+
+  const removeQr = () => {
+    setQrFile(null);
+    setQrPreview(savedQrUrl);
+    setFormError("");
+    setNotice("");
+    dispatch(clearPaymentSettingsMessage());
   };
 
   const handleSave = async (event) => {
@@ -74,13 +133,46 @@ export default function UpiPaymentSettings() {
     setNotice("");
     dispatch(clearPaymentSettingsMessage());
 
+    const formData = new FormData();
+    formData.append("upiId", normalizedUpiId);
+
+    if (qrFile) formData.append("qrImage", qrFile);
+
     try {
-      await dispatch(savePaymentSettings(normalizedUpiId)).unwrap();
-      setNotice("Payment settings saved successfully.");
+      await dispatch(savePaymentSettings(upiId)).unwrap();
+      setQrFile(null);
+      setNotice("Payment settings saved and submitted for admin approval.");
     } catch {
       // API error Redux state mein available hai.
     }
   };
+
+  const statusConfig = {
+    not_configured: {
+      label: "Setup Pending",
+      className: "border-[#38516e] bg-[#132942] text-slate-300",
+      Icon: AlertCircle,
+    },
+    pending: {
+      label: "Pending Approval",
+      className: "border-amber-400/25 bg-amber-400/[0.08] text-amber-200",
+      Icon: Clock3,
+    },
+    approved: {
+      label: "Approved",
+      className: "border-emerald-400/25 bg-emerald-400/[0.08] text-emerald-200",
+      Icon: CheckCircle2,
+    },
+    rejected: {
+      label: "Rejected",
+      className: "border-red-400/25 bg-red-400/[0.08] text-red-200",
+      Icon: AlertCircle,
+    },
+  };
+
+  const currentStatus = statusConfig[status] || statusConfig.not_configured;
+
+  const StatusIcon = currentStatus.Icon;
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#0b1b30] px-4 py-7 text-white sm:px-6 sm:py-9 lg:px-8">
@@ -119,9 +211,17 @@ export default function UpiPaymentSettings() {
                 </h1>
 
                 <p className="mt-2 max-w-2xl text-xs leading-6 text-slate-300 sm:text-sm">
-                  Configure your business UPI details for customer payments.
+                  Configure your business UPI details and submit them for
+                  administrator approval.
                 </p>
               </div>
+            </div>
+
+            <div
+              className={`inline-flex w-fit shrink-0 items-center gap-2 rounded-full border px-4 py-2.5 text-xs font-bold ${currentStatus.className}`}
+            >
+              <StatusIcon size={16} />
+              {currentStatus.label}
             </div>
           </header>
 
@@ -223,6 +323,93 @@ export default function UpiPaymentSettings() {
                 </div>
               </section>
 
+              {/* Optional QR upload */}
+              <section className="min-w-0 rounded-2xl border border-[#29435f] bg-[#0b1b30]/70 p-4 sm:p-6">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-300/20 bg-[#193754]">
+                    <QrCode size={19} className="text-cyan-300" />
+                  </div>
+
+                  {/* <div>
+                    <h2 className="text-base font-bold">
+                      Payment QR / Standee Image
+                    </h2>
+                    <p className="mt-1 text-xs leading-5 text-slate-300">
+                      Optionally upload your existing business QR code or
+                      counter standee.
+                    </p>
+                  </div> */}
+                </div>
+
+                <label
+                  htmlFor="payment-qr-upload"
+                  className="mt-6 flex min-h-56 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-[#38516e] bg-[#10243b] p-5 text-center transition hover:border-cyan-300/50 hover:bg-[#132942]"
+                >
+                  {qrPreview ? (
+                    <img
+                      src={qrPreview}
+                      alt="Payment QR preview"
+                      className="max-h-48 max-w-full rounded-xl object-contain"
+                    />
+                  ) : (
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-300/20 bg-[#193754]">
+                      <Camera size={27} className="text-cyan-300" />
+                    </div>
+                  )}
+
+                  <span className="mt-4 inline-flex items-center gap-2 rounded-xl bg-cyan-300 px-4 py-2.5 text-xs font-bold text-[#071729] transition hover:bg-cyan-200">
+                    <Upload size={15} />
+                    {qrPreview ? "Choose Another Image" : "Upload Image"}
+                  </span>
+
+                  <span className="mt-2 text-[10px] leading-5 text-slate-400">
+                    JPG, PNG or WEBP · Maximum 5 MB
+                  </span>
+
+                  <input
+                    id="payment-qr-upload"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="sr-only"
+                    onChange={handleQrUpload}
+                  />
+                </label>
+
+                {qrFile && (
+                  <div className="mt-3 flex items-center gap-2 rounded-xl border border-[#29435f] bg-[#132942] p-3">
+                    <QrCode size={17} className="shrink-0 text-cyan-300" />
+
+                    <span className="min-w-0 flex-1 truncate text-xs text-slate-200">
+                      {qrFile.name}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={removeQr}
+                      aria-label="Remove QR image"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-300 transition hover:bg-red-400/10 hover:text-red-300"
+                    >
+                      <X size={15} />
+                    </button>
+                  </div>
+                )}
+
+                <div className="mt-5 rounded-xl border border-[#29435f] bg-[#10243b] p-4">
+                  <div className="flex items-start gap-3">
+                    <ShieldCheck size={19} className="shrink-0 text-cyan-300" />
+
+                    <div>
+                      <p className="text-xs font-bold text-slate-200">
+                        Admin approval required
+                      </p>
+                      <p className="mt-1 text-[11px] leading-5 text-slate-400">
+                        Your payment details must be approved before the public
+                        profile can accept payments.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </section>
             </div>
 
             {(formError || apiError) && (
@@ -249,8 +436,27 @@ export default function UpiPaymentSettings() {
               </div>
             )}
 
+            {status === "rejected" && rejectionReason && (
+              <div
+                role="alert"
+                className="mt-4 rounded-xl border border-red-400/25 bg-red-400/[0.08] px-4 py-3"
+              >
+                <p className="text-xs font-bold text-red-200">
+                  Admin's rejection reason
+                </p>
+                <p className="mt-1 text-xs leading-5 text-red-100">
+                  {rejectionReason}
+                </p>
+              </div>
+            )}
+
             {/* Footer actions */}
-            <footer className="mt-7 flex justify-end border-t border-[#29435f] pt-6">
+            <footer className="mt-7 flex flex-col gap-4 border-t border-[#29435f] pt-6 sm:flex-row sm:items-center sm:justify-between">
+              <p className="max-w-md text-[11px] leading-5 text-slate-400">
+                Changes will require admin review before payment functionality
+                can be enabled on your public mini website.
+              </p>
+
               <button
                 type="submit"
                 disabled={loading || saving}
@@ -267,6 +473,10 @@ export default function UpiPaymentSettings() {
           </form>
         </section>
 
+        <p className="mt-5 text-center text-[10px] leading-5 text-slate-400">
+          Secure business settings · Payment activation is controlled by
+          administrator approval.
+        </p>
       </div>
     </main>
   );

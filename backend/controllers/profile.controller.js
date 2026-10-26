@@ -169,7 +169,7 @@ const getPublicProfile = async (req, res) => {
     const profile = await MiniProfile.findOne({
       subdomain,
     }).select(
-      "firstName lastName businessName industry subdomain jobTitle headline bio phone whatsapp email website websiteUrl shopUnit area city state pincode landmark mapLink businessHours socialCards avatar logo banner qrCode activeTheme isVerified verifiedAt",
+      "firstName lastName businessName industry subdomain jobTitle headline bio phone whatsapp email website websiteUrl shopUnit area city state pincode landmark mapLink businessHours socialCards contactButtons avatar logo banner qrCode activeTheme isVerified verifiedAt",
     );
 
     if (!profile) {

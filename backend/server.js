@@ -11,6 +11,9 @@ const contactButtonsRoutes = require("./routes/contactButtons.routes");
 const productRoutes = require("./routes/product.route");
 const galleryRoutes = require("./routes/gallery.route");
 const paymentSettingsRoutes = require("./routes/paymentSettings.routes");
+const qrCodeRoutes = require("./routes/qrCode.routes");
+const { resolveQRCode } = require("./controllers/qrCode.controller");
+const adminQRRoutes = require("./routes/adminQR.routes");
 
 const connectDB = require("./config/db");
 
@@ -65,6 +68,10 @@ app.use("/api/contact-buttons", contactButtonsRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/gallery", galleryRoutes);
 app.use("/api/payment-settings", paymentSettingsRoutes);
+app.use("/api/qr-codes", qrCodeRoutes);
+// Resolve an existing physical QR path, e.g. GET /xyz
+app.get("/:qrPath", resolveQRCode);
+app.use("/api/admin/qr-sets", adminQRRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({

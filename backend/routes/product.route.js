@@ -9,7 +9,10 @@ const {
   updateProduct,
   deleteProduct,
   parseProductImages,
+  getPublicProducts,
 } = require("../controllers/product.controller");
+
+router.get("/public/:subdomain", getPublicProducts);
 
 // Product routes
 router.post("/", protect, parseProductImages, createProduct);

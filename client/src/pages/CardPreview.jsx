@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import api from "../redux/api";
 import {
   ArrowUpRight,
   Award,
@@ -75,16 +76,13 @@ const themes = {
 const defaultBanner =
   "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1600";
 
-function readProfile() {
-  try {
-    return JSON.parse(localStorage.getItem("bioProfileData") || "null");
-  } catch {
-    return null;
-  }
-}
-
 function CardPreview() {
-  const [profile, setProfile] = useState(readProfile);
+  const { subdomain } = useParams();
+
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [profileError, setProfileError] = useState("");
+
   const [copied, setCopied] = useState(false);
   const [form, setForm] = useState({
     name: "",
@@ -94,16 +92,71 @@ function CardPreview() {
   });
 
   useEffect(() => {
-    const refreshProfile = () => setProfile(readProfile());
+    let cancelled = false;
 
-    window.addEventListener("storage", refreshProfile);
-    window.addEventListener("bioProfileUpdated", refreshProfile);
+    const fetchPublicProfile = async () => {
+      setLoading(true);
+      setProfileError("");
+      setProfile(null);
+
+      try {
+        if (!subdomain) {
+          throw new Error("Business profile URL is missing.");
+        }
+
+        const response = await api.get(
+          `/profile/public/${encodeURIComponent(subdomain)}`,
+        );
+        const publicProfile = response.data?.profile;
+
+        if (!response.data?.success || !publicProfile) {
+          throw new Error("Business profile was not found.");
+        }
+
+        if (!cancelled) {
+          setProfile(publicProfile);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setProfileError(
+            error.response?.data?.message ||
+              error.message ||
+              "Unable to load this business profile.",
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchPublicProfile();
 
     return () => {
-      window.removeEventListener("storage", refreshProfile);
-      window.removeEventListener("bioProfileUpdated", refreshProfile);
+      cancelled = true;
     };
-  }, []);
+  }, [subdomain]);
+
+  if (loading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-slate-950 p-6 text-white">
+        Loading business profile...
+      </main>
+    );
+  }
+
+  if (profileError || !profile) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-slate-950 p-6 text-center text-white">
+        <h1 className="text-2xl font-bold">Profile unavailable</h1>
+        <p>{profileError || "This business profile could not be found."}</p>
+        <Link to="/" className="underline">
+          Go to Home
+        </Link>
+      </main>
+    );
+  }
 
   const theme = themes[profile?.activeTheme] || themes.sunset;
 

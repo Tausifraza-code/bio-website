@@ -4,6 +4,7 @@ const Product = require("../models/Product");
 const { uploadToImgBB } = require("../utils/imgbb");
 const sharp = require("sharp");
 const { handleUploadError } = require("../middleware/upload.middleware");
+const MiniProfile = require("../models/MiniProfile");
 
 const handleProductError = (res, error, action) => {
   console.error(`${action} error:`, error);
@@ -48,7 +49,7 @@ const imageUpload = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: 5 * 1024 * 1024,
-    files: 8,
+    files: 50,
   },
   fileFilter: (req, file, cb) => {
     const allowedTypes = [
@@ -289,22 +290,6 @@ const updateProduct = async (req, res) => {
       });
     }
 
-    // temporary logs
-    // console.log(
-    //   "Uploaded files:",
-    //   (req.files || []).map((file) => file.originalname),
-    // );
-
-    //temporary logs
-    // console.log("Existing image count:", product.images.length);
-    // console.log(
-    //   "Existing images:",
-    //   product.images.map((image) => ({
-    //     id: image._id.toString(),
-    //     url: image.url,
-    //   })),
-    // );
-
     const updates = {};
 
     if (req.body.name !== undefined) {
@@ -398,10 +383,44 @@ const deleteProduct = async (req, res) => {
   }
 };
 
+const getPublicProducts = async (req, res) => {
+  try {
+    const subdomain = req.params.subdomain?.trim().toLowerCase();
+
+    const profile = await MiniProfile.findOne({ subdomain }).select("userId");
+
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: "Public profile not found.",
+      });
+    }
+
+    const products = await Product.find({
+      userId: profile.userId,
+      status: "active",
+    }).sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      count: products.length,
+      data: products,
+    });
+  } catch (error) {
+    console.error("Get public products error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch public products.",
+    });
+  }
+};
+
 module.exports = {
   createProduct,
   getMyProducts,
   updateProduct,
   deleteProduct,
   parseProductImages,
+  getPublicProducts,
 };
