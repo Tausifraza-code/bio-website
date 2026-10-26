@@ -71,6 +71,7 @@ app.use("/api/payment-settings", paymentSettingsRoutes);
 app.use("/api/qr-codes", qrCodeRoutes);
 // Resolve an existing physical QR path, e.g. GET /xyz
 app.get("/:qrPath", resolveQRCode);
+app.get("/q/:qrPath", resolveQRCode);
 app.use("/api/admin/qr-sets", adminQRRoutes);
 
 app.get("/", (req, res) => {

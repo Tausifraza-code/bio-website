@@ -67,6 +67,39 @@ export const bindPhysicalQR = createAsyncThunk(
   },
 );
 
+export const activateQRByCode = createAsyncThunk(
+  "qr/activateQRByCode",
+  async ({ activationCode }, { rejectWithValue }) => {
+    try {
+      const code = String(activationCode || "")
+        .trim()
+        .toUpperCase();
+
+      if (!code) {
+        return rejectWithValue("Please enter your activation code.");
+      }
+
+      const response = await api.post("/qr-codes/activate", {
+        activationCode: code,
+      });
+
+      if (!response.data?.success) {
+        return rejectWithValue(
+          response.data?.message || "Unable to activate your standee.",
+        );
+      }
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to activate your standee.",
+      );
+    }
+  },
+);
+
 const qrSlice = createSlice({
   name: "qr",
 
@@ -76,6 +109,7 @@ const qrSlice = createSlice({
     boundQR: null,
     successMessage: "",
     error: null,
+    activatingCode: false,
   },
 
   reducers: {
@@ -114,6 +148,22 @@ const qrSlice = createSlice({
       .addCase(bindPhysicalQR.rejected, (state, action) => {
         state.binding = false;
         state.error = action.payload || "QR binding failed.";
+      })
+
+      .addCase(activateQRByCode.pending, (state) => {
+        state.activatingCode = true;
+        state.error = null;
+        state.successMessage = "";
+      })
+      .addCase(activateQRByCode.fulfilled, (state, action) => {
+        state.activatingCode = false;
+        state.boundQR = action.payload?.data || state.boundQR;
+        state.successMessage =
+          action.payload?.message || "Standee activated successfully.";
+      })
+      .addCase(activateQRByCode.rejected, (state, action) => {
+        state.activatingCode = false;
+        state.error = action.payload || "Standee activation failed.";
       });
   },
 });

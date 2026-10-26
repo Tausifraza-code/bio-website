@@ -7,6 +7,7 @@ import {
   bindPhysicalQR,
   clearQRMessages,
   fetchMyBoundQR,
+  activateQRByCode,
 } from "../redux/slice/qrSlice";
 import {
   Copy,
@@ -29,7 +30,6 @@ import {
 const Qr = () => {
   const [copiedField, setCopiedField] = useState(null);
   const [standeeCode, setStandeeCode] = useState("");
-  const [standeeActivated, setStandeeActivated] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [qrImage, setQrImage] = useState("");
   const [decodedQRUrl, setDecodedQRUrl] = useState("");
@@ -41,9 +41,8 @@ const Qr = () => {
   const scannerInstanceRef = useRef(null);
   const dispatch = useDispatch();
 
-  const { boundQR, binding, fetching, successMessage, error } = useSelector(
-    (state) => state.qr,
-  );
+  const { boundQR, binding, fetching, activatingCode, successMessage, error } =
+    useSelector((state) => state.qr);
 
   const directCardLink = boundQR?.subdomain
     ? `${window.location.origin}/card-preview/${encodeURIComponent(
@@ -385,12 +384,24 @@ const Qr = () => {
 
   /* ==================== STANDEE ==================== */
 
-  const handleActivateStandee = () => {
-    if (!standeeCode.trim() || standeeActivated) return;
+  const handleActivateStandee = async () => {
+    const code = standeeCode.trim().toUpperCase();
 
-    // Demo-only activation; replace with a backend API when available.
-    setStandeeActivated(true);
+    if (!code || activatingCode) return;
+
+    dispatch(clearQRMessages());
+
+    try {
+      await dispatch(activateQRByCode({ activationCode: code })).unwrap();
+
+      setStandeeCode("");
+      dispatch(fetchMyBoundQR());
+    } catch (err) {
+      console.error("Standee activation failed:", err);
+    }
   };
+
+  const standeeActivated = Boolean(boundQR?.activationCode);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#0b1b30] text-white">
@@ -879,13 +890,11 @@ const Qr = () => {
 
                 <div>
                   <h3 className="text-sm font-bold text-white">
-                    Demo activation complete
+                    Standee activated successfully
                   </h3>
 
                   <p className="mt-1 text-xs leading-5 text-slate-400">
-                    Code {standeeCode} has been marked activated in this
-                    session. A backend connection is required for actual standee
-                    verification.
+                    Your standee is now linked to this business profile.
                   </p>
                 </div>
               </div>
@@ -895,7 +904,7 @@ const Qr = () => {
                   htmlFor="standee-code"
                   className="mb-2 block text-xs font-semibold text-slate-300"
                 >
-                  Standee alphanumeric code
+                  Standee activation code
                 </label>
 
                 <div className="flex flex-col gap-3 sm:flex-row">
@@ -906,27 +915,44 @@ const Qr = () => {
                     onChange={(e) =>
                       setStandeeCode(e.target.value.toUpperCase())
                     }
-                    placeholder="E.g. XR-1001"
-                    className="min-w-0 flex-1 rounded-xl border border-[#29435f] bg-[#0b1b30] px-4 py-3 font-mono text-sm font-semibold tracking-wider text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-300/[0.08]"
+                    placeholder="E.g. BIO-8QTYQKJF"
+                    autoComplete="off"
+                    disabled={activatingCode}
+                    className="min-w-0 flex-1 rounded-xl border border-[#29435f] bg-[#0b1b30] px-4 py-3 font-mono text-sm font-semibold tracking-wider text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-300/[0.08] disabled:cursor-not-allowed disabled:opacity-40"
                   />
 
                   <button
                     type="button"
                     onClick={handleActivateStandee}
-                    disabled={!standeeCode.trim()}
-                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-cyan-300 px-5 py-3 text-xs font-bold text-[#0b1b30] transition hover:bg-cyan-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
+                    disabled={!standeeCode.trim() || activatingCode}
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-cyan-300 px-5 py-3 text-xs font-bold text-[#0b1b30] transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    <Check size={14} />
-                    Activate Standee
+                    {activatingCode ? (
+                      <>
+                        <Loader2 size={14} className="animate-spin" />
+                        Activating...
+                      </>
+                    ) : (
+                      <>
+                        <Check size={14} />
+                        Activate Standee
+                      </>
+                    )}
                   </button>
                 </div>
-
-                <p className="mt-3 text-[11px] leading-5 text-slate-500">
-                  Demo only: this action currently updates local component
-                  state. Connect the standee verification API before using it
-                  for real activations.
-                </p>
               </>
+            )}
+
+            {successMessage && (
+              <p className="mt-3 text-sm text-emerald-500" role="status">
+                {successMessage}
+              </p>
+            )}
+
+            {error && (
+              <p className="mt-3 text-sm text-red-500" role="alert">
+                {error}
+              </p>
             )}
           </div>
         </section>

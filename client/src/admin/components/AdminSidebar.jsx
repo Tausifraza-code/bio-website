@@ -5,6 +5,7 @@ import {
   GitBranch,
   CreditCard,
   ShoppingBag,
+  QrCode,
   Settings,
   LogOut,
   ShieldCheck,
@@ -26,6 +27,11 @@ const menuItems = [
     label: "Referrals",
     path: "/admin/referrals",
     icon: GitBranch,
+  },
+  {
+    label: "QR Management",
+    path: "/admin/qr-management",
+    icon: QrCode,
   },
   {
     label: "Plans",

@@ -8,7 +8,7 @@ import productSlice from "./slice/productSlice";
 import galleryReducer from "./slice/gallerySlice";
 import paymentSettingsReducer from "./slice/paymentSettingsSlice";
 import qrReducer from "./slice/qrSlice";
-
+import adminQRReducer from "./slice/adminQRSlice";
 const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -20,6 +20,7 @@ const store = configureStore({
     gallery: galleryReducer,
     paymentSettings: paymentSettingsReducer,
     qr: qrReducer,
+    adminQR: adminQRReducer,
   },
 });
 

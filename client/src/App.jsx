@@ -20,7 +20,7 @@ import UpiPaymentSettings from "./pages/UpiPaymentSettings";
 import TestQRGenerator from "./pages/TestQRGenerator";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-
+import Gallery from "./pages/Gallery";
 // admin imports
 
 import AdminLayout from "./admin/components/AdminLayout";
@@ -28,7 +28,7 @@ import AdminDashboard from "./admin/pages/AdminDashboard";
 import AdminLogin from "./admin/pages/AdminLogin";
 import AdminUsers from "./admin/pages/AdminUsers";
 import AdminReferrals from "./admin/pages/AdminReferrals";
-import Gallery from "./pages/Gallery";
+import AdminQRManagement from "./admin/pages/AdminQRManagement";
 
 function App() {
   useEffect(() => {
@@ -82,6 +82,7 @@ function App() {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/users" element={<AdminUsers />} />
         <Route path="/admin/referrals" element={<AdminReferrals />} />
+        <Route path="/admin/qr-management" element={<AdminQRManagement />} />
       </Route>
 
       {/* Password Reset Pages */}

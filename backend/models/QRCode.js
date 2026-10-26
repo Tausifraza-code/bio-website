@@ -12,6 +12,16 @@ const qrCodeSchema = new mongoose.Schema(
       uppercase: true,
     },
 
+    activationCode: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+      uppercase: true,
+      index: true,
+      match: /^BIO-[A-HJ-NP-Z2-9]{8}$/,
+    },
+
     // Unique path encoded in the physical QR
     qrPath: {
       type: String,
@@ -39,6 +49,33 @@ const qrCodeSchema = new mongoose.Schema(
       ref: "User",
       default: null,
       index: true,
+    },
+
+    downloadHistory: {
+      type: [
+        {
+          format: {
+            type: String,
+            enum: ["standee", "pocket", "keychain"],
+            required: true,
+          },
+          fileType: {
+            type: String,
+            enum: ["png", "jpg", "jpeg", "svg", "pdf"],
+            required: true,
+          },
+          downloadedAt: {
+            type: Date,
+            default: Date.now,
+          },
+          downloadedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            default: null,
+          },
+        },
+      ],
+      default: [],
     },
 
     // Admin/staff who generated the set
