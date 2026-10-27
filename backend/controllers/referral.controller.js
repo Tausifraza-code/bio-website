@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const User = require("../models/user");
+const User = require("../models/User");
 const ReferralLog = require("../models/ReferralLog");
 
 // GET /api/admin/referrals
@@ -261,7 +261,82 @@ const getReferredUsers = async (req, res) => {
   }
 };
 
+const getMyReferrals = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+
+    const limit = Math.min(
+      100,
+      Math.max(1, Number.parseInt(req.query.limit, 10) || 10),
+    );
+
+    const user = await User.findById(userId)
+      .select("fullName referralCode")
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    const filter = { referrerId: userId };
+
+    const [totalReferrals, logs] = await Promise.all([
+      ReferralLog.countDocuments(filter),
+
+      ReferralLog.find(filter)
+        .populate({
+          path: "referredUserId",
+          select: "fullName email createdAt",
+        })
+        .sort({ registeredAt: -1, _id: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+    ]);
+
+    const referrals = logs
+      .filter((log) => log.referredUserId)
+      .map((log) => ({
+        userId: log.referredUserId._id,
+        fullName: log.referredUserId.fullName,
+        email: log.referredUserId.email,
+        registeredAt: log.registeredAt || log.referredUserId.createdAt,
+      }));
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        user: {
+          fullName: user.fullName,
+          referralCode: user.referralCode,
+        },
+        totalReferrals,
+        referrals,
+        pagination: {
+          currentPage: page,
+          limit,
+          totalReferrals,
+          totalPages: Math.ceil(totalReferrals / limit),
+        },
+      },
+    });
+  } catch (error) {
+    console.error("My referrals error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch your referrals.",
+    });
+  }
+};
+
 module.exports = {
   getReferralReport,
   getReferredUsers,
+  getMyReferrals,
 };

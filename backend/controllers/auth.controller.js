@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 const mongoose = require("mongoose");
-const User = require("../models/user");
+const User = require("../models/User");
 const ReferralLog = require("../models/ReferralLog");
 const bcrypt = require("bcryptjs");
 const nodemailer = require("nodemailer");
@@ -391,10 +391,26 @@ const getMe = async (req, res) => {
   });
 };
 
+const logoutUser = async (req, res) => {
+  try {
+    return res.status(200).json({
+      success: true,
+      message: "Logout successful",
+    });
+  } catch (error) {
+    console.error("Logout error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Logout failed",
+    });
+  }
+};
 module.exports = {
   registerUser,
   loginUser,
   getMe,
+  logoutUser,
   forgotPassword,
   resetPassword,
 };
