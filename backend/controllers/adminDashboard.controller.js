@@ -1,4 +1,4 @@
-const User = require("../models/user");
+const User = require("../models/User");
 const ReferralLog = require("../models/ReferralLog");
 
 // GET /api/admin/dashboard

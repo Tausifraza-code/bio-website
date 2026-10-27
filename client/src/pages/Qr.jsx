@@ -56,25 +56,18 @@ const Qr = () => {
       )}`
     : "";
 
-  // const apiBaseUrl =
-  //   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
-  // const backendOrigin = apiBaseUrl.replace(/\/api\/?$/, "").replace(/\/+$/, "");
-  // const businessName =
-  //   boundQR?.businessName || boundQR?.subdomain || "Your Business";
-  // const qrPublicUrl = boundQR?.qrPath
-  //   ? `${backendOrigin}${boundQR.qrPath}`
-  //   : "";
-  // const profileUrl = boundQR?.subdomain
-  //   ? `${window.location.origin}/card-preview/${encodeURIComponent(
-  //       boundQR.subdomain,
-  //     )}`
-  //   : "";
-
-  const qrPublicBaseUrl =
-    import.meta.env.VITE_PUBLIC_QR_BASE_URL || window.location.origin;
-
+  const apiBaseUrl =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+  const backendOrigin = apiBaseUrl.replace(/\/api\/?$/, "").replace(/\/+$/, "");
+  const businessName =
+    boundQR?.businessName || boundQR?.subdomain || "Your Business";
   const qrPublicUrl = boundQR?.qrPath
-    ? `${qrPublicBaseUrl.replace(/\/+$/, "")}${boundQR.qrPath}`
+    ? `${backendOrigin}${boundQR.qrPath}`
+    : "";
+  const profileUrl = boundQR?.subdomain
+    ? `${window.location.origin}/card-preview/${encodeURIComponent(
+        boundQR.subdomain,
+      )}`
     : "";
   const whatsappMessage =
     `Check out my ${businessName} Mini Website Card! ` +

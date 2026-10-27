@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 const mongoose = require("mongoose");
-const User = require("../models/user");
+const User = require("../models/User");
 const ReferralLog = require("../models/ReferralLog");
 const bcrypt = require("bcryptjs");
 const nodemailer = require("nodemailer");
