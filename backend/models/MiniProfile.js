@@ -40,7 +40,7 @@ const miniProfileSchema = new mongoose.Schema(
         {
           platform: {
             type: String,
-            
+
             required: true,
             trim: true,
           },
@@ -63,6 +63,11 @@ const miniProfileSchema = new mongoose.Schema(
           audience: { type: String, trim: true, default: "" },
           url: { type: String, trim: true, default: "" },
           description: { type: String, trim: true, default: "" },
+          profileImage: {
+            type: String,
+            trim: true,
+            default: "",
+          },
           thumbnail: { type: String, default: "my-photo" },
           ctaLabel: { type: String, trim: true, default: "Follow" },
           verifiedTick: { type: Boolean, default: true },
@@ -71,6 +76,11 @@ const miniProfileSchema = new mongoose.Schema(
       default: [],
     },
 
+    profileImage: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     contactButtons: {
       type: [
         {

@@ -613,7 +613,7 @@ function AuthPage() {
               )}
 
               {/* Plan Selection — Signup Only */}
-              {mode === "signup" && (
+              {/* {mode === "signup" && (
                 <div className="pt-2">
                   <div className="mb-2 flex items-center justify-between gap-2">
                     <h3 className="text-sm font-bold text-[var(--text-primary)]">
@@ -679,7 +679,7 @@ function AuthPage() {
                     })}
                   </div>
                 </div>
-              )}
+              )} */}
 
               {/* Auto-fill — Login Only */}
               {mode === "login" && (

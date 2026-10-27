@@ -91,9 +91,15 @@ const getProfile = async (req, res) => {
 
 const uploadProfileImage = async (req, res) => {
   try {
-    const { field } = req.body;
+    const { field, socialCardId } = req.body;
 
-    const allowedImageFields = ["avatar", "logo", "banner", "qrCode"];
+    const allowedImageFields = [
+      "avatar",
+      "logo",
+      "banner",
+      "qrCode",
+      "socialCard",
+    ];
 
     if (!allowedImageFields.includes(field)) {
       return res.status(400).json({
@@ -109,48 +115,82 @@ const uploadProfileImage = async (req, res) => {
       });
     }
 
-    // Upload image to ImgBB
+    // Social card upload ke liye card ID required hai.
+    if (field === "socialCard" && !socialCardId) {
+      return res.status(400).json({
+        success: false,
+        message: "Social card ID is required",
+      });
+    }
+
+    const profile = await MiniProfile.findOne({
+      userId: req.user._id,
+    });
+
+    if (field === "socialCard") {
+      if (!profile) {
+        return res.status(404).json({
+          success: false,
+          message: "Profile not found",
+        });
+      }
+
+      const socialCard = profile.socialCards.id(socialCardId);
+
+      if (!socialCard) {
+        return res.status(404).json({
+          success: false,
+          message: "Social card not found",
+        });
+      }
+    }
+
+    // Existing ImgBB upload utility
     const uploadResult = await uploadToImgBB(
       req.file.buffer,
       req.file.originalname,
     );
 
-    // Your existing imgbb.js returns url directly
-    if (!uploadResult.url) {
+    if (!uploadResult?.url) {
       throw new Error("ImgBB did not return an image URL");
     }
 
-    // Save uploaded image URL to the user's profile
-    const profile = await MiniProfile.findOneAndUpdate(
-      { userId: req.user._id },
-      {
-        $set: {
-          [field]: uploadResult.url,
+    let updatedProfile;
+
+    if (field === "socialCard") {
+      const socialCard = profile.socialCards.id(socialCardId);
+      socialCard.profileImage = uploadResult.url;
+
+      await profile.save();
+      updatedProfile = profile;
+    } else {
+      updatedProfile = await MiniProfile.findOneAndUpdate(
+        { userId: req.user._id },
+        {
+          $set: { [field]: uploadResult.url },
         },
-        $setOnInsert: {
-          userId: req.user._id,
+        {
+          new: true,
+          runValidators: true,
         },
-      },
-      {
-        returnDocument: "after",
-        upsert: true,
-        runValidators: true,
-        setDefaultsOnInsert: true,
-      },
-    );
+      );
+    }
 
     return res.status(200).json({
       success: true,
-      message: "Profile image uploaded successfully",
+      message:
+        field === "socialCard"
+          ? "Social card image uploaded successfully"
+          : "Profile image uploaded successfully",
       imageUrl: uploadResult.url,
-      profile,
+      profile: updatedProfile,
     });
   } catch (error) {
     console.error("Upload Profile Image Error:", error);
 
     return res.status(500).json({
       success: false,
-      message: "Unable to upload profile image",
+      message: "Unable to upload image",
     });
   }
 };

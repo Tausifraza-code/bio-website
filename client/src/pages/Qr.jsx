@@ -547,14 +547,14 @@ const Qr = () => {
           </p>
 
           <div className="mt-5 flex flex-wrap gap-3">
-            <button
+            {/* <button
               type="button"
               onClick={startQRScanner}
               disabled={scannerOpen || qrBusy}
               className="rounded-xl bg-cyan-300 px-4 py-3 text-sm font-bold text-[#0b1b30] disabled:opacity-50"
             >
               Scan with Camera
-            </button>
+            </button> */}
 
             <label
               className={`rounded-xl border border-[#38516e] px-4 py-3 text-sm font-semibold text-white ${
