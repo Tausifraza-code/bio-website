@@ -1,4 +1,4 @@
-const User = require("../models/user");
+const User = require("../models/User");
 const mongoose = require("mongoose");
 const MiniProfile = require("../models/MiniProfile");
 // GET /api/admin/users

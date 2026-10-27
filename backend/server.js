@@ -74,12 +74,6 @@ app.get("/:qrPath", resolveQRCode);
 app.get("/q/:qrPath", resolveQRCode);
 app.use("/api/admin/qr-sets", adminQRRoutes);
 
-app.get("/", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "BIO Website Backend is running",
-  });
-});
 
 // ======================================================
 // STATIC FRONTEND FILES
