@@ -49,14 +49,23 @@ const formatDate = (value) => {
   });
 };
 
+// const getPublicQRUrl = (qrPath) => {
+//   const apiBaseUrl =
+//     import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+
+//   const backendOrigin = apiBaseUrl.replace(/\/api\/?$/, "").replace(/\/+$/, "");
+
+//   if (!qrPath) return "";
+//   return `${backendOrigin}${qrPath}`;
+// };
+
 const getPublicQRUrl = (qrPath) => {
-  const apiBaseUrl =
-    import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
-
-  const backendOrigin = apiBaseUrl.replace(/\/api\/?$/, "").replace(/\/+$/, "");
-
   if (!qrPath) return "";
-  return `${backendOrigin}${qrPath}`;
+
+  const publicBaseUrl =
+    import.meta.env.VITE_PUBLIC_QR_BASE_URL || window.location.origin;
+
+  return `${publicBaseUrl.replace(/\/+$/, "")}${qrPath}`;
 };
 
 const downloadQRDesign = async (item, format, fileType, onDownloadRecorded) => {

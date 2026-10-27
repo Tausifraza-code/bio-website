@@ -26,7 +26,6 @@ import {
   CreditCard,
   UserRound,
 } from "lucide-react";
-import api from "../redux/api";
 
 const Qr = () => {
   const [copiedField, setCopiedField] = useState(null);
@@ -58,7 +57,7 @@ const Qr = () => {
     : "";
 
   const apiBaseUrl =
-    import.meta.env.VITE_API_BASE_URL || api;
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
   const backendOrigin = apiBaseUrl.replace(/\/api\/?$/, "").replace(/\/+$/, "");
   const businessName =
     boundQR?.businessName || boundQR?.subdomain || "Your Business";
