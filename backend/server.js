@@ -15,6 +15,7 @@ const qrCodeRoutes = require("./routes/qrCode.routes");
 const { resolveQRCode } = require("./controllers/qrCode.controller");
 const adminQRRoutes = require("./routes/adminQR.routes");
 const referralRoutes = require("./routes/referral.route");
+const inquiryRoutes = require("./routes/inquiry.routes");
 
 const connectDB = require("./config/db");
 
@@ -69,6 +70,7 @@ app.use("/api/contact-buttons", contactButtonsRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/gallery", galleryRoutes);
 app.use("/api/referrals", referralRoutes);
+app.use("/api/inquiries", inquiryRoutes);
 app.use("/api/payment-settings", paymentSettingsRoutes);
 app.use("/api/qr-codes", qrCodeRoutes);
 

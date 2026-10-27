@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   Gift,
@@ -17,8 +16,7 @@ import {
 const Refer = () => {
   const [copied, setCopied] = useState(false);
 
-  const referralLink =
-    "https://digital-eight-liart.vercel.app/ref/ankit";
+  const referralLink = `${window.location.origin}/register?referralCode=YOUR_REFERRAL_CODE`;
 
   /* ==================== COPY REFERRAL LINK ==================== */
 
@@ -46,7 +44,7 @@ const Refer = () => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error("Unable to copy referral link:", error);
+      console.error("Unable to copy referral code:", error);
     }
   };
 
@@ -60,8 +58,7 @@ const Refer = () => {
       `${referralLink}\n\n` +
       `You can create your own digital visiting card, share payments via UPI, and grow your business online! 🚀`;
 
-    const whatsappUrl =
-      `https://wa.me/?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
 
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
@@ -136,8 +133,8 @@ const Refer = () => {
               </h1>
 
               <p className="mt-2 max-w-xl text-xs leading-6 text-slate-400 sm:text-sm">
-                Invite business owners, help them grow online, and earn
-                rewards when they activate their mini website.
+                Invite business owners, help them grow online, and earn rewards
+                when they activate their mini website.
               </p>
             </div>
           </div>
@@ -174,8 +171,8 @@ const Refer = () => {
 
                 <p className="mt-2 max-w-xl text-xs leading-6 text-slate-400">
                   Refer a business that registers through your link and
-                  activates its card to qualify for the advertised reward
-                  or subscription extension.
+                  activates its card to qualify for the advertised reward or
+                  subscription extension.
                 </p>
               </div>
             </div>
@@ -212,9 +209,8 @@ const Refer = () => {
               </h2>
 
               <p className="mt-3 max-w-sm text-xs leading-6 text-slate-400 sm:text-sm">
-                Share your unique referral link with shop owners,
-                freelancers, and other businesses looking to build their
-                online presence.
+                Share your unique referral link with shop owners, freelancers,
+                and other businesses looking to build their online presence.
               </p>
 
               <div className="mt-6 space-y-3">
@@ -311,8 +307,8 @@ const Refer = () => {
               )}
 
               <p className="mt-4 text-[11px] leading-5 text-slate-500">
-                The referral tracking and reward eligibility depend on
-                your platform's referral system and activation rules.
+                The referral tracking and reward eligibility depend on your
+                platform's referral system and activation rules.
               </p>
             </div>
           </div>
@@ -406,9 +402,8 @@ const Refer = () => {
             </h3>
 
             <p className="mx-auto mt-2 max-w-md text-xs leading-6 text-slate-400">
-              You haven't referred any businesses yet. Share your link
-              with business owners and your referral list can start
-              growing here.
+              You haven't referred any businesses yet. Share your link with
+              business owners and your referral list can start growing here.
             </p>
 
             <button
@@ -426,9 +421,9 @@ const Refer = () => {
         {/* ==================== FOOTER NOTE ==================== */}
 
         <p className="mt-6 text-center text-[10px] leading-5 text-slate-500">
-          Referral counts and reward amounts shown here are currently
-          static placeholders. Connect your referral API to display
-          account-specific data.
+          Referral counts and reward amounts shown here are currently static
+          placeholders. Connect your referral API to display account-specific
+          data.
         </p>
       </div>
     </main>
