@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import {
   Palette,
@@ -141,42 +140,29 @@ const WebsiteThemes = () => {
   };
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-[#0b1b30] text-white">
-      {/* Background effects: matching DashboardSidebar */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-cyan-400/[0.07] blur-[140px]" />
-        <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-blue-500/[0.07] blur-[140px]" />
-
-        <div
-          className="absolute inset-0 opacity-[0.025]"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(34,211,238,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(34,211,238,0.5) 1px, transparent 1px)",
-            backgroundSize: "52px 52px",
-          }}
-        />
-      </div>
-
-      <main className="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+    // Background wrapper completely transparent, removed blur/grid effects
+    <div className="relative min-h-screen bg-transparent font-sans text-slate-200">
+      <main className="relative mx-auto max-w-7xl px-1 py-8 sm:px-6 lg:px-8">
+        
         {/* PAGE HEADER */}
-        <div className="mb-7 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/20 bg-cyan-300/10 text-cyan-300 shadow-lg shadow-cyan-950/20">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan-400/20 bg-[#0b1b30] text-cyan-400 shadow-lg shadow-black/20">
               <Palette size={22} />
             </div>
 
             <div>
               <div className="mb-1 flex flex-wrap items-center gap-2">
-                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
                   Website Themes
                 </h1>
 
-                <span className="rounded-full border border-cyan-300/25 bg-cyan-300/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-cyan-200">
-                  5 Themes
+                <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-cyan-400">
+                  {THEMES.length} Themes
                 </span>
               </div>
 
-              <p className="max-w-2xl text-sm leading-relaxed text-slate-300">
+              <p className="max-w-2xl text-sm leading-relaxed text-slate-400">
                 Customize your mini website with a professional theme.
                 Choose a design to personalize your public business card.
               </p>
@@ -186,7 +172,7 @@ const WebsiteThemes = () => {
           <button
             type="button"
             onClick={handleViewLive}
-            className="group inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-cyan-300/30 bg-[#132942] px-5 py-3 text-sm font-bold text-cyan-200 transition hover:border-cyan-300/60 hover:bg-cyan-300/10 hover:text-white active:scale-[0.98]"
+            className="group inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-[#38516e] bg-[#0b1b30] px-5 py-3 text-sm font-bold text-slate-200 transition hover:border-cyan-400/50 hover:bg-[#132942] hover:text-cyan-400 active:scale-[0.98]"
           >
             <ExternalLink
               size={17}
@@ -197,26 +183,24 @@ const WebsiteThemes = () => {
         </div>
 
         {/* CURRENT THEME BANNER */}
-        <section className="relative mb-7 overflow-hidden rounded-2xl border border-[#38516e] bg-[#0b1b30] p-5 sm:p-6">
-          <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-cyan-300/[0.06] blur-3xl" />
-
+        <section className="relative mb-8 overflow-hidden rounded-2xl border border-[#29435f] bg-[#0b1b30] p-5 sm:p-6">
           <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                   Currently Selected
                 </p>
-                <h2 className="mt-1 text-lg font-bold sm:text-xl">
+                <h2 className="mt-1 text-lg font-bold text-white sm:text-xl">
                   {activeThemeData?.name}
                 </h2>
-                <p className="mt-1 text-sm text-slate-300">
+                <p className="mt-1 text-sm text-cyan-400/80">
                   {activeThemeData?.category}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 rounded-xl border border-[#38516e] bg-[#132942] px-4 py-3">
-              <span className="text-xs font-medium text-slate-300">
+            <div className="flex items-center gap-3 rounded-xl border border-[#29435f] bg-[#132942] px-4 py-3">
+              <span className="text-xs font-medium text-slate-400">
                 Theme palette
               </span>
 
@@ -224,13 +208,13 @@ const WebsiteThemes = () => {
                 {activeThemeData?.colors.map((color, index) => (
                   <span
                     key={index}
-                    className="h-7 w-7 rounded-full border-2 border-[#132942]"
+                    className="h-7 w-7 rounded-full border-2 border-[#132942] shadow-sm"
                     style={{ backgroundColor: color }}
                   />
                 ))}
               </div>
 
-              <CheckCircle2 size={17} className="text-cyan-300" />
+              <CheckCircle2 size={17} className="text-cyan-400" />
             </div>
           </div>
         </section>
@@ -238,18 +222,18 @@ const WebsiteThemes = () => {
         {/* THEME CARDS */}
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-bold">Explore Themes</h2>
+            <h2 className="text-lg font-bold text-white">Explore Themes</h2>
             <p className="mt-1 text-sm text-slate-400">
               Select a theme that suits your business.
             </p>
           </div>
 
-          <span className="hidden rounded-lg border border-[#38516e] bg-[#132942] px-3 py-1.5 text-xs font-semibold text-slate-300 sm:inline-flex">
+          <span className="hidden rounded-lg border border-[#29435f] bg-[#132942] px-3 py-1.5 text-xs font-semibold text-slate-400 sm:inline-flex">
             {THEMES.length} available
           </span>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {THEMES.map((theme) => {
             const isActive = activeTheme === theme.id;
             const Icon = theme.icon;
@@ -259,42 +243,31 @@ const WebsiteThemes = () => {
                 key={theme.id}
                 className={`group relative flex flex-col overflow-hidden rounded-2xl border bg-[#0b1b30] transition duration-300 ${
                   isActive
-                    ? "border-cyan-300/60 shadow-[0_0_0_1px_rgba(103,232,249,0.12),0_12px_32px_rgba(0,0,0,0.22)]"
+                    ? "border-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.1)] ring-1 ring-cyan-400/20"
                     : "border-[#29435f] hover:-translate-y-1 hover:border-[#38516e] hover:shadow-xl hover:shadow-black/20"
                 }`}
               >
                 {/* Theme color preview */}
-                <div className="relative h-28 overflow-hidden bg-[#080b16]">
+                <div className="relative h-28 overflow-hidden bg-[#132942]">
                   <div
-                    className="absolute inset-0 opacity-40 blur-2xl transition duration-500 group-hover:opacity-60"
+                    className="absolute inset-0 opacity-20 transition duration-500 group-hover:opacity-40"
                     style={{
                       background: `linear-gradient(115deg, ${theme.colors[0]}, ${theme.colors[1]})`,
                     }}
                   />
 
-                  <div
-                    className="absolute inset-0 opacity-80"
-                    style={{
-                      background: `linear-gradient(115deg, ${theme.colors[0]}30, #080b16 55%, ${theme.colors[1]}35)`,
-                    }}
-                  />
-
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0b1b30] to-transparent" />
-
                   <div className="absolute left-4 top-4 flex items-center gap-2">
-                    <div
-                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/15 bg-black/20 text-white backdrop-blur-md"
-                    >
-                      <Icon size={19} />
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-[#0b1b30]/80 text-white backdrop-blur-md">
+                      <Icon size={18} />
                     </div>
 
-                    <span className="rounded-full border border-white/15 bg-black/25 px-2.5 py-1 text-[10px] font-semibold text-white/90 backdrop-blur-md">
+                    <span className="rounded-full border border-white/10 bg-[#0b1b30]/80 px-2.5 py-1 text-[10px] font-semibold text-slate-200 backdrop-blur-md">
                       {theme.category}
                     </span>
                   </div>
 
                   {isActive && (
-                    <span className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full border border-cyan-200/30 bg-[#132942]/90 px-2.5 py-1.5 text-[10px] font-bold text-cyan-200 backdrop-blur-md">
+                    <span className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-400/20 px-2.5 py-1.5 text-[10px] font-bold text-cyan-400 backdrop-blur-md">
                       <Check size={12} strokeWidth={3} />
                       SELECTED
                     </span>
@@ -302,11 +275,11 @@ const WebsiteThemes = () => {
 
                   <div className="absolute bottom-3 left-4 right-4 flex items-center gap-2">
                     <span
-                      className="h-1.5 flex-1 rounded-full"
+                      className="h-1.5 flex-1 rounded-full opacity-80"
                       style={{ backgroundColor: theme.colors[0] }}
                     />
                     <span
-                      className="h-1.5 flex-1 rounded-full"
+                      className="h-1.5 flex-1 rounded-full opacity-80"
                       style={{ backgroundColor: theme.colors[1] }}
                     />
                   </div>
@@ -317,13 +290,13 @@ const WebsiteThemes = () => {
                     {theme.name}
                   </h3>
 
-                  <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-300">
+                  <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-400">
                     {theme.description}
                   </p>
 
                   <div className="mt-5 flex items-center justify-between gap-3 border-t border-[#29435f] pt-4">
                     <div>
-                      <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                      <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
                         Color palette
                       </p>
 
@@ -334,10 +307,10 @@ const WebsiteThemes = () => {
                             className="flex items-center gap-1.5"
                           >
                             <span
-                              className="h-5 w-5 rounded-full border border-white/15 shadow-sm"
+                              className="h-4 w-4 rounded-full border border-white/10 shadow-sm"
                               style={{ backgroundColor: color }}
                             />
-                            <span className="text-[10px] text-slate-400">
+                            <span className="text-[10px] font-medium text-slate-400">
                               {color}
                             </span>
                           </div>
@@ -353,8 +326,8 @@ const WebsiteThemes = () => {
                     aria-pressed={isActive}
                     className={`mt-5 flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-bold transition active:scale-[0.98] ${
                       isActive
-                        ? "cursor-default border-cyan-300/30 bg-cyan-300/10 text-cyan-200"
-                        : "border-[#38516e] bg-[#132942] text-slate-200 hover:border-cyan-300/50 hover:bg-cyan-300/10 hover:text-cyan-200"
+                        ? "cursor-default border-cyan-400 bg-cyan-400 text-[#0b1b30] shadow-lg shadow-cyan-400/20"
+                        : "border-[#38516e] bg-[#132942] text-slate-300 hover:border-cyan-400/50 hover:bg-cyan-400/10 hover:text-cyan-400"
                     }`}
                   >
                     {isActive ? (
@@ -376,12 +349,12 @@ const WebsiteThemes = () => {
         </div>
 
         {/* ACTIVE THEME DETAILS */}
-        <section className="relative mt-7 overflow-hidden rounded-2xl border border-[#29435f] bg-[#0b1b30] p-5 sm:p-6">
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/70 to-transparent" />
+        <section className="relative mt-8 overflow-hidden rounded-2xl border border-[#29435f] bg-[#0b1b30] p-5 sm:p-6">
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent" />
 
           <div className="mb-5 flex items-center">
             <div>
-              <h2 className="text-lg font-bold">Active Theme Details</h2>
+              <h2 className="text-lg font-bold text-white">Active Theme Details</h2>
               <p className="mt-1 text-sm text-slate-400">
                 Information about your currently selected design.
               </p>
@@ -390,9 +363,9 @@ const WebsiteThemes = () => {
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {/* Active Aesthetic */}
-            <div className="rounded-xl border border-[#38516e] bg-[#132942]/70 p-4 transition hover:border-cyan-300/30">
+            <div className="rounded-xl border border-[#29435f] bg-[#132942] p-4 transition hover:border-cyan-400/30">
               <div className="mb-3 flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-300/10 text-cyan-300">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-400/10 text-cyan-400">
                   <CircleDot size={16} />
                 </div>
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-300">
@@ -404,15 +377,15 @@ const WebsiteThemes = () => {
                 {activeThemeData?.name}
               </p>
 
-              <p className="mt-2 text-sm leading-relaxed text-slate-300">
+              <p className="mt-2 text-sm leading-relaxed text-slate-400">
                 {activeThemeData?.aesthetic}
               </p>
             </div>
 
             {/* Ambient Light */}
-            <div className="rounded-xl border border-[#38516e] bg-[#132942]/70 p-4 transition hover:border-cyan-300/30">
+            <div className="rounded-xl border border-[#29435f] bg-[#132942] p-4 transition hover:border-cyan-400/30">
               <div className="mb-3 flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-300/10 text-cyan-300">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-400/10 text-cyan-400">
                   <Lightbulb size={16} />
                 </div>
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-300">
@@ -430,15 +403,15 @@ const WebsiteThemes = () => {
                 ))}
               </div>
 
-              <p className="text-sm leading-relaxed text-slate-300">
+              <p className="text-sm leading-relaxed text-slate-400">
                 {activeThemeData?.ambient}
               </p>
             </div>
 
             {/* Sync Status */}
-            <div className="rounded-xl border border-[#38516e] bg-[#132942]/70 p-4 transition hover:border-cyan-300/30">
+            <div className="rounded-xl border border-[#29435f] bg-[#132942] p-4 transition hover:border-cyan-400/30">
               <div className="mb-3 flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-300/10 text-cyan-300">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-400/10 text-cyan-400">
                   <CheckCircle2 size={16} />
                 </div>
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-300">
@@ -446,12 +419,12 @@ const WebsiteThemes = () => {
                 </p>
               </div>
 
-              <p className="flex items-center gap-2 text-sm font-bold text-cyan-200">
+              <p className="flex items-center gap-2 text-sm font-bold text-cyan-400">
                 <Check size={15} strokeWidth={3} />
                 Theme selection saved
               </p>
 
-              <p className="mt-2 text-sm leading-relaxed text-slate-300">
+              <p className="mt-2 text-sm leading-relaxed text-slate-400">
                 Your selection is stored in this browser. Make sure your
                 public card reads the same theme setting to apply it to
                 visitors.

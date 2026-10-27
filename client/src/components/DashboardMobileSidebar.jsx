@@ -1,6 +1,6 @@
-import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
 
+import React, { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   MonitorSmartphone,
   UserRoundPen,
@@ -15,19 +15,20 @@ import {
   LogOut,
   ExternalLink,
   ChevronRight,
+  LayoutDashboard,
 } from "lucide-react";
 
 const sidebarItems = [
   {
     id: "mini",
-    label: "Live Mini Website View",
+    label: "Live Mini Website",
     description: "View your business website",
     icon: MonitorSmartphone,
     path: "/mini",
   },
   {
     id: "editprofile",
-    label: "Edit Profile & Address",
+    label: "Edit Profile",
     description: "Manage business details",
     icon: UserRoundPen,
     path: "/editprofile",
@@ -56,7 +57,6 @@ const sidebarItems = [
     path: "/manageproducts",
     badge: "1",
   },
-
   {
     id: "contactbuttons",
     label: "Contact Buttons",
@@ -108,6 +108,46 @@ const DashboardMobileSidebar = ({
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Close the sidebar when the Escape key is pressed.
+  useEffect(() => {
+    if (!open) return;
+
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        onClose?.();
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [open, onClose]);
+
+  // Prevent the page behind the sidebar from scrolling on mobile.
+  useEffect(() => {
+    if (!open) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
+
+  const isItemActive = (item) => {
+    const currentPath = location.pathname.replace(/\/+$/, "") || "/";
+    const itemPath = item.path.replace(/\/+$/, "") || "/";
+
+    return (
+      activeNavItem === item.id ||
+      currentPath === itemPath ||
+      currentPath.startsWith(`${itemPath}/`)
+    );
+  };
+
   const handleNavigation = (item) => {
     onNavClick?.(item.id);
     navigate(item.path);
@@ -131,96 +171,97 @@ const DashboardMobileSidebar = ({
 
   return (
     <>
-      {/* BACKDROP */}
-      <div
+      {/* Backdrop */}
+      <button
+        type="button"
+        aria-label="Close navigation menu"
+        tabIndex={open ? 0 : -1}
         onClick={onClose}
-        className={`fixed inset-0 z-[90] bg-black/65 backdrop-blur-[3px] transition-opacity duration-300 lg:hidden ${
+        className={`fixed inset-0 z-[90] bg-[#020817]/75 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
           open
-            ? "visible opacity-100"
-            : "invisible pointer-events-none opacity-0"
+            ? "pointer-events-auto opacity-100"
+            : "pointer-events-none opacity-0"
         }`}
-        aria-hidden="true"
       />
 
-      {/* MOBILE SIDEBAR */}
+      {/* Mobile Sidebar */}
       <aside
-        aria-label="Mobile dashboard navigation"
+        id="dashboard-mobile-sidebar"
+        aria-label="Dashboard navigation"
         aria-hidden={!open}
-        className={`fixed inset-y-0 left-0 z-[100] flex h-[100dvh] w-[min(88vw,340px)] flex-col overflow-hidden border-r border-[#29435f] bg-[#0b1b30] shadow-[15px_0_50px_rgba(0,0,0,0.4)] transition-transform duration-300 ease-out lg:hidden ${
+        className={`fixed inset-y-0 left-0 z-[100] flex h-[100dvh] w-[min(88vw,360px)] flex-col overflow-hidden border-r border-cyan-400/15 bg-[#06162B] text-white shadow-[20px_0_70px_rgba(0,0,0,0.4)] transition-transform duration-300 ease-in-out lg:hidden ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {/* TOP ACCENT */}
-        <div className="absolute left-6 right-6 top-0 h-[2px] rounded-full bg-gradient-to-r from-transparent via-cyan-300 to-transparent" />
+        {/* Top Branding */}
+        <div className="relative shrink-0 overflow-hidden border-b border-white/[0.07] px-5 pb-5 pt-[max(1.25rem,env(safe-area-inset-top))]">
+          <div className="pointer-events-none absolute -right-12 -top-16 h-40 w-40 rounded-full bg-cyan-400/10 blur-3xl" />
 
-        {/* HEADER */}
-        <div className="flex shrink-0 items-center justify-between border-b border-[#29435f] px-4 py-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/25 bg-cyan-300/10">
-              <MonitorSmartphone size={23} className="text-cyan-300" />
+          <div className="relative flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/25 bg-gradient-to-br from-cyan-300 to-cyan-500 text-[#042039] shadow-lg shadow-cyan-500/15">
+                <LayoutDashboard size={22} strokeWidth={2.4} />
+              </div>
+
+              <div className="min-w-0">
+                <h2 className="truncate text-base font-extrabold tracking-tight text-white">
+                  BioWebsite
+                </h2>
+                <p className="mt-0.5 text-[11px] font-medium tracking-wide text-slate-400">
+                  BUSINESS WORKSPACE
+                </p>
+              </div>
             </div>
 
-            <div className="min-w-0">
-              <h2 className="text-base font-bold tracking-wide text-white">
-                Workspace
-              </h2>
-
-              <p className="mt-0.5 text-xs text-slate-300">
-                Manage your business
-              </p>
-            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close sidebar"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 transition hover:border-cyan-300/30 hover:bg-cyan-300/10 hover:text-cyan-300 active:scale-95"
+            >
+              <X size={20} />
+            </button>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close sidebar"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#38516e] bg-[#132942] text-slate-200 transition hover:border-cyan-300/40 hover:text-cyan-200 active:scale-95"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* WORKSPACE INFO */}
-        <div className="shrink-0 px-4 pb-3 pt-4">
-          <div className="rounded-2xl border border-[#38516e]/80 bg-gradient-to-br from-[#132942] to-[#0d2037] p-3">
+          {/* Workspace Card */}
+          <div className="relative mt-5 rounded-2xl border border-cyan-300/15 bg-gradient-to-r from-[#0C2946] to-[#0A2038] p-4">
             <div className="flex items-center gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-white">BioWebsite</p>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-300/10 text-cyan-300">
+                <MonitorSmartphone size={20} />
+              </div>
 
-                <p className="mt-1 text-xs text-slate-300">
-                  Your business, your identity.
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold text-white">
+                  Your Workspace
+                </p>
+                <p className="mt-1 text-xs leading-5 text-slate-400">
+                  Your business, your identity
                 </p>
               </div>
 
-              <span
-                className="h-2.5 w-2.5 shrink-0 rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.6)]"
-                title="Workspace"
-              />
+              <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.6)]" />
             </div>
           </div>
         </div>
 
-        {/* NAVIGATION TITLE */}
-        <div className="flex shrink-0 items-center justify-between px-5 pb-2 pt-1">
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-300">
-            Main Navigation
-          </p>
+        {/* Navigation */}
+        <div className="shrink-0 px-5 pb-3 pt-5">
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-500">
+              Main Navigation
+            </p>
 
-          <span className="rounded-md border border-[#38516e] bg-[#132942] px-2 py-0.5 text-[11px] font-bold text-slate-200">
-            {sidebarItems.length}
-          </span>
+            <span className="rounded-lg border border-white/[0.07] bg-white/[0.04] px-2 py-1 text-[10px] font-bold tabular-nums text-slate-400">
+              {sidebarItems.length} ITEMS
+            </span>
+          </div>
         </div>
 
-        {/* SCROLLABLE NAVIGATION */}
-        <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain px-3 pb-4">
+        {/* Scrollable Navigation Items */}
+        <nav className="min-h-0 flex-1 space-y-1.5 overflow-y-auto overscroll-contain px-3 pb-5 [scrollbar-color:#1e425d_transparent] [scrollbar-width:thin]">
           {sidebarItems.map((item) => {
             const Icon = item.icon;
-
-            const active =
-              location.pathname === item.path ||
-              location.pathname.startsWith(`${item.path}/`) ||
-              activeNavItem === item.id;
+            const active = isItemActive(item);
 
             return (
               <button
@@ -228,50 +269,55 @@ const DashboardMobileSidebar = ({
                 type="button"
                 onClick={() => handleNavigation(item)}
                 aria-current={active ? "page" : undefined}
-                className={`group relative flex w-full items-center gap-3 overflow-hidden rounded-xl border px-3 py-3 text-left transition-all duration-200 active:scale-[0.98] ${
+                className={`group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl border px-3 py-3 text-left transition-all duration-200 active:scale-[0.99] ${
                   active
-                    ? "border-cyan-300/30 bg-gradient-to-r from-cyan-300/15 to-blue-400/[0.07] shadow-[0_4px_15px_rgba(0,0,0,0.12)]"
-                    : "border-transparent bg-transparent hover:border-[#38516e]/70 hover:bg-[#132942]"
+                    ? "border-cyan-300/25 bg-gradient-to-r from-cyan-400/[0.15] to-cyan-400/[0.04] shadow-[inset_3px_0_0_#22d3ee]"
+                    : "border-transparent bg-transparent hover:border-white/[0.06] hover:bg-white/[0.04]"
                 }`}
               >
-                {/* ACTIVE INDICATOR */}
-                {active && (
-                  <span className="absolute bottom-2 left-0 top-2 w-[3px] rounded-r-full bg-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.5)]" />
-                )}
-
-                {/* ICON */}
-                <span
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors ${
+                {/* Icon */}
+                <div
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 ${
                     active
-                      ? "bg-cyan-300/15 text-cyan-200"
-                      : "bg-[#132942] text-slate-300 group-hover:bg-[#1a3855] group-hover:text-cyan-200"
+                      ? "border-cyan-300/20 bg-cyan-300/15 text-cyan-300"
+                      : "border-white/[0.06] bg-[#0C2037] text-slate-400 group-hover:border-cyan-300/15 group-hover:text-cyan-300"
                   }`}
                 >
-                  <Icon size={20} strokeWidth={active ? 2.2 : 1.9} />
-                </span>
+                  <Icon size={19} strokeWidth={active ? 2.2 : 1.8} />
+                </div>
 
-                {/* LABEL AND DESCRIPTION */}
-                <span className="min-w-0 flex-1">
-                  <span
-                    className={`block truncate text-[13px] font-semibold ${
-                      active ? "text-white" : "text-slate-200"
-                    }`}
-                  >
-                    {item.label}
-                  </span>
+                {/* Label and Description */}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`truncate text-[13px] font-bold ${
+                        active
+                          ? "text-cyan-200"
+                          : "text-slate-200 group-hover:text-white"
+                      }`}
+                    >
+                      {item.label}
+                    </span>
 
-                  <span className="mt-1 block truncate text-[11px] text-slate-300">
+                    {active && (
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-300 shadow-[0_0_8px_rgba(103,232,249,0.7)]" />
+                    )}
+                  </div>
+
+                  <p className="mt-1 truncate text-[11px] leading-4 text-slate-500 transition-colors group-hover:text-slate-400">
                     {item.description}
-                  </span>
-                </span>
+                  </p>
+                </div>
 
-                {/* BADGE */}
+                {/* Optional Badge */}
                 {item.badge && (
                   <span
-                    className={`shrink-0 rounded-md border px-1.5 py-1 text-[10px] font-bold ${
+                    className={`shrink-0 rounded-lg border px-2 py-1 text-[9px] font-bold ${
                       active
-                        ? "border-cyan-300/25 bg-cyan-300/10 text-cyan-100"
-                        : "border-[#38516e] bg-[#132942] text-slate-200"
+                        ? "border-cyan-300/20 bg-cyan-300/10 text-cyan-200"
+                        : item.badge === "New"
+                        ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
+                        : "border-white/[0.07] bg-white/[0.04] text-slate-400"
                     }`}
                   >
                     {item.badge}
@@ -280,10 +326,10 @@ const DashboardMobileSidebar = ({
 
                 <ChevronRight
                   size={15}
-                  className={`shrink-0 transition-transform ${
+                  className={`shrink-0 transition-all duration-200 ${
                     active
-                      ? "translate-x-0 text-cyan-200"
-                      : "text-slate-300 group-hover:translate-x-0.5 group-hover:text-cyan-200"
+                      ? "translate-x-0 text-cyan-300"
+                      : "-translate-x-1 text-slate-600 opacity-0 group-hover:translate-x-0 group-hover:text-slate-300 group-hover:opacity-100"
                   }`}
                 />
               </button>
@@ -291,46 +337,32 @@ const DashboardMobileSidebar = ({
           })}
         </nav>
 
-        {/* FOOTER / QUICK ACTIONS */}
-        <div className="shrink-0 border-t border-[#29435f] bg-[#0b1b30] p-3 pb-[max(12px,env(safe-area-inset-bottom))]">
-          <p className="mb-2 px-1 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-300">
+        {/* Bottom Quick Actions */}
+        <div className="shrink-0 border-t border-white/[0.07] bg-[#041225] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
+          <p className="mb-3 px-1 text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-500">
             Quick Actions
           </p>
 
           <button
             type="button"
             onClick={handlePreview}
-            className="group flex w-full items-center gap-3 rounded-xl border border-cyan-300/20 bg-cyan-300/[0.07] px-3 py-2.5 text-left transition hover:border-cyan-300/40 hover:bg-cyan-300/10 active:scale-[0.98]"
+            className="group flex w-full items-center justify-center gap-2 rounded-xl border border-cyan-300/25 bg-gradient-to-r from-cyan-300 to-cyan-400 px-4 py-3 text-sm font-extrabold text-[#06213A] shadow-lg shadow-cyan-500/10 transition hover:from-cyan-200 hover:to-cyan-300 active:scale-[0.98]"
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#132942] text-cyan-200 group-hover:text-cyan-100">
-              <ExternalLink size={19} />
-            </span>
-
-            <span className="flex-1 text-sm font-semibold text-white">
-              Open Preview
-              <span className="mt-0.5 block text-[11px] font-normal text-slate-300">
-                See your live website
-              </span>
-            </span>
-
-            <ChevronRight size={17} className="text-cyan-200" />
+            <ExternalLink size={17} />
+            <span>Open Preview</span>
+            <ChevronRight
+              size={16}
+              className="ml-auto transition-transform group-hover:translate-x-0.5"
+            />
           </button>
 
           <button
             type="button"
             onClick={handleLogout}
-            className="group mt-2 flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-left transition hover:border-rose-300/20 hover:bg-rose-400/[0.08] active:scale-[0.98]"
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.03] px-4 py-3 text-sm font-semibold text-slate-400 transition hover:border-rose-400/20 hover:bg-rose-400/[0.07] hover:text-rose-300 active:scale-[0.98]"
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#132942] text-rose-200 transition-colors group-hover:bg-rose-300/10">
-              <LogOut size={19} />
-            </span>
-
-            <span className="flex-1 text-sm font-semibold text-slate-200 group-hover:text-rose-200">
-              Logout
-              <span className="mt-0.5 block text-[11px] font-normal text-slate-300">
-                Sign out of your account
-              </span>
-            </span>
+            <LogOut size={17} />
+            <span>Logout</span>
           </button>
         </div>
       </aside>

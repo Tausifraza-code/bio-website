@@ -32,7 +32,7 @@ const BANK_HANDLES = [
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
 const inputClass =
-  "w-full rounded-xl border border-[#38516e] bg-[#132942] px-4 py-3.5 text-sm text-white placeholder:text-slate-400/70 outline-none transition focus:border-cyan-300/60 focus:ring-4 focus:ring-cyan-300/[0.07]";
+  "w-full rounded-xl border border-[#29435f] bg-[#132942] px-4 py-3.5 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/[0.07]";
 
 export default function UpiPaymentSettings() {
   const dispatch = useDispatch();
@@ -150,7 +150,7 @@ export default function UpiPaymentSettings() {
   const statusConfig = {
     not_configured: {
       label: "Setup Pending",
-      className: "border-[#38516e] bg-[#132942] text-slate-300",
+      className: "border-[#29435f] bg-[#132942] text-slate-300",
       Icon: AlertCircle,
     },
     pending: {
@@ -175,42 +175,29 @@ export default function UpiPaymentSettings() {
   const StatusIcon = currentStatus.Icon;
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#0b1b30] px-4 py-7 text-white sm:px-6 sm:py-9 lg:px-8">
-      {/* Background decoration */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -left-40 -top-40 h-[450px] w-[450px] rounded-full bg-cyan-400/[0.07] blur-[140px]" />
-        <div className="absolute -right-40 top-[35%] h-[450px] w-[450px] rounded-full bg-blue-500/[0.08] blur-[150px]" />
-        <div
-          className="absolute inset-0 opacity-[0.025]"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(148,190,225,1) 1px, transparent 1px), linear-gradient(90deg, rgba(148,190,225,1) 1px, transparent 1px)",
-            backgroundSize: "44px 44px",
-          }}
-        />
-      </div>
-
+    // Background is transparent, blur/grid lines removed
+    <main className="relative min-h-screen bg-transparent px-1 py-7 text-white sm:px-6 sm:py-9 lg:px-8">
       <div className="relative mx-auto max-w-6xl">
-        <section className="overflow-hidden rounded-3xl border border-[#29435f] bg-[#10243b] shadow-2xl shadow-black/10">
-          <div className="h-[2px] bg-gradient-to-r from-transparent via-cyan-300 to-transparent" />
+        <section className="overflow-hidden rounded-3xl border border-[#29435f] bg-[#0b1b30] shadow-2xl shadow-black/20">
+          <div className="h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
 
           {/* Header */}
           <header className="flex flex-col gap-5 p-5 sm:p-7 lg:flex-row lg:items-center lg:justify-between lg:p-8">
             <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/20 bg-[#193754]">
-                <IndianRupee size={23} className="text-cyan-300" />
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan-400/20 bg-[#132942]">
+                <IndianRupee size={23} className="text-cyan-400" />
               </div>
 
               <div>
-                <span className="mb-2 inline-flex rounded-full border border-cyan-300/20 bg-cyan-300/[0.07] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-cyan-200">
+                <span className="mb-2 inline-flex rounded-full border border-cyan-400/20 bg-cyan-400/[0.07] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-cyan-300">
                   Business Settings
                 </span>
 
-                <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+                <h1 className="text-xl font-bold tracking-tight text-white sm:text-2xl">
                   UPI &amp; Online Payment Settings
                 </h1>
 
-                <p className="mt-2 max-w-2xl text-xs leading-6 text-slate-300 sm:text-sm">
+                <p className="mt-2 max-w-2xl text-xs leading-6 text-slate-400 sm:text-sm">
                   Configure your business UPI details and submit them for
                   administrator approval.
                 </p>
@@ -230,17 +217,17 @@ export default function UpiPaymentSettings() {
           <form onSubmit={handleSave} className="p-5 sm:p-7 lg:p-8">
             <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
               {/* UPI settings */}
-              <section className="min-w-0 rounded-2xl border border-[#29435f] bg-[#0b1b30]/70 p-4 sm:p-6">
+              <section className="min-w-0 rounded-2xl border border-[#29435f] bg-[#132942] p-4 sm:p-6">
                 <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-300/20 bg-[#193754]">
-                    <IndianRupee size={19} className="text-cyan-300" />
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-400/20 bg-[#0b1b30]">
+                    <IndianRupee size={19} className="text-cyan-400" />
                   </div>
 
                   <div>
-                    <h2 className="text-base font-bold">
+                    <h2 className="text-base font-bold text-white">
                       Merchant UPI ID (VPA)
                     </h2>
-                    <p className="mt-1 text-xs leading-5 text-slate-300">
+                    <p className="mt-1 text-xs leading-5 text-slate-400">
                       Enter the UPI ID where your customers should send their
                       payments.
                     </p>
@@ -251,7 +238,7 @@ export default function UpiPaymentSettings() {
                   htmlFor="merchant-upi-id"
                   className="mb-2 mt-6 block text-xs font-bold text-slate-200"
                 >
-                  Your UPI ID <span className="text-cyan-300">*</span>
+                  Your UPI ID <span className="text-cyan-400">*</span>
                 </label>
 
                 <input
@@ -280,20 +267,20 @@ export default function UpiPaymentSettings() {
                         key={handle}
                         type="button"
                         onClick={() => handleHandleSuggestion(handle)}
-                        className="rounded-full border border-[#38516e] bg-[#132942] px-3 py-2 text-[11px] font-semibold text-slate-200 transition hover:border-cyan-300/50 hover:text-cyan-200"
+                        className="rounded-full border border-[#29435f] bg-[#0b1b30] px-3 py-2 text-[11px] font-semibold text-slate-300 transition hover:border-cyan-400/50 hover:text-cyan-400"
                       >
                         {handle}
                       </button>
                     ))}
                   </div>
 
-                  <p className="mt-2 text-[10px] leading-5 text-slate-400">
+                  <p className="mt-2 text-[10px] leading-5 text-slate-500">
                     These are suggestions only. Verify your actual UPI ID with
                     your payment app or bank.
                   </p>
                 </div>
 
-                <div className="mt-6 rounded-2xl border border-[#29435f] bg-[#10243b] p-4">
+                <div className="mt-6 rounded-2xl border border-[#29435f] bg-[#0b1b30] p-4">
                   <p className="mb-3 text-xs font-bold text-slate-200">
                     Common UPI Apps
                   </p>
@@ -309,14 +296,14 @@ export default function UpiPaymentSettings() {
                     ].map((app) => (
                       <span
                         key={app}
-                        className="rounded-lg border border-[#38516e] bg-[#132942] px-3 py-1.5 text-[10px] font-semibold text-slate-300"
+                        className="rounded-lg border border-[#29435f] bg-[#132942] px-3 py-1.5 text-[10px] font-semibold text-slate-300"
                       >
                         {app}
                       </span>
                     ))}
                   </div>
 
-                  <p className="mt-3 text-[10px] leading-5 text-slate-400">
+                  <p className="mt-3 text-[10px] leading-5 text-slate-500">
                     Available apps depend on the customer's device and payment
                     provider.
                   </p>
@@ -324,26 +311,16 @@ export default function UpiPaymentSettings() {
               </section>
 
               {/* Optional QR upload */}
-              <section className="min-w-0 rounded-2xl border border-[#29435f] bg-[#0b1b30]/70 p-4 sm:p-6">
+              <section className="min-w-0 rounded-2xl border border-[#29435f] bg-[#132942] p-4 sm:p-6">
                 <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-300/20 bg-[#193754]">
-                    <QrCode size={19} className="text-cyan-300" />
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-400/20 bg-[#0b1b30]">
+                    <QrCode size={19} className="text-cyan-400" />
                   </div>
-
-                  {/* <div>
-                    <h2 className="text-base font-bold">
-                      Payment QR / Standee Image
-                    </h2>
-                    <p className="mt-1 text-xs leading-5 text-slate-300">
-                      Optionally upload your existing business QR code or
-                      counter standee.
-                    </p>
-                  </div> */}
                 </div>
 
                 <label
                   htmlFor="payment-qr-upload"
-                  className="mt-6 flex min-h-56 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-[#38516e] bg-[#10243b] p-5 text-center transition hover:border-cyan-300/50 hover:bg-[#132942]"
+                  className="mt-6 flex min-h-56 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-[#29435f] bg-[#0b1b30] p-5 text-center transition hover:border-cyan-400/50 hover:bg-[#132942]"
                 >
                   {qrPreview ? (
                     <img
@@ -352,12 +329,12 @@ export default function UpiPaymentSettings() {
                       className="max-h-48 max-w-full rounded-xl object-contain"
                     />
                   ) : (
-                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-300/20 bg-[#193754]">
-                      <Camera size={27} className="text-cyan-300" />
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-400/20 bg-[#132942]">
+                      <Camera size={27} className="text-cyan-400" />
                     </div>
                   )}
 
-                  <span className="mt-4 inline-flex items-center gap-2 rounded-xl bg-cyan-300 px-4 py-2.5 text-xs font-bold text-[#071729] transition hover:bg-cyan-200">
+                  <span className="mt-4 inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-4 py-2.5 text-xs font-bold text-[#0b1b30] transition hover:bg-cyan-300">
                     <Upload size={15} />
                     {qrPreview ? "Choose Another Image" : "Upload Image"}
                   </span>
@@ -376,8 +353,8 @@ export default function UpiPaymentSettings() {
                 </label>
 
                 {qrFile && (
-                  <div className="mt-3 flex items-center gap-2 rounded-xl border border-[#29435f] bg-[#132942] p-3">
-                    <QrCode size={17} className="shrink-0 text-cyan-300" />
+                  <div className="mt-3 flex items-center gap-2 rounded-xl border border-[#29435f] bg-[#0b1b30] p-3">
+                    <QrCode size={17} className="shrink-0 text-cyan-400" />
 
                     <span className="min-w-0 flex-1 truncate text-xs text-slate-200">
                       {qrFile.name}
@@ -387,16 +364,16 @@ export default function UpiPaymentSettings() {
                       type="button"
                       onClick={removeQr}
                       aria-label="Remove QR image"
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-300 transition hover:bg-red-400/10 hover:text-red-300"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-400/10 hover:text-red-300"
                     >
                       <X size={15} />
                     </button>
                   </div>
                 )}
 
-                <div className="mt-5 rounded-xl border border-[#29435f] bg-[#10243b] p-4">
+                <div className="mt-5 rounded-xl border border-[#29435f] bg-[#0b1b30] p-4">
                   <div className="flex items-start gap-3">
-                    <ShieldCheck size={19} className="shrink-0 text-cyan-300" />
+                    <ShieldCheck size={19} className="shrink-0 text-cyan-400" />
 
                     <div>
                       <p className="text-xs font-bold text-slate-200">
@@ -428,7 +405,7 @@ export default function UpiPaymentSettings() {
               >
                 <CheckCircle2
                   size={17}
-                  className="mt-0.5 shrink-0 text-emerald-300"
+                  className="mt-0.5 shrink-0 text-emerald-400"
                 />
                 <p className="text-xs leading-5 text-slate-200">
                   {message || notice}
@@ -460,7 +437,7 @@ export default function UpiPaymentSettings() {
               <button
                 type="submit"
                 disabled={loading || saving}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-cyan-300 px-6 py-3 text-xs font-bold text-[#071729] shadow-lg shadow-cyan-950/20 transition hover:bg-cyan-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-cyan-400 px-6 py-3 text-xs font-bold text-[#0b1b30] shadow-lg shadow-cyan-950/20 transition hover:bg-cyan-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Save size={16} />
                 {loading
@@ -473,7 +450,7 @@ export default function UpiPaymentSettings() {
           </form>
         </section>
 
-        <p className="mt-5 text-center text-[10px] leading-5 text-slate-400">
+        <p className="mt-5 text-center text-[10px] leading-5 text-slate-500">
           Secure business settings · Payment activation is controlled by
           administrator approval.
         </p>

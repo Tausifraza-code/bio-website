@@ -6,6 +6,7 @@ import {
   Copy,
   LogOut,
   Check,
+  ChevronDown,
   Zap,
 } from "lucide-react";
 
@@ -21,139 +22,258 @@ const DashboardNavbar = ({
   onLogout,
 }) => {
   const [copied, setCopied] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (e) {}
+
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
+    } catch (error) {
+      // Clipboard may not be available in some browsers
+    }
 
     onCopyLink?.();
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-cyan-400/10 bg-[#071326]/95 shadow-[0_8px_30px_rgba(0,0,0,0.20)] backdrop-blur-2xl">
-      {/* Electric cyan accent line */}
-      <div className="h-[2px] w-full bg-gradient-to-r from-cyan-300 via-blue-500 to-transparent" />
+    <header className="sticky top-0 z-50 border-b border-cyan-400/10 bg-[#031B36]/95 shadow-[0_8px_30px_rgba(0,0,0,0.25)] backdrop-blur-xl">
+      {/* Top cyan line */}
+      <div className="h-[2px] w-full bg-gradient-to-r from-cyan-400 via-blue-500 to-transparent" />
 
-      <div className="mx-auto flex h-[76px] max-w-[1600px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-        {/* LEFT SECTION */}
-        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-          {/* Mobile menu */}
+      <div className="flex h-[68px] items-center justify-between px-4 sm:px-5 lg:px-7">
+        {/* =========================================================
+            LEFT SECTION
+        ========================================================= */}
+        <div className="flex min-w-0 items-center gap-3">
+          {/* Mobile Menu */}
           <button
             type="button"
             onClick={onMenuClick}
             aria-label="Open menu"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-400/15 bg-[#10213a] text-cyan-300 transition-all duration-200 hover:border-cyan-300/40 hover:bg-[#163453] active:scale-95 lg:hidden"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-400/15 bg-[#082443] text-cyan-300 transition-all duration-200 hover:border-cyan-300/35 hover:bg-[#0B2D50] active:scale-95 lg:hidden"
           >
-            <Menu size={20} />
+            <Menu size={20} strokeWidth={2} />
           </button>
 
-          {/* Business avatar */}
-          <div className="relative shrink-0">
-            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-cyan-300 to-blue-500 p-[2px] shadow-[0_0_18px_rgba(34,211,238,0.10)]">
-              <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-[14px] bg-[#10213a]">
-                {avatarUrl ? (
-                  <img
-                    src={avatarUrl}
-                    alt={businessName}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <span className="text-lg font-bold text-cyan-300">
-                    {businessName.charAt(0).toUpperCase()}
-                  </span>
-                )}
-              </div>
+          {/* BioWebsite Logo */}
+          <div className="flex min-w-0 items-center gap-2.5">
+            {/* Logo Icon */}
+            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-cyan-300 via-cyan-400 to-blue-600 shadow-[0_0_18px_rgba(34,211,238,0.18)]">
+              <div className="absolute inset-[2px] rounded-[10px] bg-[#041D38]" />
+
+              <span className="relative z-10 text-lg font-black italic text-cyan-300">
+                B
+              </span>
             </div>
 
-            {/* Online indicator */}
-            <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full border-[3px] border-[#071326] bg-cyan-300" />
-          </div>
-
-          {/* Business details */}
-          <div className="min-w-0">
-            <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <p className="max-w-[220px] truncate text-sm font-semibold tracking-[-0.02em] text-slate-50 sm:max-w-none sm:text-[15px]">
-                {businessName}
+            {/* Brand Name */}
+            <div className="min-w-0">
+              <p className="truncate text-[15px] font-bold leading-none tracking-[-0.02em] text-white sm:text-base">
+                BioWebsite
               </p>
 
-              {status && (
-                <span className="hidden items-center gap-1.5 rounded-lg border border-amber-400/20 bg-amber-400/[0.07] px-2 py-1 text-[9px] font-semibold tracking-[0.07em] text-amber-300 sm:inline-flex">
-                  <Zap size={11} />
-                  {status}
-                </span>
-              )}
+              <p className="mt-1 text-[9px] font-medium tracking-[0.04em] text-cyan-300/80 sm:text-[10px]">
+                Your Digital Identity
+              </p>
             </div>
-
-            <p className="mt-1 truncate text-[11px] text-slate-400 sm:text-xs">
-              <span className="font-medium text-slate-200">
-                {ownerName}
-              </span>
-              <span className="mx-1.5 text-slate-600">/</span>
-              <span>{role}</span>
-            </p>
           </div>
         </div>
 
-        {/* RIGHT SECTION */}
+        {/* =========================================================
+            RIGHT SECTION
+        ========================================================= */}
         <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
-          {/* Menu */}
-          <button
-            type="button"
-            onClick={onMenuClick}
-            className="hidden h-10 items-center gap-2 rounded-xl bg-cyan-300 px-4 text-xs font-bold text-[#071326] shadow-sm shadow-cyan-400/10 transition-all duration-200 hover:bg-cyan-200 hover:shadow-md hover:shadow-cyan-400/20 active:scale-[0.97] sm:flex"
-          >
-            <Menu size={16} strokeWidth={2.2} />
-            <span>Menu</span>
-          </button>
-
-          {/* Card Preview */}
+          {/* Preview */}
           <button
             type="button"
             onClick={onPreview}
-            className="hidden h-10 items-center gap-2 rounded-xl border border-[#29425f] bg-[#10213a]/80 px-3.5 text-xs font-medium text-slate-200 transition-all duration-200 hover:border-cyan-300/40 hover:bg-[#15314e] hover:text-cyan-200 active:scale-[0.97] sm:flex"
+            className="hidden h-9 items-center gap-2 rounded-lg border border-[#1B456A] bg-[#082443] px-3.5 text-[11px] font-semibold text-slate-300 transition-all duration-200 hover:border-cyan-400/40 hover:bg-[#0B2D50] hover:text-cyan-200 active:scale-[0.97] sm:flex"
           >
-            <ExternalLink size={15} />
-            <span>Card Preview</span>
+            <ExternalLink size={14} />
+            <span>Preview</span>
           </button>
 
           {/* Copy Link */}
           <button
             type="button"
             onClick={handleCopy}
-            className={`hidden h-10 items-center gap-2 rounded-xl border px-3.5 text-xs font-medium transition-all duration-200 active:scale-[0.97] md:flex ${
+            className={`hidden h-9 items-center gap-2 rounded-lg border px-3.5 text-[11px] font-semibold transition-all duration-200 active:scale-[0.97] md:flex ${
               copied
-                ? "border-cyan-300/30 bg-cyan-300/10 text-cyan-200"
-                : "border-[#29425f] bg-[#10213a]/80 text-slate-300 hover:border-cyan-300/30 hover:bg-[#15314e] hover:text-cyan-200"
+                ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-200"
+                : "border-[#1B456A] bg-[#082443] text-slate-300 hover:border-cyan-400/40 hover:bg-[#0B2D50] hover:text-cyan-200"
             }`}
           >
             {copied ? (
               <>
-                <Check size={15} />
-                <span>Copied!</span>
+                <Check size={14} />
+                <span>Copied</span>
               </>
             ) : (
               <>
-                <Copy size={15} />
+                <Copy size={14} />
                 <span>Copy Link</span>
               </>
             )}
           </button>
 
-          {/* Divider */}
-          <div className="mx-1 hidden h-7 w-px bg-[#29425f] md:block" />
+          {/* Vertical Divider */}
+          <div className="mx-1 hidden h-8 w-px bg-[#1B456A] md:block" />
 
-          {/* Logout */}
+          {/* =======================================================
+              PROFILE
+          ======================================================= */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setProfileOpen((prev) => !prev)}
+              className="flex h-10 items-center gap-2 rounded-xl border border-transparent px-1.5 transition-all duration-200 hover:border-cyan-400/10 hover:bg-[#082443] sm:gap-2.5 sm:px-2"
+            >
+              {/* Avatar */}
+              <div className="relative shrink-0">
+                <div className="h-9 w-9 rounded-full bg-gradient-to-br from-cyan-300 to-blue-500 p-[1.5px]">
+                  <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-[#082443]">
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt={ownerName}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-sm font-bold text-cyan-300">
+                        {ownerName?.charAt(0)?.toUpperCase() || "A"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Online */}
+                <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-[#031B36] bg-cyan-400" />
+              </div>
+
+              {/* User Info */}
+              <div className="hidden min-w-0 text-left sm:block">
+                <p className="max-w-[130px] truncate text-[12px] font-semibold text-white">
+                  {ownerName}
+                </p>
+
+                <p className="mt-0.5 max-w-[150px] truncate text-[9px] text-slate-500">
+                  {role}
+                </p>
+              </div>
+
+              <ChevronDown
+                size={14}
+                className={`hidden text-slate-500 transition-transform duration-200 sm:block ${
+                  profileOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {/* Profile Dropdown */}
+            {profileOpen && (
+              <div className="absolute right-0 top-[calc(100%+10px)] w-[250px] overflow-hidden rounded-2xl border border-cyan-400/10 bg-[#061D38] shadow-[0_18px_50px_rgba(0,0,0,0.40)]">
+                {/* User Header */}
+                <div className="border-b border-[#143655] p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-cyan-300 to-blue-500 p-[1.5px]">
+                      <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-[#082443]">
+                        {avatarUrl ? (
+                          <img
+                            src={avatarUrl}
+                            alt={ownerName}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <span className="font-bold text-cyan-300">
+                            {ownerName?.charAt(0)?.toUpperCase() || "A"}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-white">
+                        {ownerName}
+                      </p>
+
+                      <p className="mt-0.5 truncate text-[10px] text-slate-500">
+                        {role}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Status */}
+                  {status && (
+                    <div className="mt-3 flex items-center gap-2 rounded-lg border border-amber-400/15 bg-amber-400/[0.06] px-2.5 py-2">
+                      <Zap
+                        size={12}
+                        className="shrink-0 text-amber-300"
+                      />
+
+                      <span className="truncate text-[9px] font-semibold tracking-[0.04em] text-amber-300">
+                        {status}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Dropdown Actions */}
+                <div className="p-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      onPreview?.();
+                    }}
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-medium text-slate-300 transition-colors hover:bg-[#0B2D50] hover:text-cyan-200"
+                  >
+                    <ExternalLink size={15} />
+                    View Public Profile
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      handleCopy();
+                    }}
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-medium text-slate-300 transition-colors hover:bg-[#0B2D50] hover:text-cyan-200"
+                  >
+                    <Copy size={15} />
+                    Copy Profile Link
+                  </button>
+
+                  <div className="my-1 border-t border-[#143655]" />
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      onLogout?.();
+                    }}
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-medium text-rose-300 transition-colors hover:bg-rose-400/10"
+                  >
+                    <LogOut size={15} />
+                    Logout
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile Logout */}
           <button
             type="button"
             onClick={onLogout}
             title="Logout"
             aria-label="Logout"
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-rose-400/15 bg-rose-400/[0.04] text-slate-400 transition-all duration-200 hover:border-rose-400/35 hover:bg-rose-400/10 hover:text-rose-300 active:scale-95"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-rose-400/15 bg-rose-400/[0.04] text-slate-400 transition-all duration-200 hover:border-rose-400/30 hover:bg-rose-400/10 hover:text-rose-300 active:scale-95 sm:hidden"
           >
-            <LogOut size={17} />
+            <LogOut size={15} />
           </button>
         </div>
       </div>

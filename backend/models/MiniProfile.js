@@ -40,6 +40,7 @@ const miniProfileSchema = new mongoose.Schema(
         {
           platform: {
             type: String,
+            
             required: true,
             trim: true,
           },

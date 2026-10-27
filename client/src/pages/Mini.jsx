@@ -5,13 +5,14 @@ import { fetchMyProfile } from "../redux/slice/profileSlice";
 import { fetchContactButtons } from "../redux/slice/contactButtonsSlice";
 import Payment from "./Payment";
 import { getMyProducts } from "../redux/slice/productSlice";
+import { getMyGallery } from "../redux/slice/gallerySlice";
+
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
-import ProfileQRCode from "../components/ProfileQRCode";
-
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+
 
 import {
   FaInstagram,
@@ -36,10 +37,7 @@ import {
   UserPlus,
   ShieldCheck,
   ShoppingBag,
-  Award,
   CheckCircle2,
-  Zap,
-  Eye,
   Check,
   Send,
   X,
@@ -51,12 +49,14 @@ import {
   Gem,
   Crown,
   Leaf,
-  ChevronRight,
   MonitorSmartphone,
-  ArrowUpRight,
-  Copy,
   IndianRupee,
   Image as ImageIcon,
+  Clock,
+  QrCode,
+  Download,
+  Copy,
+  FileImage,
 } from "lucide-react";
 
 /* =========================================================
@@ -64,58 +64,21 @@ import {
 ========================================================= */
 
 const themes = [
-  {
-    id: "executive",
-    name: "Executive Royal",
-    colors: ["#1e3a8a", "#7c3aed"],
-    icon: Crown,
-  },
-  {
-    id: "emerald",
-    name: "Emerald Luxe",
-    colors: ["#10b981", "#14b8a6"],
-    icon: Leaf,
-  },
-  {
-    id: "rose",
-    name: "Rose Gold & Champagne",
-    colors: ["#f43f5e", "#fb923c"],
-    icon: Gem,
-  },
-  {
-    id: "obsidian",
-    name: "Obsidian Noir & Platinum",
-    colors: ["#334155", "#94a3b8"],
-    icon: Moon,
-  },
-  {
-    id: "sunset",
-    name: "Sunset Amber & Coral",
-    colors: ["#f59e0b", "#f97316"],
-    icon: Sun,
-  },
+  { id: "executive", name: "Executive Royal", colors: ["#1e3a8a", "#7c3aed"], icon: Crown },
+  { id: "emerald", name: "Emerald Luxe", colors: ["#10b981", "#14b8a6"], icon: Leaf },
+  { id: "rose", name: "Rose Gold & Champagne", colors: ["#f43f5e", "#fb923c"], icon: Gem },
+  { id: "obsidian", name: "Obsidian Noir & Platinum", colors: ["#334155", "#94a3b8"], icon: Moon },
+  { id: "sunset", name: "Sunset Amber & Coral", colors: ["#f59e0b", "#f97316"], icon: Sun },
 ];
 
 const hasValidProfile = (profile) => {
   if (!profile || typeof profile !== "object") return false;
-
   const firstName = profile.firstName?.trim() || "";
   const lastName = profile.lastName?.trim() || "";
   const businessName = profile.businessName?.trim() || "";
-
-  const isDemo =
-    /^(ankit'?s business|my business|your name)$/i.test(businessName) ||
-    /^(ankit|your name)$/i.test(firstName);
-
+  const isDemo = /^(ankit'?s business|my business|your name)$/i.test(businessName) || /^(ankit|your name)$/i.test(firstName);
   if (isDemo) return false;
-
-  return Boolean(
-    firstName ||
-    lastName ||
-    businessName ||
-    profile.phone?.trim() ||
-    profile.email?.trim(),
-  );
+  return Boolean(firstName || lastName || businessName || profile.phone?.trim() || profile.email?.trim());
 };
 
 const bannerImages = [
@@ -130,45 +93,17 @@ const bannerImages = [
 
 const normalizeGalleryImages = (raw) => {
   if (!Array.isArray(raw)) return [];
-
-  return raw
-    .map((item, index) => {
+  return raw.map((item, index) => {
       if (typeof item === "string") {
         const url = item.trim();
-        return url
-          ? { url, alt: `Gallery image ${index + 1}`, caption: "" }
-          : null;
+        return url ? { url, alt: `Gallery image ${index + 1}`, caption: "" } : null;
       }
-
       if (!item || typeof item !== "object") return null;
-
-      const url = [
-        item.url,
-        item.src,
-        item.image,
-        item.imageUrl,
-        item.path,
-      ].find((value) => typeof value === "string" && value.trim());
-
+      const url = [item.url, item.src, item.image, item.imageUrl, item.path].find((value) => typeof value === "string" && value.trim());
       if (!url) return null;
-
-      const caption =
-        typeof item.caption === "string" && item.caption.trim()
-          ? item.caption.trim()
-          : typeof item.title === "string" && item.title.trim()
-            ? item.title.trim()
-            : "";
-
-      return {
-        url: url.trim(),
-        alt:
-          (typeof item.alt === "string" && item.alt.trim()) ||
-          caption ||
-          `Gallery image ${index + 1}`,
-        caption,
-      };
-    })
-    .filter(Boolean);
+      const caption = typeof item.caption === "string" && item.caption.trim() ? item.caption.trim() : typeof item.title === "string" && item.title.trim() ? item.title.trim() : "";
+      return { url: url.trim(), alt: (typeof item.alt === "string" && item.alt.trim()) || caption || `Gallery image ${index + 1}`, caption };
+    }).filter(Boolean);
 };
 
 /* =========================================================
@@ -178,16 +113,15 @@ const normalizeGalleryImages = (raw) => {
 const Mini = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { profile, isVerified, loading } = useSelector(
-    (state) => state.profile,
-  );
+  const { profile, isVerified, loading } = useSelector((state) => state.profile);
+const { products = [] } = useSelector((state) => state.product || {});
 
-  const { products = [], loading: productsLoading } = useSelector(
-    (state) => state.product || {},
-  );
+const { buttons: contactButtons = [], loaded: contactButtonsLoaded } =
+  useSelector((state) => state.contactButtons || {});
 
-  const { buttons: contactButtons = [], loaded: contactButtonsLoaded } =
-    useSelector((state) => state.contactButtons || {});
+const { gallery = [] } = useSelector(
+  (state) => state.gallery || {}
+);
 
   const [profileChecked, setProfileChecked] = useState(false);
   const [activeTheme, setActiveTheme] = useState("sunset");
@@ -195,1408 +129,503 @@ const Mini = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedGalleryImage, setSelectedGalleryImage] = useState(null);
 
-  useEffect(() => {
-    let mounted = true;
-
-    dispatch(fetchMyProfile())
-      .unwrap()
-      .then((savedProfile) => {
-        if (!mounted) return;
-
-        if (!hasValidProfile(savedProfile)) {
-          navigate("/editprofile", { replace: true });
-          return;
-        }
-
-        setActiveTheme(savedProfile.activeTheme || "sunset");
-        setProfileChecked(true);
-      })
-      .catch((error) => {
-        if (!mounted) return;
-
-        console.error("Profile load failed:", error);
-        navigate("/editprofile", { replace: true });
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, [dispatch, navigate]);
-
-  useEffect(() => {
-    dispatch(getMyProducts());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (!contactButtonsLoaded) dispatch(fetchContactButtons());
-  }, [dispatch, contactButtonsLoaded]);
-
-  const profileData = profile || {};
-  const productList = Array.isArray(products) ? products : [];
-
-  const buttonSource = Array.isArray(profileData.contactButtons)
-    ? profileData.contactButtons
-    : contactButtons;
-  const visibleButtons = [...buttonSource]
-    .filter((button) => button.enabled)
-    .sort((a, b) => a.order - b.order);
-
   const [standeeCode, setStandeeCode] = useState("");
   const [standeeActivated, setStandeeActivated] = useState(false);
-
   const [isPreviewMode, setIsPreviewMode] = useState(true);
-
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
-  const [currentSlide, setCurrentSlide] = useState(0);
-
   const [reviewRating, setReviewRating] = useState(5);
-  const [reviewData, setReviewData] = useState({
-    name: "",
-    review: "",
-  });
+  const [reviewData, setReviewData] = useState({ name: "", review: "" });
 
-  const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    message: "",
-  });
-
+  const [formData, setFormData] = useState({ name: "", phone: "", email: "", message: "" });
   const [formSubmitted, setFormSubmitted] = useState(false);
+
+  // QR Modal States
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [qrModalTab, setQrModalTab] = useState("share"); // 'share', 'myqr', 'poster'
+
+  useEffect(() => {
+    let mounted = true;
+    dispatch(fetchMyProfile()).unwrap().then((savedProfile) => {
+        if (!mounted) return;
+        if (!hasValidProfile(savedProfile)) {
+          navigate("/editprofile", { replace: true });
+          return;
+        }
+        setActiveTheme(savedProfile.activeTheme || "sunset");
+        setProfileChecked(true);
+      }).catch((error) => {
+        if (!mounted) return;
+        console.error("Profile load failed:", error);
+        navigate("/editprofile", { replace: true });
+      });
+    return () => { mounted = false; };
+  }, [dispatch, navigate]);
+
+useEffect(() => {
+  dispatch(getMyProducts());
+}, [dispatch]);
+
+useEffect(() => {
+  dispatch(getMyGallery());
+}, [dispatch]);
+
+useEffect(() => {
+  if (!contactButtonsLoaded) dispatch(fetchContactButtons());
+}, [dispatch, contactButtonsLoaded]);
+
+  const profileData = profile || {};
+  const productList = Array.isArray(products) ? products : [];
+
+  const buttonSource = Array.isArray(profileData.contactButtons) ? profileData.contactButtons : contactButtons;
+  const visibleButtons = [...buttonSource].filter((button) => button.enabled).sort((a, b) => a.order - b.order);
 
   /* =========================================================
      BUSINESS INFORMATION
   ========================================================= */
 
   const businessInfo = {
-    name: [profileData.firstName, profileData.lastName]
-      .filter(Boolean)
-      .join(" "),
-
+    name: [profileData.firstName, profileData.lastName].filter(Boolean).join(" "),
     role: profileData.jobTitle || "",
-
-    location:
-      [profileData?.city, profileData?.state, profileData?.pincode]
-        .filter(Boolean)
-        .join(", ") || "Location not added",
-
-    status: "Profile Actively Monitored",
-
-    about:
-      profileData?.bio ||
-      profileData?.headline ||
-      "Welcome to my business! Contact me for business inquiries.",
-
-    phone: profileData?.phone || "",
-
-    whatsapp: profileData?.whatsapp || "",
-
-    email: profileData?.email || "",
-
-    website: profileData?.website || profileData?.websiteUrl || "",
-
-    address:
-      [
-        profileData?.shopUnit,
-        profileData?.area,
-        profileData?.city,
-        profileData?.state,
-        profileData?.pincode,
-      ]
-        .filter(Boolean)
-        .join(", ") || "Address not added",
-
-    logo: profileData?.logo || null,
-
-    avatar: profileData?.avatar || null,
-
-    banner: profileData?.banner || null,
-
-    qrCode: profileData?.qrCode || null,
-
-    industry: profileData?.industry || "",
-
-    businessName: profileData?.businessName || "My Business",
-
-    headline: profileData?.headline || "",
-
-    businessHours: profileData?.businessHours || "",
-
-    mapLink: profileData?.mapLink || "",
-
-    upiId: profileData?.upiId || "",
-
+    location: [profileData.city, profileData.state, profileData.pincode].filter(Boolean).join(", ") || "Location not added",
+    about: profileData.bio || profileData.headline || "Welcome to my business! Contact me for business inquiries.",
+    phone: profileData.phone || "",
+    whatsapp: profileData.whatsapp || "",
+    email: profileData.email || "",
+    website: profileData.website || profileData.websiteUrl || "",
+    address: [profileData.shopUnit, profileData.area, profileData.city, profileData.state, profileData.pincode].filter(Boolean).join(", ") || "Address not added",
+    logo: profileData.logo || null,
+    avatar: profileData.avatar || null,
+    banner: profileData.banner || null,
+    qrCode: profileData.qrCode || null,
+    industry: profileData.industry || "",
+    businessName: profileData.businessName || "My Business",
+    headline: profileData.headline || "",
+    businessHours: profileData.businessHours || "",
+    mapLink: profileData.mapLink || "",
+    upiId: profileData.upiId || "",
     isVerified: isVerified === true,
   };
 
-  /* ---------------------------------------------------------
-     GALLERY DATA (profile gallery, fallback = product images)
-  --------------------------------------------------------- */
+const galleryImages = useMemo(() => {
+  // Backend GET /gallery/my-gallery data
+  const fromGalleryApi = normalizeGalleryImages(gallery);
 
-  const galleryImages = useMemo(() => {
-    const fromProfile = normalizeGalleryImages(
-      profileData.gallery ||
-        profileData.galleryImages ||
-        profileData.businessGallery ||
-        profileData.images,
-    );
+  if (fromGalleryApi.length > 0) {
+    return fromGalleryApi;
+  }
 
-    if (fromProfile.length > 0) return fromProfile;
+  // Existing profile gallery fallback
+  const fromProfile = normalizeGalleryImages(
+    profileData.gallery ||
+      profileData.galleryImages ||
+      profileData.businessGallery ||
+      profileData.images
+  );
 
-    // Fallback: product images (taaki gallery section khaali na dikhe)
-    const fromProducts = [];
-    productList.forEach((product) => {
-      if (!Array.isArray(product?.images)) return;
-      product.images.forEach((image) => {
-        if (image?.url) {
-          fromProducts.push({
-            url: image.url,
-            alt: image.alt || product.name || "Gallery image",
-            caption: product.name || "",
-          });
-        }
-      });
+  if (fromProfile.length > 0) {
+    return fromProfile;
+  }
+
+  // Existing products images fallback
+  const fromProducts = [];
+
+  productList.forEach((product) => {
+    if (!Array.isArray(product?.images)) return;
+
+    product.images.forEach((image) => {
+      if (image?.url) {
+        fromProducts.push({
+          url: image.url,
+          alt: image.alt || product.name || "Gallery image",
+          caption: product.name || "",
+        });
+      }
     });
+  });
 
-    return fromProducts;
-  }, [
-    profileData.gallery,
-    profileData.galleryImages,
-    profileData.businessGallery,
-    profileData.images,
-    productList,
-  ]);
+  return fromProducts;
+}, [
+  gallery,
+  profileData.gallery,
+  profileData.galleryImages,
+  profileData.businessGallery,
+  profileData.images,
+  productList,
+]);
 
+  const currentTheme = { primary: "#22d3ee", secondary: "#3b82f6", background: "#0b1b30", surface: "#132942", text: "#f8fafc" };
   const activeThemeData = themes.find((theme) => theme.id === activeTheme);
-
-  const themeStyles = {
-    executive: {
-      primary: "#1e3a8a",
-      secondary: "#7c3aed",
-      background: "#0f172a",
-      surface: "#172554",
-      text: "#ffffff",
-    },
-    emerald: {
-      primary: "#10b981",
-      secondary: "#14b8a6",
-      background: "#062c25",
-      surface: "#104438",
-      text: "#ecfdf5",
-    },
-    rose: {
-      primary: "#f43f5e",
-      secondary: "#fb923c",
-      background: "#2b1420",
-      surface: "#49202f",
-      text: "#fff1f2",
-    },
-    obsidian: {
-      primary: "#94a3b8",
-      secondary: "#475569",
-      background: "#09090b",
-      surface: "#18181b",
-      text: "#f4f4f5",
-    },
-    sunset: {
-      primary: "#f59e0b",
-      secondary: "#f97316",
-      background: "#24130b",
-      surface: "#3b2113",
-      text: "#fff7ed",
-    },
-  };
-
-  const currentTheme = themeStyles[activeTheme] || themeStyles.sunset;
-  const themeVariables = {
-    "--profile-primary": currentTheme.primary,
-    "--profile-secondary": currentTheme.secondary,
-    "--profile-background": currentTheme.background,
-    "--profile-surface": currentTheme.surface,
-    "--profile-text": currentTheme.text,
-  };
 
   /* =========================================================
      ACTION HANDLERS
   ========================================================= */
 
-  const handleActivateStandee = () => {
-    if (!standeeCode.trim()) return;
-
-    setStandeeActivated(true);
-  };
+  const handleActivateStandee = () => { if (!standeeCode.trim()) return; setStandeeActivated(true); };
 
   const handleWhatsApp = () => {
     const number = businessInfo.whatsapp || businessInfo.phone;
-
-    if (!number) {
-      alert("WhatsApp number is not available.");
-      return;
-    }
-
-    const cleanNumber = number.replace(/\D/g, "");
-
-    window.open(
-      `https://wa.me/${cleanNumber}?text=${encodeURIComponent(
-        "Hi, I'm interested in your business.",
-      )}`,
-      "_blank",
-      "noopener,noreferrer",
-    );
+    if (!number) return alert("WhatsApp number is not available.");
+    window.open(`https://wa.me/${number.replace(/\D/g, "")}?text=${encodeURIComponent("Hi, I'm interested in your business.")}`, "_blank", "noopener,noreferrer");
   };
 
   const handleCall = () => {
+    if (!businessInfo.phone) return alert("Phone number is not available.");
     window.location.href = `tel:${businessInfo.phone.replace(/\s/g, "")}`;
   };
 
   const handleShare = async () => {
-    const shareData = {
-      title: businessInfo.name,
-      text: `Check out ${businessInfo.name}'s business`,
-      url: window.location.href,
-    };
-
+    const shareData = { title: businessInfo.name || businessInfo.businessName, text: `Check out ${businessInfo.name || businessInfo.businessName}'s business`, url: window.location.href };
     if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-      } catch (error) {
-        // User cancelled the share dialog.
-      }
+      try { await navigator.share(shareData); } catch (error) {}
     } else {
       handleCopyLink();
     }
   };
 
-  const handleSaveContact = () => {
-    const escapeVCard = (value = "") =>
-      String(value)
-        .trim()
-        .replace(/\\/g, "\\\\")
-        .replace(/\n/g, "\\n")
-        .replace(/,/g, "\\,")
-        .replace(/;/g, "\\;");
-
-    const lines = ["BEGIN:VCARD", "VERSION:3.0"];
-
-    const fullName = [profileData.firstName, profileData.lastName]
-      .filter((value) => value?.trim())
-      .join(" ")
-      .trim();
-
-    const displayName = fullName || profileData.businessName?.trim() || "";
-
-    if (displayName) {
-      lines.push(`FN:${escapeVCard(displayName)}`);
-    }
-
-    if (profileData.businessName?.trim()) {
-      lines.push(`ORG:${escapeVCard(profileData.businessName)}`);
-    }
-
-    if (profileData.jobTitle?.trim()) {
-      lines.push(`TITLE:${escapeVCard(profileData.jobTitle)}`);
-    }
-
-    if (profileData.phone?.trim()) {
-      lines.push(`TEL;TYPE=CELL:${escapeVCard(profileData.phone)}`);
-    }
-
-    if (profileData.whatsapp?.trim()) {
-      lines.push(
-        `item1.URL:${escapeVCard(
-          `https://wa.me/${profileData.whatsapp.replace(/\D/g, "")}`,
-        )}`,
-        "item1.X-ABLabel:WhatsApp",
-      );
-    }
-
-    if (profileData.email?.trim()) {
-      lines.push(`EMAIL:${escapeVCard(profileData.email)}`);
-    }
-
-    const website =
-      profileData.website?.trim() || profileData.websiteUrl?.trim();
-
-    if (website) {
-      const websiteUrl = /^https?:\/\//i.test(website)
-        ? website
-        : `https://${website}`;
-
-      lines.push(`URL:${escapeVCard(websiteUrl)}`);
-    }
-
-    const address = [
-      profileData.shopUnit,
-      profileData.area,
-      profileData.landmark,
-      profileData.city,
-      profileData.state,
-      profileData.pincode,
-    ]
-      .filter((value) => value?.trim())
-      .join(", ");
-
-    if (address) {
-      lines.push(`ADR;TYPE=WORK:;;${escapeVCard(address)};;;;`);
-    }
-
-    if (profileData.bio?.trim()) {
-      lines.push(`NOTE:${escapeVCard(profileData.bio)}`);
-    } else if (profileData.headline?.trim()) {
-      lines.push(`NOTE:${escapeVCard(profileData.headline)}`);
-    }
-
-    // Contact file mein koi useful detail na ho toh download na karein.
-    if (
-      !displayName &&
-      !profileData.phone?.trim() &&
-      !profileData.email?.trim()
-    ) {
-      alert("Contact download karne ke liye pehle profile details add karein.");
-      return;
-    }
-
-    lines.push("END:VCARD");
-
-    const blob = new Blob([`${lines.join("\r\n")}\r\n`], {
-      type: "text/vcard;charset=utf-8",
-    });
-
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-
-    const filename = (displayName || "contact")
-      .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-")
-      .trim();
-
-    anchor.href = url;
-    anchor.download = `${filename || "contact"}.vcf`;
-
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-
-    // Download start hone ke baad temporary URL release karein.
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-    setSaved(true);
-    window.setTimeout(() => setSaved(false), 2000);
-  };
-
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
-
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      window.setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      // Clipboard access can be unavailable in some browsers.
+      alert("Unable to copy the link. Please copy it from the address bar.");
     }
   };
 
-  const handleEnquire = () => {
-    document.getElementById("inquiry-form")?.scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-    });
+  const handleSaveContact = () => {
+    const escapeVCard = (value = "") => String(value).trim().replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
+    const lines = ["BEGIN:VCARD", "VERSION:3.0"];
+    const fullName = [profileData.firstName, profileData.lastName].filter((value) => value?.trim()).join(" ").trim();
+    const displayName = fullName || profileData.businessName?.trim() || "";
 
-    setTimeout(() => {
-      document.getElementById("inquiry-name")?.focus();
-    }, 600);
+    if (displayName) lines.push(`FN:${escapeVCard(displayName)}`);
+    if (profileData.businessName?.trim()) lines.push(`ORG:${escapeVCard(profileData.businessName)}`);
+    if (profileData.jobTitle?.trim()) lines.push(`TITLE:${escapeVCard(profileData.jobTitle)}`);
+    if (profileData.phone?.trim()) lines.push(`TEL;TYPE=CELL:${escapeVCard(profileData.phone)}`);
+    if (profileData.whatsapp?.trim()) lines.push(`item1.URL:${escapeVCard(`https://wa.me/${profileData.whatsapp.replace(/\D/g, "")}`)}`, "item1.X-ABLabel:WhatsApp");
+    if (profileData.email?.trim()) lines.push(`EMAIL:${escapeVCard(profileData.email)}`);
+
+    const website = profileData.website?.trim() || profileData.websiteUrl?.trim();
+    if (website) lines.push(`URL:${escapeVCard(/^https?:\/\//i.test(website) ? website : `https://${website}`)}`);
+
+    const address = [profileData.shopUnit, profileData.area, profileData.landmark, profileData.city, profileData.state, profileData.pincode].filter((value) => value?.trim()).join(", ");
+    if (address) lines.push(`ADR;TYPE=WORK:;;${escapeVCard(address)};;;;`);
+    if (profileData.bio?.trim()) lines.push(`NOTE:${escapeVCard(profileData.bio)}`);
+    else if (profileData.headline?.trim()) lines.push(`NOTE:${escapeVCard(profileData.headline)}`);
+
+    if (!displayName && !profileData.phone?.trim() && !profileData.email?.trim()) return alert("Contact download karne ke liye pehle profile details add karein.");
+    lines.push("END:VCARD");
+
+    const blob = new Blob([`${lines.join("\r\n")}\r\n`], { type: "text/vcard;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${(displayName || "contact").replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-").trim() || "contact"}.vcf`;
+
+    document.body.appendChild(anchor); anchor.click(); anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setSaved(true); window.setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleDownloadQR = async () => {
+    if (!businessInfo.qrCode) return alert("QR code is not available.");
+    try {
+      const response = await fetch(businessInfo.qrCode);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "profile-qr-code.png";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      window.open(businessInfo.qrCode, "_blank", "noopener,noreferrer");
+    }
+  };
+
+  const handleDownloadPoster = () => {
+    // Note: To generate a real image, you would use html2canvas. 
+    // This is a simulation of downloading.
+    alert("Downloading Poster... (In production, this would generate a high-res image using html2canvas)");
   };
 
   const handleContactClick = (type) => {
-    if (type === "phone") {
-      handleCall();
-    } else if (type === "email") {
-      window.location.href = `mailto:${businessInfo.email}`;
-    } else if (type === "website") {
-      if (!businessInfo.website) return;
-
-      const websiteUrl = /^https?:\/\//i.test(businessInfo.website)
-        ? businessInfo.website
-        : `https://${businessInfo.website}`;
-
-      window.open(websiteUrl, "_blank", "noopener,noreferrer");
-    } else if (type === "address") {
-      window.open(
-        `https://maps.google.com/?q=${encodeURIComponent(
-          businessInfo.address,
-        )}`,
-        "_blank",
-        "noopener,noreferrer",
-      );
-    } else if (type === "upi") {
-      if (!profileData.upiId?.trim()) {
-        alert("UPI ID is not available.");
-        return;
-      }
-
-      setShowPayment(true);
-    }
+    if (type === "phone") handleCall();
+    else if (type === "email") { if (businessInfo.email) window.location.href = `mailto:${businessInfo.email}`; else alert("Email address is not available."); }
+    else if (type === "website") { if (!businessInfo.website) return; window.open(/^https?:\/\//i.test(businessInfo.website) ? businessInfo.website : `https://${businessInfo.website}`, "_blank", "noopener,noreferrer"); }
+    else if (type === "address") window.open(`https://maps.google.com/?q=${encodeURIComponent(businessInfo.address)}`, "_blank", "noopener,noreferrer");
+    else if (type === "upi") { if (!profileData.upiId?.trim()) return alert("UPI ID is not available."); setShowPayment(true); }
   };
 
   const handleConfiguredButton = (button) => {
     switch (button.actionType) {
-      case "call":
-        handleCall();
-        break;
-      case "whatsapp":
-        handleWhatsApp();
-        break;
-      case "email":
-        if (businessInfo.email)
-          window.location.href = `mailto:${businessInfo.email}`;
-        break;
-      case "directions":
-        window.open(
-          profileData.mapLink ||
-            `https://maps.google.com/?q=${encodeURIComponent(businessInfo.address)}`,
-          "_blank",
-          "noopener,noreferrer",
-        );
-        break;
-      case "share":
-        handleShare();
-        break;
-      case "website":
-      case "customLink":
-        if (button.customUrl) {
-          window.open(button.customUrl, "_blank", "noopener,noreferrer");
-        }
-        break;
-      case "saveContact":
-        handleSaveContact();
-        break;
-      case "upi":
-        handleContactClick("upi");
-        break;
-      default:
-        break;
+      case "call": handleCall(); break;
+      case "whatsapp": handleWhatsApp(); break;
+      case "email": if (businessInfo.email) window.location.href = `mailto:${businessInfo.email}`; break;
+      case "directions": window.open(profileData.mapLink || `https://maps.google.com/?q=${encodeURIComponent(businessInfo.address)}`, "_blank", "noopener,noreferrer"); break;
+      case "share": handleShare(); break;
+      case "website": case "customLink": if (button.customUrl) window.open(button.customUrl, "_blank", "noopener,noreferrer"); break;
+      case "saveContact": handleSaveContact(); break;
+      case "upi": handleContactClick("upi"); break;
+      default: break;
     }
   };
 
   const handleFormSubmit = (event) => {
-    event.preventDefault();
-
-    setFormSubmitted(true);
-
-    setTimeout(() => {
-      setFormSubmitted(false);
-
-      setFormData({
-        name: "",
-        phone: "",
-        email: "",
-        message: "",
-      });
-    }, 3000);
+    event.preventDefault(); setFormSubmitted(true);
+    window.setTimeout(() => { setFormSubmitted(false); setFormData({ name: "", phone: "", email: "", message: "" }); }, 3000);
   };
 
   const handleReviewSubmit = (event) => {
-    event.preventDefault();
-
-    setReviewSubmitted(true);
-
-    setTimeout(() => {
-      setShowReviewModal(false);
-      setReviewSubmitted(false);
-
-      setReviewData({
-        name: "",
-        review: "",
-      });
-
-      setReviewRating(5);
-    }, 2000);
+    event.preventDefault(); setReviewSubmitted(true);
+    window.setTimeout(() => { setShowReviewModal(false); setReviewSubmitted(false); setReviewData({ name: "", review: "" }); setReviewRating(5); }, 2000);
   };
 
-  /* =========================================================
-     RENDER
-  ========================================================= */
+  if (loading || !profileChecked || !profile) return null;
 
-  if (loading || !profileChecked || !profile) {
-    return null;
-  }
+  const socialLinks = (profileData.socialCards || []).filter((social) => social?.url);
+
+  const getSocialIcon = (platform = "") => {
+    const value = platform.toLowerCase();
+    if (value.includes("instagram")) return FaInstagram;
+    if (value.includes("linkedin")) return FaLinkedinIn;
+    if (value.includes("facebook")) return FaFacebookF;
+    if (value.includes("youtube")) return FaYoutube;
+    if (value.includes("whatsapp")) return FaWhatsapp;
+    if (value.includes("telegram")) return FaTelegram;
+    if (value.includes("twitter") || value === "x") return FaXTwitter;
+    if (value.includes("website")) return FaGlobe;
+    return FaLink;
+  };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#071326] text-slate-100 selection:bg-cyan-300/30">
-      {/* BACKGROUND DECORATION */}
-
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.035]"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, #67e8f9 1px, transparent 1px)",
-          backgroundSize: "30px 30px",
-        }}
-      />
-
-      <div className="pointer-events-none absolute -top-48 left-1/2 h-[500px] w-[900px] -translate-x-1/2 rounded-full bg-cyan-400/[0.07] blur-[150px]" />
-
-      <div className="pointer-events-none absolute right-[-180px] top-[650px] h-[400px] w-[400px] rounded-full bg-blue-500/[0.06] blur-[130px]" />
-
-      <main className="relative mx-auto max-w-[1600px] px-4 py-5 sm:px-6 sm:py-6 xl:px-8">
-        {/* =====================================================
-            01. STANDEE ACTIVATION
-        ===================================================== */}
-
-        <section className="mb-7">
-          <div className="relative overflow-hidden rounded-[26px] border border-[#29435f] bg-gradient-to-br from-[#10243c] via-[#0b1b30] to-[#08172a] shadow-[0_20px_65px_rgba(0,0,0,0.22)]">
-            <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/70 to-transparent" />
-
-            <div className="pointer-events-none absolute -right-24 -top-32 h-80 w-80 rounded-full bg-cyan-400/[0.08] blur-[90px]" />
-
-            <div className="relative grid grid-cols-1 gap-6 p-5 sm:p-7 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-9 lg:p-8">
-              <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/[0.07] px-3.5 py-2">
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-300 opacity-60" />
-                    <span className="relative h-2 w-2 rounded-full bg-cyan-300" />
-                  </span>
-
-                  <span className="text-xs font-bold uppercase tracking-[0.14em] text-cyan-200">
-                    Business Setup
-                  </span>
-                </div>
-
-                <h1 className="mt-4 max-w-xl text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-[42px] lg:leading-[1.15]">
-                  Link Your Physical
-                  <span className="mt-1 block bg-gradient-to-r from-cyan-200 via-cyan-300 to-blue-300 bg-clip-text text-transparent">
-                    Counter Standee
-                  </span>
-                </h1>
-
-                <p className="mt-3 max-w-lg text-base leading-7 text-slate-300">
-                  Received your acrylic counter standee? Connect it once to go
-                  live and help customers discover your digital business card.
-                </p>
-
-                <div className="mt-5 flex flex-wrap items-center gap-3">
-                  <span
-                    className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-sm font-semibold ${
-                      standeeActivated
-                        ? "border-emerald-300/25 bg-emerald-300/[0.08] text-emerald-200"
-                        : "border-amber-300/25 bg-amber-300/[0.07] text-amber-200"
-                    }`}
-                  >
-                    {standeeActivated ? (
-                      <CheckCircle2 size={17} />
-                    ) : (
-                      <span className="h-2 w-2 rounded-full bg-amber-300" />
-                    )}
-
-                    {standeeActivated ? "Standee Activated" : "Action Required"}
-                  </span>
-
-                  <span className="inline-flex items-center gap-2 text-sm text-slate-300">
-                    <ShieldCheck size={17} className="text-cyan-300" />
-                    One-time setup
-                  </span>
-                </div>
-              </div>
-
-              {/* ACTIVATION CARD */}
-
-              <div className="rounded-[22px] border border-[#38516e] bg-[#08172a]/90 p-5 shadow-xl sm:p-6">
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-300/[0.08]">
-                    <ScanLine size={23} className="text-cyan-200" />
-                  </div>
-
-                  <div>
-                    <h3 className="text-base font-bold text-white">
-                      Activate Your Standee
-                    </h3>
-
-                    <p className="mt-1 text-sm text-slate-300">
-                      Enter your unique standee code
-                    </p>
-                  </div>
-                </div>
-
-                <label
-                  htmlFor="standee-code"
-                  className="mb-2 block text-xs font-bold uppercase tracking-[0.12em] text-slate-300"
-                >
-                  Standee Code
-                </label>
-
-                <input
-                  id="standee-code"
-                  type="text"
-                  value={standeeCode}
-                  onChange={(event) =>
-                    setStandeeCode(event.target.value.toUpperCase())
-                  }
-                  disabled={standeeActivated}
-                  placeholder="E.G., XR-1001 OR SHOPX007"
-                  className="w-full rounded-xl border border-[#38516e] bg-[#10213a] px-4 py-3.5 text-base font-semibold tracking-wider text-white outline-none transition placeholder:text-sm placeholder:font-medium placeholder:tracking-normal placeholder:text-slate-400 focus:border-cyan-300/70 focus:ring-4 focus:ring-cyan-300/[0.08] disabled:cursor-not-allowed disabled:opacity-60"
-                />
-
-                <button
-                  type="button"
-                  onClick={handleActivateStandee}
-                  disabled={standeeActivated || !standeeCode.trim()}
-                  className="mt-3 flex w-full items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-cyan-300 to-blue-400 px-4 py-3.5 text-base font-bold text-[#071326] shadow-[0_8px_24px_rgba(34,211,238,0.12)] transition duration-200 hover:brightness-110 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
-                >
-                  <Check size={18} strokeWidth={2.5} />
-                  {standeeActivated ? "Standee Activated" : "Activate Standee"}
-                </button>
-
-                <div className="mt-3 flex items-start gap-2.5 rounded-xl border border-[#29435f]/70 bg-[#10213a]/60 p-3">
-                  <ShieldCheck
-                    size={17}
-                    className="mt-0.5 shrink-0 text-cyan-300"
-                  />
-
-                  <p className="text-sm leading-6 text-slate-300">
-                    Enter the code printed on your physical standee. Once
-                    activated, customers scanning your standee can reach your
-                    page instantly.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* =====================================================
-            02. PAGE HEADER
-        ===================================================== */}
-
-        <section className="mb-6">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-            <div>
-              <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-cyan-200">
-                <MonitorSmartphone size={17} />
-
-                <span className="uppercase tracking-[0.14em]">
-                  Website Studio
-                </span>
-              </div>
-
-              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                Live Mini Website <span className="text-cyan-300">Preview</span>
-              </h2>
-
-              <p className="mt-2 max-w-2xl text-base leading-7 text-slate-300">
-                Experience your digital business card exactly as your
-                prospective customers see it when they open your shared link or
-                scan your QR code.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                onClick={() => navigate("/theme")}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#38516e] bg-[#10213a] px-5 py-3 text-sm font-semibold text-slate-100 transition hover:border-cyan-300/50 hover:bg-[#142b46] hover:text-cyan-100"
-              >
-                <Palette size={18} />
-                Change Theme
-                <ChevronRight size={16} />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsPreviewMode(true)}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-300 to-blue-400 px-5 py-3 text-sm font-bold text-[#071326] shadow-lg shadow-cyan-400/10 transition hover:brightness-110 active:scale-[0.98]"
-              >
-                <Maximize2 size={17} />
-                Full Screen Mode
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* =====================================================
-            03. THEME SELECTOR
-        ===================================================== */}
-
-        <section id="theme-selector" className="mb-7 scroll-mt-24">
-          <div className="overflow-hidden rounded-[24px] border border-[#29435f] bg-[#0b1b30] shadow-[0_16px_45px_rgba(0,0,0,0.12)]">
-            <div className="flex flex-col gap-3 border-b border-[#29435f] px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-              <div className="flex items-center">
+    // Background wrapper completely transparent as requested
+    <div className="relative min-h-screen font-sans text-slate-800 bg-transparent">
+      <main className="relative mx-auto max-w-[1600px] px-1 py-1 sm:px-6 sm:py-6 xl:px-8">
+        {/* DASHBOARD CONTROLS */}
+        <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {/* STANDEE CARD */}
+          <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[#29435f] bg-[#0b1b30] p-4 shadow-lg transition-all duration-300 hover:border-cyan-400/30 sm:p-5">
+            <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-cyan-500/10 blur-2xl transition-all duration-500 group-hover:bg-cyan-500/20" />
+            <div className="relative z-10 mb-3 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-400"><ScanLine size={16} /></div>
                 <div>
-                  <h3 className="text-base font-bold text-white">
-                    Website Appearance
-                  </h3>
-
-                  <p className="mt-1 text-sm text-slate-300">
-                    Choose your preferred visual theme
-                  </p>
+                  <h2 className="flex items-center gap-2 text-sm font-bold text-white">Activate Standee <span className="rounded border border-cyan-400/20 bg-cyan-400/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-cyan-300">Setup</span></h2>
+                  <p className="mt-0.5 text-[11px] text-slate-400">Connect your physical card</p>
                 </div>
               </div>
-
-              <span className="inline-flex w-fit items-center gap-2 rounded-lg border border-[#38516e] bg-[#10213a] px-3 py-2 text-sm text-slate-300">
-                Active:
-                <span className="font-bold text-cyan-200">
-                  {activeThemeData?.name}
-                </span>
-              </span>
+              {standeeActivated ? (
+                <span className="flex items-center gap-1 rounded-md border border-emerald-400/20 bg-emerald-400/10 px-2 py-1 text-[10px] font-bold text-emerald-400"><CheckCircle2 size={12} /> Active</span>
+              ) : (
+                <span className="flex items-center gap-1 rounded-md border border-amber-400/20 bg-amber-400/10 px-2 py-1 text-[10px] font-bold text-amber-400"><ShieldCheck size={12} /> Required</span>
+              )}
             </div>
-
-            <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 sm:p-5 md:grid-cols-3 xl:grid-cols-5">
-              {themes.map((theme) => {
-                const isActive = activeTheme === theme.id;
-                const Icon = theme.icon;
-
-                return (
-                  <button
-                    type="button"
-                    key={theme.id}
-                    onClick={() => setActiveTheme(theme.id)}
-                    aria-pressed={isActive}
-                    className={`group relative overflow-hidden rounded-2xl border p-4 text-left transition-all duration-200 ${
-                      isActive
-                        ? "border-cyan-300/60 bg-cyan-300/[0.07] shadow-[0_0_0_1px_rgba(34,211,238,0.10)]"
-                        : "border-[#29435f] bg-[#08172a] hover:border-[#54718e] hover:bg-[#10213a]"
-                    }`}
-                  >
-                    {isActive && (
-                      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-cyan-300 to-blue-400" />
-                    )}
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex -space-x-1">
-                        {theme.colors.map((color, index) => (
-                          <span
-                            key={`${theme.id}-${index}`}
-                            className="h-8 w-8 rounded-full border-[3px] border-[#0b1b30] shadow-sm"
-                            style={{ backgroundColor: color }}
-                          />
-                        ))}
-                      </div>
-
-                      {isActive && (
-                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-300 text-[#071326]">
-                          <Check size={14} strokeWidth={3} />
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="mt-3 flex items-start gap-2.5">
-                      <div
-                        className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-                          isActive
-                            ? "bg-cyan-300/15 text-cyan-200"
-                            : "bg-[#132942] text-slate-300"
-                        }`}
-                      >
-                        <Icon size={18} />
-                      </div>
-
-                      <div className="min-w-0">
-                        <p
-                          className={`text-sm font-bold leading-5 ${
-                            isActive ? "text-white" : "text-slate-200"
-                          }`}
-                        >
-                          {theme.name}
-                        </p>
-
-                        <p className="mt-1 text-xs text-slate-300">
-                          {isActive ? "Currently selected" : "Select theme"}
-                        </p>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
+            <div className="relative z-10 flex items-center gap-2">
+              <div className="flex flex-1 items-center rounded-xl border border-[#29435f] bg-[#071326] p-1 transition-all focus-within:border-cyan-400 focus-within:ring-2 focus-within:ring-cyan-400/20">
+                <input type="text" value={standeeCode} onChange={(e) => setStandeeCode(e.target.value.toUpperCase())} disabled={standeeActivated} placeholder="Enter Code (e.g. XR-1001)" className="w-full bg-transparent px-3 py-1.5 text-xs font-semibold tracking-wide text-white outline-none placeholder:text-slate-500 disabled:opacity-50" />
+                <button onClick={handleActivateStandee} disabled={standeeActivated || !standeeCode.trim()} className="flex shrink-0 items-center justify-center rounded-lg bg-cyan-400 px-3 py-1.5 text-xs font-bold text-[#0b1b30] transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-50">{standeeActivated ? "Done" : "Activate"}</button>
+              </div>
             </div>
           </div>
-        </section>
 
-        {/* =====================================================
-            04. PREVIEW STATUS BAR
-        ===================================================== */}
-
-        {isPreviewMode && (
-          <section className="mb-4">
-            <div className="flex flex-col gap-3 rounded-2xl border border-[#29435f] bg-[#0b1b30] p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-amber-300/20 bg-amber-300/[0.08]">
-                  <Eye size={20} className="text-amber-300" />
-                </div>
-
+          {/* THEME CARD */}
+          <div className="relative flex flex-col justify-between rounded-2xl border border-[#29435f] bg-[#0b1b30] p-4 shadow-lg transition-all duration-300 hover:border-cyan-400/30 sm:p-5">
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-400"><Palette size={16} /></div>
                 <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-base font-bold text-white">
-                      Customer Preview
-                    </h3>
-
-                    <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-300/20 bg-emerald-300/[0.07] px-2 py-1 text-xs font-bold uppercase tracking-wide text-emerald-200">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
-                      Interactive
-                    </span>
-                  </div>
-
-                  <p className="mt-1 text-sm leading-5 text-slate-300">
-                    Preview the business profile and customer actions.
-                  </p>
+                  <h2 className="text-sm font-bold text-white">Appearance Theme</h2>
+                  <p className="mt-0.5 text-[11px] text-slate-400">Choose your profile vibe</p>
                 </div>
               </div>
-
-              <button
-                type="button"
-                onClick={() => setIsPreviewMode(false)}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#38516e] bg-[#10213a] px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:border-cyan-300/40 hover:text-cyan-200"
-              >
-                <X size={16} />
-                Back to Editor
-              </button>
+              <span className="hidden rounded-md border border-cyan-400/10 bg-cyan-400/5 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-cyan-300 sm:block">{activeThemeData?.name}</span>
             </div>
-          </section>
-        )}
-
-        {/* =====================================================
-            05. PREMIUM WEBSITE PREVIEW
-        ===================================================== */}
-
-        {isPreviewMode && (
-          <section className="pb-10">
-            <div className="mx-auto w-full max-w-[1200px]">
-              {/* BROWSER FRAME */}
-
-              <div className="overflow-hidden rounded-[28px] border border-[#45414a] bg-[#17171c] p-2 shadow-[0_30px_100px_rgba(0,0,0,0.42)] sm:rounded-[32px] sm:p-3">
-                <div className="overflow-hidden rounded-[22px] border border-[#34343c] bg-[#111116]">
-                  {/* BROWSER TOP BAR */}
-
-                  <div className="flex items-center justify-between gap-3 border-b border-white/[0.08] bg-[#17171c] px-4 py-3 sm:px-6">
-                    <div className="flex shrink-0 items-center gap-2">
-                      <span className="h-3 w-3 rounded-full bg-rose-400/90" />
-                      <span className="h-3 w-3 rounded-full bg-amber-300/90" />
-                      <span className="h-3 w-3 rounded-full bg-emerald-300/90" />
-                    </div>
-
-                    <div className="flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-[#353b49] bg-[#090b10] px-3 py-2.5 sm:max-w-[440px]">
-                      <ShieldCheck
-                        size={16}
-                        className="shrink-0 text-amber-300"
-                      />
-
-                      <span className="truncate text-sm font-medium text-slate-200">
-                        {businessInfo.website}
-                      </span>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleCopyLink}
-                      title="Copy website link"
-                      aria-label="Copy website link"
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#353b49] bg-[#202029] text-slate-200 transition hover:border-amber-300/50 hover:text-amber-200"
-                    >
-                      {copied ? <Check size={18} /> : <Copy size={18} />}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                {themes.map((theme) => {
+                  const isActive = activeTheme === theme.id;
+                  return (
+                    <button key={theme.id} onClick={() => setActiveTheme(theme.id)} title={theme.name} aria-label={`Select ${theme.name}`} className={`relative flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 ${isActive ? "scale-110 ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#0b1b30]" : "opacity-70 hover:scale-110 hover:opacity-100"}`}>
+                      <span className="h-full w-full rounded-full border border-white/20" style={{ background: `linear-gradient(135deg, ${theme.colors[0]}, ${theme.colors[1]})` }} />
+                      {isActive && <span className="absolute inset-0 flex items-center justify-center text-white"><Check size={12} strokeWidth={4} /></span>}
                     </button>
-                  </div>
+                  );
+                })}
+              </div>
+              <button onClick={() => setIsPreviewMode(!isPreviewMode)} className={`flex shrink-0 items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-bold transition-all ${isPreviewMode ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-300 hover:bg-cyan-400/20" : "border-[#29435f] bg-[#132942] text-slate-300 hover:text-white"}`}>
+                <MonitorSmartphone size={14} />{isPreviewMode ? "Hide" : "Preview"}
+              </button>
+            </div>
+          </div>
+        </div>
 
-                  {/* CUSTOMER WEBSITE */}
+        {/* LIVE PROFILE PREVIEW */}
+        {isPreviewMode && (
+          <section className="animate-in fade-in slide-in-from-bottom-4 pb-12 duration-500">
+            <div className="mx-auto w-full max-w-[1200px]">
+              <div className="overflow-hidden rounded-[28px] border border-[#45414a] bg-[#17171c] p-2 shadow-[0_30px_100px_rgba(0,0,0,0.6)] sm:rounded-[32px] sm:p-3">
+                <div className="overflow-hidden rounded-[22px] border border-[#34343c] bg-[#0b1b30]">
+                  {/* HERO BANNER */}
+                  <div className="relative h-64 w-full sm:h-80">
+                    <img src={businessInfo.banner || bannerImages[0]} alt="Banner" className="h-full w-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0b1b30] via-[#0b1b30]/40 to-transparent" />
 
-                  <div
-                    style={{
-                      ...themeVariables,
-                      background: `linear-gradient(
-    180deg,
-    ${currentTheme.background} 0%,
-    ${currentTheme.surface} 55%,
-    ${currentTheme.background} 100%
-  )`,
-                      color: currentTheme.text,
-                    }}
-                    className="transition-colors duration-500"
-                  >
-                    {/* SWIPER THEMING (product cards / gallery / modal) */}
-                    <style>{`
-                      .product-cards-swiper,
-                      .gallery-swiper,
-                      .product-modal-swiper {
-                        --swiper-theme-color: ${currentTheme.primary};
-                        --swiper-navigation-color: ${currentTheme.primary};
-                        --swiper-navigation-size: 16px;
-                      }
-
-                      .product-cards-swiper .swiper-button-next,
-                      .product-cards-swiper .swiper-button-prev {
-                        width: 34px;
-                        height: 34px;
-                        border-radius: 9999px;
-                        background: rgba(0, 0, 0, 0.55);
-                        border: 1px solid ${currentTheme.primary}55;
-                        backdrop-filter: blur(6px);
-                        color: ${currentTheme.primary};
-                      }
-
-                      .product-cards-swiper .swiper-button-next::after,
-                      .product-cards-swiper .swiper-button-prev::after {
-                        font-size: 13px;
-                        font-weight: 800;
-                      }
-
-                      .product-cards-swiper .swiper-button-disabled {
-                        opacity: 0.3;
-                      }
-
-                      .product-cards-swiper .swiper-pagination-bullet,
-                      .gallery-swiper .swiper-pagination-bullet,
-                      .product-modal-swiper .swiper-pagination-bullet {
-                        background: ${currentTheme.text};
-                        opacity: 0.35;
-                      }
-
-                      .product-cards-swiper .swiper-pagination-bullet-active,
-                      .gallery-swiper .swiper-pagination-bullet-active,
-                      .product-modal-swiper .swiper-pagination-bullet-active {
-                        background: ${currentTheme.primary};
-                        opacity: 1;
-                      }
-
-                      .product-cards-swiper .swiper-slide,
-                      .gallery-swiper .swiper-slide {
-                        height: auto;
-                      }
-                    `}</style>
-
-                    {/* BANNER */}
-
-                    <div className="relative h-56 overflow-hidden sm:h-72 lg:h-[340px]">
-                      {(businessInfo.banner
-                        ? [businessInfo.banner]
-                        : bannerImages
-                      ).map((image, index) => (
-                        <img
-                          key={image}
-                          src={image}
-                          alt={`Business banner ${index + 1}`}
-                          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
-                            index === currentSlide ? "opacity-100" : "opacity-0"
-                          }`}
-                        />
-                      ))}
-
-                      <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/10 to-[#17171c]" />
-
-                      <div className="absolute left-4 top-4 sm:left-7 sm:top-6">
-                        <span className="inline-flex items-center rounded-full border border-amber-200/30 bg-[#111116]/75 px-3.5 py-2.5 text-xs font-bold uppercase tracking-[0.12em] text-white shadow-lg backdrop-blur-xl sm:text-sm">
-                          Featured Business
-                        </span>
-                      </div>
-
-                      <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-3 sm:bottom-7 sm:left-7 sm:right-7">
-                        <div>
-                          <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-100/90 sm:text-sm">
-                            Discover
-                          </p>
-
-                          <p className="mt-1.5 text-2xl font-bold tracking-tight text-white sm:text-3xl lg:text-4xl">
-                            Your Business, Your Identity
-                          </p>
-                        </div>
-
-                        <div className="flex shrink-0 gap-1.5 pb-1">
-                          {bannerImages.map((_, index) => (
-                            <button
-                              key={index}
-                              type="button"
-                              onClick={() => setCurrentSlide(index)}
-                              aria-label={`Show banner ${index + 1}`}
-                              aria-pressed={currentSlide === index}
-                              className={`h-2.5 rounded-full transition-all duration-300 ${
-                                currentSlide === index
-                                  ? "w-8 bg-amber-300"
-                                  : "w-2.5 bg-white/60 hover:bg-white"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
+                    {/* SHARE AND QR BUTTONS */}
+                    <div className="absolute right-4 top-4 z-20 flex items-center gap-2 sm:right-6 sm:top-6">
+                      <button type="button" onClick={() => { setQrModalTab("share"); setShowQrModal(true); }} title="Share profile" aria-label="Share profile" className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/20 bg-[#071326]/80 text-white shadow-lg backdrop-blur-md transition hover:border-cyan-300/60 hover:bg-cyan-400 hover:text-[#071326]"><Share2 size={19} /></button>
+                      <button type="button" onClick={() => { setQrModalTab("myqr"); setShowQrModal(true); }} title="View QR code" aria-label="Open QR modal" className="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-300/40 bg-cyan-400 text-[#071326] shadow-lg shadow-cyan-950/30 transition hover:scale-105 hover:bg-cyan-300"><ScanLine size={20} /></button>
                     </div>
 
-                    {/* PROFILE */}
+                    <div className="absolute bottom-4 right-4 z-10 flex gap-2 sm:right-6">
+                      {copied && <span className="rounded-lg border border-cyan-300/20 bg-[#071326]/90 px-3 py-1.5 text-xs font-semibold text-cyan-200 backdrop-blur">Link copied!</span>}
+                    </div>
+                  </div>
 
-                    <div className="px-5 pb-6 sm:px-8 sm:pb-7 lg:px-10">
-                      <div className="-mt-12 mb-5 flex flex-wrap items-end justify-between gap-3 sm:-mt-14">
-                        <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-4 border-[#17171c] bg-[#25242a] shadow-2xl sm:h-28 sm:w-28">
-                          {businessInfo.avatar && (
-                            <img
-                              src={businessInfo.avatar}
-                              alt={businessInfo.name}
-                              className="h-full w-full object-cover"
-                            />
+                  {/* PROFILE HEADER */}
+                  <div className="relative px-6 sm:px-10">
+                    <div className="-mt-16 flex flex-col items-center justify-between gap-6 sm:-mt-20 md:flex-row md:items-end">
+                      <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-end">
+                        {/* AVATAR WITH LOGO BADGE OVERLAY */}
+                        <div className="relative h-32 w-32 shrink-0 sm:h-36 sm:w-36">
+                          <div className="h-full w-full overflow-hidden rounded-full border-4 border-[#0b1b30] bg-[#132942] shadow-2xl">
+                            {businessInfo.avatar ? (
+                              <img src={businessInfo.avatar} alt={businessInfo.name} className="h-full w-full object-cover" />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-slate-500"><UserPlus size={40} /></div>
+                            )}
+                          </div>
+                          {businessInfo.logo && (
+                            <div
+                              title={businessInfo.businessName || "Business Logo"}
+                              className="absolute -right-1 top-24 z-10 flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border-4 border-[#0b1b30] bg-white shadow-[0_4px_16px_rgba(0,0,0,0.5)] sm:h-10 sm:w-10"
+                            >
+                              <img
+                                src={businessInfo.logo}
+                                alt={businessInfo.businessName || "Business logo"}
+                                className="h-full w-full object-contain p-1"
+                                onError={(e) => {
+                                  e.currentTarget.parentElement.style.display = "none";
+                                }}
+                              />
+                            </div>
                           )}
                         </div>
-
-                        {loading ? (
-                          <span
-                            role="status"
-                            className="mb-1 inline-flex items-center gap-2 rounded-full border border-slate-400/30 bg-slate-400/10 px-3.5 py-2.5 text-xs font-bold uppercase tracking-wide text-slate-300 sm:text-sm"
-                          >
-                            Checking verification...
-                          </span>
-                        ) : isVerified === true ? (
-                          <span className="mb-1 inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3.5 py-2.5 text-xs font-bold uppercase tracking-wide text-emerald-300 sm:text-sm">
-                            <ShieldCheck size={16} />✓ Verified
-                          </span>
-                        ) : isVerified === false ? (
-                          <span className="mb-1 inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-3.5 py-2.5 text-xs font-bold uppercase tracking-wide text-amber-300 sm:text-sm">
-                            <ShieldCheck size={16} />
-                            Not Verified
-                          </span>
-                        ) : null}
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-2.5">
-                        <h3 className="text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-[42px]">
-                          {businessInfo.name}
-                        </h3>
-
-                        {loading ? (
-                          <span role="status">Checking verification...</span>
-                        ) : isVerified === true ? (
-                          <span
-                            title="Verified business profile"
-                            className="inline-flex items-center gap-1 rounded-full bg-emerald-400/10 px-2.5 py-1 text-sm font-bold text-emerald-300"
-                          >
-                            <Check size={16} strokeWidth={3} />
-                            Verified
-                          </span>
-                        ) : isVerified === false ? (
-                          <span className="rounded-full bg-amber-400/10 px-2.5 py-1 text-xs font-semibold text-amber-300">
-                            Not Verified
-                          </span>
-                        ) : null}
-                      </div>
-
-                      <p className="mt-2 text-base font-medium text-slate-300 sm:text-lg">
-                        {businessInfo.role}
-                      </p>
-
-                      <p className="mt-3 flex items-start gap-2 text-sm leading-6 text-slate-300 sm:text-base">
-                        <MapPin
-                          size={18}
-                          className="mt-0.5 shrink-0 text-amber-300"
-                        />
-
-                        {businessInfo.location}
-                      </p>
-
-                      <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-amber-200/20 bg-amber-200/[0.06] px-3.5 py-2.5">
-                        <span className="relative flex h-2 w-2">
-                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-300 opacity-50" />
-                          <span className="relative h-2 w-2 rounded-full bg-amber-300" />
-                        </span>
-
-                        <span className="text-xs font-bold uppercase tracking-wide text-amber-200 sm:text-sm">
-                          {businessInfo.status}
-                        </span>
-                      </div>
-
-                      {/* ACTION BUTTONS */}
-
-                      {visibleButtons.length > 0 && (
-                        <div className="mt-5 grid grid-cols-3 gap-3 sm:grid-cols-8">
-                          {visibleButtons.map((button) => {
-                            const buttonIcons = {
-                              link: ArrowUpRight,
-                              phone: Phone,
-                              whatsapp: MessageCircle,
-                              email: Mail,
-                              location: MapPin,
-                              share: Share2,
-                              website: Globe,
-                              contact: UserPlus,
-                              upi: IndianRupee,
-                            };
-                            const ButtonIcon =
-                              buttonIcons[button.icon] || ArrowUpRight;
-
-                            return (
-                              <ActionButton
-                                key={
-                                  button._id ||
-                                  button.id ||
-                                  button.buttonId ||
-                                  `${button.actionType}-${button.order}`
-                                }
-                                icon={
-                                  button.actionType === "saveContact" && saved
-                                    ? Check
-                                    : ButtonIcon
-                                }
-                                label={
-                                  button.actionType === "saveContact" && saved
-                                    ? "Saved"
-                                    : button.label
-                                }
-                                onClick={() => handleConfiguredButton(button)}
-                                primary={button.actionType === "saveContact"}
-                              />
-                            );
-                          })}
-                        </div>
-                      )}
-
-                      {/* DYNAMIC SOCIAL PROFILE SHORTCUTS */}
-                      {Array.isArray(profileData.socialCards) &&
-                        profileData.socialCards.some((card) =>
-                          card.url?.trim(),
-                        ) && (
-                          <div className="mt-4 flex flex-wrap gap-2.5">
-                            {profileData.socialCards
-                              .filter((card) => card.url?.trim())
-                              .map((card, index) => {
-                                const platformKey =
-                                  `${card.platform || ""} ${card.platformName || ""} ${card.icon || ""}`.toLowerCase();
-                                const platformName =
-                                  card.platformName ||
-                                  (card.platform
-                                    ? card.platform.charAt(0).toUpperCase() +
-                                      card.platform.slice(1)
-                                    : "Social Profile");
-                                const rawUrl = card.url.trim();
-                                const socialUrl = /^https?:\/\//i.test(rawUrl)
-                                  ? rawUrl
-                                  : `https://${rawUrl}`;
-                                const SocialIcon = platformKey.includes(
-                                  "instagram",
-                                )
-                                  ? FaInstagram
-                                  : platformKey.includes("linkedin")
-                                    ? FaLinkedinIn
-                                    : platformKey.includes("facebook")
-                                      ? FaFacebookF
-                                      : platformKey.includes("youtube")
-                                        ? FaYoutube
-                                        : platformKey.includes("whatsapp")
-                                          ? FaWhatsapp
-                                          : platformKey.includes("telegram")
-                                            ? FaTelegram
-                                            : platformKey.includes("twitter") ||
-                                                /\bx\b/.test(platformKey)
-                                              ? FaXTwitter
-                                              : platformKey.includes(
-                                                    "custom",
-                                                  ) ||
-                                                  platformKey.includes("link")
-                                                ? FaLink
-                                                : FaGlobe;
-
-                                return (
-                                  <a
-                                    key={
-                                      card._id ||
-                                      card.id ||
-                                      `${card.platform}-${index}`
-                                    }
-                                    href={socialUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    aria-label={`Open ${platformName} profile`}
-                                    className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 transition hover:-translate-y-0.5 hover:brightness-110"
-                                    style={{
-                                      borderColor: `${currentTheme.primary}45`,
-                                      backgroundColor: `${currentTheme.primary}10`,
-                                      color: currentTheme.text,
-                                    }}
-                                  >
-                                    <span
-                                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
-                                      style={{
-                                        backgroundColor: `${currentTheme.primary}20`,
-                                      }}
-                                    >
-                                      <SocialIcon
-                                        size={16}
-                                        aria-hidden="true"
-                                      />
-                                    </span>
-                                    <span className="text-sm font-semibold">
-                                      {platformName}
-                                    </span>
-                                    <ArrowUpRight
-                                      size={14}
-                                      className="shrink-0 opacity-70"
-                                    />
-                                  </a>
-                                );
-                              })}
+                        <div className="pb-2 text-center sm:text-left">
+                          <div className="flex items-center justify-center gap-2 sm:justify-start">
+                            <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">{businessInfo.name || "Your Name"}</h1>
+                            {businessInfo.isVerified && <CheckCircle2 size={24} className="fill-cyan-400/20 text-cyan-400" />}
                           </div>
-                        )}
+                          <p className="mt-1 text-base font-semibold text-cyan-400">{businessInfo.role || "Business Professional"}</p>
+                          <p className="mt-0.5 text-sm text-slate-300">{businessInfo.businessName}</p>
+                          <p className="mt-1 flex items-center justify-center gap-1.5 text-xs text-slate-400 sm:justify-start"><MapPin size={12} />{businessInfo.location}</p>
+                        </div>
+                      </div>
                     </div>
 
-                    {/* ABOUT */}
+                    <div className="flex flex-wrap gap-2 pt-4 pb-4">
+                      <button onClick={handleCall} className="flex items-center gap-2 rounded-lg bg-cyan-400 px-4 py-2 text-sm font-bold text-[#0b1b30] transition hover:bg-cyan-300"><Phone size={16} />Call</button>
+                      <button onClick={handleWhatsApp} className="flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-emerald-400"><MessageCircle size={16} />WhatsApp</button>
+                      <button onClick={() => handleContactClick("email")} className="flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-blue-400"><Mail size={16} />Email</button>
+                      <button onClick={handleSaveContact} className="flex items-center gap-2 rounded-lg border border-[#29435f] bg-[#132942] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#1a3658]">{saved ? <Check size={16} /> : <Download size={16} />}{saved ? "Contact Saved" : "Save Contact"}</button>
+                    </div>
 
-                    <WarmSection
-                      icon={Award}
-                      title="About the Business"
-                      theme={currentTheme}
-                    >
-                      <div className="rounded-2xl border border-amber-200/15 bg-gradient-to-br from-amber-200/[0.07] to-transparent p-5 sm:p-6">
-                        <p className="text-base leading-7 text-slate-200 sm:text-lg sm:leading-8">
-                          {businessInfo.about}
-                        </p>
+                    {socialLinks.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-2 pb-8">
+                        {socialLinks.map((social, index) => {
+                          const SocialIcon = getSocialIcon(social.platform);
+                          return (
+                            <a key={social._id || `${social.platform}-${index}`} href={social.url} target="_blank" rel="noopener noreferrer" title={social.platform || "Social link"} aria-label={social.platform || "Social link"} className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#29435f] bg-[#132942] text-slate-300 transition hover:-translate-y-0.5 hover:border-cyan-400/60 hover:bg-cyan-400/10 hover:text-cyan-300"><SocialIcon size={18} /></a>
+                          );
+                        })}
                       </div>
-                    </WarmSection>
+                    )}
+                    {socialLinks.length === 0 && <div className="pb-8" />}
+                  </div>
 
-                    {/* =================================================
-                        PRODUCTS  (CARD SWIPE — IMAGE STATIC)
-                    ================================================= */}
+                  {/* MAIN CONTENT GRID */}
+                  <div className="grid grid-cols-1 gap-6 px-2 pb-12 sm:px-10 lg:grid-cols-12">
+                    {/* LEFT COLUMN */}
+                    <div className="space-y-6 lg:col-span-4">
+                      <div className="rounded-2xl border border-[#29435f] bg-[#132942] p-5">
+                        <h3 className="mb-4 text-base font-bold text-white">Contact Details</h3>
+                        <div className="space-y-4">
+                          <div className="flex items-start gap-3"><Phone className="mt-0.5 shrink-0 text-cyan-400" size={16} /><div><p className="text-xs text-slate-400">Phone</p><p className="text-sm font-medium text-white">{businessInfo.phone || "Not provided"}</p></div></div>
+                          <div className="flex items-start gap-3"><MessageCircle className="mt-0.5 shrink-0 text-cyan-400" size={16} /><div><p className="text-xs text-slate-400">WhatsApp</p><p className="text-sm font-medium text-white">{businessInfo.whatsapp || "Not provided"}</p></div></div>
+                          <div className="flex items-start gap-3"><Mail className="mt-0.5 shrink-0 text-cyan-400" size={16} /><div><p className="text-xs text-slate-400">Email</p><p className="break-all text-sm font-medium text-white">{businessInfo.email || "Not provided"}</p></div></div>
+                          <div className="flex items-start gap-3"><Globe className="mt-0.5 shrink-0 text-cyan-400" size={16} /><div><p className="text-xs text-slate-400">Website</p>{businessInfo.website ? <a href={/^https?:\/\//i.test(businessInfo.website) ? businessInfo.website : `https://${businessInfo.website}`} target="_blank" rel="noreferrer" className="break-all text-sm font-medium text-cyan-400 hover:underline">{businessInfo.website}</a> : <p className="text-sm font-medium text-white">Not provided</p>}</div></div>
+                          <div className="flex items-start gap-3"><MapPin className="mt-0.5 shrink-0 text-cyan-400" size={16} /><div><p className="text-xs text-slate-400">Address</p><p className="text-sm font-medium text-white">{businessInfo.address}</p></div></div>
+                          <div className="flex items-start gap-3"><Clock className="mt-0.5 shrink-0 text-cyan-400" size={16} /><div><p className="text-xs text-slate-400">Hours</p><p className="text-sm font-medium text-white">{businessInfo.businessHours || "Not provided"}</p></div></div>
+                        </div>
+                      </div>
 
-                    <WarmSection
-                      icon={ShoppingBag}
-                      title="Featured Products & Services"
-                      theme={currentTheme}
-                      action={
-                        <span
-                          className="rounded-lg border px-3 py-2 text-sm font-semibold"
-                          style={{
-                            borderColor: `${currentTheme.primary}40`,
-                            backgroundColor: `${currentTheme.primary}14`,
-                            color: currentTheme.text,
-                          }}
-                        >
-                          {productList.length}{" "}
-                          {productList.length === 1 ? "item" : "items"}
-                        </span>
-                      }
-                    >
-                      {productList.length > 0 ? (
-                        <div className="px-1">
+                      <div className="flex flex-col items-center rounded-2xl border border-[#29435f] bg-[#132942] p-5 text-center">
+                        <h3 className="mb-3 text-base font-bold text-white">Scan QR Code</h3>
+                        {businessInfo.qrCode ? (
+                          <div className="mb-3 rounded-xl bg-white p-2"><img src={businessInfo.qrCode} alt="QR Code" className="h-32 w-32 object-contain" /></div>
+                        ) : (
+                          <div className="mb-3 flex h-32 w-32 items-center justify-center rounded-xl border border-[#29435f] bg-[#0b1b30] text-slate-500"><QrCode size={40} /></div>
+                        )}
+                        <p className="mb-3 text-xs text-slate-400">Scan to visit my profile</p>
+                        <button type="button" onClick={handleDownloadQR} className="flex w-full items-center justify-center gap-2 rounded-lg border border-cyan-400/30 bg-cyan-400/10 py-2 text-sm font-bold text-cyan-400 transition hover:bg-cyan-400/20"><Download size={16} />Download QR</button>
+                      </div>
+                    </div>
+
+                    {/* RIGHT COLUMN */}
+                    <div className="space-y-6 lg:col-span-8">
+                      <div className="rounded-2xl border border-[#29435f] bg-[#132942] p-6">
+                        <h3 className="mb-3 text-lg font-bold text-white">About Me</h3>
+                        <p className="text-sm leading-7 text-slate-300">{businessInfo.about}</p>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {businessInfo.industry && <span className="rounded-md border border-[#29435f] bg-[#0b1b30] px-3 py-1 text-xs font-semibold text-cyan-300">{businessInfo.industry}</span>}
+                          <span className="rounded-md border border-[#29435f] bg-[#0b1b30] px-3 py-1 text-xs font-semibold text-cyan-300">{businessInfo.businessName}</span>
+                        </div>
+                      </div>
+
+                      {productList.length > 0 && (
+                        <div className="overflow-hidden rounded-2xl border border-[#29435f] bg-[#132942] p-6">
+                          <div className="mb-4 flex items-center justify-between">
+                            <h3 className="flex items-center gap-2 text-lg font-bold text-white"><ShoppingBag size={18} className="text-cyan-400" />Featured Products</h3>
+                            <span className="rounded-md border border-[#29435f] bg-[#0b1b30] px-2 py-1 text-xs font-semibold text-slate-400">{productList.length} items</span>
+                          </div>
                           <Swiper
-                            modules={[Navigation, Pagination]}
+                            modules={[Autoplay, Navigation, Pagination]}
                             spaceBetween={16}
                             slidesPerView={1}
-                            navigation={productList.length > 1}
-                            pagination={{
-                              clickable: true,
-                              dynamicBullets: productList.length > 3,
-                            }}
+                            navigation={productList.length > 2}
+                            pagination={{ clickable: true }}
+                            loop={productList.length > 2}
+                            autoplay={
+                              productList.length > 1
+                                ? { delay: 3000, disableOnInteraction: false, pauseOnMouseEnter: true }
+                                : false
+                            }
                             breakpoints={{
-                              640: { slidesPerView: 2, spaceBetween: 16 },
-                              1024: { slidesPerView: 3, spaceBetween: 18 },
+                              640: { slidesPerView: 2 },
+                              1024: { slidesPerView: 2 },
                             }}
-                            className="product-cards-swiper pb-11"
+                            className="pb-10"
                           >
                             {productList.map((product) => {
-                              const productImages = Array.isArray(
-                                product.images,
-                              )
-                                ? product.images.filter((img) => img?.url)
-                                : [];
-                              const coverImage = productImages[0] || null;
-                              const extraCount = productImages.length - 1;
-
+                              const cover = product.images?.find((image) => image?.url)?.url;
                               return (
-                                <SwiperSlide
-                                  key={product._id}
-                                  className="h-auto"
-                                >
-                                  <div
-                                    onClick={() => setSelectedProduct(product)}
-                                    className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-white/10 transition duration-300 hover:border-[var(--profile-primary)] hover:shadow-lg hover:shadow-black/10"
-                                    style={{
-                                      backgroundColor: currentTheme.surface,
-                                      color: currentTheme.text,
-                                    }}
-                                  >
-                                    {/* STATIC COVER IMAGE */}
-                                    {coverImage ? (
-                                      <div className="relative h-40 w-full overflow-hidden bg-black/20">
-                                        <img
-                                          src={coverImage.url}
-                                          alt={coverImage.alt || product.name}
-                                          className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-                                        />
-
-                                        {extraCount > 0 && (
-                                          <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-md border border-white/20 bg-black/60 px-2 py-1 text-[10px] font-bold text-white backdrop-blur-sm">
-                                            <ImageIcon size={11} />+{extraCount}
-                                          </span>
-                                        )}
-
-                                        <div className="pointer-events-none absolute bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-md border border-white/20 bg-black/60 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur-sm">
-                                          Tap to view
-                                        </div>
-                                      </div>
-                                    ) : (
-                                      <div
-                                        className="flex h-40 items-center justify-center text-5xl"
-                                        style={{
-                                          background: `linear-gradient(135deg, ${currentTheme.primary}24, ${currentTheme.secondary}10)`,
-                                        }}
-                                      >
-                                        📦
-                                      </div>
-                                    )}
-
-                                    {/* PRODUCT INFO — COMPACT */}
-                                    <div className="flex flex-1 flex-col p-3.5">
-                                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                                        <div className="min-w-0">
-                                          <h5
-                                            className="text-base font-bold leading-6"
-                                            style={{ color: currentTheme.text }}
-                                          >
-                                            {product.name}
-                                          </h5>
-
-                                          <span
-                                            className="mt-1.5 inline-flex rounded-md border px-2.5 py-1 text-[11px] font-semibold"
-                                            style={{
-                                              borderColor: `${currentTheme.primary}40`,
-                                              backgroundColor: `${currentTheme.primary}14`,
-                                              color: currentTheme.text,
-                                            }}
-                                          >
-                                            {product.category || "General"}
-                                          </span>
-                                        </div>
-
-                                        <span
-                                          className="shrink-0 text-base font-extrabold"
-                                          style={{
-                                            color: currentTheme.primary,
-                                          }}
-                                        >
-                                          ₹
-                                          {Number(
-                                            product.price || 0,
-                                          ).toLocaleString("en-IN")}
-                                        </span>
-                                      </div>
-
-                                      <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-300 sm:text-sm">
-                                        {product.description}
-                                      </p>
-
-                                      <div className="mt-auto flex flex-wrap items-center gap-2 pt-3">
-                                        <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-400/20 bg-emerald-400/[0.08] px-2 py-1 text-[11px] font-bold text-emerald-300">
-                                          <CheckCircle2 size={13} />
-                                          {product.status === "active"
-                                            ? "Available"
-                                            : "Unavailable"}
-                                        </span>
-
-                                        <button
-                                          type="button"
-                                          onClick={(event) => {
-                                            event.stopPropagation();
-                                            setSelectedProduct(product);
-                                          }}
-                                          className="ml-auto inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition hover:brightness-110 active:scale-[0.98]"
-                                          style={{
-                                            background: `linear-gradient(90deg, ${currentTheme.primary}, ${currentTheme.secondary})`,
-                                            color: currentTheme.text,
-                                          }}
-                                        >
-                                          View Product
-                                          <ArrowUpRight size={14} />
-                                        </button>
+                                <SwiperSlide key={product._id}>
+                                  <div onClick={() => setSelectedProduct(product)} className="group cursor-pointer overflow-hidden rounded-xl border border-[#29435f] bg-[#0b1b30] transition hover:border-cyan-400/50">
+                                    <div className="relative h-36 w-full bg-[#132942]">
+                                      {cover ? <img src={cover} alt={product.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /> : <div className="flex h-full w-full items-center justify-center text-slate-500"><ImageIcon size={30} /></div>}
+                                    </div>
+                                    <div className="p-3">
+                                      <h4 className="truncate text-sm font-bold text-white">{product.name}</h4>
+                                      <p className="mt-1 truncate text-xs text-slate-400">{product.description}</p>
+                                      <div className="mt-3 flex items-center justify-between">
+                                        <span className="text-sm font-extrabold text-cyan-400">₹{Number(product.price || 0).toLocaleString("en-IN")}</span>
+                                        <span className="rounded-md bg-cyan-400/10 px-2 py-1 text-[10px] font-bold text-cyan-200">View</span>
                                       </div>
                                     </div>
                                   </div>
@@ -1605,862 +634,286 @@ const Mini = () => {
                             })}
                           </Swiper>
                         </div>
-                      ) : (
-                        <div
-                          className="rounded-2xl border p-8 text-center"
-                          style={{
-                            borderColor: `${currentTheme.primary}30`,
-                            backgroundColor: `${currentTheme.primary}08`,
-                          }}
-                        >
-                          <ShoppingBag
-                            size={35}
-                            className="mx-auto"
-                            style={{ color: currentTheme.primary }}
-                          />
-
-                          <p className="mt-3 text-base font-semibold text-white">
-                            No products available
-                          </p>
-
-                          <p className="mt-1 text-sm text-slate-400">
-                            Products and services will appear here.
-                          </p>
-                        </div>
                       )}
-                    </WarmSection>
 
-                    {/* =================================================
-                        GALLERY  (FEATURED PRODUCTS KE NICHE)
-                    ================================================= */}
-
-                    <WarmSection
-                      icon={ImageIcon}
-                      title="Business Gallery"
-                      theme={currentTheme}
-                      action={
-                        <span
-                          className="rounded-lg border px-3 py-2 text-sm font-semibold"
-                          style={{
-                            borderColor: `${currentTheme.primary}40`,
-                            backgroundColor: `${currentTheme.primary}14`,
-                            color: currentTheme.text,
-                          }}
-                        >
-                          {galleryImages.length}{" "}
-                          {galleryImages.length === 1 ? "photo" : "photos"}
-                        </span>
-                      }
-                    >
-                      {galleryImages.length > 0 ? (
-                        <div className="px-1">
+                      <div className="rounded-2xl border border-[#29435f] bg-[#132942] p-6">
+                        <div className="mb-4 flex items-center justify-between">
+                          <h3 className="text-lg font-bold text-white">Gallery</h3>
+                          {galleryImages.length > 0 && <span className="text-sm font-semibold text-cyan-400">{galleryImages.length} photos</span>}
+                        </div>
+                        {galleryImages.length > 0 ? (
                           <Swiper
-                            modules={[Navigation, Pagination]}
+                            modules={[Autoplay, Navigation, Pagination]}
                             spaceBetween={12}
-                            slidesPerView={1.15}
-                            navigation={galleryImages.length > 2}
-                            pagination={{
-                              clickable: true,
-                              dynamicBullets: galleryImages.length > 4,
+                            slidesPerView={2}
+                            navigation={galleryImages.length > 3}
+                            pagination={{ clickable: true }}
+                            loop={galleryImages.length > 3}
+                            autoplay={{
+                              delay: 2500,
+                              disableOnInteraction: false,
+                              pauseOnMouseEnter: true,
                             }}
                             breakpoints={{
-                              480: { slidesPerView: 2, spaceBetween: 12 },
-                              768: { slidesPerView: 3, spaceBetween: 14 },
-                              1100: { slidesPerView: 4, spaceBetween: 14 },
+                              640: { slidesPerView: 2 },
+                              1024: { slidesPerView: 3 },
                             }}
-                            className="gallery-swiper pb-11"
+                            className="pb-10"
                           >
                             {galleryImages.map((image, index) => (
-                              <SwiperSlide
-                                key={`${image.url}-${index}`}
-                                className="h-auto"
-                              >
-                                <button
-                                  type="button"
-                                  onClick={() => setSelectedGalleryImage(image)}
-                                  className="group relative block h-full w-full overflow-hidden rounded-2xl border transition duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20"
-                                  style={{
-                                    borderColor: `${currentTheme.primary}40`,
-                                    backgroundColor: currentTheme.surface,
-                                  }}
-                                  aria-label={`View ${image.alt}`}
-                                >
-                                  <div className="h-40 w-full overflow-hidden sm:h-44">
-                                    <img
-                                      src={image.url}
-                                      alt={image.alt}
-                                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                                    />
-                                  </div>
-
-                                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-80" />
-
-                                  <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 p-3">
-                                    <span className="truncate text-left text-xs font-semibold text-white sm:text-sm">
-                                      {image.caption || image.alt}
-                                    </span>
-
-                                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/25 bg-black/50 text-white backdrop-blur-sm">
-                                      <Maximize2 size={13} />
-                                    </span>
-                                  </div>
-                                </button>
+                              <SwiperSlide key={index}>
+                                <div onClick={() => setSelectedGalleryImage(image)} className="group relative aspect-video cursor-pointer overflow-hidden rounded-xl">
+                                  <img src={image.url} alt={image.alt} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100"><Maximize2 size={20} className="text-white" /></div>
+                                </div>
                               </SwiperSlide>
                             ))}
                           </Swiper>
-                        </div>
-                      ) : (
-                        <div
-                          className="rounded-2xl border p-8 text-center"
-                          style={{
-                            borderColor: `${currentTheme.primary}30`,
-                            backgroundColor: `${currentTheme.primary}08`,
-                          }}
-                        >
-                          <ImageIcon
-                            size={35}
-                            className="mx-auto"
-                            style={{ color: currentTheme.primary }}
-                          />
-
-                          <p className="mt-3 text-base font-semibold text-white">
-                            No gallery photos yet
-                          </p>
-
-                          <p className="mt-1 text-sm text-slate-400">
-                            Business photos will appear here.
-                          </p>
-                        </div>
-                      )}
-                    </WarmSection>
-
-                    {/* CONTACT */}
-
-                    <WarmSection
-                      icon={Phone}
-                      title="Contact & Business Information"
-                      theme={currentTheme}
-                    >
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                        <ContactRow
-                          icon={Phone}
-                          label="Call Business"
-                          value={businessInfo.phone}
-                          theme={currentTheme}
-                          onClick={() => handleContactClick("phone")}
-                        />
-
-                        <ContactRow
-                          icon={Mail}
-                          label="Email Business"
-                          value={businessInfo.email}
-                          theme={currentTheme}
-                          onClick={() => handleContactClick("email")}
-                        />
-
-                        <ContactRow
-                          icon={Globe}
-                          label="Business Website"
-                          value={businessInfo.website}
-                          theme={currentTheme}
-                          onClick={() => handleContactClick("website")}
-                        />
-
-                        <ContactRow
-                          icon={MapPin}
-                          label="Business Address"
-                          value={businessInfo.address}
-                          theme={currentTheme}
-                          onClick={() => handleContactClick("address")}
-                        />
-
-                        {businessInfo.upiId && (
-                          <ContactRow
-                            icon={IndianRupee}
-                            label="Pay with UPI"
-                            value={businessInfo.upiId}
-                            theme={currentTheme}
-                            onClick={() => handleContactClick("upi")}
-                          />
+                        ) : (
+                          <div className="rounded-xl border border-dashed border-[#29435f] py-8 text-center"><ImageIcon size={32} className="mx-auto mb-2 text-slate-500" /><p className="text-sm text-slate-400">No gallery images added yet.</p></div>
                         )}
                       </div>
 
-                      {/* SOCIAL PROFILES SAVED FROM THE DASHBOARD */}
-                      {Array.isArray(profileData.socialCards) &&
-                        profileData.socialCards.length > 0 && (
-                          <div
-                            className="mt-5 border-t pt-5"
-                            style={{ borderColor: `${currentTheme.primary}40` }}
-                          >
-                            <div className="mb-3">
-                              <h4
-                                className="text-lg font-bold"
-                                style={{ color: currentTheme.text }}
-                              >
-                                Social Media & Profiles
-                              </h4>
-                              <p className="mt-1 text-sm text-slate-300">
-                                Connect with us on our social platforms.
-                              </p>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                              {profileData.socialCards.map((social, index) => {
-                                const socialName =
-                                  social.platform === "custom"
-                                    ? social.platformName || "Social Profile"
-                                    : social.platformName ||
-                                      (social.platform
-                                        ? social.platform
-                                            .charAt(0)
-                                            .toUpperCase() +
-                                          social.platform.slice(1)
-                                        : "Social Profile");
-                                const rawUrl = (social.url || "").trim();
-                                const socialUrl = rawUrl
-                                  ? /^https?:\/\//i.test(rawUrl)
-                                    ? rawUrl
-                                    : `https://${rawUrl}`
-                                  : "";
-
-                                return (
-                                  <a
-                                    key={
-                                      social._id ||
-                                      social.id ||
-                                      `${social.platform}-${index}`
-                                    }
-                                    href={socialUrl || undefined}
-                                    target={socialUrl ? "_blank" : undefined}
-                                    rel={
-                                      socialUrl
-                                        ? "noopener noreferrer"
-                                        : undefined
-                                    }
-                                    onClick={
-                                      !socialUrl
-                                        ? (event) => event.preventDefault()
-                                        : undefined
-                                    }
-                                    className={`group flex min-w-0 items-center gap-3 rounded-2xl border p-4 transition ${
-                                      socialUrl
-                                        ? "hover:-translate-y-0.5 hover:shadow-lg"
-                                        : "cursor-default"
-                                    }`}
-                                    style={{
-                                      borderColor: `${currentTheme.primary}40`,
-                                      backgroundColor: `${currentTheme.primary}0D`,
-                                      color: currentTheme.text,
-                                    }}
-                                  >
-                                    <span
-                                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border"
-                                      style={{
-                                        borderColor: `${currentTheme.primary}45`,
-                                        backgroundColor: `${currentTheme.primary}20`,
-                                        color: currentTheme.primary,
-                                      }}
-                                    >
-                                      <Globe size={20} />
-                                    </span>
-                                    <span className="min-w-0 flex-1">
-                                      <span className="block truncate text-sm font-bold">
-                                        {socialName}
-                                      </span>
-                                      {social.handle && (
-                                        <span
-                                          className="mt-1 block truncate text-sm"
-                                          style={{
-                                            color: currentTheme.primary,
-                                          }}
-                                        >
-                                          {social.handle}
-                                        </span>
-                                      )}
-                                      {social.description && (
-                                        <span className="mt-1 block break-words text-xs text-slate-300">
-                                          {social.description}
-                                        </span>
-                                      )}
-                                    </span>
-                                    {socialUrl && (
-                                      <ArrowUpRight
-                                        size={17}
-                                        className="shrink-0 opacity-70 transition group-hover:opacity-100"
-                                      />
-                                    )}
-                                  </a>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-                    </WarmSection>
-
-                    {/* REVIEWS */}
-
-                    <WarmSection
-                      icon={Star}
-                      title="Customer Experience & Trust"
-                      theme={currentTheme}
-                      action={
-                        <button
-                          type="button"
-                          onClick={() => setShowReviewModal(true)}
-                          className="inline-flex items-center gap-2 rounded-lg border border-amber-200/20 bg-amber-200/[0.07] px-3 py-2 text-sm font-bold text-amber-200 transition hover:bg-amber-200/[0.12]"
-                        >
-                          <Star size={15} />
-                          Write Review
-                        </button>
-                      }
-                    >
-                      <div className="relative overflow-hidden rounded-2xl border border-amber-200/15 bg-gradient-to-br from-amber-200/[0.07] via-transparent to-orange-300/[0.04] p-5 text-center sm:p-7">
-                        <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-amber-300/[0.06] blur-3xl" />
-
-                        <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-amber-200/30 bg-gradient-to-br from-amber-300 to-orange-300 shadow-lg shadow-amber-400/10">
-                          <Star size={28} className="fill-white text-white" />
+                      <div className="rounded-2xl border border-[#29435f] bg-[#132942] p-6">
+                        <h3 className="mb-4 text-lg font-bold text-white">Social Links</h3>
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                          {socialLinks.map((social, index) => {
+                            const SocialIcon = getSocialIcon(social.platform);
+                            return (
+                              <a key={social._id || `${social.platform}-${index}`} href={social.url} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center gap-2 rounded-xl border border-[#29435f] bg-[#0b1b30] p-4 transition hover:-translate-y-0.5 hover:border-cyan-400/50">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-400/10 text-cyan-400"><SocialIcon size={20} /></div>
+                                <span className="text-xs font-semibold capitalize text-white">{social.platform || "Social"}</span>
+                              </a>
+                            );
+                          })}
+                          {socialLinks.length === 0 && <div className="col-span-full py-4 text-center text-sm text-slate-400">No social links added.</div>}
                         </div>
-
-                        <p className="relative mt-4 text-lg font-bold text-white sm:text-xl">
-                          Be the First to Share Your Experience
-                        </p>
-
-                        <p className="relative mx-auto mt-2 max-w-lg text-sm leading-7 text-slate-300 sm:text-base">
-                          Your feedback helps others discover and trust this
-                          business.
-                        </p>
-
-                        <button
-                          type="button"
-                          onClick={() => setShowReviewModal(true)}
-                          className="relative mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-300 to-orange-300 px-5 py-3 text-sm font-bold text-[#201305] shadow-lg shadow-amber-500/[0.08] transition hover:brightness-110 active:scale-[0.98]"
-                        >
-                          <Zap size={17} />
-                          Write a Review
-                        </button>
                       </div>
-                    </WarmSection>
 
-                    {/* INQUIRY FORM */}
-
-                    <WarmSection
-                      icon={Mail}
-                      title="Share Your Contact / Business Inquiry"
-                      theme={currentTheme}
-                    >
-                      <form
-                        id="inquiry-form"
-                        onSubmit={handleFormSubmit}
-                        className="rounded-2xl border border-white/10 p-5 sm:p-6"
-                        style={{
-                          backgroundColor: currentTheme.surface,
-                          color: currentTheme.text,
-                        }}
-                      >
-                        <div className="mb-4">
-                          <h5 className="text-xl font-bold text-white">
-                            Let's Connect
-                          </h5>
-
-                          <p className="mt-1.5 text-sm leading-6 text-slate-300 sm:text-base">
-                            Share your details and message with the business.
-                          </p>
+                      {/* REVIEWS SECTION (Cyan Theme) */}
+                      <div className="rounded-2xl border border-[#29435f] bg-[#132942] p-6">
+                        <div className="mb-4 flex items-center justify-between">
+                          <h3 className="text-lg font-bold text-white">Reviews</h3>
+                          <button onClick={() => setShowReviewModal(true)} className="rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-3 py-1.5 text-xs font-bold text-cyan-400 transition hover:bg-cyan-400/20">Write Review</button>
                         </div>
+                        <p className="text-sm text-slate-400">Be the first to share your experience with this business.</p>
+                      </div>
 
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                          <input
-                            id="inquiry-name"
-                            type="text"
-                            required
-                            value={formData.name}
-                            onChange={(event) =>
-                              setFormData({
-                                ...formData,
-                                name: event.target.value,
-                              })
-                            }
-                            placeholder="Your Name"
-                            className="w-full rounded-xl border bg-[var(--profile-surface)] px-4 py-3.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[var(--profile-primary)] focus:ring-4 focus:ring-[var(--profile-primary)]/10"
-                            style={{
-                              borderColor: `${currentTheme.primary}66`,
-                              color: currentTheme.text,
-                            }}
-                          />
-
-                          <input
-                            type="tel"
-                            required
-                            value={formData.phone}
-                            onChange={(event) =>
-                              setFormData({
-                                ...formData,
-                                phone: event.target.value,
-                              })
-                            }
-                            placeholder="Phone Number"
-                            className="w-full rounded-xl border bg-[var(--profile-surface)] px-4 py-3.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[var(--profile-primary)] focus:ring-4 focus:ring-[var(--profile-primary)]/10"
-                            style={{
-                              borderColor: `${currentTheme.primary}66`,
-                              color: currentTheme.text,
-                            }}
-                          />
-                        </div>
-
-                        <input
-                          type="email"
-                          value={formData.email}
-                          onChange={(event) =>
-                            setFormData({
-                              ...formData,
-                              email: event.target.value,
-                            })
-                          }
-                          placeholder="Email Address"
-                          className="mt-3 w-full rounded-xl border bg-[var(--profile-surface)] px-4 py-3.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[var(--profile-primary)] focus:ring-4 focus:ring-[var(--profile-primary)]/10"
-                          style={{
-                            borderColor: `${currentTheme.primary}66`,
-                            color: currentTheme.text,
-                          }}
-                        />
-
-                        <textarea
-                          rows={4}
-                          value={formData.message}
-                          onChange={(event) =>
-                            setFormData({
-                              ...formData,
-                              message: event.target.value,
-                            })
-                          }
-                          placeholder="Your Message"
-                          className="mt-3 w-full resize-y rounded-xl border bg-[var(--profile-surface)] px-4 py-3.5 text-base leading-7 outline-none transition placeholder:text-slate-400 focus:border-[var(--profile-primary)] focus:ring-4 focus:ring-[var(--profile-primary)]/10"
-                          style={{
-                            borderColor: `${currentTheme.primary}66`,
-                            color: currentTheme.text,
-                          }}
-                        />
-
-                        <button
-                          type="submit"
-                          disabled={formSubmitted}
-                          className="mt-3 flex w-full items-center justify-center gap-2.5 rounded-xl px-4 py-3.5 text-base font-bold shadow-lg transition hover:brightness-110 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
-                          style={{
-                            background: `linear-gradient(90deg, ${currentTheme.primary}, ${currentTheme.secondary})`,
-                            color: currentTheme.text,
-                          }}
-                        >
-                          {formSubmitted ? (
-                            <>
-                              <Check size={18} strokeWidth={2.5} />
-                              Inquiry Sent!
-                            </>
-                          ) : (
-                            <>
-                              <Send size={17} />
-                              Submit Inquiry
-                            </>
-                          )}
-                        </button>
-                      </form>
-                    </WarmSection>
-
-                    {/* QR CODE SECTION */}
-                    {businessInfo.qrCode && (
-                      <WarmSection
-                        icon={ScanLine}
-                        title="Scan & Connect"
-                        theme={currentTheme}
-                      >
-                        <div
-                          className="flex flex-col items-center rounded-2xl border p-6 text-center sm:p-8"
-                          style={{
-                            borderColor: `${currentTheme.primary}55`,
-                            backgroundColor: `${currentTheme.primary}12`,
-                          }}
-                        >
-                          <h5
-                            className="text-xl font-bold"
-                            style={{ color: currentTheme.text }}
-                          >
-                            Connect With Us
-                          </h5>
-
-                          <p className="mt-2 max-w-md text-sm leading-6 text-slate-300">
-                            Scan this QR code to connect with our business.
-                          </p>
-
-                          <div
-                            className="mt-5 rounded-2xl border bg-white p-4 shadow-lg"
-                            style={{
-                              borderColor: `${currentTheme.primary}66`,
-                            }}
-                          >
-                            <img
-                              src={businessInfo.qrCode}
-                              alt="Business QR Code"
-                              className="h-48 w-48 object-contain sm:h-56 sm:w-56"
-                            />
-                          </div>
-
-                          <p className="mt-4 text-xs text-slate-400">
-                            Scan using your phone camera
-                          </p>
-                        </div>
-                      </WarmSection>
-                    )}
-
-                    {/* FOOTER */}
-
-                    <footer
-                      className="border-t px-5 py-6 text-center"
-                      style={{
-                        borderColor: `${currentTheme.primary}40`,
-                        backgroundColor: currentTheme.surface,
-                        color: currentTheme.text,
-                      }}
-                    >
-                      <div
-                        className="mx-auto mb-3 h-px w-16"
-                        style={{ backgroundColor: currentTheme.primary }}
-                      />
-
-                      <p className="text-sm text-slate-300 sm:text-base">
-                        Powered by{" "}
-                        <span
-                          className="font-bold tracking-wide"
-                          style={{ color: currentTheme.primary }}
-                        >
-                          biowebsite
-                        </span>
-                      </p>
-
-                      <p className="mt-1.5 text-xs text-slate-400 sm:text-sm">
-                        Your business. Your identity.
-                      </p>
-                    </footer>
+                      <div className="rounded-2xl border border-[#29435f] bg-[#132942] p-6">
+                        <h3 className="mb-4 text-lg font-bold text-white">Send an Inquiry</h3>
+                        {formSubmitted ? (
+                          <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm font-semibold text-emerald-300">Thank you! Your inquiry has been submitted.</div>
+                        ) : (
+                          <form onSubmit={handleFormSubmit} className="space-y-3">
+                            <input type="text" required value={formData.name} onChange={(event) => setFormData({ ...formData, name: event.target.value })} placeholder="Your Name" className="w-full rounded-lg border border-[#29435f] bg-[#0b1b30] px-4 py-2.5 text-sm text-white outline-none focus:border-cyan-400" />
+                            <input type="tel" required value={formData.phone} onChange={(event) => setFormData({ ...formData, phone: event.target.value })} placeholder="Phone" className="w-full rounded-lg border border-[#29435f] bg-[#0b1b30] px-4 py-2.5 text-sm text-white outline-none focus:border-cyan-400" />
+                            <input type="email" value={formData.email} onChange={(event) => setFormData({ ...formData, email: event.target.value })} placeholder="Email (optional)" className="w-full rounded-lg border border-[#29435f] bg-[#0b1b30] px-4 py-2.5 text-sm text-white outline-none focus:border-cyan-400" />
+                            <textarea rows={3} value={formData.message} onChange={(event) => setFormData({ ...formData, message: event.target.value })} placeholder="Message" className="w-full resize-none rounded-lg border border-[#29435f] bg-[#0b1b30] px-4 py-2.5 text-sm text-white outline-none focus:border-cyan-400" />
+                            <button type="submit" className="w-full rounded-lg bg-cyan-400 py-2.5 text-sm font-bold text-[#0b1b30] transition hover:bg-cyan-300">Submit Inquiry</button>
+                          </form>
+                        )}
+                      </div>
+                    </div>
                   </div>
+
+                  {/* FOOTER */}
+                  <footer className="border-t border-[#29435f] bg-[#0b1b30] py-6 text-center">
+                    <p className="text-xs text-slate-400">© {new Date().getFullYear()} {businessInfo.name}. All rights reserved.</p>
+                    <p className="mt-1 text-xs text-slate-500">Powered by <span className="font-bold text-cyan-400">BioWebsite</span></p>
+                  </footer>
                 </div>
               </div>
-
-              <p className="mt-3 text-center text-sm leading-6 text-slate-300">
-                This is a preview of how your digital business card is presented
-                to customers.
-              </p>
             </div>
           </section>
         )}
       </main>
 
       {/* =====================================================
-          06. PRODUCT DETAILS MODAL (IMAGE SWIPE + PAY UPI)
+          EXPANDED QR MODAL (3 TABS)
       ===================================================== */}
+      {showQrModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-[#020817]/90 p-4 backdrop-blur-md" onClick={(event) => { if (event.target === event.currentTarget) setShowQrModal(false); }}>
+          <div className="relative max-h-[92vh] w-full max-w-md overflow-y-auto rounded-[26px] border border-cyan-400/20 bg-[#0b1b30] p-5 shadow-[0_30px_100px_rgba(0,0,0,0.65)] sm:p-7">
+            <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
+            <button type="button" onClick={() => setShowQrModal(false)} aria-label="Close modal" className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl border border-[#29435f] bg-[#132942] text-slate-300 transition hover:border-cyan-400/50 hover:text-cyan-300"><X size={18} /></button>
 
-      {selectedProduct && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#020817]/80 p-4 backdrop-blur-md"
-          onClick={(event) => {
-            if (event.target === event.currentTarget) {
-              setSelectedProduct(null);
-            }
-          }}
-        >
-          <div className="relative max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-[26px] border border-[#45414a] bg-[#17171c] shadow-[0_30px_100px_rgba(0,0,0,0.55)]">
-            <button
-              type="button"
-              onClick={() => setSelectedProduct(null)}
-              aria-label="Close product details"
-              className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-xl border border-[#45414a] bg-[#22222a]/90 text-slate-300 backdrop-blur transition hover:border-rose-300/30 hover:text-rose-200"
-            >
-              <X size={18} />
-            </button>
+            <div className="mb-5 flex items-center gap-3 pr-10">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-300">
+                {qrModalTab === "share" ? <Share2 size={24} /> : qrModalTab === "myqr" ? <QrCode size={24} /> : <FileImage size={24} />}
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white">
+                  {qrModalTab === "share" ? "Share Profile" : qrModalTab === "myqr" ? "My QR Code" : "Profile Poster"}
+                </h3>
+                <p className="mt-1 text-sm text-slate-400">
+                  {qrModalTab === "share" ? "Copy or share your link" : qrModalTab === "myqr" ? "Scan to view my profile" : "Download your business card"}
+                </p>
+              </div>
+            </div>
 
-            {/* MODAL IMAGE SWIPER (swipeable) */}
-            {Array.isArray(selectedProduct.images) &&
-            selectedProduct.images.filter((image) => image?.url).length > 0 ? (
-              <Swiper
-                modules={[Navigation, Pagination]}
-                navigation={
-                  selectedProduct.images.filter((image) => image?.url).length >
-                  1
-                }
-                pagination={{ clickable: true }}
-                spaceBetween={0}
-                slidesPerView={1}
-                loop={
-                  selectedProduct.images.filter((image) => image?.url).length >
-                  1
-                }
-                className="product-modal-swiper h-60 w-full sm:h-80"
-              >
-                {selectedProduct.images
-                  .filter((image) => image?.url)
-                  .map((image, index) => (
-                    <SwiperSlide key={image._id || index}>
-                      <img
-                        src={image.url}
-                        alt={image.alt || selectedProduct.name}
-                        className="h-full w-full object-cover"
-                      />
-                    </SwiperSlide>
-                  ))}
-              </Swiper>
-            ) : (
-              <div
-                className="flex h-60 items-center justify-center text-7xl sm:h-80"
-                style={{
-                  background: `linear-gradient(135deg, ${currentTheme.primary}30, ${currentTheme.secondary}15)`,
-                }}
-              >
-                📦
+            {/* Tabs */}
+            <div className="mb-5 flex gap-1 rounded-xl border border-[#29435f] bg-[#132942] p-1">
+              <button onClick={() => setQrModalTab("share")} className={`flex-1 rounded-lg py-2 text-xs font-bold transition ${qrModalTab === "share" ? "bg-cyan-400 text-[#0b1b30]" : "text-slate-300 hover:text-white"}`}>Share</button>
+              <button onClick={() => setQrModalTab("myqr")} className={`flex-1 rounded-lg py-2 text-xs font-bold transition ${qrModalTab === "myqr" ? "bg-cyan-400 text-[#0b1b30]" : "text-slate-300 hover:text-white"}`}>My QR</button>
+              <button onClick={() => setQrModalTab("poster")} className={`flex-1 rounded-lg py-2 text-xs font-bold transition ${qrModalTab === "poster" ? "bg-cyan-400 text-[#0b1b30]" : "text-slate-300 hover:text-white"}`}>Poster</button>
+            </div>
+
+            {/* Tab 1: Share */}
+            {qrModalTab === "share" && (
+              <div className="flex flex-col gap-3">
+                <p className="text-xs font-semibold text-slate-300">Profile Link</p>
+                <div className="flex items-center gap-2 rounded-xl border border-[#29435f] bg-[#132942] p-1">
+                  <input type="text" value={window.location.href} readOnly className="w-full bg-transparent px-3 py-2 text-sm text-cyan-100 outline-none" />
+                  <button onClick={handleCopyLink} className="shrink-0 rounded-lg bg-cyan-400 p-2 text-[#0b1b30] hover:bg-cyan-300 transition">
+                    {copied ? <Check size={18} /> : <Copy size={18} />}
+                  </button>
+                </div>
+                <button onClick={handleShare} className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 py-3 text-sm font-bold text-[#0b1b30] transition hover:brightness-110">
+                  <Share2 size={16} /> Share Link
+                </button>
               </div>
             )}
 
-            {/* MODAL CONTENT */}
+            {/* Tab 2: My QR */}
+            {qrModalTab === "myqr" && (
+              <div className="flex flex-col items-center">
+                {businessInfo.qrCode ? (
+                  <div className="mb-5 rounded-xl bg-white p-4">
+                    <img src={businessInfo.qrCode} alt="My QR Code" className="h-48 w-48 object-contain" />
+                  </div>
+                ) : (
+                  <div className="mb-5 flex h-48 w-48 items-center justify-center rounded-xl border border-dashed border-[#29435f] bg-[#071326] text-slate-500">
+                    <QrCode size={40} />
+                  </div>
+                )}
+                <button type="button" onClick={handleDownloadQR} className="flex w-full items-center justify-center gap-2 rounded-xl border border-cyan-400/30 bg-cyan-400/10 py-3 text-sm font-bold text-cyan-400 transition hover:bg-cyan-400/20">
+                  <Download size={16} /> Download QR Code
+                </button>
+              </div>
+            )}
+
+            {/* Tab 3: Poster */}
+            {qrModalTab === "poster" && (
+              <div className="flex flex-col items-center">
+                {/* Mock Poster UI */}
+                <div className="mb-5 w-full overflow-hidden rounded-xl border border-[#29435f] bg-[#132942] shadow-lg">
+                  <div className="h-24 w-full bg-[#0b1b30] relative flex items-center justify-center">
+                     {businessInfo.banner ? <img src={businessInfo.banner} className="h-full w-full object-cover opacity-50" alt="banner"/> : null}
+                     <div className="absolute flex flex-col items-center">
+                        <div className="h-16 w-16 overflow-hidden rounded-full border-2 border-cyan-400 bg-[#132942]">
+                           {businessInfo.avatar ? <img src={businessInfo.avatar} className="h-full w-full object-cover" alt="avatar"/> : <UserPlus className="h-full w-full p-4 text-slate-500"/>}
+                        </div>
+                     </div>
+                  </div>
+                  <div className="p-4 text-center">
+                     <h4 className="text-sm font-bold text-white">{businessInfo.name}</h4>
+                     <p className="text-xs text-cyan-400">{businessInfo.role}</p>
+                     <p className="text-[10px] text-slate-400 mt-1">{businessInfo.phone}</p>
+                     <div className="mt-3 flex justify-center">
+                        {businessInfo.qrCode ? <img src={businessInfo.qrCode} className="h-16 w-16 object-contain bg-white p-1 rounded-md" alt="QR"/> : <QrCode className="h-16 w-16 text-slate-500"/>}
+                     </div>
+                  </div>
+                </div>
+                <button type="button" onClick={handleDownloadPoster} className="flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 py-3 text-sm font-bold text-[#0b1b30] transition hover:bg-cyan-300">
+                  <Download size={16} /> Download Poster
+                </button>
+              </div>
+            )}
+            
+            <button type="button" onClick={() => setShowQrModal(false)} className="mt-5 w-full rounded-xl border border-[#29435f] bg-[#132942] py-3 text-sm font-bold text-white transition hover:border-cyan-400/50 hover:bg-[#193653]">
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* PRODUCT DETAILS MODAL */}
+      {selectedProduct && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#020817]/80 p-4 backdrop-blur-md" onClick={(event) => { if (event.target === event.currentTarget) setSelectedProduct(null); }}>
+          <div className="relative max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-[26px] border border-[#45414a] bg-[#17171c] shadow-[0_30px_100px_rgba(0,0,0,0.55)]">
+            <button type="button" onClick={() => setSelectedProduct(null)} aria-label="Close product details" className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-xl border border-[#45414a] bg-[#22222a]/90 text-slate-300 backdrop-blur transition hover:border-rose-300/30 hover:text-rose-200"><X size={18} /></button>
+            {Array.isArray(selectedProduct.images) && selectedProduct.images.filter((image) => image?.url).length > 0 ? (
+              <Swiper modules={[Navigation, Pagination]} navigation={selectedProduct.images.filter((image) => image?.url).length > 1} pagination={{ clickable: true }} spaceBetween={0} slidesPerView={1} loop={selectedProduct.images.filter((image) => image?.url).length > 1} className="h-60 w-full sm:h-80">
+                {selectedProduct.images.filter((image) => image?.url).map((image, index) => (
+                  <SwiperSlide key={image._id || index}><img src={image.url} alt={image.alt || selectedProduct.name} className="h-full w-full object-cover" /></SwiperSlide>
+                ))}
+              </Swiper>
+            ) : (
+              <div className="flex h-60 items-center justify-center text-7xl sm:h-80" style={{ background: `linear-gradient(135deg, ${currentTheme.primary}30, ${currentTheme.secondary}15)` }}>📦</div>
+            )}
             <div className="p-5 sm:p-7">
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <h3 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-                    {selectedProduct.name}
-                  </h3>
-
-                  <span className="mt-2 inline-flex rounded-lg border border-white/15 bg-white/[0.06] px-3 py-1.5 text-xs font-semibold text-slate-200">
-                    {selectedProduct.category || "General"}
-                  </span>
-                </div>
-
-                <span className="text-2xl font-extrabold text-amber-300 sm:text-3xl">
-                  ₹{Number(selectedProduct.price || 0).toLocaleString("en-IN")}
-                </span>
+                <div className="min-w-0"><h3 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">{selectedProduct.name}</h3><span className="mt-2 inline-flex rounded-lg border border-white/15 bg-white/[0.06] px-3 py-1.5 text-xs font-semibold text-slate-200">{selectedProduct.category || "General"}</span></div>
+                <span className="text-2xl font-extrabold text-amber-300 sm:text-3xl">₹{Number(selectedProduct.price || 0).toLocaleString("en-IN")}</span>
               </div>
-
-              <p className="mt-4 text-sm leading-7 text-slate-300 sm:text-base sm:leading-8">
-                {selectedProduct.description}
-              </p>
-
+              <p className="mt-4 text-sm leading-7 text-slate-300 sm:text-base sm:leading-8">{selectedProduct.description}</p>
               <div className="mt-5 flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/20 bg-emerald-400/[0.08] px-3 py-2 text-sm font-bold text-emerald-300">
-                  <CheckCircle2 size={16} />
-                  {selectedProduct.status === "active"
-                    ? "Available"
-                    : "Unavailable"}
-                </span>
-
-                {/* PAY WITH UPI */}
-                {businessInfo.upiId && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedProduct(null);
-                      handleContactClick("upi");
-                    }}
-                    className="inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold transition hover:brightness-110 active:scale-[0.98]"
-                    style={{
-                      borderColor: `${currentTheme.primary}55`,
-                      backgroundColor: `${currentTheme.primary}18`,
-                      color: currentTheme.text,
-                    }}
-                  >
-                    <IndianRupee size={16} />
-                    Pay with UPI
-                  </button>
-                )}
-
-                {businessInfo.whatsapp || businessInfo.phone ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedProduct(null);
-                      handleWhatsApp();
-                    }}
-                    className="ml-auto inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-400 to-emerald-500 px-4 py-2.5 text-sm font-bold text-[#062c25] transition hover:brightness-110 active:scale-[0.98]"
-                  >
-                    <FaWhatsapp size={16} />
-                    Enquire on WhatsApp
-                  </button>
-                ) : null}
+                <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/20 bg-emerald-400/[0.08] px-3 py-2 text-sm font-bold text-emerald-300"><CheckCircle2 size={16} />{selectedProduct.status === "active" ? "Available" : "Unavailable"}</span>
+                {businessInfo.upiId && <button type="button" onClick={() => { setSelectedProduct(null); handleContactClick("upi"); }} className="inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold transition hover:brightness-110 active:scale-[0.98]" style={{ borderColor: `${currentTheme.primary}55`, backgroundColor: `${currentTheme.primary}18`, color: currentTheme.text }}><IndianRupee size={16} />Pay with UPI</button>}
+                {(businessInfo.whatsapp || businessInfo.phone) && <button type="button" onClick={() => { setSelectedProduct(null); handleWhatsApp(); }} className="ml-auto inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-400 to-emerald-500 px-4 py-2.5 text-sm font-bold text-[#062c25] transition hover:brightness-110 active:scale-[0.98]"><FaWhatsapp size={16} />Enquire on WhatsApp</button>}
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* =====================================================
-          07. GALLERY LIGHTBOX
-      ===================================================== */}
-
+      {/* GALLERY IMAGE MODAL */}
       {selectedGalleryImage && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#020817]/85 p-4 backdrop-blur-md"
-          onClick={(event) => {
-            if (event.target === event.currentTarget) {
-              setSelectedGalleryImage(null);
-            }
-          }}
-        >
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#020817]/85 p-4 backdrop-blur-md" onClick={(event) => { if (event.target === event.currentTarget) setSelectedGalleryImage(null); }}>
           <div className="relative w-full max-w-3xl">
-            <button
-              type="button"
-              onClick={() => setSelectedGalleryImage(null)}
-              aria-label="Close gallery image"
-              className="absolute -top-3 right-0 z-20 flex h-10 w-10 items-center justify-center rounded-xl border border-[#45414a] bg-[#22222a]/90 text-slate-300 backdrop-blur transition hover:border-rose-300/30 hover:text-rose-200 sm:-right-3"
-            >
-              <X size={18} />
-            </button>
-
+            <button type="button" onClick={() => setSelectedGalleryImage(null)} aria-label="Close gallery image" className="absolute -top-3 right-0 z-20 flex h-10 w-10 items-center justify-center rounded-xl border border-[#45414a] bg-[#22222a]/90 text-slate-300 backdrop-blur transition hover:border-rose-300/30 hover:text-rose-200 sm:-right-3"><X size={18} /></button>
             <div className="overflow-hidden rounded-[24px] border border-[#45414a] bg-[#17171c]">
-              <img
-                src={selectedGalleryImage.url}
-                alt={selectedGalleryImage.alt}
-                className="max-h-[75vh] w-full object-contain"
-              />
-
-              {selectedGalleryImage.caption && (
-                <div className="border-t border-white/10 px-5 py-4">
-                  <p className="text-sm font-semibold text-white">
-                    {selectedGalleryImage.caption}
-                  </p>
-                </div>
-              )}
+              <img src={selectedGalleryImage.url} alt={selectedGalleryImage.alt} className="max-h-[75vh] w-full object-contain" />
+              {selectedGalleryImage.caption && <div className="border-t border-white/10 px-5 py-4"><p className="text-sm font-semibold text-white">{selectedGalleryImage.caption}</p></div>}
             </div>
           </div>
         </div>
       )}
 
-      {/* =====================================================
-          08. REVIEW MODAL
-      ===================================================== */}
-
+      {/* REVIEW MODAL (Cyan Theme) */}
       {showReviewModal && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#020817]/80 p-4 backdrop-blur-md"
-          onClick={(event) => {
-            if (event.target === event.currentTarget) {
-              setShowReviewModal(false);
-            }
-          }}
-        >
-          <div className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[26px] border border-[#45414a] bg-[#17171c] p-5 shadow-[0_30px_100px_rgba(0,0,0,0.55)] sm:p-7">
-            <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-amber-300/70 to-transparent" />
-
-            <button
-              type="button"
-              onClick={() => setShowReviewModal(false)}
-              aria-label="Close review modal"
-              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl border border-[#45414a] bg-[#22222a] text-slate-300 transition hover:border-rose-300/30 hover:text-rose-200"
-            >
-              <X size={18} />
-            </button>
-
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#020817]/80 p-4 backdrop-blur-md" onClick={(event) => { if (event.target === event.currentTarget) setShowReviewModal(false); }}>
+          <div className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[26px] border border-cyan-400/20 bg-[#0b1b30] p-5 shadow-[0_30px_100px_rgba(0,0,0,0.55)] sm:p-7">
+            <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
+            <button type="button" onClick={() => setShowReviewModal(false)} aria-label="Close review modal" className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl border border-[#29435f] bg-[#132942] text-slate-300 transition hover:border-cyan-400/50 hover:text-cyan-300"><X size={18} /></button>
+            
             {reviewSubmitted ? (
               <div className="py-10 text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300 to-orange-300 shadow-lg shadow-amber-400/10">
-                  <Check
-                    size={29}
-                    className="text-[#171116]"
-                    strokeWidth={2.5}
-                  />
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-500 shadow-lg shadow-cyan-400/10">
+                  <Check size={29} className="text-[#0b1b30]" strokeWidth={3} />
                 </div>
-
-                <h3 className="mt-5 text-xl font-bold text-white">
-                  Thank You!
-                </h3>
-
-                <p className="mt-2 text-base text-slate-300">
-                  Thank you for your review!
-                </p>
+                <h3 className="mt-5 text-xl font-bold text-white">Thank You!</h3>
+                <p className="mt-2 text-base text-slate-300">Thank you for your review!</p>
               </div>
             ) : (
               <form onSubmit={handleReviewSubmit}>
                 <div className="mb-5 flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-amber-300/20 bg-amber-300/[0.08]">
-                    <Star size={22} className="text-amber-300" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/10">
+                    <Star size={22} className="text-cyan-400" />
                   </div>
-
                   <div>
-                    <h3 className="text-xl font-bold text-white">
-                      Write a Review
-                    </h3>
-
-                    <p className="mt-1 text-sm text-slate-300">
-                      Share your experience with this business.
-                    </p>
+                    <h3 className="text-xl font-bold text-white">Write a Review</h3>
+                    <p className="mt-1 text-sm text-slate-400">Share your experience with this business.</p>
                   </div>
                 </div>
-
-                <label
-                  htmlFor="review-name"
-                  className="mb-2 block text-sm font-semibold text-slate-200"
-                >
-                  Your Name
-                </label>
-
-                <input
-                  id="review-name"
-                  required
-                  value={reviewData.name}
-                  onChange={(event) =>
-                    setReviewData({
-                      ...reviewData,
-                      name: event.target.value,
-                    })
-                  }
-                  placeholder="Enter your name"
-                  className="w-full rounded-xl border border-[#45414a] bg-[#101116] px-4 py-3.5 text-base text-white outline-none transition placeholder:text-slate-400 focus:border-amber-300/60 focus:ring-4 focus:ring-amber-300/[0.06]"
-                />
-
-                <p className="mb-3 mt-5 text-sm font-semibold text-slate-200">
-                  Your Rating
-                </p>
-
+                
+                <label htmlFor="review-name" className="mb-2 block text-sm font-semibold text-slate-200">Your Name</label>
+                <input id="review-name" required value={reviewData.name} onChange={(event) => setReviewData({ ...reviewData, name: event.target.value })} placeholder="Enter your name" className="w-full rounded-xl border border-[#29435f] bg-[#132942] px-4 py-3.5 text-base text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/[0.06]" />
+                
+                <p className="mb-3 mt-5 text-sm font-semibold text-slate-200">Your Rating</p>
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map((number) => (
-                    <button
-                      key={number}
-                      type="button"
-                      onClick={() => setReviewRating(number)}
-                      aria-label={`Rate ${number} out of 5`}
-                      className="transition hover:scale-110"
-                    >
-                      <Star
-                        size={28}
-                        className={
-                          number <= reviewRating
-                            ? "fill-amber-300 text-amber-300"
-                            : "text-slate-500"
-                        }
-                      />
+                    <button key={number} type="button" onClick={() => setReviewRating(number)} aria-label={`Rate ${number} out of 5`} className="transition hover:scale-110">
+                      <Star size={28} className={number <= reviewRating ? "fill-cyan-400 text-cyan-400" : "text-slate-600"} />
                     </button>
                   ))}
                 </div>
-
-                <label
-                  htmlFor="review-message"
-                  className="mb-2 mt-5 block text-sm font-semibold text-slate-200"
-                >
-                  Your Review
-                </label>
-
-                <textarea
-                  id="review-message"
-                  required
-                  rows={4}
-                  value={reviewData.review}
-                  onChange={(event) =>
-                    setReviewData({
-                      ...reviewData,
-                      review: event.target.value,
-                    })
-                  }
-                  placeholder="Tell us about your experience..."
-                  className="w-full resize-y rounded-xl border border-[#45414a] bg-[#101116] px-4 py-3.5 text-base leading-7 text-white outline-none transition placeholder:text-slate-400 focus:border-amber-300/60 focus:ring-4 focus:ring-amber-300/[0.06]"
-                />
-
-                <button
-                  type="submit"
-                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-300 to-orange-300 px-4 py-3.5 text-base font-bold text-[#201305] transition hover:brightness-110 active:scale-[0.99]"
-                >
-                  <Send size={17} />
-                  Submit Review
+                
+                <label htmlFor="review-message" className="mb-2 mt-5 block text-sm font-semibold text-slate-200">Your Review</label>
+                <textarea id="review-message" required rows={4} value={reviewData.review} onChange={(event) => setReviewData({ ...reviewData, review: event.target.value })} placeholder="Tell us about your experience..." className="w-full resize-y rounded-xl border border-[#29435f] bg-[#132942] px-4 py-3.5 text-base leading-7 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/[0.06]" />
+                
+                <button type="submit" className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 px-4 py-3.5 text-base font-bold text-[#0b1b30] transition hover:brightness-110 active:scale-[0.99]">
+                  <Send size={17} /> Submit Review
                 </button>
               </form>
             )}
@@ -2468,121 +921,9 @@ const Mini = () => {
         </div>
       )}
 
-      <Payment
-        isOpen={showPayment}
-        onClose={() => setShowPayment(false)}
-        upiId={profileData.upiId || ""}
-        businessName={profileData.businessName || "My Business"}
-        businessImage={profileData.logo || profileData.avatar || ""}
-      />
+      <Payment isOpen={showPayment} onClose={() => setShowPayment(false)} upiId={profileData.upiId || ""} businessName={profileData.businessName || "My Business"} businessImage={profileData.logo || profileData.avatar || ""} />
     </div>
   );
 };
-
-/* =========================================================
-   REUSABLE COMPONENTS
-========================================================= */
-
-const ActionButton = ({ icon: Icon, label, onClick, primary = false }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={`group flex min-w-0 flex-col items-center justify-center gap-2.5 rounded-2xl border px-3 py-4 transition duration-200 hover:-translate-y-0.5 active:scale-[0.98] ${
-      primary
-        ? "border-emerald-400/30 bg-emerald-400/[0.10] hover:bg-emerald-400/[0.16]"
-        : "border-white/10 bg-white/[0.025] hover:border-amber-300/30 hover:bg-amber-300/[0.05]"
-    }`}
-  >
-    <span
-      className={`flex h-11 w-11 items-center justify-center rounded-xl transition ${
-        primary
-          ? "bg-emerald-400/15 text-emerald-300"
-          : "bg-amber-300/[0.08] text-amber-200 group-hover:bg-amber-300/[0.14]"
-      }`}
-    >
-      <Icon size={20} />
-    </span>
-
-    <span className="text-center text-sm font-semibold leading-5 text-white">
-      {label}
-    </span>
-  </button>
-);
-
-const ContactRow = ({ icon: Icon, label, value, onClick, theme }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className="group flex min-w-0 items-center gap-3 rounded-2xl border p-4 text-left transition duration-200 hover:border-[var(--profile-primary)] hover:brightness-110 active:scale-[0.99]"
-    style={{
-      backgroundColor: theme.surface,
-      borderColor: `${theme.primary}40`,
-      color: theme.text,
-    }}
-  >
-    <span
-      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition"
-      style={{
-        borderColor: `${theme.primary}55`,
-        backgroundColor: `${theme.primary}20`,
-        color: theme.text,
-      }}
-    >
-      <Icon size={19} />
-    </span>
-
-    <span className="min-w-0 flex-1">
-      <span
-        className="block text-xs font-bold uppercase tracking-[0.1em] opacity-70"
-        style={{ color: theme.text }}
-      >
-        {label}
-      </span>
-
-      <span
-        className="mt-1.5 block truncate text-sm font-semibold sm:text-base"
-        style={{ color: theme.text }}
-      >
-        {value}
-      </span>
-    </span>
-
-    <ChevronRight
-      size={18}
-      className="shrink-0 transition group-hover:translate-x-0.5"
-      style={{ color: theme.primary }}
-    />
-  </button>
-);
-
-const WarmSection = ({ icon: Icon, title, action, children, theme }) => (
-  <section
-    className="border-t px-5 py-5 sm:px-8 sm:py-6 lg:px-10"
-    style={{ borderColor: `${theme.primary}30` }}
-  >
-    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-      <h4
-        className="flex min-w-0 items-center gap-3 text-sm font-bold leading-6 tracking-wide sm:text-base"
-        style={{ color: theme.text }}
-      >
-        <span
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border"
-          style={{
-            borderColor: `${theme.primary}55`,
-            backgroundColor: `${theme.primary}20`,
-          }}
-        >
-          <Icon size={19} style={{ color: theme.text }} />
-        </span>
-
-        {title}
-      </h4>
-
-      {action}
-    </div>
-
-    {children}
-  </section>
-);
 
 export default Mini;
