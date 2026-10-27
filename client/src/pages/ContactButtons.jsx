@@ -502,7 +502,7 @@ export default function ContactButtons() {
         </section>
 
         {/* Stats */}
-        <section className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <section className="mt-5 grid grid-cols-3 gap-3 sm:grid-cols-3">
           <div className="rounded-2xl border border-[#29435f] bg-[#0b1b30] p-4 transition hover:border-[#38516e]">
             <div className="flex items-center gap-3">
               <div className="rounded-xl border border-cyan-400/20 bg-[#132942] p-3 text-cyan-400">

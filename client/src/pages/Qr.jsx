@@ -508,31 +508,7 @@ const Qr = () => {
 
         {/* ==================== BUSINESS LINKS ==================== */}
 
-        <section className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <LinkCard
-            icon={Link2}
-            label="Direct Card Link"
-            description="Your public business card URL"
-            value={profileUrl || directCardLink}
-            copied={copiedField === "direct"}
-            onCopy={() => handleCopy(profileUrl || directCardLink, "direct")}
-            tag="Direct access"
-          />
-
-          <LinkCard
-            icon={Globe}
-            label="Business Profile URL"
-            description="Your dynamic public business profile URL"
-            value={customSubdomain || "Create and save your profile first"}
-            copied={copiedField === "subdomain"}
-            onCopy={() => {
-              if (customSubdomain) {
-                handleCopy(customSubdomain, "subdomain");
-              }
-            }}
-            tag="Profile"
-          />
-        </section>
+       
 
         {/* ==================== BIND EXISTING QR ==================== */}
 
@@ -547,14 +523,14 @@ const Qr = () => {
           </p>
 
           <div className="mt-5 flex flex-wrap gap-3">
-            <button
+            {/* <button
               type="button"
               onClick={startQRScanner}
               disabled={scannerOpen || qrBusy}
               className="rounded-xl bg-cyan-300 px-4 py-3 text-sm font-bold text-[#0b1b30] disabled:opacity-50"
             >
               Scan with Camera
-            </button>
+            </button> */}
 
             <label
               className={`rounded-xl border border-[#38516e] px-4 py-3 text-sm font-semibold text-white ${

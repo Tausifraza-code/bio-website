@@ -1,6 +1,19 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Images, Plus, Trash2, Upload, Loader2, AlertCircle, CheckCircle2, AlertTriangle } from "lucide-react";
+import {
+  Images,
+  Plus,
+  Trash2,
+  Upload,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+  AlertTriangle,
+  X,
+  ImagePlus,
+  Camera,
+  Sparkles,
+} from "lucide-react";
 
 import {
   uploadGalleryImages,
@@ -25,6 +38,7 @@ const Gallery = () => {
 
   const [selectedImages, setSelectedImages] = useState([]);
   const [title, setTitle] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Toast & Delete Modal States
   const [toast, setToast] = useState(null);
@@ -47,19 +61,30 @@ const Gallery = () => {
     }
   }, [error, message, dispatch]);
 
-  // Fetch gallery images from backend
+  // Fetch gallery images on mount
   useEffect(() => {
     dispatch(getMyGallery());
-
-    return () => {
-      selectedImages.forEach((image) => {
-        URL.revokeObjectURL(image.url);
-      });
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
-  // Select images for upload
+  /* ==================== MODAL HANDLERS ==================== */
+
+  const openUploadModal = () => {
+    setSelectedImages([]);
+    setTitle("");
+    setIsModalOpen(true);
+    // Auto open file picker after a small delay
+    setTimeout(() => fileInputRef.current?.click(), 300);
+  };
+
+  const closeUploadModal = () => {
+    selectedImages.forEach((img) => URL.revokeObjectURL(img.url));
+    setSelectedImages([]);
+    setTitle("");
+    setIsModalOpen(false);
+  };
+
+  /* ==================== IMAGE SELECTION ==================== */
+
   const handleAddImages = (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
@@ -77,7 +102,10 @@ const Gallery = () => {
     );
 
     if (validFiles.length !== files.length) {
-      showToast("Only JPEG, PNG, JPG, WEBP, and GIF images up to 5MB each are allowed.", "error");
+      showToast(
+        "Only JPEG, PNG, JPG, WEBP, and GIF images up to 5MB each are allowed.",
+        "error",
+      );
     }
 
     setSelectedImages((prev) => {
@@ -100,7 +128,6 @@ const Gallery = () => {
     e.target.value = "";
   };
 
-  // Remove selected image before upload
   const handleRemoveSelectedImage = (id) => {
     setSelectedImages((prev) => {
       const imageToRemove = prev.find((image) => image.id === id);
@@ -111,7 +138,6 @@ const Gallery = () => {
     });
   };
 
-  // Upload selected images to backend
   const handleUploadImages = async () => {
     if (!selectedImages.length) return;
 
@@ -129,6 +155,7 @@ const Gallery = () => {
 
       setSelectedImages([]);
       setTitle("");
+      setIsModalOpen(false);
 
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -138,45 +165,56 @@ const Gallery = () => {
     }
   };
 
-  // Trigger custom delete modal
+  /* ==================== DELETE ==================== */
+
   const handleDeleteClick = (id) => {
     setDeleteConfirmId(id);
   };
 
-  // Confirm delete
   const handleConfirmDelete = async () => {
     if (!deleteConfirmId) return;
-    
     await dispatch(deleteGalleryImage(deleteConfirmId));
     setDeleteConfirmId(null);
   };
 
   return (
     <div className="relative w-full bg-transparent text-slate-200">
-      
-      {/* Custom Toast Notification */}
+      {/* ==================== TOAST ==================== */}
       {toast && (
-        <div className={`fixed bottom-5 right-5 z-[100] flex items-center gap-3 rounded-xl border px-4 py-3 shadow-2xl transition-all animate-in slide-in-from-bottom-5 ${
-          toast.type === "success" 
-            ? "border-emerald-400/20 bg-[#0b1b30] text-emerald-400 shadow-emerald-400/10" 
-            : "border-red-400/20 bg-[#0b1b30] text-red-400 shadow-red-400/10"
-        }`}>
-          {toast.type === "success" ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+        <div
+          className={`fixed bottom-5 right-5 z-[200] flex items-center gap-3 rounded-xl border px-4 py-3 shadow-2xl transition-all animate-in slide-in-from-bottom-5 ${
+            toast.type === "success"
+              ? "border-emerald-400/20 bg-[#0b1b30] text-emerald-400 shadow-emerald-400/10"
+              : "border-red-400/20 bg-[#0b1b30] text-red-400 shadow-red-400/10"
+          }`}
+        >
+          {toast.type === "success" ? (
+            <CheckCircle2 size={18} />
+          ) : (
+            <AlertCircle size={18} />
+          )}
           <p className="text-sm font-semibold">{toast.msg}</p>
         </div>
       )}
 
-      {/* Custom Delete Confirmation Modal */}
+      {/* ==================== DELETE CONFIRM MODAL ==================== */}
       {deleteConfirmId && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#020817]/80 p-4 backdrop-blur-md" onClick={() => setDeleteConfirmId(null)}>
-          <div className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-[#29435f] bg-[#0b1b30] p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-[150] flex items-center justify-center bg-[#020817]/80 p-4 backdrop-blur-md"
+          onClick={() => setDeleteConfirmId(null)}
+        >
+          <div
+            className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-[#29435f] bg-[#0b1b30] p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-red-400/20 bg-red-400/10">
               <AlertTriangle size={24} className="text-red-400" />
             </div>
-            
+
             <h3 className="text-lg font-bold text-white">Delete Image?</h3>
             <p className="mt-2 text-sm leading-6 text-slate-400">
-              Are you sure you want to delete this gallery image? This action cannot be undone.
+              Are you sure you want to delete this gallery image? This action
+              cannot be undone.
             </p>
 
             <div className="mt-6 flex gap-3">
@@ -193,7 +231,11 @@ const Gallery = () => {
                 disabled={deleting}
                 className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-red-500 py-2.5 text-xs font-bold text-white transition hover:bg-red-400 disabled:opacity-50"
               >
-                {deleting ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
+                {deleting ? (
+                  <Loader2 size={15} className="animate-spin" />
+                ) : (
+                  <Trash2 size={15} />
+                )}
                 {deleting ? "Deleting..." : "Delete"}
               </button>
             </div>
@@ -201,176 +243,256 @@ const Gallery = () => {
         </div>
       )}
 
-      {/* Header */}
-      <div className="mb-6 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-400/20 bg-[#132942]">
-          <Images size={21} className="text-cyan-400" />
-        </div>
+      {/* ==================== UPLOAD MODAL ==================== */}
+      {isModalOpen && (
+        <div
+          className="fixed inset-0 z-[150] flex items-center justify-center bg-[#020817]/85 p-3 backdrop-blur-md sm:p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !uploading) closeUploadModal();
+          }}
+        >
+          <div className="relative max-h-[94vh] w-full max-w-2xl overflow-hidden rounded-[26px] border border-cyan-400/20 bg-[#0b1b30] shadow-[0_30px_100px_rgba(0,0,0,0.7)] flex flex-col">
+            {/* Top gradient accent */}
+            <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
 
-        <div>
-          <h2 className="text-xl font-bold text-white">
-            Gallery
-          </h2>
-          <p className="text-sm text-slate-400">
-            Add photos to showcase your business
-          </p>
-        </div>
-      </div>
-
-      {/* Upload Area */}
-      <div className="rounded-2xl border-2 border-dashed border-[#29435f] bg-[#0b1b30]/50 p-6 transition-all hover:border-cyan-400/40 hover:bg-[#0b1b30]">
-        <div className="flex flex-col items-center justify-center text-center">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/20 bg-[#132942]">
-            <Upload size={25} className="text-cyan-400" />
-          </div>
-
-          <h3 className="mb-1 text-base font-semibold text-white">
-            Add Gallery Images
-          </h3>
-
-          <p className="mb-4 text-sm text-slate-400">
-            Upload photos of your business, products or services
-          </p>
-
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading || selectedImages.length >= 10}
-            className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-5 py-2.5 text-sm font-bold text-[#0b1b30] shadow-lg shadow-cyan-400/20 transition-all hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Plus size={18} />
-            Add Images
-          </button>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/jpg,image/webp,image/gif"
-            multiple
-            onChange={handleAddImages}
-            className="hidden"
-          />
-
-          <p className="mt-3 text-xs text-slate-500">
-            Maximum 10 images per upload · 5MB per image
-          </p>
-        </div>
-      </div>
-
-      {/* Upload title and selected images */}
-      {selectedImages.length > 0 && (
-        <div className="mt-6 rounded-2xl border border-[#29435f] bg-[#0b1b30] p-5">
-          <label className="mb-2 block text-sm font-semibold text-slate-300">
-            Gallery Title (optional)
-          </label>
-
-          <input
-            type="text"
-            maxLength={150}
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Enter a title for these images"
-            className="mb-5 w-full rounded-xl border border-[#29435f] bg-[#132942] px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/[0.07]"
-          />
-
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h3 className="text-sm font-semibold text-white">
-              Selected Images
-            </h3>
-
-            <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-bold text-cyan-400">
-              {selectedImages.length} {selectedImages.length === 1 ? "Image" : "Images"}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {selectedImages.map((image) => (
-              <div
-                key={image.id}
-                className="group relative overflow-hidden rounded-xl border border-[#29435f] bg-[#132942]"
+            {/* Modal Header */}
+            <div className="flex items-center gap-3 border-b border-[#29435f] px-5 py-4 sm:px-7">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-300 shadow-inner shadow-cyan-300/5">
+                <ImagePlus size={22} strokeWidth={1.8} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-bold text-white sm:text-xl">
+                  Upload Gallery Images
+                </h3>
+                <p className="mt-0.5 text-xs text-slate-400">
+                  Add photos to showcase your business
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeUploadModal}
+                disabled={uploading}
+                aria-label="Close upload modal"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#29435f] bg-[#132942] text-slate-300 transition hover:border-red-400/40 hover:bg-red-400/10 hover:text-red-300 disabled:opacity-50"
               >
-                <img
-                  src={image.url}
-                  alt="Selected gallery preview"
-                  className="h-36 w-full object-cover"
-                />
+                <X size={18} />
+              </button>
+            </div>
 
+            {/* Modal Body — Scrollable */}
+            <div className="overflow-y-auto px-5 py-5 sm:px-7 sm:py-6">
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/jpg,image/webp,image/gif"
+                multiple
+                onChange={handleAddImages}
+                className="hidden"
+              />
+
+              {/* Empty upload dropzone */}
+              {selectedImages.length === 0 && (
                 <button
                   type="button"
-                  onClick={() => handleRemoveSelectedImage(image.id)}
+                  onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
-                  className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-black/60 text-white opacity-100 backdrop-blur-sm transition-all hover:bg-red-500 sm:opacity-0 sm:group-hover:opacity-100"
-                  title="Remove selected image"
+                  className="group w-full rounded-2xl border-2 border-dashed border-[#29435f] bg-[#0b1b30]/60 p-8 text-center transition-all hover:border-cyan-400/50 hover:bg-cyan-400/[0.03] disabled:opacity-50 sm:p-10"
                 >
-                  <Trash2 size={15} />
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-400/20 bg-gradient-to-br from-cyan-400/15 to-blue-400/5 text-cyan-300 shadow-inner shadow-cyan-300/5 transition-transform duration-300 group-hover:scale-105">
+                    <Upload size={28} strokeWidth={1.8} />
+                  </div>
+                  <p className="text-sm font-bold text-white sm:text-base">
+                    Click to browse or drop images here
+                  </p>
+                  <p className="mt-1.5 text-xs text-slate-400">
+                    JPEG, PNG, JPG, WEBP or GIF · up to 5MB each
+                  </p>
+                  <span className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-cyan-300/25 bg-cyan-300/10 px-3 py-1.5 text-xs font-semibold text-cyan-100 transition hover:border-cyan-200/50 hover:bg-cyan-300/15">
+                    <Plus size={13} /> Select Images
+                  </span>
                 </button>
-              </div>
-            ))}
-          </div>
+              )}
 
-          <button
-            type="button"
-            onClick={handleUploadImages}
-            disabled={uploading}
-            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 text-sm font-bold text-[#0b1b30] shadow-lg shadow-cyan-400/20 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {uploading ? (
-              <>
-                <Loader2 size={18} className="animate-spin" />
-                Uploading...
-              </>
-            ) : (
-              <>
-                <Upload size={18} />
-                Upload to Gallery
-              </>
-            )}
-          </button>
+              {/* Selected images grid */}
+              {selectedImages.length > 0 && (
+                <div className="space-y-5">
+                  {/* Count + Add More */}
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-400/20 bg-cyan-400/10 px-3 py-1.5 text-xs font-bold text-cyan-300">
+                        <Sparkles size={12} />
+                        {selectedImages.length}{" "}
+                        {selectedImages.length === 1 ? "Image" : "Images"}{" "}
+                        Selected
+                      </span>
+                      <span className="text-xs text-slate-500">
+                        (max 10)
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading || selectedImages.length >= 10}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-300/25 bg-cyan-300/10 px-3 py-1.5 text-xs font-bold text-cyan-100 transition hover:border-cyan-200/50 hover:bg-cyan-300/15 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <Plus size={13} /> Add More
+                    </button>
+                  </div>
+
+                  {/* Preview grid */}
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {selectedImages.map((image) => (
+                      <div
+                        key={image.id}
+                        className="group relative overflow-hidden rounded-xl border border-[#29435f] bg-[#132942] shadow-md transition hover:border-cyan-400/40"
+                      >
+                        <img
+                          src={image.url}
+                          alt="Selected preview"
+                          className="h-28 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-32"
+                        />
+                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSelectedImage(image.id)}
+                          disabled={uploading}
+                          className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-black/70 text-white backdrop-blur-sm transition hover:border-red-400/40 hover:bg-red-500 disabled:opacity-50"
+                          title="Remove image"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Title input */}
+                  <div>
+                    <label className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-200">
+                      <Camera size={15} className="text-cyan-300" />
+                      Gallery Title
+                      <span className="text-[10px] font-normal text-slate-500">
+                        (optional)
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={150}
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="e.g. Our Storefront, Product Showcase..."
+                      className="w-full rounded-xl border border-[#29435f] bg-[#132942] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 hover:border-[#38516e] focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/[0.07]"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex flex-col-reverse gap-2 border-t border-[#29435f] bg-[#0b1b30] px-5 py-4 sm:flex-row sm:items-center sm:justify-end sm:px-7">
+              <button
+                type="button"
+                onClick={closeUploadModal}
+                disabled={uploading}
+                className="rounded-xl border border-[#38516e] bg-[#132942] px-5 py-2.5 text-sm font-semibold text-slate-300 transition hover:bg-[#1a3658] disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleUploadImages}
+                disabled={uploading || selectedImages.length === 0}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-400 px-6 py-2.5 text-sm font-bold text-[#0b1b30] shadow-lg shadow-cyan-400/20 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload size={16} />
+                    Upload {selectedImages.length > 0 ? `(${selectedImages.length})` : ""}
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Saved Gallery Images from Backend */}
-      <div className="mt-8">
+      {/* ==================== HEADER ==================== */}
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-400/20 bg-gradient-to-br from-cyan-400/15 to-blue-400/5 text-cyan-300 shadow-inner shadow-cyan-300/5">
+            <Images size={22} strokeWidth={1.8} />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-white">Gallery</h2>
+            <p className="text-sm text-slate-400">
+              Add photos to showcase your business
+            </p>
+          </div>
+        </div>
+
+        {/* Right side Add Image button */}
+        <button
+          type="button"
+          onClick={openUploadModal}
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-2.5 text-sm font-bold text-[#0b1b30] shadow-lg shadow-cyan-400/20 transition hover:bg-cyan-300 active:scale-[0.98] sm:px-6 sm:py-3"
+        >
+          <Plus size={18} strokeWidth={3} />
+          Add Image
+        </button>
+      </div>
+
+      {/* ==================== SAVED GALLERY ==================== */}
+      <div className="rounded-2xl border border-[#29435f] bg-[#132942]/60 p-4 sm:p-5">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-base font-bold text-white">
+          <h3 className="flex items-center gap-2 text-base font-bold text-white">
+            <Images size={16} className="text-cyan-400" />
             Your Gallery
           </h3>
-
-          <span className="rounded-full border border-[#29435f] bg-[#132942] px-3 py-1 text-xs font-bold text-slate-300">
+          <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-bold text-cyan-300">
             {gallery.length} {gallery.length === 1 ? "Image" : "Images"}
           </span>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center gap-2 rounded-2xl border border-[#29435f] bg-[#0b1b30] py-10 text-sm text-slate-400">
-            <Loader2 size={20} className="animate-spin text-cyan-400" />
-            Loading gallery...
+          <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-[#29435f] bg-[#0b1b30] py-14">
+            <Loader2 size={28} className="animate-spin text-cyan-400" />
+            <p className="text-sm text-slate-400">Loading gallery...</p>
           </div>
         ) : gallery.length > 0 ? (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
             {gallery.map((image) => (
               <div
                 key={image._id}
-                className="group relative overflow-hidden rounded-xl border border-[#29435f] bg-[#132942] transition-all hover:border-cyan-400/50 hover:shadow-lg hover:shadow-cyan-400/5"
+                className="group relative overflow-hidden rounded-xl border border-[#29435f] bg-[#0b1b30] transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-400/50 hover:shadow-lg hover:shadow-cyan-400/5"
               >
-                <img
-                  src={image.thumbnailUrl || image.imageUrl}
-                  alt={image.title || "Gallery image"}
-                  className="h-36 w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  loading="lazy"
-                />
+                <div className="relative overflow-hidden">
+                  <img
+                    src={image.thumbnailUrl || image.imageUrl}
+                    alt={image.title || "Gallery image"}
+                    className="h-36 w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    loading="lazy"
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                </div>
 
                 {image.title && (
-                  <p className="truncate px-3 py-2 text-sm font-medium text-slate-300">
-                    {image.title}
-                  </p>
+                  <div className="px-3 py-2">
+                    <p className="truncate text-sm font-medium text-slate-200">
+                      {image.title}
+                    </p>
+                  </div>
                 )}
 
                 <button
                   type="button"
                   onClick={() => handleDeleteClick(image._id)}
                   disabled={deleting}
-                  className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-black/60 text-white opacity-100 backdrop-blur-sm transition-all hover:bg-red-500 disabled:opacity-50 sm:opacity-0 sm:group-hover:opacity-100"
+                  className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-black/70 text-white opacity-100 backdrop-blur-sm transition-all hover:border-red-400/40 hover:bg-red-500 disabled:opacity-50 sm:opacity-0 sm:group-hover:opacity-100"
                   title="Delete gallery image"
                 >
                   {deleting && deleteConfirmId === image._id ? (
@@ -383,9 +505,16 @@ const Gallery = () => {
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-[#29435f] bg-[#0b1b30]/50 py-10 text-center">
-            <Images size={32} className="mx-auto mb-3 text-slate-500 opacity-50" />
-            <p className="text-sm text-slate-400">No gallery images added yet</p>
+          <div className="rounded-2xl border border-dashed border-[#29435f] bg-[#0b1b30]/50 py-14 text-center">
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/10 bg-cyan-400/[0.04] text-slate-500">
+              <Images size={28} strokeWidth={1.5} />
+            </div>
+            <p className="text-sm font-semibold text-slate-300">
+              No gallery images added yet
+            </p>
+            <p className="mt-1 text-xs text-slate-500">
+              Click "Add Image" above to get started
+            </p>
           </div>
         )}
       </div>

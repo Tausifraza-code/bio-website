@@ -55,6 +55,16 @@ const secondaryButtonCls =
 const primaryButtonCls =
   "inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-200/30 bg-cyan-300 px-5 py-3 text-sm font-bold text-[#0b1b30] shadow-lg shadow-cyan-400/10 transition duration-200 hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-50";
 
+/* ==================== BUSINESS HOURS PRESETS ==================== */
+
+const businessHourPresets = [
+  "Mon - Sat: 9:30 AM - 7:30 PM | Sun: Closed",
+  "Mon - Fri: 9:00 AM - 6:00 PM | Sat - Sun: Closed",
+  "Mon - Sun: 10:00 AM - 8:00 PM",
+  "24/7 Open",
+  "Mon - Sat: 10:00 AM - 9:00 PM | Sun: 11:00 AM - 5:00 PM",
+];
+
 /* ==================== REUSABLE COMPONENTS ==================== */
 
 const Divider = () => (
@@ -201,6 +211,7 @@ const EditProfile = () => {
   const [selectedPlan, setSelectedPlan] = useState("1year");
   const [saved, setSaved] = useState(false);
   const [capturingGPS, setCapturingGPS] = useState(false);
+  const [customHoursSelected, setCustomHoursSelected] = useState(false);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -240,6 +251,13 @@ const EditProfile = () => {
     setQrCode(profile.qrCode || null);
     if (profile.activeTheme) setActiveTheme(profile.activeTheme);
     if (profile.selectedPlan) setSelectedPlan(profile.selectedPlan);
+    if (profile.businessHours) {
+      setCustomHoursSelected(
+        !businessHourPresets.includes(profile.businessHours)
+      );
+    } else {
+      setCustomHoursSelected(false);
+    }
   }, [profile]);
 
   const handleUpload = (type) => async (event) => {
@@ -348,20 +366,16 @@ const EditProfile = () => {
     { id: "sunset", name: "Sunset Amber & Coral", category: "Creative & Cafe", description: "Radiant golden tangerine and warm amber coral for creative...", colors: ["#f59e0b", "#f97316"] },
   ];
 
-  const industries = [
-    "General Service Provider / Other", "Business Owner / Professional", "Retail & E-commerce", "Healthcare & Wellness", "Education & Training", "Food & Beverage", "Real Estate", "IT & Software", "Creative & Design", "Finance & Legal",
-  ];
-
   const quickHandles = ["@okaxis", "@okhdfcbank", "@oksbi", "@paytm", "@ybl", "@ibl"];
   
   const activeThemeData = themes.find((theme) => theme.id === activeTheme);
 
-  // Safe Dynamic Profile Completion (FIXED ERROR)
+  // Safe Dynamic Profile Completion
   const totalFields = Object.keys(formData).length + 4; // formData fields + 4 images
   const filledFields = Object.values(formData).filter((val) => {
     if (val === null || val === undefined) return false;
     if (typeof val === "string") return val.trim() !== "";
-    return true; // For numbers, booleans, etc.
+    return true;
   }).length + [avatar, logo, banner, qrCode].filter(Boolean).length;
   
   const completionPercentage = Math.min(100, Math.round((filledFields / totalFields) * 100));
@@ -486,19 +500,16 @@ const EditProfile = () => {
                     <Field label="First Name" value={formData.firstName} onChange={(e) => handleChange("firstName", e.target.value)} placeholder="First name" required />
                     <Field label="Last Name" value={formData.lastName} onChange={(e) => handleChange("lastName", e.target.value)} placeholder="Last name" required />
                     <Field label="Business Name" value={formData.businessName} onChange={(e) => handleChange("businessName", e.target.value)} placeholder="Business name" required />
-                    
-                    <div className="min-w-0">
-                      <label className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-200">
-                        <Building2 size={15} className="text-cyan-300" /> Your Industry / Category <span className="text-cyan-200">*</span>
-                      </label>
-                      <div className="relative">
-                        <select value={formData.industry} onChange={(e) => handleChange("industry", e.target.value)} className={`${inputCls} appearance-none pr-10`}>
-                          <option value="" disabled className="bg-[#132942] text-slate-400">Select Industry</option>
-                          {industries.map((industry) => <option key={industry} value={industry} className="bg-[#132942] text-white">{industry}</option>)}
-                        </select>
-                        <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-cyan-200" />
-                      </div>
-                    </div>
+
+                    {/* CATEGORY: Free-text input (dropdown removed) */}
+                    <Field
+                      label="Your Industry / Category"
+                      icon={Building2}
+                      value={formData.industry}
+                      onChange={(e) => handleChange("industry", e.target.value)}
+                      placeholder="e.g. Retail, Healthcare, IT & Software..."
+                      required
+                    />
 
                     <Field label="Job Title / Role" icon={Briefcase} value={formData.jobTitle} onChange={(e) => handleChange("jobTitle", e.target.value)} placeholder="Business Owner / Professional" />
                     <Field label="Short Headline / Slogan" value={formData.headline} onChange={(e) => handleChange("headline", e.target.value)} placeholder="Your short tagline" />
@@ -523,7 +534,64 @@ const EditProfile = () => {
               <div className="space-y-8 animate-fadeIn">
                 <Section title="Business Details" subtitle="Manage your working hours and main website." icon={Briefcase}>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <Field label="Business Hours" icon={Clock} value={formData.businessHours} onChange={(e) => handleChange("businessHours", e.target.value)} placeholder="Mon - Sat: 9:30 AM - 7:30 PM | Sun: Closed" />
+
+                    {/* BUSINESS HOURS: Dropdown with Custom option */}
+                    <div className="min-w-0">
+                      <label className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-200">
+                        <Clock size={15} className="shrink-0 text-cyan-300" />
+                        <span>Business Hours</span>
+                      </label>
+                      <div className="relative">
+                        <select
+                          value={
+                            businessHourPresets.includes(formData.businessHours)
+                              ? formData.businessHours
+                              : customHoursSelected
+                                ? "custom"
+                                : ""
+                          }
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === "custom") {
+                              setCustomHoursSelected(true);
+                              if (businessHourPresets.includes(formData.businessHours)) {
+                                handleChange("businessHours", "");
+                              }
+                            } else {
+                              setCustomHoursSelected(false);
+                              handleChange("businessHours", value);
+                            }
+                          }}
+                          className={`${inputCls} appearance-none pr-10`}
+                        >
+                          <option value="" disabled className="bg-[#132942] text-slate-400">
+                            Select business hours
+                          </option>
+                          {businessHourPresets.map((hours) => (
+                            <option key={hours} value={hours} className="bg-[#132942] text-white">
+                              {hours}
+                            </option>
+                          ))}
+                          <option value="custom" className="bg-[#132942] text-white">
+                            + Custom Hours
+                          </option>
+                        </select>
+                        <ChevronDown
+                          size={16}
+                          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-cyan-200"
+                        />
+                      </div>
+                      {customHoursSelected && (
+                        <input
+                          type="text"
+                          value={formData.businessHours}
+                          onChange={(e) => handleChange("businessHours", e.target.value)}
+                          placeholder="e.g. Mon - Wed: 10:00 AM - 5:00 PM, Thu - Sat: 9:00 AM - 8:00 PM"
+                          className={`${inputCls} mt-2`}
+                        />
+                      )}
+                    </div>
+
                     <Field label="Website URL" icon={Globe} type="url" value={formData.websiteUrl} onChange={(e) => handleChange("websiteUrl", e.target.value)} placeholder="https://..." />
                   </div>
                 </Section>
