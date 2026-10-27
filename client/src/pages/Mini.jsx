@@ -83,6 +83,9 @@ const hasValidProfile = (profile) => {
   const isDemo =
     /^(ankit'?s business|my business|your name)$/i.test(businessName) ||
     /^(ankit|your name)$/i.test(firstName);
+  const isDemo =
+    /^(ankit'?s business|my business|your name)$/i.test(businessName) ||
+    /^(ankit|your name)$/i.test(firstName);
   if (isDemo) return false;
   return Boolean(
     firstName || lastName || businessName || profile.phone?.trim() || profile.email?.trim(),
@@ -93,9 +96,13 @@ const normalizeGalleryImages = (raw) => {
   if (!Array.isArray(raw)) return [];
   return raw
     .map((item, index) => {
+  return raw
+    .map((item, index) => {
       if (typeof item === "string") {
         const url = item.trim();
-        return url ? { url, alt: `Gallery image ${index + 1}`, caption: "" } : null;
+        return url
+          ? { url, alt: `Gallery image ${index + 1}`, caption: "" }
+          : null;
       }
       if (!item || typeof item !== "object") return null;
       const url = [item.url, item.src, item.image, item.imageUrl, item.path].find(
@@ -141,13 +148,21 @@ const Mini = () => {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewData, setReviewData] = useState({ name: "", review: "" });
 
-  const [formData, setFormData] = useState({ name: "", phone: "", email: "", message: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    message: "",
+  });
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [qrModalTab, setQrModalTab] = useState("share");
 
   useEffect(() => {
     let mounted = true;
+    dispatch(fetchMyProfile())
+      .unwrap()
+      .then((savedProfile) => {
     dispatch(fetchMyProfile())
       .unwrap()
       .then((savedProfile) => {
@@ -160,11 +175,15 @@ const Mini = () => {
         setProfileChecked(true);
       })
       .catch((error) => {
+      })
+      .catch((error) => {
         if (!mounted) return;
         console.error("Profile load failed:", error);
         navigate("/editprofile", { replace: true });
       });
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [dispatch, navigate]);
 
   useEffect(() => { dispatch(fetchMyBoundQR()); }, [dispatch]);
@@ -193,7 +212,9 @@ const Mini = () => {
     .sort((a, b) => a.order - b.order);
 
   const businessInfo = {
-    name: [profileData.firstName, profileData.lastName].filter(Boolean).join(" "),
+    name: [profileData.firstName, profileData.lastName]
+      .filter(Boolean)
+      .join(" "),
     role: profileData.jobTitle || "",
     location:
       [profileData.city, profileData.state, profileData.pincode].filter(Boolean).join(", ") ||
@@ -293,6 +314,11 @@ const Mini = () => {
       text: `Check out ${businessInfo.name || businessInfo.businessName}'s business`,
       url: window.location.href,
     };
+    const shareData = {
+      title: businessInfo.name || businessInfo.businessName,
+      text: `Check out ${businessInfo.name || businessInfo.businessName}'s business`,
+      url: window.location.href,
+    };
     if (navigator.share) {
       try { await navigator.share(shareData); } catch { /* cancelled */ }
     } else { handleCopyLink(); }
@@ -324,6 +350,10 @@ const Mini = () => {
     const escapeVCard = (value = "") =>
       String(value).trim().replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
     const lines = ["BEGIN:VCARD", "VERSION:3.0"];
+    const fullName = [profileData.firstName, profileData.lastName]
+      .filter((value) => value?.trim())
+      .join(" ")
+      .trim();
     const fullName = [profileData.firstName, profileData.lastName]
       .filter((value) => value?.trim())
       .join(" ")
@@ -368,6 +398,8 @@ const Mini = () => {
     anchor.click();
     anchor.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setSaved(true);
+    window.setTimeout(() => setSaved(false), 2000);
     setSaved(true);
     window.setTimeout(() => setSaved(false), 2000);
   };
@@ -428,9 +460,23 @@ const Mini = () => {
       setFormSubmitted(false);
       setFormData({ name: "", phone: "", email: "", message: "" });
     }, 3000);
+    event.preventDefault();
+    setFormSubmitted(true);
+    window.setTimeout(() => {
+      setFormSubmitted(false);
+      setFormData({ name: "", phone: "", email: "", message: "" });
+    }, 3000);
   };
 
   const handleReviewSubmit = (event) => {
+    event.preventDefault();
+    setReviewSubmitted(true);
+    window.setTimeout(() => {
+      setShowReviewModal(false);
+      setReviewSubmitted(false);
+      setReviewData({ name: "", review: "" });
+      setReviewRating(5);
+    }, 2000);
     event.preventDefault();
     setReviewSubmitted(true);
     window.setTimeout(() => {
@@ -1298,6 +1344,13 @@ const Mini = () => {
         </div>
       )}
 
+      <Payment
+        isOpen={showPayment}
+        onClose={() => setShowPayment(false)}
+        upiId={profileData.upiId || ""}
+        businessName={profileData.businessName || "My Business"}
+        businessImage={profileData.logo || profileData.avatar || ""}
+      />
       <Payment
         isOpen={showPayment}
         onClose={() => setShowPayment(false)}

@@ -6,17 +6,22 @@ const createInquiry = async (req, res) => {
   try {
     const { name, email, phone, subject, message, subdomain } = req.body;
 
-    if (!name?.trim() || !message?.trim() || !subdomain?.trim()) {
+    if (
+      !name?.trim() ||
+      !message?.trim() ||
+      !phone?.trim() ||
+      !subdomain?.trim()
+    ) {
       return res.status(400).json({
         success: false,
-        message: "Name, message and subdomain are required.",
+        message: "Name,  phone ,   message  and subdomain are required.",
       });
     }
 
     // Find the existing public mini profile
     const profile = await MiniProfile.findOne({
       subdomain: subdomain.trim(),
-    }).select("_id userId");
+    }).select("_id userId whatsapp");
 
     if (!profile) {
       return res.status(404).json({
@@ -39,6 +44,7 @@ const createInquiry = async (req, res) => {
       success: true,
       message: "Inquiry submitted successfully.",
       data: inquiry,
+      whatsappNumber: profile.whatsapp || "",
     });
   } catch (error) {
     console.error("Create inquiry error:", error);
@@ -56,10 +62,7 @@ const getMyInquiries = async (req, res) => {
     const userId = req.user._id;
 
     console.log("Logged-in user ID:", req.user?._id);
-    console.log(
-      "Inquiry owner IDs:",
-      await Inquiry.distinct("userId")
-    );
+    console.log("Inquiry owner IDs:", await Inquiry.distinct("userId"));
 
     const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
     const limit = Math.min(
