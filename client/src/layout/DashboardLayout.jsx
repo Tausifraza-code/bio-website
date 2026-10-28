@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
-
+import { Outlet, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 import DashboardNavbar from "../components/DashboardNavbar";
 import DashboardSidebar from "../components/DashboardSidebar";
 import DashboardMobileSidebar from "../components/DashboardMobileSidebar";
 import PaymentModal from "../components/PaymentModal";
 
 const DashboardLayout = () => {
-  const navigate = useNavigate();
   const location = useLocation();
+  const { profile } = useSelector((state) => state.profile || {});
+  const subdomain = profile?.subdomain || "";
+
+  console.log("Redux profile:", profile);
+  console.log("Navbar subdomain:", subdomain);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -21,8 +25,7 @@ const DashboardLayout = () => {
   const [toastTimer, setToastTimer] = useState(null);
 
   const [cardActionNotice, setCardActionNotice] = useState("");
-  const [cardActionNoticeTimer, setCardActionNoticeTimer] =
-    useState(null);
+  const [cardActionNoticeTimer, setCardActionNoticeTimer] = useState(null);
 
   /* =========================================================
      ACTIVE SIDEBAR ITEM
@@ -46,9 +49,7 @@ const DashboardLayout = () => {
     const currentPath = location.pathname;
 
     const matchedRoute = Object.keys(routeMap).find(
-      (path) =>
-        currentPath === path ||
-        currentPath.startsWith(`${path}/`)
+      (path) => currentPath === path || currentPath.startsWith(`${path}/`),
     );
 
     if (matchedRoute) {
@@ -113,7 +114,20 @@ const DashboardLayout = () => {
   ========================================================= */
 
   const handlePreview = () => {
-    navigate("/preview");
+    const currentProfile = profile;
+    const subdomain = currentProfile?.subdomain?.trim();
+
+    if (!subdomain) {
+      console.error("Profile or subdomain is missing:", currentProfile);
+      alert("Profile subdomain nahi mila. Please profile data check karein.");
+      return;
+    }
+
+    window.open(
+      `/card-preview/${encodeURIComponent(subdomain)}`,
+      "_blank",
+      "noopener,noreferrer",
+    );
   };
 
   /* =========================================================
@@ -175,6 +189,7 @@ const DashboardLayout = () => {
       ======================================================= */}
 
       <DashboardNavbar
+        subdomain={subdomain}
         ownerName="Your Business"
         businessName="BioWebsite"
         role="Business Owner / Professional"
@@ -209,11 +224,7 @@ const DashboardLayout = () => {
           collapsed={sidebarCollapsed}
           activeNavItem={activeNavItem}
           onNavClick={handleNavClick}
-          onToggle={() =>
-            setSidebarCollapsed(
-              (previous) => !previous
-            )
-          }
+          onToggle={() => setSidebarCollapsed((previous) => !previous)}
           onPreview={handlePreview}
           onLogout={handleLogout}
         />
@@ -245,11 +256,7 @@ const DashboardLayout = () => {
           PAYMENT MODAL
       ======================================================= */}
 
-      {showPayModal && (
-        <PaymentModal
-          onClose={() => setShowPayModal(false)}
-        />
-      )}
+      {showPayModal && <PaymentModal onClose={() => setShowPayModal(false)} />}
 
       {/* =======================================================
           GENERAL TOAST

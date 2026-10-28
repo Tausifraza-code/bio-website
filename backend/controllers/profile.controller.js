@@ -1,4 +1,6 @@
 const MiniProfile = require("../models/MiniProfile");
+const Product = require("../models/Product");
+const Gallery = require("../models/Gallery");
 const { uploadToImgBB } = require("../utils/imgbb");
 
 const allowedFields = [
@@ -207,11 +209,8 @@ const getPublicProfile = async (req, res) => {
       });
     }
 
-    const profile = await MiniProfile.findOne({
-      subdomain,
-    }).select(
-      "firstName lastName businessName industry subdomain jobTitle headline bio phone whatsapp email website websiteUrl shopUnit area city state pincode landmark mapLink businessHours socialCards contactButtons avatar logo banner qrCode activeTheme activeLayout isVerified verifiedAt",
-    );
+    // 1. Get complete saved profile
+    const profile = await MiniProfile.findOne({ subdomain }).lean();
 
     if (!profile) {
       return res.status(404).json({
@@ -220,9 +219,30 @@ const getPublicProfile = async (req, res) => {
       });
     }
 
+    // 2. Get this user's active products/services
+    // 3. Get this user's gallery images
+    const [products, gallery] = await Promise.all([
+      Product.find({
+        userId: profile.userId,
+        status: "active",
+      })
+        .sort({ createdAt: -1 })
+        .lean(),
+
+      Gallery.find({
+        userId: profile.userId,
+      })
+        .populate("productId", "name price type")
+        .sort({ createdAt: -1 })
+        .lean(),
+    ]);
+
+    // Return everything together
     return res.status(200).json({
       success: true,
       profile,
+      products,
+      gallery,
     });
   } catch (error) {
     console.error("Get public profile error:", error);

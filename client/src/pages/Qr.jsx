@@ -26,6 +26,7 @@ import {
   CreditCard,
   UserRound,
 } from "lucide-react";
+import { getPublicQRUrl } from "../utils/qrUrl";
 
 const Qr = () => {
   const [copiedField, setCopiedField] = useState(null);
@@ -56,14 +57,9 @@ const Qr = () => {
       )}`
     : "";
 
-  const apiBaseUrl =
-    import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
-  const backendOrigin = apiBaseUrl.replace(/\/api\/?$/, "").replace(/\/+$/, "");
   const businessName =
     boundQR?.businessName || boundQR?.subdomain || "Your Business";
-  const qrPublicUrl = boundQR?.qrPath
-    ? `${backendOrigin}${boundQR.qrPath}`
-    : "";
+  const qrPublicUrl = getPublicQRUrl(boundQR?.qrPath);
   const profileUrl = boundQR?.subdomain
     ? `${window.location.origin}/card-preview/${encodeURIComponent(
         boundQR.subdomain,

@@ -35,10 +35,7 @@ const DashboardNavbar = ({
     if (!profileOpen) return;
 
     const handleClickOutside = (event) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setProfileOpen(false);
       }
     };
@@ -56,19 +53,13 @@ const DashboardNavbar = ({
     };
   }, [profileOpen]);
 
-  // ==========================================
-  // BUILD PUBLIC URL — /<subdomain>
-  // Subdomain hi user ka unique ID hai
-  // e.g. subdomain="ankit123" → https://site.com/ankit123
-  // ==========================================
   const buildPreviewUrl = () => {
     if (!subdomain) return "";
-    return `${window.location.origin}/${encodeURIComponent(subdomain)}`;
+    return `${window.location.origin}/card-preview/${encodeURIComponent(
+      subdomain,
+    )}`;
   };
 
-  // ==========================================
-  // OPEN PREVIEW (new tab) — /<subdomain>
-  // ==========================================
   const handlePreview = () => {
     setProfileOpen(false);
 
@@ -80,15 +71,11 @@ const DashboardNavbar = ({
     }
 
     const previewUrl = buildPreviewUrl();
-    const newTab = window.open(
-      previewUrl,
-      "_blank",
-      "noopener,noreferrer",
-    );
+    const newTab = window.open(previewUrl, "_blank", "noopener,noreferrer");
 
-    // Popup blocker fallback → same-tab navigation
+    // Popup blocked ho toh same tab mein open karo
     if (!newTab) {
-      navigate(`/${encodeURIComponent(subdomain)}`);
+      navigate(`/card-preview/${encodeURIComponent(subdomain)}`);
     }
 
     if (typeof onPreview === "function") onPreview();
@@ -100,9 +87,7 @@ const DashboardNavbar = ({
   const handleCopy = async () => {
     setProfileOpen(false);
 
-    const profileLink = subdomain
-      ? buildPreviewUrl()
-      : window.location.href;
+    const profileLink = subdomain ? buildPreviewUrl() : window.location.href;
 
     try {
       if (navigator.clipboard && window.isSecureContext) {
@@ -134,9 +119,7 @@ const DashboardNavbar = ({
   const handleWhatsAppShare = () => {
     setProfileOpen(false);
 
-    const profileLink = subdomain
-      ? buildPreviewUrl()
-      : window.location.href;
+    const profileLink = subdomain ? buildPreviewUrl() : window.location.href;
 
     const message =
       `Hey! 👋\n\n` +
@@ -314,10 +297,7 @@ const DashboardNavbar = ({
 
                   {status && (
                     <div className="mt-3 flex items-center gap-2 rounded-lg border border-amber-400/15 bg-amber-400/[0.06] px-2.5 py-2">
-                      <Zap
-                        size={12}
-                        className="shrink-0 text-amber-300"
-                      />
+                      <Zap size={12} className="shrink-0 text-amber-300" />
                       <span className="truncate text-[9px] font-semibold tracking-[0.04em] text-amber-300">
                         {status}
                       </span>

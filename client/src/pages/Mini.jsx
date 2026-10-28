@@ -8,30 +8,72 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
-import api from "../redux/api";
+import { getPublicQRUrl } from "../utils/qrUrl";
 import { fetchMyProfile } from "../redux/slice/profileSlice";
-import { fetchContactButtons, resetContactButtons } from "../redux/slice/contactButtonsSlice";
+import {
+  fetchContactButtons,
+  resetContactButtons,
+} from "../redux/slice/contactButtonsSlice";
 import { getMyProducts } from "../redux/slice/productSlice";
 import { getMyGallery } from "../redux/slice/gallerySlice";
 import { fetchMyBoundQR } from "../redux/slice/qrSlice";
 import { createInquiry } from "../redux/slice/inquirySlice";
 import Payment from "./Payment";
 
-import { FaInstagram, FaLinkedinIn, FaFacebookF, FaYoutube, FaWhatsapp, FaTelegram, FaXTwitter, FaGlobe, FaLink } from "react-icons/fa6";
+import {
+  FaInstagram,
+  FaLinkedinIn,
+  FaFacebookF,
+  FaYoutube,
+  FaWhatsapp,
+  FaTelegram,
+  FaXTwitter,
+  FaGlobe,
+  FaLink,
+} from "react-icons/fa6";
 
 import {
-  MapPin, Phone, Mail, Globe, Star, MessageCircle, Share2, UserPlus, ShieldCheck,
-  ShoppingBag, CheckCircle2, Check, Send, X, Palette, Maximize2, ScanLine, Sun,
-  Moon, Gem, Crown, Leaf, MonitorSmartphone, IndianRupee, Image as ImageIcon, Clock,
-  Download, Copy, FileImage, Navigation as NavigationIcon,
+  MapPin,
+  Phone,
+  Mail,
+  Globe,
+  Star,
+  MessageCircle,
+  Share2,
+  UserPlus,
+  ShieldCheck,
+  ShoppingBag,
+  CheckCircle2,
+  Check,
+  Send,
+  X,
+  Palette,
+  Maximize2,
+  ScanLine,
+  MonitorSmartphone,
+  IndianRupee,
+  Image as ImageIcon,
+  Clock,
+  Download,
+  Copy,
+  FileImage,
+  Navigation as NavigationIcon,
 } from "lucide-react";
 
 const themes = [
   { id: "executive", name: "Executive Royal", colors: ["#1e3a8a", "#7c3aed"] },
   { id: "emerald", name: "Emerald Luxe", colors: ["#10b981", "#14b8a6"] },
   { id: "rose", name: "Rose Gold & Champagne", colors: ["#f43f5e", "#fb923c"] },
-  { id: "obsidian", name: "Obsidian Noir & Platinum", colors: ["#334155", "#94a3b8"] },
-  { id: "sunset", name: "Sunset Amber & Coral", colors: ["#f59e0b", "#f97316"] },
+  {
+    id: "obsidian",
+    name: "Obsidian Noir & Platinum",
+    colors: ["#334155", "#94a3b8"],
+  },
+  {
+    id: "sunset",
+    name: "Sunset Amber & Coral",
+    colors: ["#f59e0b", "#f97316"],
+  },
 ];
 
 const PROFILE_LAYOUTS = [
@@ -47,7 +89,6 @@ const PROFILE_LAYOUTS = [
   { id: "service-pro", name: "Service Pro" },
 ];
 
-// Layout families — har family ka structure bilkul alag hoga
 const LAYOUT_FAMILY = {
   "modern-business": "business",
   "corporate-executive": "business",
@@ -56,15 +97,20 @@ const LAYOUT_FAMILY = {
   "digital-card": "card",
   "creator-portfolio": "showcase",
   "agency-pro": "showcase",
-  "storefront": "utility",
+  storefront: "utility",
   "freelancer-pro": "utility",
   "service-pro": "utility",
 };
 
-// Single-column flattened layouts (wrappers become display:contents)
 const FLAT_LAYOUTS = [
-  "minimal-card", "creator-portfolio", "storefront", "freelancer-pro",
-  "elegant-profile", "agency-pro", "digital-card", "service-pro",
+  "minimal-card",
+  "creator-portfolio",
+  "storefront",
+  "freelancer-pro",
+  "elegant-profile",
+  "agency-pro",
+  "digital-card",
+  "service-pro",
 ];
 
 const bannerImages = [
@@ -81,19 +127,18 @@ const hasValidProfile = (profile) => {
   const isDemo =
     /^(ankit'?s business|my business|your name)$/i.test(businessName) ||
     /^(ankit|your name)$/i.test(firstName);
-  const isDemo =
-    /^(ankit'?s business|my business|your name)$/i.test(businessName) ||
-    /^(ankit|your name)$/i.test(firstName);
   if (isDemo) return false;
   return Boolean(
-    firstName || lastName || businessName || profile.phone?.trim() || profile.email?.trim(),
+    firstName ||
+    lastName ||
+    businessName ||
+    profile.phone?.trim() ||
+    profile.email?.trim(),
   );
 };
 
 const normalizeGalleryImages = (raw) => {
   if (!Array.isArray(raw)) return [];
-  return raw
-    .map((item, index) => {
   return raw
     .map((item, index) => {
       if (typeof item === "string") {
@@ -103,9 +148,13 @@ const normalizeGalleryImages = (raw) => {
           : null;
       }
       if (!item || typeof item !== "object") return null;
-      const url = [item.url, item.src, item.image, item.imageUrl, item.path].find(
-        (value) => typeof value === "string" && value.trim(),
-      );
+      const url = [
+        item.url,
+        item.src,
+        item.image,
+        item.imageUrl,
+        item.path,
+      ].find((value) => typeof value === "string" && value.trim());
       if (!url) return null;
       const caption = item.caption?.trim() || item.title?.trim() || "";
       return {
@@ -117,16 +166,126 @@ const normalizeGalleryImages = (raw) => {
     .filter(Boolean);
 };
 
+/* ============================================================
+   SOCIAL HELPERS (previously undefined)
+   ============================================================ */
+const getSocialIcon = (platform = "") => {
+  const p = String(platform).toLowerCase();
+  if (p.includes("instagram")) return FaInstagram;
+  if (p.includes("linkedin")) return FaLinkedinIn;
+  if (p.includes("facebook")) return FaFacebookF;
+  if (p.includes("youtube")) return FaYoutube;
+  if (p.includes("whatsapp")) return FaWhatsapp;
+  if (p.includes("telegram")) return FaTelegram;
+  if (p === "x" || p.includes("twitter") || p.includes("/x")) return FaXTwitter;
+  if (p.includes("website") || p.includes("globe")) return FaGlobe;
+  return FaLink;
+};
+
+const getSocialBrand = (platform = "") => {
+  const p = String(platform).toLowerCase();
+  const map = {
+    instagram: { label: "Instagram", color: "#E1306C" },
+    linkedin: { label: "LinkedIn", color: "#0A66C2" },
+    facebook: { label: "Facebook", color: "#1877F2" },
+    youtube: { label: "YouTube", color: "#FF0000" },
+    whatsapp: { label: "WhatsApp", color: "#25D366" },
+    telegram: { label: "Telegram", color: "#0088CC" },
+    twitter: { label: "Twitter", color: "#1DA1F2" },
+    x: { label: "X", color: "#0F1419" },
+    website: { label: "Website", color: "#06B6D4" },
+  };
+  for (const key of Object.keys(map)) {
+    if (p.includes(key)) return map[key];
+  }
+  return { label: "Link", color: "#06B6D4" };
+};
+
+/* ============================================================
+   CONTACT-BUTTON MAPS (previously undefined)
+   ============================================================ */
+const BUTTON_ICON_MAP = {
+  call: Phone,
+  whatsapp: FaWhatsapp,
+  email: Mail,
+  directions: NavigationIcon,
+  share: Share2,
+  website: Globe,
+  customLink: FaLink,
+  saveContact: UserPlus,
+  upi: IndianRupee,
+};
+
+const BUTTON_STYLE_MAP = {
+  call: { bg: "bg-blue-500 hover:bg-blue-400", text: "text-white" },
+  whatsapp: { bg: "bg-emerald-500 hover:bg-emerald-400", text: "text-white" },
+  email: { bg: "bg-rose-500 hover:bg-rose-400", text: "text-white" },
+  directions: { bg: "bg-amber-500 hover:bg-amber-400", text: "text-white" },
+  share: { bg: "bg-cyan-500 hover:bg-cyan-400", text: "text-white" },
+  website: { bg: "bg-indigo-500 hover:bg-indigo-400", text: "text-white" },
+  customLink: { bg: "bg-slate-600 hover:bg-slate-500", text: "text-white" },
+  saveContact: { bg: "bg-purple-500 hover:bg-purple-400", text: "text-white" },
+  upi: { bg: "bg-teal-500 hover:bg-teal-400", text: "text-white" },
+};
+
+/* ============================================================
+   SHARED COMPONENTS (previously undefined)
+   ============================================================ */
+const QrDisplay = ({
+  id,
+  size = 160,
+  value,
+  fetching = false,
+  emptyText = "Bound QR code is not available.",
+  emptyClass = "py-10 text-sm text-slate-400",
+  wrapperClass = "rounded-xl bg-white p-3",
+}) => {
+  if (fetching) {
+    return <p className={emptyClass}>Loading QR…</p>;
+  }
+  if (!value) {
+    return <p className={emptyClass}>{emptyText}</p>;
+  }
+  return (
+    <div className={wrapperClass}>
+      <QRCodeCanvas id={id} value={value} size={size} />
+    </div>
+  );
+};
+
+const Overlay = ({ children, onClose, darker = false, higher = false }) => (
+  <div
+    onClick={onClose}
+    style={{ zIndex: higher ? 70 : 50 }}
+    className={`fixed inset-0 flex items-center justify-center p-4 ${
+      darker ? "bg-black/80" : "bg-black/60"
+    }`}
+  >
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="flex w-full max-w-full justify-center"
+    >
+      {children}
+    </div>
+  </div>
+);
+
 const Mini = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const { profile, isVerified, loading } = useSelector((s) => s.profile || {});
   const { products = [] } = useSelector((s) => s.product || {});
-  const { buttons: contactButtons = [] } = useSelector((s) => s.contactButtons || {});
+  const { buttons: contactButtons = [] } = useSelector(
+    (s) => s.contactButtons || {},
+  );
   const { gallery = [] } = useSelector((s) => s.gallery || {});
   const { boundQR, fetching: qrFetching } = useSelector((s) => s.qr || {});
-  const { submitting: inquirySubmitting = false, submitError: inquirySubmitError = null, submitSuccess: inquirySubmitSuccess = false } = useSelector((s) => s.inquiry || {});
+  const {
+    submitting: inquirySubmitting = false,
+    submitError: inquirySubmitError = null,
+    submitSuccess: inquirySubmitSuccess = false,
+  } = useSelector((s) => s.inquiry || {});
 
   const [profileChecked, setProfileChecked] = useState(false);
   const [activeTheme, setActiveTheme] = useState("sunset");
@@ -143,7 +302,12 @@ const Mini = () => {
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewData, setReviewData] = useState({ name: "", review: "" });
-  const [formData, setFormData] = useState({ name: "", phone: "", email: "", message: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    message: "",
+  });
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [qrModalTab, setQrModalTab] = useState("share");
@@ -153,14 +317,17 @@ const Mini = () => {
     dispatch(fetchMyProfile())
       .unwrap()
       .then((savedProfile) => {
-    dispatch(fetchMyProfile())
-      .unwrap()
-      .then((savedProfile) => {
         if (!mounted) return;
-        if (!hasValidProfile(savedProfile)) { navigate("/editprofile", { replace: true }); return; }
+        if (!hasValidProfile(savedProfile)) {
+          navigate("/editprofile", { replace: true });
+          return;
+        }
         setActiveTheme(savedProfile.activeTheme || "sunset");
-        const savedLayout = PROFILE_LAYOUTS.some((l) => l.id === savedProfile.activeLayout)
-          ? savedProfile.activeLayout : "modern-business";
+        const savedLayout = PROFILE_LAYOUTS.some(
+          (l) => l.id === savedProfile.activeLayout,
+        )
+          ? savedProfile.activeLayout
+          : "modern-business";
         setActiveLayout(savedLayout);
         setProfileChecked(true);
       })
@@ -169,7 +336,9 @@ const Mini = () => {
         console.error("Profile load failed:", error);
         navigate("/editprofile", { replace: true });
       });
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [dispatch, navigate]);
 
   useEffect(() => {
@@ -180,34 +349,51 @@ const Mini = () => {
     dispatch(fetchContactButtons());
   }, [dispatch]);
 
-  const qrTargetUrl = useMemo(() => {
-    if (!boundQR?.qrPath) return "";
-    const baseURL = (api.defaults.baseURL || window.location.origin).replace(/\/api\/?$/, "").replace(/\/$/, "");
-    const qrPath = boundQR.qrPath.startsWith("/") ? boundQR.qrPath : `/${boundQR.qrPath}`;
-    return `${baseURL}${qrPath}`;
-  }, [boundQR?.qrPath]);
+  const qrTargetUrl = useMemo(
+    () => getPublicQRUrl(boundQR?.qrPath),
+    [boundQR?.qrPath],
+  );
 
   const profileData = profile || {};
   const productList = Array.isArray(products) ? products : [];
 
   const visibleButtons = useMemo(() => {
     const slice = Array.isArray(contactButtons) ? contactButtons : [];
-    const fromProfile = Array.isArray(profileData.contactButtons) ? profileData.contactButtons : [];
+    const fromProfile = Array.isArray(profileData.contactButtons)
+      ? profileData.contactButtons
+      : [];
     return [...(slice.length > 0 ? slice : fromProfile)]
       .filter((b) => b && b.enabled !== false && b.enabled !== "false")
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   }, [contactButtons, profileData.contactButtons]);
 
   const businessInfo = {
-    name: [profileData.firstName, profileData.lastName].filter(Boolean).join(" "),
+    name: [profileData.firstName, profileData.lastName]
+      .filter(Boolean)
+      .join(" "),
     role: profileData.jobTitle || "",
-    location: [profileData.city, profileData.state, profileData.pincode].filter(Boolean).join(", ") || "Location not added",
-    about: profileData.bio || profileData.headline || "Welcome to my business! Contact me for business inquiries.",
+    location:
+      [profileData.city, profileData.state, profileData.pincode]
+        .filter(Boolean)
+        .join(", ") || "Location not added",
+    about:
+      profileData.bio ||
+      profileData.headline ||
+      "Welcome to my business! Contact me for business inquiries.",
     phone: profileData.phone || "",
     whatsapp: profileData.whatsapp || "",
     email: profileData.email || "",
     website: profileData.website || profileData.websiteUrl || "",
-    address: [profileData.shopUnit, profileData.area, profileData.city, profileData.state, profileData.pincode].filter(Boolean).join(", ") || "Address not added",
+    address:
+      [
+        profileData.shopUnit,
+        profileData.area,
+        profileData.city,
+        profileData.state,
+        profileData.pincode,
+      ]
+        .filter(Boolean)
+        .join(", ") || "Address not added",
     logo: profileData.logo || null,
     avatar: profileData.avatar || null,
     banner: profileData.banner || null,
@@ -221,8 +407,19 @@ const Mini = () => {
   const galleryImages = useMemo(() => {
     const fromApi = normalizeGalleryImages(gallery);
     if (fromApi.length) return fromApi;
-    return normalizeGalleryImages(profileData.gallery || profileData.galleryImages || profileData.businessGallery || profileData.images);
-  }, [gallery, profileData.gallery, profileData.galleryImages, profileData.businessGallery, profileData.images]);
+    return normalizeGalleryImages(
+      profileData.gallery ||
+        profileData.galleryImages ||
+        profileData.businessGallery ||
+        profileData.images,
+    );
+  }, [
+    gallery,
+    profileData.gallery,
+    profileData.galleryImages,
+    profileData.businessGallery,
+    profileData.images,
+  ]);
 
   const activeThemeData = themes.find((t) => t.id === activeTheme);
   const activeLayoutData = PROFILE_LAYOUTS.find((l) => l.id === activeLayout);
@@ -231,12 +428,20 @@ const Mini = () => {
 
   const socialLinks = (profileData.socialCards || []).filter((s) => s?.url);
 
-  const handleActivateStandee = () => { if (standeeCode.trim()) setStandeeActivated(true); };
+  const handleActivateStandee = () => {
+    if (standeeCode.trim()) setStandeeActivated(true);
+  };
 
   const handleWhatsApp = () => {
     const number = businessInfo.whatsapp || businessInfo.phone;
     if (!number) return alert("WhatsApp number is not available.");
-    window.open(`https://wa.me/${number.replace(/\D/g, "")}?text=${encodeURIComponent("Hi, I'm interested in your business.")}`, "_blank", "noopener,noreferrer");
+    window.open(
+      `https://wa.me/${number.replace(/\D/g, "")}?text=${encodeURIComponent(
+        "Hi, I'm interested in your business.",
+      )}`,
+      "_blank",
+      "noopener,noreferrer",
+    );
   };
 
   const handleCall = () => {
@@ -247,11 +452,17 @@ const Mini = () => {
   const handleShare = async () => {
     const shareData = {
       title: businessInfo.name || businessInfo.businessName,
-      text: `Check out ${businessInfo.name || businessInfo.businessName}'s business`,
+      text: `Check out ${
+        businessInfo.name || businessInfo.businessName
+      }'s business`,
       url: window.location.href,
     };
     if (navigator.share) {
-      try { await navigator.share(shareData); } catch { /* cancelled */ }
+      try {
+        await navigator.share(shareData);
+      } catch {
+        /* cancelled */
+      }
     } else {
       handleCopyLink();
     }
@@ -280,12 +491,14 @@ const Mini = () => {
   };
 
   const handleSaveContact = () => {
-    const esc = (v = "") => String(v).trim().replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
+    const esc = (v = "") =>
+      String(v)
+        .trim()
+        .replace(/\\/g, "\\\\")
+        .replace(/\n/g, "\\n")
+        .replace(/,/g, "\\,")
+        .replace(/;/g, "\\;");
     const lines = ["BEGIN:VCARD", "VERSION:3.0"];
-    const fullName = [profileData.firstName, profileData.lastName]
-      .filter((value) => value?.trim())
-      .join(" ")
-      .trim();
     const fullName = [profileData.firstName, profileData.lastName]
       .filter((value) => value?.trim())
       .join(" ")
@@ -293,30 +506,61 @@ const Mini = () => {
     const displayName = fullName || profileData.businessName?.trim() || "";
 
     if (displayName) lines.push(`FN:${esc(displayName)}`);
-    if (profileData.businessName?.trim()) lines.push(`ORG:${esc(profileData.businessName)}`);
-    if (profileData.jobTitle?.trim()) lines.push(`TITLE:${esc(profileData.jobTitle)}`);
-    if (profileData.phone?.trim()) lines.push(`TEL;TYPE=CELL:${esc(profileData.phone)}`);
-    if (profileData.email?.trim()) lines.push(`EMAIL:${esc(profileData.email)}`);
+    if (profileData.businessName?.trim())
+      lines.push(`ORG:${esc(profileData.businessName)}`);
+    if (profileData.jobTitle?.trim())
+      lines.push(`TITLE:${esc(profileData.jobTitle)}`);
+    if (profileData.phone?.trim())
+      lines.push(`TEL;TYPE=CELL:${esc(profileData.phone)}`);
+    if (profileData.email?.trim())
+      lines.push(`EMAIL:${esc(profileData.email)}`);
 
-    const website = profileData.website?.trim() || profileData.websiteUrl?.trim();
-    if (website) lines.push(`URL:${esc(/^https?:\/\//i.test(website) ? website : `https://${website}`)}`);
+    const website =
+      profileData.website?.trim() || profileData.websiteUrl?.trim();
+    if (website)
+      lines.push(
+        `URL:${esc(
+          /^https?:\/\//i.test(website) ? website : `https://${website}`,
+        )}`,
+      );
 
-    const address = [profileData.shopUnit, profileData.area, profileData.landmark, profileData.city, profileData.state, profileData.pincode].filter((v) => v?.trim()).join(", ");
+    const address = [
+      profileData.shopUnit,
+      profileData.area,
+      profileData.landmark,
+      profileData.city,
+      profileData.state,
+      profileData.pincode,
+    ]
+      .filter((v) => v?.trim())
+      .join(", ");
     if (address) lines.push(`ADR;TYPE=WORK:;;${esc(address)};;;;`);
 
     const note = profileData.bio?.trim() || profileData.headline?.trim();
     if (note) lines.push(`NOTE:${esc(note)}`);
 
-    if (!displayName && !profileData.phone?.trim() && !profileData.email?.trim()) {
-      return alert("Contact download karne ke liye pehle profile details add karein.");
+    if (
+      !displayName &&
+      !profileData.phone?.trim() &&
+      !profileData.email?.trim()
+    ) {
+      return alert(
+        "Contact download karne ke liye pehle profile details add karein.",
+      );
     }
 
     lines.push("END:VCARD");
-    const blob = new Blob([`${lines.join("\r\n")}\r\n`], { type: "text/vcard;charset=utf-8" });
+    const blob = new Blob([`${lines.join("\r\n")}\r\n`], {
+      type: "text/vcard;charset=utf-8",
+    });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = `${((displayName || "contact").replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-").trim()) || "contact"}.vcf`;
+    anchor.download = `${
+      (displayName || "contact")
+        .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-")
+        .trim() || "contact"
+    }.vcf`;
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
@@ -328,17 +572,28 @@ const Mini = () => {
   const handleContactClick = (type) => {
     if (type === "phone") return handleCall();
     if (type === "email") {
-      if (businessInfo.email) window.location.href = `mailto:${businessInfo.email}`;
+      if (businessInfo.email)
+        window.location.href = `mailto:${businessInfo.email}`;
       else alert("Email address is not available.");
       return;
     }
     if (type === "website") {
       if (!businessInfo.website) return;
-      window.open(/^https?:\/\//i.test(businessInfo.website) ? businessInfo.website : `https://${businessInfo.website}`, "_blank", "noopener,noreferrer");
+      window.open(
+        /^https?:\/\//i.test(businessInfo.website)
+          ? businessInfo.website
+          : `https://${businessInfo.website}`,
+        "_blank",
+        "noopener,noreferrer",
+      );
       return;
     }
     if (type === "address") {
-      window.open(`https://maps.google.com/?q=${encodeURIComponent(businessInfo.address)}`, "_blank", "noopener,noreferrer");
+      window.open(
+        `https://maps.google.com/?q=${encodeURIComponent(businessInfo.address)}`,
+        "_blank",
+        "noopener,noreferrer",
+      );
       return;
     }
     if (type === "upi") {
@@ -350,29 +605,51 @@ const Mini = () => {
   const handleConfiguredButton = (button) => {
     if (!button) return;
     switch (button.actionType) {
-      case "call": return handleCall();
-      case "whatsapp": return handleWhatsApp();
+      case "call":
+        return handleCall();
+      case "whatsapp":
+        return handleWhatsApp();
       case "email":
-        if (businessInfo.email) window.location.href = `mailto:${businessInfo.email}`;
+        if (businessInfo.email)
+          window.location.href = `mailto:${businessInfo.email}`;
         else alert("Email address is not available.");
         return;
       case "directions":
-        return window.open(profileData.mapLink || `https://maps.google.com/?q=${encodeURIComponent(businessInfo.address)}`, "_blank", "noopener,noreferrer");
-      case "share": return handleShare();
+        return window.open(
+          profileData.mapLink ||
+            `https://maps.google.com/?q=${encodeURIComponent(
+              businessInfo.address,
+            )}`,
+          "_blank",
+          "noopener,noreferrer",
+        );
+      case "share":
+        return handleShare();
       case "website":
       case "customLink":
-        if (!button.customUrl) return alert("This button has no link configured.");
-        return window.open(/^https?:\/\//i.test(button.customUrl) ? button.customUrl : `https://${button.customUrl}`, "_blank", "noopener,noreferrer");
-      case "saveContact": return handleSaveContact();
-      case "upi": return handleContactClick("upi");
-      default: return;
+        if (!button.customUrl)
+          return alert("This button has no link configured.");
+        return window.open(
+          /^https?:\/\//i.test(button.customUrl)
+            ? button.customUrl
+            : `https://${button.customUrl}`,
+          "_blank",
+          "noopener,noreferrer",
+        );
+      case "saveContact":
+        return handleSaveContact();
+      case "upi":
+        return handleContactClick("upi");
+      default:
+        return;
     }
   };
 
   const handleFormSubmit = async (event) => {
     event.preventDefault();
     const subdomain = profileData.subdomain?.trim() || "";
-    if (!subdomain) return alert("This profile does not have a subdomain configured.");
+    if (!subdomain)
+      return alert("This profile does not have a subdomain configured.");
     const payload = {
       name: formData.name.trim(),
       phone: formData.phone.trim(),
@@ -451,10 +728,6 @@ const Mini = () => {
           display: contents;
         }
 
-        /* ============================================================
-           CARD FAMILY — Minimal, Elegant, Digital
-           Tiny hero, centered avatar, STACKED vertical buttons
-           ============================================================ */
         .mini-profile-preview[data-layout-family="card"] .mini-profile-hero {
           height: 90px;
         }
@@ -502,10 +775,6 @@ const Mini = () => {
           padding: 0 16px 40px;
         }
 
-        /* ============================================================
-           SHOWCASE FAMILY — Creator, Agency
-           HUGE hero, centered header, gallery/about first
-           ============================================================ */
         .mini-profile-preview[data-layout-family="showcase"] .mini-profile-hero {
           height: 400px;
         }
@@ -545,7 +814,6 @@ const Mini = () => {
           border-color: rgba(34, 211, 238, 0.25);
         }
 
-        /* Creator: gallery FIRST, then about */
         .mini-profile-preview[data-profile-layout="creator-portfolio"] .mini-profile-panel[data-panel="gallery"] {
           order: -20;
         }
@@ -553,7 +821,6 @@ const Mini = () => {
           order: -10;
         }
 
-        /* Agency: about FIRST, then social */
         .mini-profile-preview[data-profile-layout="agency-pro"] .mini-profile-panel[data-panel="about"] {
           order: -20;
         }
@@ -561,15 +828,10 @@ const Mini = () => {
           order: -10;
         }
 
-        /* ============================================================
-           UTILITY FAMILY — Storefront, Freelancer, Service
-           Compact, action-first
-           ============================================================ */
         .mini-profile-preview[data-layout-family="utility"] .mini-profile-hero {
           height: 180px;
         }
 
-        /* Storefront: products FIRST */
         .mini-profile-preview[data-profile-layout="storefront"] .mini-profile-hero {
           height: 220px;
         }
@@ -580,7 +842,6 @@ const Mini = () => {
           border-color: rgba(34, 211, 238, 0.35);
         }
 
-        /* Freelancer: about FIRST, then inquiry */
         .mini-profile-preview[data-profile-layout="freelancer-pro"] .mini-profile-hero {
           height: 140px;
         }
@@ -591,7 +852,6 @@ const Mini = () => {
           order: -10;
         }
 
-        /* Service: inquiry FIRST, then contact */
         .mini-profile-preview[data-profile-layout="service-pro"] .mini-profile-hero {
           height: 180px;
         }
@@ -602,9 +862,6 @@ const Mini = () => {
           order: -20;
         }
 
-        /* ============================================================
-           BUSINESS FAMILY — Modern, Corporate
-           ============================================================ */
         .mini-profile-preview[data-profile-layout="corporate-executive"] {
           --layout-radius: 8px;
           --layout-gap: 16px;
@@ -619,9 +876,6 @@ const Mini = () => {
           border-radius: 8px;
         }
 
-        /* ============================================================
-           Per-layout overrides
-           ============================================================ */
         .mini-profile-preview[data-profile-layout="minimal-card"] {
           --layout-radius: 14px;
           --layout-gap: 14px;
@@ -664,9 +918,6 @@ const Mini = () => {
           order: -20;
         }
 
-        /* ============================================================
-           DESKTOP GRID
-           ============================================================ */
         @media (min-width: 1024px) {
           .mini-profile-preview .mini-profile-main {
             grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
@@ -679,9 +930,6 @@ const Mini = () => {
           }
         }
 
-        /* ============================================================
-           MOBILE
-           ============================================================ */
         @media (max-width: 640px) {
           .mini-profile-preview .mini-profile-hero {
             height: 200px;
@@ -705,12 +953,18 @@ const Mini = () => {
             <div className="mb-4 flex items-center gap-3">
               <ScanLine className="text-cyan-400" size={22} />
               <div>
-                <h2 className="text-sm font-bold text-white">Activate Standee</h2>
-                <p className="text-xs text-slate-400">Connect your physical card</p>
+                <h2 className="text-sm font-bold text-white">
+                  Activate Standee
+                </h2>
+                <p className="text-xs text-slate-400">
+                  Connect your physical card
+                </p>
               </div>
-              {standeeActivated
-                ? <span className="ml-auto text-xs text-emerald-400">Active</span>
-                : <ShieldCheck className="ml-auto text-amber-400" size={18} />}
+              {standeeActivated ? (
+                <span className="ml-auto text-xs text-emerald-400">Active</span>
+              ) : (
+                <ShieldCheck className="ml-auto text-amber-400" size={18} />
+              )}
             </div>
             <div className="flex gap-2">
               <input
@@ -735,8 +989,12 @@ const Mini = () => {
             <div className="mb-4 flex items-center gap-3">
               <Palette className="text-cyan-400" size={22} />
               <div>
-                <h2 className="text-sm font-bold text-white">Appearance Theme</h2>
-                <p className="text-xs text-slate-400">Choose your profile vibe</p>
+                <h2 className="text-sm font-bold text-white">
+                  Appearance Theme
+                </h2>
+                <p className="text-xs text-slate-400">
+                  Choose your profile vibe
+                </p>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-3">
@@ -747,8 +1005,14 @@ const Mini = () => {
                   title={theme.name}
                   aria-label={theme.name}
                   onClick={() => setActiveTheme(theme.id)}
-                  className={`h-8 w-8 rounded-full ${activeTheme === theme.id ? "ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#0b1b30]" : ""}`}
-                  style={{ background: `linear-gradient(135deg, ${theme.colors[0]}, ${theme.colors[1]})` }}
+                  className={`h-8 w-8 rounded-full ${
+                    activeTheme === theme.id
+                      ? "ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#0b1b30]"
+                      : ""
+                  }`}
+                  style={{
+                    background: `linear-gradient(135deg, ${theme.colors[0]}, ${theme.colors[1]})`,
+                  }}
                 />
               ))}
               <button
@@ -760,7 +1024,9 @@ const Mini = () => {
                 {isPreviewMode ? "Hide Preview" : "Show Preview"}
               </button>
             </div>
-            <p className="mt-3 text-xs text-slate-400">Selected theme: {activeThemeData?.name || "Custom theme"}</p>
+            <p className="mt-3 text-xs text-slate-400">
+              Selected theme: {activeThemeData?.name || "Custom theme"}
+            </p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <span className="text-xs text-slate-400">Profile layout:</span>
               <span className="rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-3 py-1.5 text-xs font-semibold text-cyan-300">
@@ -798,7 +1064,10 @@ const Mini = () => {
                   <div className="absolute right-4 top-4 z-20 flex gap-2 sm:right-6 sm:top-6">
                     <button
                       type="button"
-                      onClick={() => { setQrModalTab("share"); setShowQrModal(true); }}
+                      onClick={() => {
+                        setQrModalTab("share");
+                        setShowQrModal(true);
+                      }}
                       title="Share profile"
                       className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/20 bg-[#071326]/80 text-white backdrop-blur-sm"
                     >
@@ -806,7 +1075,10 @@ const Mini = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => { setQrModalTab("myqr"); setShowQrModal(true); }}
+                      onClick={() => {
+                        setQrModalTab("myqr");
+                        setShowQrModal(true);
+                      }}
                       title="View bound QR code"
                       className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-400 text-[#071326]"
                     >
@@ -821,9 +1093,15 @@ const Mini = () => {
                     <div className="relative h-32 w-32 shrink-0 sm:h-36 sm:w-36">
                       <div className="h-full w-full overflow-hidden rounded-full border-4 border-[#0b1b30] bg-[#132942] shadow-2xl">
                         {businessInfo.avatar ? (
-                          <img src={businessInfo.avatar} alt={businessInfo.name} className="h-full w-full object-cover" />
+                          <img
+                            src={businessInfo.avatar}
+                            alt={businessInfo.name}
+                            className="h-full w-full object-cover"
+                          />
                         ) : (
-                          <div className="flex h-full items-center justify-center text-slate-500"><UserPlus size={40} /></div>
+                          <div className="flex h-full items-center justify-center text-slate-500">
+                            <UserPlus size={40} />
+                          </div>
                         )}
                       </div>
                       {businessInfo.logo && (
@@ -835,7 +1113,10 @@ const Mini = () => {
                             src={businessInfo.logo}
                             alt={businessInfo.businessName || "Business logo"}
                             className="h-full w-full object-contain"
-                            onError={(e) => { e.currentTarget.parentElement.style.display = "none"; }}
+                            onError={(e) => {
+                              e.currentTarget.parentElement.style.display =
+                                "none";
+                            }}
                           />
                         </div>
                       )}
@@ -845,12 +1126,19 @@ const Mini = () => {
                         <h1 className="text-2xl font-extrabold text-white sm:text-3xl md:text-4xl">
                           {businessInfo.name || "Your Name"}
                         </h1>
-                        {businessInfo.isVerified && <CheckCircle2 size={22} className="text-cyan-400" />}
+                        {businessInfo.isVerified && (
+                          <CheckCircle2 size={22} className="text-cyan-400" />
+                        )}
                       </div>
-                      <p className="mt-1 font-semibold text-cyan-400">{businessInfo.role || "Business Professional"}</p>
-                      <p className="text-sm text-slate-300">{businessInfo.businessName}</p>
+                      <p className="mt-1 font-semibold text-cyan-400">
+                        {businessInfo.role || "Business Professional"}
+                      </p>
+                      <p className="text-sm text-slate-300">
+                        {businessInfo.businessName}
+                      </p>
                       <p className="mt-1 flex items-center justify-center gap-1 text-xs text-slate-400 md:justify-start">
-                        <MapPin size={12} />{businessInfo.location}
+                        <MapPin size={12} />
+                        {businessInfo.location}
                       </p>
                     </div>
                   </div>
@@ -859,19 +1147,29 @@ const Mini = () => {
                   {visibleButtons.length > 0 ? (
                     <div className="mini-profile-actions flex flex-wrap justify-center gap-2 py-5 md:justify-start">
                       {visibleButtons.map((button, index) => {
-                        const Icon = BUTTON_ICON_MAP[button.actionType] || FaLink;
-                        const style = BUTTON_STYLE_MAP[button.actionType] || BUTTON_STYLE_MAP.customLink;
+                        const Icon =
+                          BUTTON_ICON_MAP[button.actionType] || FaLink;
+                        const style =
+                          BUTTON_STYLE_MAP[button.actionType] ||
+                          BUTTON_STYLE_MAP.customLink;
                         const isSave = button.actionType === "saveContact";
                         const FinalIcon = isSave && saved ? Check : Icon;
-                        const label = isSave && saved ? "Contact Saved" : button.label;
+                        const label =
+                          isSave && saved ? "Contact Saved" : button.label;
                         return (
                           <button
-                            key={button.id || button.buttonId || button._id || index}
+                            key={
+                              button.id ||
+                              button.buttonId ||
+                              button._id ||
+                              index
+                            }
                             type="button"
                             onClick={() => handleConfiguredButton(button)}
                             className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition ${style.bg} ${style.text}`}
                           >
-                            <FinalIcon size={16} />{label}
+                            <FinalIcon size={16} />
+                            {label}
                           </button>
                         );
                       })}
@@ -879,7 +1177,10 @@ const Mini = () => {
                   ) : (
                     <div className="py-5 text-center text-xs italic text-slate-500 md:text-left">
                       No action buttons enabled. Toggle them in{" "}
-                      <span className="font-semibold text-cyan-400">Contact Buttons</span> settings.
+                      <span className="font-semibold text-cyan-400">
+                        Contact Buttons
+                      </span>{" "}
+                      settings.
                     </div>
                   )}
 
@@ -910,41 +1211,92 @@ const Mini = () => {
                   {/* LEFT COLUMN */}
                   <div className="mini-profile-left">
                     {/* CONTACT DETAILS */}
-                    <div data-panel="contact" className="mini-profile-panel rounded-2xl border border-[#29435f] bg-[#132942] p-5">
-                      <h3 className="mb-4 font-bold text-white">Contact Details</h3>
+                    <div
+                      data-panel="contact"
+                      className="mini-profile-panel rounded-2xl border border-[#29435f] bg-[#132942] p-5"
+                    >
+                      <h3 className="mb-4 font-bold text-white">
+                        Contact Details
+                      </h3>
                       <div className="space-y-4 text-sm">
                         {[
-                          { Icon: Phone, text: businessInfo.phone || "Phone not provided" },
-                          { Icon: MessageCircle, text: businessInfo.whatsapp || "WhatsApp not provided" },
-                          { Icon: Mail, text: businessInfo.email || "Email not provided", break: true },
-                          { Icon: Globe, text: businessInfo.website || "Website not provided", break: true },
+                          {
+                            Icon: Phone,
+                            text: businessInfo.phone || "Phone not provided",
+                          },
+                          {
+                            Icon: MessageCircle,
+                            text:
+                              businessInfo.whatsapp || "WhatsApp not provided",
+                          },
+                          {
+                            Icon: Mail,
+                            text: businessInfo.email || "Email not provided",
+                            break: true,
+                          },
+                          {
+                            Icon: Globe,
+                            text:
+                              businessInfo.website || "Website not provided",
+                            break: true,
+                          },
                           { Icon: MapPin, text: businessInfo.address },
-                          { Icon: Clock, text: businessInfo.businessHours || "Hours not provided" },
+                          {
+                            Icon: Clock,
+                            text:
+                              businessInfo.businessHours ||
+                              "Hours not provided",
+                          },
                         ].map(({ Icon, text, break: shouldBreak }, i) => (
-                          <p key={i} className={`flex gap-3 text-white ${shouldBreak ? "break-all" : ""}`}>
-                            <Icon size={16} className="shrink-0 text-cyan-400" />{text}
+                          <p
+                            key={i}
+                            className={`flex gap-3 text-white ${
+                              shouldBreak ? "break-all" : ""
+                            }`}
+                          >
+                            <Icon
+                              size={16}
+                              className="shrink-0 text-cyan-400"
+                            />
+                            {text}
                           </p>
                         ))}
                       </div>
                     </div>
 
                     {/* QR CODE */}
-                    <div data-panel="qr" className="mini-profile-panel flex flex-col items-center rounded-2xl border border-[#29435f] bg-[#132942] p-5 text-center">
-                      <h3 className="mb-3 text-base font-bold text-white">Scan QR Code</h3>
-                      <QrDisplay id="bound-qr-canvas" size={160} value={qrTargetUrl} fetching={qrFetching} />
-                      <p className="mb-3 text-xs text-slate-400">Scan to visit your profile</p>
+                    <div
+                      data-panel="qr"
+                      className="mini-profile-panel flex flex-col items-center rounded-2xl border border-[#29435f] bg-[#132942] p-5 text-center"
+                    >
+                      <h3 className="mb-3 text-base font-bold text-white">
+                        Scan QR Code
+                      </h3>
+                      <QrDisplay
+                        id="bound-qr-canvas"
+                        size={160}
+                        value={qrTargetUrl}
+                        fetching={qrFetching}
+                      />
+                      <p className="mb-3 mt-3 text-xs text-slate-400">
+                        Scan to visit your profile
+                      </p>
                       <button
                         type="button"
                         onClick={() => handleDownloadQR("bound-qr-canvas")}
                         disabled={!qrTargetUrl || qrFetching}
                         className="flex w-full items-center justify-center gap-2 rounded-lg border border-cyan-400/30 bg-cyan-400/10 py-2 text-sm font-bold text-cyan-400 disabled:opacity-50"
                       >
-                        <Download size={16} />Download QR
+                        <Download size={16} />
+                        Download QR
                       </button>
                     </div>
 
                     {/* SOCIAL LINK CARDS */}
-                    <div data-panel="social" className="mini-profile-panel rounded-2xl border border-[#29435f] bg-[#132942] p-4">
+                    <div
+                      data-panel="social"
+                      className="mini-profile-panel rounded-2xl border border-[#29435f] bg-[#132942] p-4"
+                    >
                       <div className="mb-3 flex items-center justify-between">
                         <h3 className="flex items-center gap-2 text-sm font-bold text-white">
                           <span className="flex h-6 w-6 items-center justify-center rounded-md bg-cyan-400/10 text-cyan-400">
@@ -965,7 +1317,9 @@ const Mini = () => {
                             const brand = getSocialBrand(social.platform);
                             return (
                               <a
-                                key={social._id || `${social.platform}-${index}`}
+                                key={
+                                  social._id || `${social.platform}-${index}`
+                                }
                                 href={social.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -980,14 +1334,21 @@ const Mini = () => {
                                   e.currentTarget.style.boxShadow = "";
                                 }}
                               >
-                                <div className="pointer-events-none absolute -left-4 -top-4 h-12 w-12 rounded-full opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-60" style={{ background: brand.color }} />
+                                <div
+                                  className="pointer-events-none absolute -left-4 -top-4 h-12 w-12 rounded-full opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-60"
+                                  style={{ background: brand.color }}
+                                />
                                 <div
                                   className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-white shadow-md transition-transform duration-300 group-hover:scale-110"
-                                  style={{ background: `linear-gradient(135deg, ${brand.color}, ${brand.color}bb)` }}
+                                  style={{
+                                    background: `linear-gradient(135deg, ${brand.color}, ${brand.color}bb)`,
+                                  }}
                                 >
                                   <SocialIcon size={14} />
                                 </div>
-                                <span className="relative flex-1 truncate text-[11.5px] font-semibold text-slate-200 transition-colors duration-300 group-hover:text-white">{brand.label}</span>
+                                <span className="relative flex-1 truncate text-[11.5px] font-semibold text-slate-200 transition-colors duration-300 group-hover:text-white">
+                                  {brand.label}
+                                </span>
                               </a>
                             );
                           })}
@@ -997,15 +1358,22 @@ const Mini = () => {
                           <div className="mx-auto mb-1.5 flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-400/[0.04] text-slate-500">
                             <FaLink size={14} />
                           </div>
-                          <p className="text-[11px] font-medium text-slate-400">No social links added.</p>
+                          <p className="text-[11px] font-medium text-slate-400">
+                            No social links added.
+                          </p>
                         </div>
                       )}
                     </div>
 
                     {/* REVIEWS */}
-                    <div data-panel="reviews" className="mini-profile-panel rounded-2xl border border-[#29435f] bg-[#132942] p-5">
+                    <div
+                      data-panel="reviews"
+                      className="mini-profile-panel rounded-2xl border border-[#29435f] bg-[#132942] p-5"
+                    >
                       <div className="mb-4 flex items-center justify-between">
-                        <h3 className="text-base font-bold text-white">Reviews</h3>
+                        <h3 className="text-base font-bold text-white">
+                          Reviews
+                        </h3>
                         <button
                           type="button"
                           onClick={() => setShowReviewModal(true)}
@@ -1014,16 +1382,26 @@ const Mini = () => {
                           Write Review
                         </button>
                       </div>
-                      <p className="text-sm text-slate-400">Be the first to share your experience with this business.</p>
+                      <p className="text-sm text-slate-400">
+                        Be the first to share your experience with this
+                        business.
+                      </p>
                     </div>
                   </div>
 
                   {/* RIGHT COLUMN */}
                   <div className="mini-profile-right">
                     {/* ABOUT */}
-                    <div data-panel="about" className="mini-profile-panel rounded-2xl border border-[#29435f] bg-[#132942] p-5 sm:p-6">
-                      <h3 className="mb-3 text-lg font-bold text-white">About Me</h3>
-                      <p className="text-sm leading-7 text-slate-300">{businessInfo.about}</p>
+                    <div
+                      data-panel="about"
+                      className="mini-profile-panel rounded-2xl border border-[#29435f] bg-[#132942] p-5 sm:p-6"
+                    >
+                      <h3 className="mb-3 text-lg font-bold text-white">
+                        About Me
+                      </h3>
+                      <p className="text-sm leading-7 text-slate-300">
+                        {businessInfo.about}
+                      </p>
                       <div className="mt-4 flex flex-wrap gap-2">
                         {businessInfo.industry && (
                           <span className="rounded-md border border-[#29435f] bg-[#0b1b30] px-3 py-1 text-xs text-cyan-300">
@@ -1038,12 +1416,18 @@ const Mini = () => {
 
                     {/* PRODUCTS */}
                     {productList.length > 0 && (
-                      <div data-panel="products" className="mini-profile-panel overflow-hidden rounded-2xl border border-[#29435f] bg-[#132942] p-5 sm:p-6">
+                      <div
+                        data-panel="products"
+                        className="mini-profile-panel overflow-hidden rounded-2xl border border-[#29435f] bg-[#132942] p-5 sm:p-6"
+                      >
                         <div className="mb-4 flex items-center justify-between">
                           <h3 className="flex items-center gap-2 text-lg font-bold text-white">
-                            <ShoppingBag size={18} className="text-cyan-400" />Featured Products
+                            <ShoppingBag size={18} className="text-cyan-400" />
+                            Featured Products
                           </h3>
-                          <span className="text-xs text-slate-400">{productList.length} items</span>
+                          <span className="text-xs text-slate-400">
+                            {productList.length} items
+                          </span>
                         </div>
                         <Swiper
                           modules={[Autoplay, Navigation, Pagination]}
@@ -1052,12 +1436,25 @@ const Mini = () => {
                           navigation={productList.length > 2}
                           pagination={{ clickable: true }}
                           loop={productList.length > 2}
-                          autoplay={productList.length > 1 ? { delay: 3000, disableOnInteraction: false, pauseOnMouseEnter: true } : false}
-                          breakpoints={{ 640: { slidesPerView: 2 }, 1024: { slidesPerView: 2 } }}
+                          autoplay={
+                            productList.length > 1
+                              ? {
+                                  delay: 3000,
+                                  disableOnInteraction: false,
+                                  pauseOnMouseEnter: true,
+                                }
+                              : false
+                          }
+                          breakpoints={{
+                            640: { slidesPerView: 2 },
+                            1024: { slidesPerView: 2 },
+                          }}
                           className="pb-10"
                         >
                           {productList.map((product) => {
-                            const cover = product.images?.find((image) => image?.url)?.url;
+                            const cover = product.images?.find(
+                              (image) => image?.url,
+                            )?.url;
                             return (
                               <SwiperSlide key={product._id}>
                                 <button
@@ -1067,16 +1464,29 @@ const Mini = () => {
                                 >
                                   <div className="h-36 bg-[#132942]">
                                     {cover ? (
-                                      <img src={cover} alt={product.name} className="h-full w-full object-cover" />
+                                      <img
+                                        src={cover}
+                                        alt={product.name}
+                                        className="h-full w-full object-cover"
+                                      />
                                     ) : (
-                                      <div className="flex h-full items-center justify-center text-slate-500"><ImageIcon size={30} /></div>
+                                      <div className="flex h-full items-center justify-center text-slate-500">
+                                        <ImageIcon size={30} />
+                                      </div>
                                     )}
                                   </div>
                                   <div className="p-3">
-                                    <h4 className="truncate text-sm font-bold text-white">{product.name}</h4>
-                                    <p className="mt-1 truncate text-xs text-slate-400">{product.description}</p>
+                                    <h4 className="truncate text-sm font-bold text-white">
+                                      {product.name}
+                                    </h4>
+                                    <p className="mt-1 truncate text-xs text-slate-400">
+                                      {product.description}
+                                    </p>
                                     <p className="mt-3 font-extrabold text-cyan-400">
-                                      ₹{Number(product.price || 0).toLocaleString("en-IN")}
+                                      ₹
+                                      {Number(
+                                        product.price || 0,
+                                      ).toLocaleString("en-IN")}
                                     </p>
                                   </div>
                                 </button>
@@ -1088,10 +1498,17 @@ const Mini = () => {
                     )}
 
                     {/* GALLERY */}
-                    <div data-panel="gallery" className="mini-profile-panel rounded-2xl border border-[#29435f] bg-[#132942] p-5 sm:p-6">
+                    <div
+                      data-panel="gallery"
+                      className="mini-profile-panel rounded-2xl border border-[#29435f] bg-[#132942] p-5 sm:p-6"
+                    >
                       <div className="mb-4 flex items-center justify-between">
-                        <h3 className="text-lg font-bold text-white">Gallery</h3>
-                        <span className="text-sm text-cyan-400">{galleryImages.length} photos</span>
+                        <h3 className="text-lg font-bold text-white">
+                          Gallery
+                        </h3>
+                        <span className="text-sm text-cyan-400">
+                          {galleryImages.length} photos
+                        </span>
                       </div>
                       {galleryImages.length > 0 ? (
                         <Swiper
@@ -1101,8 +1518,15 @@ const Mini = () => {
                           navigation={galleryImages.length > 3}
                           pagination={{ clickable: true }}
                           loop={galleryImages.length > 3}
-                          autoplay={{ delay: 2500, disableOnInteraction: false, pauseOnMouseEnter: true }}
-                          breakpoints={{ 640: { slidesPerView: 2 }, 1024: { slidesPerView: 3 } }}
+                          autoplay={{
+                            delay: 2500,
+                            disableOnInteraction: false,
+                            pauseOnMouseEnter: true,
+                          }}
+                          breakpoints={{
+                            640: { slidesPerView: 2 },
+                            1024: { slidesPerView: 3 },
+                          }}
                           className="pb-10"
                         >
                           {galleryImages.map((image, index) => (
@@ -1112,7 +1536,11 @@ const Mini = () => {
                                 onClick={() => setSelectedGalleryImage(image)}
                                 className="group relative aspect-video w-full overflow-hidden rounded-xl"
                               >
-                                <img src={image.url} alt={image.alt} className="h-full w-full object-cover" />
+                                <img
+                                  src={image.url}
+                                  alt={image.alt}
+                                  className="h-full w-full object-cover"
+                                />
                                 <span className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100">
                                   <Maximize2 size={20} className="text-white" />
                                 </span>
@@ -1122,18 +1550,29 @@ const Mini = () => {
                         </Swiper>
                       ) : (
                         <div className="rounded-xl border border-dashed border-[#29435f] py-8 text-center">
-                          <ImageIcon size={32} className="mx-auto mb-2 text-slate-500" />
-                          <p className="text-sm text-slate-400">No gallery images added yet.</p>
+                          <ImageIcon
+                            size={32}
+                            className="mx-auto mb-2 text-slate-500"
+                          />
+                          <p className="text-sm text-slate-400">
+                            No gallery images added yet.
+                          </p>
                         </div>
                       )}
                     </div>
 
                     {/* SEND INQUIRY */}
-                    <div data-panel="inquiry" className="mini-profile-panel rounded-2xl border border-[#29435f] bg-[#132942] p-5 sm:p-6">
-                      <h3 className="mb-4 text-lg font-bold text-white">Send an Inquiry</h3>
+                    <div
+                      data-panel="inquiry"
+                      className="mini-profile-panel rounded-2xl border border-[#29435f] bg-[#132942] p-5 sm:p-6"
+                    >
+                      <h3 className="mb-4 text-lg font-bold text-white">
+                        Send an Inquiry
+                      </h3>
                       {formSubmitted || inquirySubmitSuccess ? (
                         <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm font-semibold text-emerald-300">
-                          Thank you! Your inquiry has been submitted successfully.
+                          Thank you! Your inquiry has been submitted
+                          successfully.
                         </div>
                       ) : (
                         <form onSubmit={handleFormSubmit} className="space-y-3">
@@ -1143,16 +1582,36 @@ const Mini = () => {
                             </div>
                           )}
                           {[
-                            { type: "text", key: "name", placeholder: "Your Name", required: true },
-                            { type: "tel", key: "phone", placeholder: "Phone", required: true },
-                            { type: "email", key: "email", placeholder: "Email (optional)", required: false },
+                            {
+                              type: "text",
+                              key: "name",
+                              placeholder: "Your Name",
+                              required: true,
+                            },
+                            {
+                              type: "tel",
+                              key: "phone",
+                              placeholder: "Phone",
+                              required: true,
+                            },
+                            {
+                              type: "email",
+                              key: "email",
+                              placeholder: "Email (optional)",
+                              required: false,
+                            },
                           ].map(({ type, key, placeholder, required }) => (
                             <input
                               key={key}
                               type={type}
                               required={required}
                               value={formData[key]}
-                              onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  [key]: e.target.value,
+                                })
+                              }
                               placeholder={placeholder}
                               disabled={inquirySubmitting}
                               className="w-full rounded-lg border border-[#29435f] bg-[#0b1b30] px-3.5 py-2.5 text-sm text-white outline-none focus:border-cyan-400 disabled:cursor-not-allowed disabled:opacity-60"
@@ -1162,7 +1621,12 @@ const Mini = () => {
                             rows={3}
                             required
                             value={formData.message}
-                            onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                message: e.target.value,
+                              })
+                            }
                             placeholder="Message"
                             disabled={inquirySubmitting}
                             className="w-full resize-none rounded-lg border border-[#29435f] bg-[#0b1b30] px-3.5 py-2.5 text-sm text-white outline-none focus:border-cyan-400 disabled:cursor-not-allowed disabled:opacity-60"
@@ -1173,9 +1637,15 @@ const Mini = () => {
                             className="flex w-full items-center justify-center gap-2 rounded-lg bg-cyan-400 py-2.5 text-sm font-bold text-[#0b1b30] transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60"
                           >
                             {inquirySubmitting ? (
-                              <><span className="h-4 w-4 animate-spin rounded-full border-2 border-[#0b1b30]/30 border-t-[#0b1b30]" />Submitting...</>
+                              <>
+                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#0b1b30]/30 border-t-[#0b1b30]" />
+                                Submitting...
+                              </>
                             ) : (
-                              <><Send size={16} />Submit Inquiry</>
+                              <>
+                                <Send size={16} />
+                                Submit Inquiry
+                              </>
                             )}
                           </button>
                         </form>
@@ -1187,10 +1657,12 @@ const Mini = () => {
                 {/* FOOTER */}
                 <footer className="border-t border-[#29435f] bg-[#0b1b30] py-6 text-center">
                   <p className="text-xs text-slate-400">
-                    © {new Date().getFullYear()} {businessInfo.name}. All rights reserved.
+                    © {new Date().getFullYear()} {businessInfo.name}. All rights
+                    reserved.
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
-                    Powered by <span className="font-bold text-cyan-400">BioWebsite</span>
+                    Powered by{" "}
+                    <span className="font-bold text-cyan-400">BioWebsite</span>
                   </p>
                 </footer>
               </div>
@@ -1211,14 +1683,24 @@ const Mini = () => {
             >
               <X size={18} />
             </button>
-            <h2 className="mb-5 pr-10 text-xl font-bold text-white">Share Your Profile</h2>
+            <h2 className="mb-5 pr-10 text-xl font-bold text-white">
+              Share Your Profile
+            </h2>
             <div className="mb-5 grid grid-cols-3 gap-2">
-              {[{ id: "share", label: "Share" }, { id: "myqr", label: "My QR" }, { id: "poster", label: "Poster" }].map((tab) => (
+              {[
+                { id: "share", label: "Share" },
+                { id: "myqr", label: "My QR" },
+                { id: "poster", label: "Poster" },
+              ].map((tab) => (
                 <button
                   key={tab.id}
                   type="button"
                   onClick={() => setQrModalTab(tab.id)}
-                  className={`rounded-lg border px-3 py-2 text-sm font-semibold ${qrModalTab === tab.id ? "border-cyan-400 bg-cyan-400/10 text-cyan-300" : "border-[#29435f] bg-[#132942] text-slate-400"}`}
+                  className={`rounded-lg border px-3 py-2 text-sm font-semibold ${
+                    qrModalTab === tab.id
+                      ? "border-cyan-400 bg-cyan-400/10 text-cyan-300"
+                      : "border-[#29435f] bg-[#132942] text-slate-400"
+                  }`}
                 >
                   {tab.label}
                 </button>
@@ -1226,18 +1708,31 @@ const Mini = () => {
             </div>
             {qrModalTab === "share" && (
               <div className="space-y-3">
-                <button type="button" onClick={handleShare} className="flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 py-3 font-bold text-[#0b1b30]">
-                  <Share2 size={17} />Share Profile
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 py-3 font-bold text-[#0b1b30]"
+                >
+                  <Share2 size={17} />
+                  Share Profile
                 </button>
-                <button type="button" onClick={handleCopyLink} className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#29435f] bg-[#132942] py-3 font-semibold text-white">
-                  <Copy size={17} />{copied ? "Link Copied!" : "Copy Profile Link"}
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#29435f] bg-[#132942] py-3 font-semibold text-white"
+                >
+                  <Copy size={17} />
+                  {copied ? "Link Copied!" : "Copy Profile Link"}
                 </button>
               </div>
             )}
             {qrModalTab === "myqr" && (
               <div className="flex flex-col items-center">
                 <QrDisplay
-                  id="bound-qr-modal-canvas" size={220} value={qrTargetUrl} fetching={qrFetching}
+                  id="bound-qr-modal-canvas"
+                  size={220}
+                  value={qrTargetUrl}
+                  fetching={qrFetching}
                   emptyText="Bound QR code is not available."
                   emptyClass="mb-5 py-10 text-sm text-slate-400"
                   wrapperClass="mb-5 rounded-xl bg-white p-4"
@@ -1248,17 +1743,25 @@ const Mini = () => {
                   disabled={!qrTargetUrl || qrFetching}
                   className="flex w-full items-center justify-center gap-2 rounded-xl border border-cyan-400/30 bg-cyan-400/10 py-3 text-sm font-bold text-cyan-400 disabled:opacity-50"
                 >
-                  <Download size={16} />Download QR Code
+                  <Download size={16} />
+                  Download QR Code
                 </button>
               </div>
             )}
             {qrModalTab === "poster" && (
               <div className="flex flex-col items-center rounded-xl border border-[#29435f] bg-[#132942] p-5 text-center">
                 <FileImage size={32} className="mb-3 text-cyan-400" />
-                <h3 className="mb-2 text-lg font-bold text-white">Profile QR Poster</h3>
-                <p className="mb-4 text-sm text-slate-400">Scan this QR code to open your profile.</p>
+                <h3 className="mb-2 text-lg font-bold text-white">
+                  Profile QR Poster
+                </h3>
+                <p className="mb-4 text-sm text-slate-400">
+                  Scan this QR code to open your profile.
+                </p>
                 <QrDisplay
-                  id="bound-qr-poster-canvas" size={180} value={qrTargetUrl} fetching={qrFetching}
+                  id="bound-qr-poster-canvas"
+                  size={180}
+                  value={qrTargetUrl}
+                  fetching={qrFetching}
                   emptyText="Bound QR code is not available."
                   emptyClass="text-sm text-slate-400"
                   wrapperClass="rounded-xl bg-white p-3"
@@ -1269,7 +1772,8 @@ const Mini = () => {
                   disabled={!qrTargetUrl || qrFetching}
                   className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 py-3 text-sm font-bold text-[#0b1b30] disabled:opacity-50"
                 >
-                  <Download size={16} />Download Poster QR
+                  <Download size={16} />
+                  Download Poster QR
                 </button>
               </div>
             )}
@@ -1278,69 +1782,96 @@ const Mini = () => {
       )}
 
       {/* PRODUCT MODAL */}
-      {selectedProduct && (() => {
-        const imgs = Array.isArray(selectedProduct.images) ? selectedProduct.images.filter((i) => i?.url) : [];
-        return (
-          <Overlay onClose={() => setSelectedProduct(null)}>
-            <div className="relative max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-[26px] border border-[#45414a] bg-[#17171c]">
-              <button
-                type="button"
-                onClick={() => setSelectedProduct(null)}
-                aria-label="Close product details"
-                className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-xl bg-[#22222a]/90 text-white"
-              >
-                <X size={18} />
-              </button>
-              {imgs.length > 0 ? (
-                <Swiper
-                  modules={[Navigation, Pagination]}
-                  navigation={imgs.length > 1}
-                  pagination={{ clickable: true }}
-                  slidesPerView={1}
-                  loop={imgs.length > 1}
-                  className="h-60 w-full sm:h-80"
+      {selectedProduct &&
+        (() => {
+          const imgs = Array.isArray(selectedProduct.images)
+            ? selectedProduct.images.filter((i) => i?.url)
+            : [];
+          return (
+            <Overlay onClose={() => setSelectedProduct(null)}>
+              <div className="relative max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-[26px] border border-[#45414a] bg-[#17171c]">
+                <button
+                  type="button"
+                  onClick={() => setSelectedProduct(null)}
+                  aria-label="Close product details"
+                  className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-xl bg-[#22222a]/90 text-white"
                 >
-                  {imgs.map((image, index) => (
-                    <SwiperSlide key={image._id || index}>
-                      <img src={image.url} alt={image.alt || selectedProduct.name} className="h-full w-full object-cover" />
-                    </SwiperSlide>
-                  ))}
-                </Swiper>
-              ) : (
-                <div className="flex h-60 items-center justify-center text-7xl sm:h-80">📦</div>
-              )}
-              <div className="p-5 sm:p-7">
-                <h3 className="text-2xl font-bold text-white">{selectedProduct.name}</h3>
-                <p className="mt-2 text-cyan-400">₹{Number(selectedProduct.price || 0).toLocaleString("en-IN")}</p>
-                <p className="mt-4 text-sm leading-7 text-slate-300">{selectedProduct.description}</p>
-                <div className="mt-5 flex flex-wrap gap-3">
-                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/20 bg-emerald-400/[0.08] px-3 py-2 text-sm font-bold text-emerald-300">
-                    <CheckCircle2 size={16} />{selectedProduct.status === "active" ? "Available" : "Unavailable"}
-                  </span>
-                  {businessInfo.upiId && (
-                    <button
-                      type="button"
-                      onClick={() => { setSelectedProduct(null); handleContactClick("upi"); }}
-                      className="inline-flex items-center gap-2 rounded-xl border border-cyan-400/40 bg-cyan-400/10 px-4 py-2.5 text-sm font-bold text-cyan-300"
-                    >
-                      <IndianRupee size={16} />Pay with UPI
-                    </button>
-                  )}
-                  {(businessInfo.whatsapp || businessInfo.phone) && (
-                    <button
-                      type="button"
-                      onClick={() => { setSelectedProduct(null); handleWhatsApp(); }}
-                      className="inline-flex items-center gap-2 rounded-xl bg-emerald-400 px-4 py-2.5 text-sm font-bold text-[#062c25]"
-                    >
-                      <FaWhatsapp size={16} />Enquire on WhatsApp
-                    </button>
-                  )}
+                  <X size={18} />
+                </button>
+                {imgs.length > 0 ? (
+                  <Swiper
+                    modules={[Navigation, Pagination]}
+                    navigation={imgs.length > 1}
+                    pagination={{ clickable: true }}
+                    slidesPerView={1}
+                    loop={imgs.length > 1}
+                    className="h-60 w-full sm:h-80"
+                  >
+                    {imgs.map((image, index) => (
+                      <SwiperSlide key={image._id || index}>
+                        <img
+                          src={image.url}
+                          alt={image.alt || selectedProduct.name}
+                          className="h-full w-full object-cover"
+                        />
+                      </SwiperSlide>
+                    ))}
+                  </Swiper>
+                ) : (
+                  <div className="flex h-60 items-center justify-center text-7xl sm:h-80">
+                    📦
+                  </div>
+                )}
+                <div className="p-5 sm:p-7">
+                  <h3 className="text-2xl font-bold text-white">
+                    {selectedProduct.name}
+                  </h3>
+                  <p className="mt-2 text-cyan-400">
+                    ₹
+                    {Number(selectedProduct.price || 0).toLocaleString("en-IN")}
+                  </p>
+                  <p className="mt-4 text-sm leading-7 text-slate-300">
+                    {selectedProduct.description}
+                  </p>
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/20 bg-emerald-400/[0.08] px-3 py-2 text-sm font-bold text-emerald-300">
+                      <CheckCircle2 size={16} />
+                      {selectedProduct.status === "active"
+                        ? "Available"
+                        : "Unavailable"}
+                    </span>
+                    {businessInfo.upiId && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedProduct(null);
+                          handleContactClick("upi");
+                        }}
+                        className="inline-flex items-center gap-2 rounded-xl border border-cyan-400/40 bg-cyan-400/10 px-4 py-2.5 text-sm font-bold text-cyan-300"
+                      >
+                        <IndianRupee size={16} />
+                        Pay with UPI
+                      </button>
+                    )}
+                    {(businessInfo.whatsapp || businessInfo.phone) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedProduct(null);
+                          handleWhatsApp();
+                        }}
+                        className="inline-flex items-center gap-2 rounded-xl bg-emerald-400 px-4 py-2.5 text-sm font-bold text-[#062c25]"
+                      >
+                        <FaWhatsapp size={16} />
+                        Enquire on WhatsApp
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          </Overlay>
-        );
-      })()}
+            </Overlay>
+          );
+        })()}
 
       {/* GALLERY MODAL */}
       {selectedGalleryImage && (
@@ -1354,10 +1885,16 @@ const Mini = () => {
             >
               <X size={18} />
             </button>
-            <img src={selectedGalleryImage.url} alt={selectedGalleryImage.alt} className="max-h-[75vh] w-full object-contain" />
+            <img
+              src={selectedGalleryImage.url}
+              alt={selectedGalleryImage.alt}
+              className="max-h-[75vh] w-full object-contain"
+            />
             {selectedGalleryImage.caption && (
               <div className="border-t border-white/10 px-5 py-4">
-                <p className="text-sm font-semibold text-white">{selectedGalleryImage.caption}</p>
+                <p className="text-sm font-semibold text-white">
+                  {selectedGalleryImage.caption}
+                </p>
               </div>
             )}
           </div>
@@ -1379,40 +1916,70 @@ const Mini = () => {
             {reviewSubmitted ? (
               <div className="py-10 text-center">
                 <CheckCircle2 size={50} className="mx-auto text-cyan-400" />
-                <h3 className="mt-5 text-xl font-bold text-white">Thank You!</h3>
-                <p className="mt-2 text-slate-300">Thank you for your review!</p>
+                <h3 className="mt-5 text-xl font-bold text-white">
+                  Thank You!
+                </h3>
+                <p className="mt-2 text-slate-300">
+                  Thank you for your review!
+                </p>
               </div>
             ) : (
               <form onSubmit={handleReviewSubmit}>
                 <div className="mb-5 flex items-center gap-3">
                   <Star size={24} className="text-cyan-400" />
                   <div>
-                    <h3 className="text-xl font-bold text-white">Write a Review</h3>
-                    <p className="text-sm text-slate-400">Share your experience with this business.</p>
+                    <h3 className="text-xl font-bold text-white">
+                      Write a Review
+                    </h3>
+                    <p className="text-sm text-slate-400">
+                      Share your experience with this business.
+                    </p>
                   </div>
                 </div>
-                <label className="mb-2 block text-sm font-semibold text-slate-200">Your Name</label>
+                <label className="mb-2 block text-sm font-semibold text-slate-200">
+                  Your Name
+                </label>
                 <input
                   required
                   value={reviewData.name}
-                  onChange={(e) => setReviewData({ ...reviewData, name: e.target.value })}
+                  onChange={(e) =>
+                    setReviewData({ ...reviewData, name: e.target.value })
+                  }
                   placeholder="Enter your name"
                   className="w-full rounded-xl border border-[#29435f] bg-[#132942] px-4 py-3 text-white outline-none focus:border-cyan-400"
                 />
-                <p className="mb-3 mt-5 text-sm font-semibold text-slate-200">Your Rating</p>
+                <p className="mb-3 mt-5 text-sm font-semibold text-slate-200">
+                  Your Rating
+                </p>
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map((n) => (
-                    <button key={n} type="button" onClick={() => setReviewRating(n)} aria-label={`Rate ${n} out of 5`}>
-                      <Star size={28} className={n <= reviewRating ? "fill-cyan-400 text-cyan-400" : "text-slate-600"} />
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setReviewRating(n)}
+                      aria-label={`Rate ${n} out of 5`}
+                    >
+                      <Star
+                        size={28}
+                        className={
+                          n <= reviewRating
+                            ? "fill-cyan-400 text-cyan-400"
+                            : "text-slate-600"
+                        }
+                      />
                     </button>
                   ))}
                 </div>
-                <label className="mb-2 mt-5 block text-sm font-semibold text-slate-200">Your Review</label>
+                <label className="mb-2 mt-5 block text-sm font-semibold text-slate-200">
+                  Your Review
+                </label>
                 <textarea
                   required
                   rows={4}
                   value={reviewData.review}
-                  onChange={(e) => setReviewData({ ...reviewData, review: e.target.value })}
+                  onChange={(e) =>
+                    setReviewData({ ...reviewData, review: e.target.value })
+                  }
                   placeholder="Tell us about your experience..."
                   className="w-full resize-y rounded-xl border border-[#29435f] bg-[#132942] px-4 py-3 text-white outline-none focus:border-cyan-400"
                 />
@@ -1420,7 +1987,8 @@ const Mini = () => {
                   type="submit"
                   className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 px-4 py-3.5 font-bold text-[#0b1b30]"
                 >
-                  <Send size={17} />Submit Review
+                  <Send size={17} />
+                  Submit Review
                 </button>
               </form>
             )}
@@ -1428,13 +1996,7 @@ const Mini = () => {
         </Overlay>
       )}
 
-      <Payment
-        isOpen={showPayment}
-        onClose={() => setShowPayment(false)}
-        upiId={profileData.upiId || ""}
-        businessName={profileData.businessName || "My Business"}
-        businessImage={profileData.logo || profileData.avatar || ""}
-      />
+      {/* PAYMENT (single instance) */}
       <Payment
         isOpen={showPayment}
         onClose={() => setShowPayment(false)}

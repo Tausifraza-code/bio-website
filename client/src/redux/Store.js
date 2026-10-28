@@ -9,6 +9,7 @@ import galleryReducer from "./slice/gallerySlice";
 import paymentSettingsReducer from "./slice/paymentSettingsSlice";
 import qrReducer from "./slice/qrSlice";
 import adminQRReducer from "./slice/adminQRSlice";
+import adminPlansReducer from "./slice/adminPlansSlice";
 import referralReducer from "./slice/referSlice"
 const store = configureStore({
   reducer: {
@@ -22,6 +23,7 @@ const store = configureStore({
     paymentSettings: paymentSettingsReducer,
     qr: qrReducer,
     adminQR: adminQRReducer,
+    adminPlans: adminPlansReducer,
     referral: referralReducer,
   },
 });

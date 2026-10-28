@@ -22,6 +22,7 @@ import TestQRGenerator from "./pages/TestQRGenerator";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Gallery from "./pages/Gallery";
+import RazorpayTest from "./pages/RazorpayTest";
 // admin imports
 
 import AdminLayout from "./admin/components/AdminLayout";
