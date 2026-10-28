@@ -1,14 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  Plus,
-  RefreshCw,
-  Pencil,
-  Power,
-  X,
-  Layers,
-  CheckCircle2,
-} from "lucide-react";
+import toast from "react-hot-toast";
+import { Plus, RefreshCw, Pencil, X, Layers, CheckCircle2 } from "lucide-react";
 import {
   fetchAdminPlans,
   createAdminPlan,
@@ -127,13 +120,16 @@ export default function AdminPlans() {
   };
 
   const handleToggle = async (plan) => {
-    const action = plan.isActive ? "disable" : "enable";
-    if (!window.confirm(`${action} "${plan.name}"?`)) return;
-
     try {
-      await dispatch(toggleAdminPlanStatus(plan._id)).unwrap();
-    } catch {
-      // Error is displayed from Redux state.
+      await dispatch(toggleAdminPlanStatus(plan)).unwrap();
+
+      toast.success(
+        `Plan ${plan.isActive ? "disabled" : "activated"} successfully!`,
+      );
+    } catch (error) {
+      toast.error(
+        typeof error === "string" ? error : "Failed to update plan status.",
+      );
     }
   };
 
@@ -164,7 +160,7 @@ export default function AdminPlans() {
           <button
             type="button"
             onClick={openCreate}
-            className="inline-flex items-center gap-2 rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-400"
+            className="inline-flex items-center gap-2 rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-bold text-white hover:bg-cyan-400"
           >
             <Plus size={17} /> Add Plan
           </button>
@@ -200,14 +196,6 @@ export default function AdminPlans() {
           className="rounded-xl bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300"
         >
           {error}
-        </div>
-      )}
-      {successMessage && (
-        <div
-          role="status"
-          className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300"
-        >
-          {successMessage}
         </div>
       )}
 
@@ -290,12 +278,22 @@ export default function AdminPlans() {
                         </button>
                         <button
                           type="button"
+                          role="switch"
+                          aria-checked={Boolean(plan.isActive)}
+                          aria-label={`${plan.isActive ? "Disable" : "Enable"} ${plan.name}`}
                           onClick={() => handleToggle(plan)}
                           disabled={saving}
-                          aria-label={`${plan.isActive ? "Disable" : "Enable"} ${plan.name}`}
-                          className="rounded-lg border border-slate-200 p-2 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800"
+                          className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:focus:ring-offset-[#0b1728] ${
+                            plan.isActive
+                              ? "bg-emerald-500"
+                              : "bg-slate-300 dark:bg-slate-600"
+                          }`}
                         >
-                          <Power size={16} />
+                          <span
+                            className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${
+                              plan.isActive ? "translate-x-6" : "translate-x-1"
+                            }`}
+                          />
                         </button>
                       </div>
                     </td>

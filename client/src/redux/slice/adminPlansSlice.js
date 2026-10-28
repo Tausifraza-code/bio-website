@@ -57,14 +57,18 @@ export const updateAdminPlan = createAsyncThunk(
 
 export const toggleAdminPlanStatus = createAsyncThunk(
   "adminPlans/toggleStatus",
-  async (id, { rejectWithValue }) => {
+  async (plan, { rejectWithValue }) => {
     try {
-      const response = await api.patch(`/admin/plans/${id}/status`);
+      const response = await api.patch(`/admin/plans/${plan._id}/status`, {
+        isActive: !plan.isActive,
+      });
+
       if (!response.data?.success) {
         return rejectWithValue(
           response.data?.message || "Failed to change plan status.",
         );
       }
+
       return response.data.data;
     } catch (error) {
       return rejectWithValue(

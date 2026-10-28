@@ -1,4 +1,3 @@
-
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import api from "../api";
 
@@ -13,9 +12,7 @@ export const registerUser = createAsyncThunk(
       const urlParams = new URLSearchParams(window.location.search);
       const urlReferralCode = urlParams.get("referralCode") || "";
 
-      const referralCode = (
-        userData?.referralCode || urlReferralCode
-      )
+      const referralCode = (userData?.referralCode || urlReferralCode)
         .trim()
         .toUpperCase();
 
@@ -41,24 +38,58 @@ export const registerUser = createAsyncThunk(
 // ==========================================
 // LOGIN
 // ==========================================
+// export const loginUser = createAsyncThunk(
+//   "auth/loginUser",
+//   async (loginData, { rejectWithValue }) => {
+//     try {
+//       const email = (loginData.email || loginData.loginId || "")
+//         .trim()
+//         .toLowerCase();
+
+//       if (!email.includes("@")) {
+//         return rejectWithValue(
+//           "Abhi login ke liye email address use karein. Mobile login backend mein abhi supported nahi hai.",
+//         );
+//       }
+
+//       const response = await api.post("/auth/login", {
+//         email,
+//         password: loginData.password,
+//       });
+
+//       if (response.data?.token) {
+//         localStorage.setItem("bioToken", response.data.token);
+//       }
+
+//       return response.data;
+//     } catch (error) {
+//       return rejectWithValue(
+//         error.response?.data?.message || "Login failed",
+//       );
+//     }
+//   },
+// );
+
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async (loginData, { rejectWithValue }) => {
     try {
-      const email = (loginData.email || loginData.loginId || "")
-        .trim()
-        .toLowerCase();
+      const loginId = (loginData.loginId || loginData.email || "").trim();
 
-      if (!email.includes("@")) {
-        return rejectWithValue(
-          "Abhi login ke liye email address use karein. Mobile login backend mein abhi supported nahi hai.",
-        );
+      if (!loginId) {
+        return rejectWithValue("Please enter your email or mobile number.");
       }
 
-      const response = await api.post("/auth/login", {
-        email,
+      const isEmail = loginId.includes("@");
+
+      const payload = {
         password: loginData.password,
-      });
+        ...(isEmail
+          ? { email: loginId.toLowerCase() }
+          : { phone: loginId.replace(/\s+/g, "") }),
+      };
+
+      const response = await api.post("/auth/login", payload);
 
       if (response.data?.token) {
         localStorage.setItem("bioToken", response.data.token);
@@ -66,9 +97,7 @@ export const loginUser = createAsyncThunk(
 
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message || "Login failed",
-      );
+      return rejectWithValue(error.response?.data?.message || "Login failed");
     }
   },
 );
@@ -87,8 +116,7 @@ export const forgotPassword = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message ||
-          "Unable to send password reset email",
+        error.response?.data?.message || "Unable to send password reset email",
       );
     }
   },
@@ -191,8 +219,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.success = true;
         state.error = null;
-        state.message =
-          action.payload?.message || "Registration successful";
+        state.message = action.payload?.message || "Registration successful";
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
@@ -273,16 +300,12 @@ const authSlice = createSlice({
       .addCase(resetPassword.rejected, (state, action) => {
         state.resetPasswordLoading = false;
         state.resetPasswordSuccess = false;
-        state.resetPasswordError =
-          action.payload || "Unable to reset password";
+        state.resetPasswordError = action.payload || "Unable to reset password";
       });
   },
 });
 
-export const {
-  logout,
-  clearAuthMessage,
-  clearPasswordResetState,
-} = authSlice.actions;
+export const { logout, clearAuthMessage, clearPasswordResetState } =
+  authSlice.actions;
 
 export default authSlice.reducer;

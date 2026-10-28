@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 
 import Home from "./pages/Home";
 import AuthPage from "./pages/AuthPage";
@@ -45,59 +46,71 @@ function App() {
   }, []);
 
   return (
-    <Routes>
-      {/* Landing Page */}
-      <Route path="/" element={<Home />} />
+    <>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 2500,
+          style: {
+            borderRadius: "12px",
+            fontSize: "14px",
+          },
+        }}
+      />
+      <Routes>
+        {/* Landing Page */}
+        <Route path="/" element={<Home />} />
 
-      {/* Authentication Pages */}
-      <Route path="/login" element={<AuthPage />} />
-      <Route path="/register" element={<AuthPage />} />
+        {/* Authentication Pages */}
+        <Route path="/login" element={<AuthPage />} />
+        <Route path="/register" element={<AuthPage />} />
 
-      {/* Preview Pages */}
-      <Route path="/preview" element={<CardPreview />} />
-      <Route path="/card-preview" element={<CardPreview />} />
-      <Route path="/card-preview/:subdomain" element={<CardPreview />} />
-      <Route path="/razorpay-test" element={<RazorpayTest />} />
+        {/* Preview Pages */}
+        <Route path="/preview" element={<CardPreview />} />
+        <Route path="/card-preview" element={<CardPreview />} />
+        <Route path="/card-preview/:subdomain" element={<CardPreview />} />
+        <Route path="/razorpay-test" element={<RazorpayTest />} />
 
-      {/* Dashboard Layout with Outlet */}
-      <Route element={<DashboardLayout />}>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/qr-test" element={<TestQRGenerator />} />
+        {/* Dashboard Layout with Outlet */}
+        <Route element={<DashboardLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/qr-test" element={<TestQRGenerator />} />
 
-        <Route path="editprofile" element={<EditProfile />} />
-        <Route path="leads" element={<Leads />} />
-        <Route path="manageproducts" element={<ManageProducts />} />
-        <Route path="gallery" element={<Gallery />} />
-        <Route path="mini" element={<Mini />} />
-        <Route path="payment" element={<Navigate to="/mini" replace />} />
-        <Route path="theme" element={<WebsiteTheme />} />
-        <Route path="qrcode" element={<QrCode />} />
-        <Route path="refer" element={<Refer />} />
-        <Route path="contact-buttons" element={<ContactButtons />} />
-        <Route path="socialcard" element={<SocialCard />} />
-        <Route path="/upi-payments" element={<UpiPaymentSettings />} />
-      </Route>
+          <Route path="editprofile" element={<EditProfile />} />
+          <Route path="leads" element={<Leads />} />
+          <Route path="manageproducts" element={<ManageProducts />} />
+          <Route path="gallery" element={<Gallery />} />
+          <Route path="mini" element={<Mini />} />
+          <Route path="payment" element={<Navigate to="/mini" replace />} />
+          <Route path="theme" element={<WebsiteTheme />} />
+          <Route path="qrcode" element={<QrCode />} />
+          <Route path="refer" element={<Refer />} />
+          <Route path="contact-buttons" element={<ContactButtons />} />
+          <Route path="socialcard" element={<SocialCard />} />
+          <Route path="/upi-payments" element={<UpiPaymentSettings />} />
+        </Route>
 
-      {/* Admin Login — public login page */}
-      <Route path="/admin/login" element={<AdminLogin />} />
+        {/* Admin Login — public login page */}
+        <Route path="/admin/login" element={<AdminLogin />} />
 
-      {/* Admin Dashboard */}
-      <Route element={<AdminLayout />}>
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/users" element={<AdminUsers />} />
-        <Route path="/admin/referrals" element={<AdminReferrals />} />
-        <Route path="/admin/qr-management" element={<AdminQRManagement />} />
-        <Route path="/admin/plans" element={<AdminPlans />} />
-      </Route>
+        {/* Admin Dashboard */}
+        <Route element={<AdminLayout />}>
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/referrals" element={<AdminReferrals />} />
+          <Route path="/admin/qr-management" element={<AdminQRManagement />} />
+          <Route path="/admin/plans" element={<AdminPlans />} />
+        </Route>
 
-      {/* Password Reset Pages */}
-      <Route path="/forgot-password" element={<ForgotPassword />} />
+        {/* Password Reset Pages */}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
-      <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
-      {/* Unknown URL */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        {/* Unknown URL */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   );
 }
 

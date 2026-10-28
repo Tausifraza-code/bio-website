@@ -154,28 +154,109 @@ const jwt = require("jsonwebtoken");
 
 // Add this function to your existing auth.controller.js
 
+// const loginUser = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+
+//     // 1. Validate input
+//     if (!email?.trim() || !password) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Email and password are required",
+//       });
+//     }
+
+//     // 2. Find user and explicitly include password hash
+//     const user = await User.findOne({
+//       email: email.trim().toLowerCase(),
+//     }).select("+password");
+
+//     // 3. Verify credentials
+//     if (!user) {
+//       return res.status(401).json({
+//         success: false,
+//         message: "Invalid email or password",
+//       });
+//     }
+
+//     const isPasswordValid = await bcrypt.compare(password, user.password);
+
+//     if (!isPasswordValid) {
+//       return res.status(401).json({
+//         success: false,
+//         message: "Invalid email or password",
+//       });
+//     }
+
+//     // 4. Ensure JWT secret is configured
+//     if (!process.env.JWT_SECRET) {
+//       throw new Error("JWT_SECRET is missing from .env");
+//     }
+
+//     // 5. Generate JWT
+//     const token = jwt.sign(
+//       {
+//         userId: user._id.toString(),
+//         role: user.role,
+//       },
+//       process.env.JWT_SECRET,
+//       { expiresIn: "1d" },
+//     );
+
+//     // 6. Return token and safe user details
+//     return res.status(200).json({
+//       success: true,
+//       message: "Login successful",
+//       token,
+//       user: {
+//         id: user._id,
+//         fullName: user.fullName,
+//         email: user.email,
+//         phone: user.phone,
+//         role: user.role,
+//         referralCode: user.referralCode,
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Login error:", error.message);
+
+//     return res.status(500).json({
+//       success: false,
+//       message: "Login failed due to a server error",
+//     });
+//   }
+// };
+
 const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, phone, password } = req.body;
 
     // 1. Validate input
-    if (!email?.trim() || !password) {
+    const loginEmail =
+      typeof email === "string" ? email.trim().toLowerCase() : "";
+
+    const loginPhone =
+      typeof phone === "string" ? phone.replace(/\s+/g, "") : "";
+
+    if ((!loginEmail && !loginPhone) || !password) {
       return res.status(400).json({
         success: false,
-        message: "Email and password are required",
+        message: "Email or phone number and password are required",
       });
     }
 
-    // 2. Find user and explicitly include password hash
-    const user = await User.findOne({
-      email: email.trim().toLowerCase(),
-    }).select("+password");
+    // 2. Find user by email OR phone
+    const userQuery = loginEmail
+      ? { email: loginEmail }
+      : { phone: loginPhone };
+
+    const user = await User.findOne(userQuery).select("+password");
 
     // 3. Verify credentials
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password",
+        message: "Invalid email/phone number or password",
       });
     }
 
@@ -184,7 +265,7 @@ const loginUser = async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password",
+        message: "Invalid email/phone number or password",
       });
     }
 
