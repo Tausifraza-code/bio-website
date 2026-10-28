@@ -7,6 +7,7 @@ import {
   UserRoundPen,
   Wallet,
   Palette,
+  LayoutTemplate,
   Package,
   Share2,
   MessagesSquare,
@@ -32,19 +33,26 @@ const sidebarItems = [
     icon: UserRoundPen,
     path: "/editprofile",
   },
-  {
-    id: "payment",
-    label: "UPI & Payments",
-    icon: Wallet,
-    path: "/upi-payments",
-    badge: { text: "Setup", color: "amber" },
-  },
+  // {
+  //   id: "payment",
+  //   label: "UPI & Payments",
+  //   icon: Wallet,
+  //   path: "/upi-payments",
+  //   badge: { text: "Setup", color: "amber" },
+  // },
   {
     id: "themes",
     label: "Website Themes",
     icon: Palette,
     path: "/theme",
     badge: { text: "5 Themes", color: "violet" },
+  },
+  {
+    id: "profilelayouts",
+    label: "Profile Layouts",
+    icon: LayoutTemplate,
+    path: "/profile-layouts",
+    badge: { text: "10 Layouts", color: "violet" },
   },
   {
     id: "manageproducts",
@@ -127,27 +135,24 @@ const DashboardSidebar = ({
 
   return (
     <aside
-      className={`sticky top-[82px] hidden h-fit shrink-0 self-start lg:block ${
-        collapsed
+      className={`sticky top-[82px] hidden h-fit shrink-0 self-start lg:block ${collapsed
           ? "w-[76px]"
           : "w-[250px] xl:w-[270px]"
-      } transition-[width] duration-300`}
+        } transition-[width] duration-300`}
     >
       <div
-        className={`relative flex h-[calc(100vh-98px)] max-h-[calc(100vh-98px)] flex-col overflow-hidden rounded-[18px] border border-[#123A60] bg-[#031B36] shadow-[0_18px_50px_rgba(0,0,0,0.32)] ${
-          collapsed ? "p-2" : "p-2.5"
-        }`}
+        className={`relative flex h-[calc(100vh-98px)] max-h-[calc(100vh-98px)] flex-col overflow-hidden rounded-[18px] border border-[#123A60] bg-[#031B36] shadow-[0_18px_50px_rgba(0,0,0,0.32)] ${collapsed ? "p-2" : "p-2.5"
+          }`}
       >
         {/* TOP CYAN ACCENT */}
         <div className="absolute left-4 right-4 top-0 h-[2px] rounded-full bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-90" />
 
         {/* SIDEBAR HEADER */}
         <div
-          className={`mb-2 flex shrink-0 items-center ${
-            collapsed
+          className={`mb-2 flex shrink-0 items-center ${collapsed
               ? "justify-center"
               : "justify-between"
-          }`}
+            }`}
         >
           {!collapsed && (
             <div className="flex min-w-0 items-center gap-2.5 px-1.5">
@@ -239,15 +244,13 @@ const DashboardSidebar = ({
                 aria-current={
                   active ? "page" : undefined
                 }
-                className={`group relative flex w-full items-center rounded-xl border text-left transition-all duration-200 ${
-                  collapsed
+                className={`group relative flex w-full items-center rounded-xl border text-left transition-all duration-200 ${collapsed
                     ? "justify-center px-0 py-2.5"
                     : "gap-2.5 px-2 py-2"
-                } ${
-                  active
+                  } ${active
                     ? "border-cyan-400/20 bg-gradient-to-r from-cyan-400/[0.13] via-blue-400/[0.06] to-transparent text-white shadow-[0_5px_18px_rgba(0,0,0,0.15)]"
                     : "border-transparent text-slate-400 hover:border-[#164467]/80 hover:bg-[#082443] hover:text-slate-100"
-                }`}
+                  }`}
               >
                 {/* ACTIVE LEFT INDICATOR */}
                 {active && (
@@ -256,11 +259,10 @@ const DashboardSidebar = ({
 
                 {/* ICON */}
                 <span
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-200 ${
-                    active
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-200 ${active
                       ? "bg-cyan-400/15 text-cyan-200"
                       : "bg-[#082443] text-slate-400 group-hover:bg-[#0B2D50] group-hover:text-cyan-200"
-                  }`}
+                    }`}
                 >
                   <Icon
                     size={17}
@@ -272,24 +274,22 @@ const DashboardSidebar = ({
                 {!collapsed && (
                   <>
                     <span
-                      className={`min-w-0 flex-1 truncate text-[11px] font-semibold ${
-                        active
+                      className={`min-w-0 flex-1 truncate text-[11px] font-semibold ${active
                           ? "text-white"
                           : "text-slate-300 group-hover:text-white"
-                      }`}
+                        }`}
                     >
                       {item.label}
                     </span>
 
                     {item.badge && (
                       <span
-                        className={`shrink-0 rounded-md border px-1.5 py-[3px] text-[8px] font-bold ${
-                          active
+                        className={`shrink-0 rounded-md border px-1.5 py-[3px] text-[8px] font-bold ${active
                             ? "border-cyan-300/20 bg-cyan-300/10 text-cyan-100"
                             : typeof item.badge === "object"
                               ? badgeColors[item.badge.color]
                               : "border-cyan-300/20 bg-cyan-300/[0.07] text-cyan-200"
-                        }`}
+                          }`}
                       >
                         {typeof item.badge === "object"
                           ? item.badge.text
@@ -326,11 +326,10 @@ const DashboardSidebar = ({
                 ? "Open Preview"
                 : undefined
             }
-            className={`group flex w-full items-center rounded-xl border border-transparent text-slate-300 transition-all duration-200 hover:border-cyan-400/15 hover:bg-[#082443] hover:text-white ${
-              collapsed
+            className={`group flex w-full items-center rounded-xl border border-transparent text-slate-300 transition-all duration-200 hover:border-cyan-400/15 hover:bg-[#082443] hover:text-white ${collapsed
                 ? "justify-center px-0 py-2.5"
                 : "gap-2.5 px-2 py-2"
-            }`}
+              }`}
           >
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#082443] text-cyan-200 transition-colors group-hover:bg-cyan-400/10">
               <ExternalLink size={17} />
@@ -350,11 +349,10 @@ const DashboardSidebar = ({
             title={
               collapsed ? "Logout" : undefined
             }
-            className={`group mt-1 flex w-full items-center rounded-xl border border-transparent text-slate-400 transition-all duration-200 hover:border-rose-400/15 hover:bg-rose-400/[0.07] hover:text-rose-200 ${
-              collapsed
+            className={`group mt-1 flex w-full items-center rounded-xl border border-transparent text-slate-400 transition-all duration-200 hover:border-rose-400/15 hover:bg-rose-400/[0.07] hover:text-rose-200 ${collapsed
                 ? "justify-center px-0 py-2.5"
                 : "gap-2.5 px-2 py-2"
-            }`}
+              }`}
           >
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#082443] text-rose-300/80 transition-colors group-hover:bg-rose-400/10 group-hover:text-rose-200">
               <LogOut size={17} />

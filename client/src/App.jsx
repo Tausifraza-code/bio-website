@@ -21,6 +21,7 @@ import TestQRGenerator from "./pages/TestQRGenerator";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Gallery from "./pages/Gallery";
+import ProfileLayouts from "./pages/ProfileLayouts";
 // admin imports
 
 import AdminLayout from "./admin/components/AdminLayout";
@@ -67,6 +68,7 @@ function App() {
         <Route path="mini" element={<Mini />} />
         <Route path="payment" element={<Navigate to="/mini" replace />} />
         <Route path="theme" element={<WebsiteTheme />} />
+        <Route path="profile-layouts" element={<ProfileLayouts />} />
         <Route path="qrcode" element={<QrCode />} />
         <Route path="refer" element={<Refer />} />
         <Route path="contact-buttons" element={<ContactButtons />} />

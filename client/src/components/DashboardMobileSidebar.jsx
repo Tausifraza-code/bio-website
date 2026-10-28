@@ -16,6 +16,7 @@ import {
   ExternalLink,
   ChevronRight,
   LayoutDashboard,
+  LayoutTemplate,
 } from "lucide-react";
 
 const sidebarItems = [
@@ -33,14 +34,14 @@ const sidebarItems = [
     icon: UserRoundPen,
     path: "/editprofile",
   },
-  {
-    id: "payment",
-    label: "UPI & Payments",
-    description: "Payment setup and UPI",
-    icon: Wallet,
-    path: "/payment",
-    badge: "Setup",
-  },
+  // {
+  //   id: "payment",
+  //   label: "UPI & Payments",
+  //   description: "Payment setup and UPI",
+  //   icon: Wallet,
+  //   path: "/payment",
+  //   badge: "Setup",
+  // },
   {
     id: "themes",
     label: "Website Themes",
@@ -48,6 +49,14 @@ const sidebarItems = [
     icon: Palette,
     path: "/theme",
     badge: "5 Themes",
+  },
+  {
+    id: "profilelayouts",
+    label: "Profile Layouts",
+    description: "Choose your profile design",
+    icon: LayoutTemplate,
+    path: "/profile-layouts",
+    badge: "10 Layouts",
   },
   {
     id: "manageproducts",
@@ -177,11 +186,10 @@ const DashboardMobileSidebar = ({
         aria-label="Close navigation menu"
         tabIndex={open ? 0 : -1}
         onClick={onClose}
-        className={`fixed inset-0 z-[90] bg-[#020817]/75 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
-          open
+        className={`fixed inset-0 z-[90] bg-[#020817]/75 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${open
             ? "pointer-events-auto opacity-100"
             : "pointer-events-none opacity-0"
-        }`}
+          }`}
       />
 
       {/* Mobile Sidebar */}
@@ -189,9 +197,8 @@ const DashboardMobileSidebar = ({
         id="dashboard-mobile-sidebar"
         aria-label="Dashboard navigation"
         aria-hidden={!open}
-        className={`fixed inset-y-0 left-0 z-[100] flex h-[100dvh] w-[min(88vw,360px)] flex-col overflow-hidden border-r border-cyan-400/15 bg-[#06162B] text-white shadow-[20px_0_70px_rgba(0,0,0,0.4)] transition-transform duration-300 ease-in-out lg:hidden ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-[100] flex h-[100dvh] w-[min(88vw,360px)] flex-col overflow-hidden border-r border-cyan-400/15 bg-[#06162B] text-white shadow-[20px_0_70px_rgba(0,0,0,0.4)] transition-transform duration-300 ease-in-out lg:hidden ${open ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         {/* Top Branding */}
         <div className="relative shrink-0 overflow-hidden border-b border-white/[0.07] px-5 pb-5 pt-[max(1.25rem,env(safe-area-inset-top))]">
@@ -269,19 +276,17 @@ const DashboardMobileSidebar = ({
                 type="button"
                 onClick={() => handleNavigation(item)}
                 aria-current={active ? "page" : undefined}
-                className={`group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl border px-3 py-3 text-left transition-all duration-200 active:scale-[0.99] ${
-                  active
+                className={`group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl border px-3 py-3 text-left transition-all duration-200 active:scale-[0.99] ${active
                     ? "border-cyan-300/25 bg-gradient-to-r from-cyan-400/[0.15] to-cyan-400/[0.04] shadow-[inset_3px_0_0_#22d3ee]"
                     : "border-transparent bg-transparent hover:border-white/[0.06] hover:bg-white/[0.04]"
-                }`}
+                  }`}
               >
                 {/* Icon */}
                 <div
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 ${
-                    active
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 ${active
                       ? "border-cyan-300/20 bg-cyan-300/15 text-cyan-300"
                       : "border-white/[0.06] bg-[#0C2037] text-slate-400 group-hover:border-cyan-300/15 group-hover:text-cyan-300"
-                  }`}
+                    }`}
                 >
                   <Icon size={19} strokeWidth={active ? 2.2 : 1.8} />
                 </div>
@@ -290,11 +295,10 @@ const DashboardMobileSidebar = ({
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span
-                      className={`truncate text-[13px] font-bold ${
-                        active
+                      className={`truncate text-[13px] font-bold ${active
                           ? "text-cyan-200"
                           : "text-slate-200 group-hover:text-white"
-                      }`}
+                        }`}
                     >
                       {item.label}
                     </span>
@@ -312,13 +316,12 @@ const DashboardMobileSidebar = ({
                 {/* Optional Badge */}
                 {item.badge && (
                   <span
-                    className={`shrink-0 rounded-lg border px-2 py-1 text-[9px] font-bold ${
-                      active
+                    className={`shrink-0 rounded-lg border px-2 py-1 text-[9px] font-bold ${active
                         ? "border-cyan-300/20 bg-cyan-300/10 text-cyan-200"
                         : item.badge === "New"
-                        ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
-                        : "border-white/[0.07] bg-white/[0.04] text-slate-400"
-                    }`}
+                          ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
+                          : "border-white/[0.07] bg-white/[0.04] text-slate-400"
+                      }`}
                   >
                     {item.badge}
                   </span>
@@ -326,11 +329,10 @@ const DashboardMobileSidebar = ({
 
                 <ChevronRight
                   size={15}
-                  className={`shrink-0 transition-all duration-200 ${
-                    active
+                  className={`shrink-0 transition-all duration-200 ${active
                       ? "translate-x-0 text-cyan-300"
                       : "-translate-x-1 text-slate-600 opacity-0 group-hover:translate-x-0 group-hover:text-slate-300 group-hover:opacity-100"
-                  }`}
+                    }`}
                 />
               </button>
             );

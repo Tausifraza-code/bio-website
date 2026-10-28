@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Menu,
@@ -7,7 +6,6 @@ import {
   Copy,
   LogOut,
   Check,
-  MessageCircle,
   ChevronDown,
   Zap,
 } from "lucide-react";
@@ -25,31 +23,85 @@ const DashboardNavbar = ({
   onLogout,
 }) => {
   const navigate = useNavigate();
+  const dropdownRef = useRef(null);
 
   const [copied, setCopied] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
   // ==========================================
-  // OPEN CARD PREVIEW
-  // Route: /card-preview/:subdomain
+  // CLOSE DROPDOWN ON OUTSIDE CLICK / ESC
   // ==========================================
-  const handlePreview = () => {
-    if (!subdomain) {
-      console.warn("Subdomain is not available for card preview.");
-      return;
-    }
+  useEffect(() => {
+    if (!profileOpen) return;
 
-    setProfileOpen(false);
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
+        setProfileOpen(false);
+      }
+    };
 
-    navigate(`/card-preview/${encodeURIComponent(subdomain)}`);
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") setProfileOpen(false);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [profileOpen]);
+
+  // ==========================================
+  // BUILD PUBLIC URL — /<subdomain>
+  // Subdomain hi user ka unique ID hai
+  // e.g. subdomain="ankit123" → https://site.com/ankit123
+  // ==========================================
+  const buildPreviewUrl = () => {
+    if (!subdomain) return "";
+    return `${window.location.origin}/${encodeURIComponent(subdomain)}`;
   };
 
   // ==========================================
-  // COPY PROFILE LINK
+  // OPEN PREVIEW (new tab) — /<subdomain>
+  // ==========================================
+  const handlePreview = () => {
+    setProfileOpen(false);
+
+    if (!subdomain) {
+      alert(
+        "Preview not available. Please complete your profile (subdomain required).",
+      );
+      return;
+    }
+
+    const previewUrl = buildPreviewUrl();
+    const newTab = window.open(
+      previewUrl,
+      "_blank",
+      "noopener,noreferrer",
+    );
+
+    // Popup blocker fallback → same-tab navigation
+    if (!newTab) {
+      navigate(`/${encodeURIComponent(subdomain)}`);
+    }
+
+    if (typeof onPreview === "function") onPreview();
+  };
+
+  // ==========================================
+  // COPY PUBLIC LINK — /<subdomain>
   // ==========================================
   const handleCopy = async () => {
+    setProfileOpen(false);
+
     const profileLink = subdomain
-      ? `${window.location.origin}/card-preview/${encodeURIComponent(subdomain)}`
+      ? buildPreviewUrl()
       : window.location.href;
 
     try {
@@ -57,41 +109,33 @@ const DashboardNavbar = ({
         await navigator.clipboard.writeText(profileLink);
       } else {
         const input = document.createElement("textarea");
-
         input.value = profileLink;
         input.style.position = "fixed";
         input.style.opacity = "0";
-
         document.body.appendChild(input);
         input.select();
-
         const success = document.execCommand("copy");
-
         document.body.removeChild(input);
-
-        if (!success) {
-          throw new Error("Copy failed");
-        }
+        if (!success) throw new Error("Copy failed");
       }
 
       setCopied(true);
-
-      setTimeout(() => {
-        setCopied(false);
-      }, 2000);
+      setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error("Unable to copy profile link:", error);
     }
 
-    onCopyLink?.();
+    if (typeof onCopyLink === "function") onCopyLink();
   };
 
   // ==========================================
-  // WHATSAPP SHARE
+  // WHATSAPP SHARE — /<subdomain>
   // ==========================================
   const handleWhatsAppShare = () => {
+    setProfileOpen(false);
+
     const profileLink = subdomain
-      ? `${window.location.origin}/card-preview/${encodeURIComponent(subdomain)}`
+      ? buildPreviewUrl()
       : window.location.href;
 
     const message =
@@ -100,9 +144,16 @@ const DashboardNavbar = ({
       `${profileLink}\n\n` +
       `Thank you for visiting!`;
 
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent(message)}`,
+      "_blank",
+      "noopener,noreferrer",
+    );
+  };
 
-    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+  const handleLogout = () => {
+    setProfileOpen(false);
+    if (typeof onLogout === "function") onLogout();
   };
 
   return (
@@ -123,22 +174,19 @@ const DashboardNavbar = ({
             <Menu size={20} strokeWidth={2} />
           </button>
 
-          {/* BioWebsite Logo */}
+          {/* Logo */}
           <div className="flex min-w-0 items-center gap-2.5">
             <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-cyan-300 via-cyan-400 to-blue-600 shadow-[0_0_18px_rgba(34,211,238,0.18)]">
               <div className="absolute inset-[2px] rounded-[10px] bg-[#041D38]" />
-
               <span className="relative z-10 text-lg font-black italic text-cyan-300">
                 B
               </span>
             </div>
 
-            {/* Brand Name */}
             <div className="min-w-0">
               <p className="truncate text-[15px] font-bold leading-none tracking-[-0.02em] text-white sm:text-base">
                 BioWebsite
               </p>
-
               <p className="mt-1 text-[9px] font-medium tracking-[0.04em] text-cyan-300/80 sm:text-[10px]">
                 Your Digital Identity
               </p>
@@ -148,7 +196,7 @@ const DashboardNavbar = ({
 
         {/* RIGHT SECTION */}
         <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
-          {/* Preview */}
+          {/* Preview Button — NEW TAB /<subdomain> */}
           <button
             type="button"
             onClick={handlePreview}
@@ -181,18 +229,19 @@ const DashboardNavbar = ({
             )}
           </button>
 
-          {/* Vertical Divider */}
+          {/* Divider */}
           <div className="mx-1 hidden h-8 w-px bg-[#1B456A] md:block" />
 
-          {/* PROFILE */}
-          <div className="relative">
+          {/* PROFILE DROPDOWN */}
+          <div className="relative" ref={dropdownRef}>
             <button
               type="button"
               onClick={() => setProfileOpen((prev) => !prev)}
               aria-expanded={profileOpen}
+              aria-haspopup="true"
+              aria-controls="profile-dropdown"
               className="flex h-10 items-center gap-2 rounded-xl border border-transparent px-1.5 transition-all duration-200 hover:border-cyan-400/10 hover:bg-[#082443] sm:gap-2.5 sm:px-2"
             >
-              {/* Avatar */}
               <div className="relative shrink-0">
                 <div className="h-9 w-9 rounded-full bg-gradient-to-br from-cyan-300 to-blue-500 p-[1.5px]">
                   <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-[#082443]">
@@ -209,17 +258,13 @@ const DashboardNavbar = ({
                     )}
                   </div>
                 </div>
-
-                {/* Online */}
                 <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-[#031B36] bg-cyan-400" />
               </div>
 
-              {/* User Info */}
               <div className="hidden min-w-0 text-left sm:block">
                 <p className="max-w-[130px] truncate text-[12px] font-semibold text-white">
                   {ownerName}
                 </p>
-
                 <p className="mt-0.5 max-w-[150px] truncate text-[9px] text-slate-500">
                   {role}
                 </p>
@@ -233,9 +278,12 @@ const DashboardNavbar = ({
               />
             </button>
 
-            {/* Profile Dropdown */}
+            {/* Dropdown */}
             {profileOpen && (
-              <div className="absolute right-0 top-[calc(100%+10px)] w-[250px] overflow-hidden rounded-2xl border border-cyan-400/10 bg-[#061D38] shadow-[0_18px_50px_rgba(0,0,0,0.40)]">
+              <div
+                id="profile-dropdown"
+                className="absolute right-0 top-[calc(100%+10px)] w-[250px] overflow-hidden rounded-2xl border border-cyan-400/10 bg-[#061D38] shadow-[0_18px_50px_rgba(0,0,0,0.40)]"
+              >
                 {/* User Header */}
                 <div className="border-b border-[#143655] p-4">
                   <div className="flex items-center gap-3">
@@ -254,26 +302,22 @@ const DashboardNavbar = ({
                         )}
                       </div>
                     </div>
-
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-white">
                         {ownerName}
                       </p>
-
                       <p className="mt-0.5 truncate text-[10px] text-slate-500">
                         {role}
                       </p>
                     </div>
                   </div>
 
-                  {/* Status */}
                   {status && (
                     <div className="mt-3 flex items-center gap-2 rounded-lg border border-amber-400/15 bg-amber-400/[0.06] px-2.5 py-2">
                       <Zap
                         size={12}
                         className="shrink-0 text-amber-300"
                       />
-
                       <span className="truncate text-[9px] font-semibold tracking-[0.04em] text-amber-300">
                         {status}
                       </span>
@@ -281,7 +325,7 @@ const DashboardNavbar = ({
                   )}
                 </div>
 
-                {/* Dropdown Actions */}
+                {/* Actions */}
                 <div className="p-2">
                   <button
                     type="button"
@@ -301,14 +345,26 @@ const DashboardNavbar = ({
                     Copy Profile Link
                   </button>
 
+                  <button
+                    type="button"
+                    onClick={handleWhatsAppShare}
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-medium text-slate-300 transition-colors hover:bg-[#0B2D50] hover:text-cyan-200"
+                  >
+                    <svg
+                      className="h-[15px] w-[15px] text-emerald-400"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+                    </svg>
+                    Share on WhatsApp
+                  </button>
+
                   <div className="my-1 border-t border-[#143655]" />
 
                   <button
                     type="button"
-                    onClick={() => {
-                      setProfileOpen(false);
-                      onLogout?.();
-                    }}
+                    onClick={handleLogout}
                     className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-medium text-rose-300 transition-colors hover:bg-rose-400/10"
                   >
                     <LogOut size={15} />
@@ -319,10 +375,10 @@ const DashboardNavbar = ({
             )}
           </div>
 
-          {/* Mobile Logout */}
+          {/* Mobile Logout (quick shortcut) */}
           <button
             type="button"
-            onClick={onLogout}
+            onClick={handleLogout}
             title="Logout"
             aria-label="Logout"
             className="flex h-9 w-9 items-center justify-center rounded-lg border border-rose-400/15 bg-rose-400/[0.04] text-slate-400 transition-all duration-200 hover:border-rose-400/30 hover:bg-rose-400/10 hover:text-rose-300 active:scale-95 sm:hidden"
