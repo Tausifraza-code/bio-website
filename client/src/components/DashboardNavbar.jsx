@@ -1,16 +1,19 @@
 
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Menu,
   ExternalLink,
   Copy,
   LogOut,
   Check,
+  MessageCircle,
   ChevronDown,
   Zap,
 } from "lucide-react";
 
 const DashboardNavbar = ({
+  subdomain = "",
   ownerName = "ankit",
   businessName = "ankit's Business",
   role = "Business Owner / Professional",
@@ -21,22 +24,85 @@ const DashboardNavbar = ({
   onCopyLink,
   onLogout,
 }) => {
+  const navigate = useNavigate();
+
   const [copied, setCopied] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
+  // ==========================================
+  // OPEN CARD PREVIEW
+  // Route: /card-preview/:subdomain
+  // ==========================================
+  const handlePreview = () => {
+    if (!subdomain) {
+      console.warn("Subdomain is not available for card preview.");
+      return;
+    }
+
+    setProfileOpen(false);
+
+    navigate(`/card-preview/${encodeURIComponent(subdomain)}`);
+  };
+
+  // ==========================================
+  // COPY PROFILE LINK
+  // ==========================================
   const handleCopy = async () => {
+    const profileLink = subdomain
+      ? `${window.location.origin}/card-preview/${encodeURIComponent(subdomain)}`
+      : window.location.href;
+
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(profileLink);
+      } else {
+        const input = document.createElement("textarea");
+
+        input.value = profileLink;
+        input.style.position = "fixed";
+        input.style.opacity = "0";
+
+        document.body.appendChild(input);
+        input.select();
+
+        const success = document.execCommand("copy");
+
+        document.body.removeChild(input);
+
+        if (!success) {
+          throw new Error("Copy failed");
+        }
+      }
+
       setCopied(true);
 
       setTimeout(() => {
         setCopied(false);
       }, 2000);
     } catch (error) {
-      // Clipboard may not be available in some browsers
+      console.error("Unable to copy profile link:", error);
     }
 
     onCopyLink?.();
+  };
+
+  // ==========================================
+  // WHATSAPP SHARE
+  // ==========================================
+  const handleWhatsAppShare = () => {
+    const profileLink = subdomain
+      ? `${window.location.origin}/card-preview/${encodeURIComponent(subdomain)}`
+      : window.location.href;
+
+    const message =
+      `Hey! 👋\n\n` +
+      `Check out my ${businessName} online profile:\n\n` +
+      `${profileLink}\n\n` +
+      `Thank you for visiting!`;
+
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -45,9 +111,7 @@ const DashboardNavbar = ({
       <div className="h-[2px] w-full bg-gradient-to-r from-cyan-400 via-blue-500 to-transparent" />
 
       <div className="flex h-[68px] items-center justify-between px-4 sm:px-5 lg:px-7">
-        {/* =========================================================
-            LEFT SECTION
-        ========================================================= */}
+        {/* LEFT SECTION */}
         <div className="flex min-w-0 items-center gap-3">
           {/* Mobile Menu */}
           <button
@@ -61,7 +125,6 @@ const DashboardNavbar = ({
 
           {/* BioWebsite Logo */}
           <div className="flex min-w-0 items-center gap-2.5">
-            {/* Logo Icon */}
             <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-cyan-300 via-cyan-400 to-blue-600 shadow-[0_0_18px_rgba(34,211,238,0.18)]">
               <div className="absolute inset-[2px] rounded-[10px] bg-[#041D38]" />
 
@@ -83,14 +146,12 @@ const DashboardNavbar = ({
           </div>
         </div>
 
-        {/* =========================================================
-            RIGHT SECTION
-        ========================================================= */}
+        {/* RIGHT SECTION */}
         <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
           {/* Preview */}
           <button
             type="button"
-            onClick={onPreview}
+            onClick={handlePreview}
             className="hidden h-9 items-center gap-2 rounded-lg border border-[#1B456A] bg-[#082443] px-3.5 text-[11px] font-semibold text-slate-300 transition-all duration-200 hover:border-cyan-400/40 hover:bg-[#0B2D50] hover:text-cyan-200 active:scale-[0.97] sm:flex"
           >
             <ExternalLink size={14} />
@@ -123,13 +184,12 @@ const DashboardNavbar = ({
           {/* Vertical Divider */}
           <div className="mx-1 hidden h-8 w-px bg-[#1B456A] md:block" />
 
-          {/* =======================================================
-              PROFILE
-          ======================================================= */}
+          {/* PROFILE */}
           <div className="relative">
             <button
               type="button"
               onClick={() => setProfileOpen((prev) => !prev)}
+              aria-expanded={profileOpen}
               className="flex h-10 items-center gap-2 rounded-xl border border-transparent px-1.5 transition-all duration-200 hover:border-cyan-400/10 hover:bg-[#082443] sm:gap-2.5 sm:px-2"
             >
               {/* Avatar */}
@@ -225,10 +285,7 @@ const DashboardNavbar = ({
                 <div className="p-2">
                   <button
                     type="button"
-                    onClick={() => {
-                      setProfileOpen(false);
-                      onPreview?.();
-                    }}
+                    onClick={handlePreview}
                     className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-medium text-slate-300 transition-colors hover:bg-[#0B2D50] hover:text-cyan-200"
                   >
                     <ExternalLink size={15} />
@@ -237,10 +294,7 @@ const DashboardNavbar = ({
 
                   <button
                     type="button"
-                    onClick={() => {
-                      setProfileOpen(false);
-                      handleCopy();
-                    }}
+                    onClick={handleCopy}
                     className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-medium text-slate-300 transition-colors hover:bg-[#0B2D50] hover:text-cyan-200"
                   >
                     <Copy size={15} />

@@ -485,7 +485,7 @@ const ManageProducts = () => {
         </section>
 
         {/* Stats */}
-        <section className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <section className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
           <StatCard
             icon={Package}
             label="Total Products"

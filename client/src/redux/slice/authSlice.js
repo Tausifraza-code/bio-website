@@ -1,18 +1,30 @@
+
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import api from "../api";
 
+// ==========================================
 // REGISTER
-
+// Supports referralCode from userData or URL
+// ==========================================
 export const registerUser = createAsyncThunk(
   "auth/registerUser",
   async (userData, { rejectWithValue }) => {
     try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlReferralCode = urlParams.get("referralCode") || "";
+
+      const referralCode = (
+        userData?.referralCode || urlReferralCode
+      )
+        .trim()
+        .toUpperCase();
+
       const payload = {
-        fullName: userData.fullName.trim(),
-        email: userData.email.trim().toLowerCase(),
-        phone: userData.phone.trim(),
+        fullName: (userData.fullName || "").trim(),
+        email: (userData.email || "").trim().toLowerCase(),
+        phone: (userData.phone || "").trim(),
         password: userData.password,
-        referralCode: userData.referralCode?.trim().toUpperCase() || "",
+        referralCode,
       };
 
       const response = await api.post("/auth/register", payload);
@@ -26,8 +38,9 @@ export const registerUser = createAsyncThunk(
   },
 );
 
+// ==========================================
 // LOGIN
-
+// ==========================================
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async (loginData, { rejectWithValue }) => {
@@ -53,13 +66,16 @@ export const loginUser = createAsyncThunk(
 
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Login failed");
+      return rejectWithValue(
+        error.response?.data?.message || "Login failed",
+      );
     }
   },
 );
 
+// ==========================================
 // FORGOT PASSWORD
-
+// ==========================================
 export const forgotPassword = createAsyncThunk(
   "auth/forgotPassword",
   async (email, { rejectWithValue }) => {
@@ -71,14 +87,16 @@ export const forgotPassword = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Unable to send password reset email",
+        error.response?.data?.message ||
+          "Unable to send password reset email",
       );
     }
   },
 );
 
+// ==========================================
 // RESET PASSWORD
-
+// ==========================================
 export const resetPassword = createAsyncThunk(
   "auth/resetPassword",
   async ({ token, newPassword }, { rejectWithValue }) => {
@@ -97,8 +115,9 @@ export const resetPassword = createAsyncThunk(
   },
 );
 
+// ==========================================
 // INITIAL STATE
-
+// ==========================================
 const initialState = {
   user: null,
   token: localStorage.getItem("bioToken") || null,
@@ -120,8 +139,9 @@ const initialState = {
   resetPasswordMessage: "",
 };
 
+// ==========================================
 // AUTH SLICE
-
+// ==========================================
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -171,7 +191,8 @@ const authSlice = createSlice({
         state.loading = false;
         state.success = true;
         state.error = null;
-        state.message = action.payload?.message || "Registration successful";
+        state.message =
+          action.payload?.message || "Registration successful";
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
@@ -252,13 +273,16 @@ const authSlice = createSlice({
       .addCase(resetPassword.rejected, (state, action) => {
         state.resetPasswordLoading = false;
         state.resetPasswordSuccess = false;
-        state.resetPasswordError = action.payload || "Unable to reset password";
+        state.resetPasswordError =
+          action.payload || "Unable to reset password";
       });
   },
 });
 
-export const { logout, clearAuthMessage, clearPasswordResetState } =
-  authSlice.actions;
+export const {
+  logout,
+  clearAuthMessage,
+  clearPasswordResetState,
+} = authSlice.actions;
 
-  
 export default authSlice.reducer;
