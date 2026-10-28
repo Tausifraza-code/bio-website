@@ -60,6 +60,7 @@ import {
   Navigation as NavigationIcon,
 } from "lucide-react";
 
+/* ============ THEMES ============ */
 const themes = [
   { id: "executive", name: "Executive Royal", colors: ["#1e3a8a", "#7c3aed"] },
   { id: "emerald", name: "Emerald Luxe", colors: ["#10b981", "#14b8a6"] },
@@ -76,6 +77,7 @@ const themes = [
   },
 ];
 
+/* ============ LAYOUTS ============ */
 const PROFILE_LAYOUTS = [
   { id: "modern-business", name: "Modern Business" },
   { id: "minimal-card", name: "Minimal Card" },
@@ -119,15 +121,20 @@ const bannerImages = [
   "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1200",
 ];
 
+/* ============ HELPERS ============ */
 const hasValidProfile = (profile) => {
   if (!profile || typeof profile !== "object") return false;
+
   const firstName = profile.firstName?.trim() || "";
   const lastName = profile.lastName?.trim() || "";
   const businessName = profile.businessName?.trim() || "";
+
   const isDemo =
     /^(ankit'?s business|my business|your name)$/i.test(businessName) ||
     /^(ankit|your name)$/i.test(firstName);
+
   if (isDemo) return false;
+
   return Boolean(
     firstName ||
     lastName ||
@@ -139,6 +146,7 @@ const hasValidProfile = (profile) => {
 
 const normalizeGalleryImages = (raw) => {
   if (!Array.isArray(raw)) return [];
+
   return raw
     .map((item, index) => {
       if (typeof item === "string") {
@@ -147,7 +155,9 @@ const normalizeGalleryImages = (raw) => {
           ? { url, alt: `Gallery image ${index + 1}`, caption: "" }
           : null;
       }
+
       if (!item || typeof item !== "object") return null;
+
       const url = [
         item.url,
         item.src,
@@ -155,8 +165,11 @@ const normalizeGalleryImages = (raw) => {
         item.imageUrl,
         item.path,
       ].find((value) => typeof value === "string" && value.trim());
+
       if (!url) return null;
+
       const caption = item.caption?.trim() || item.title?.trim() || "";
+
       return {
         url: url.trim(),
         alt: item.alt?.trim() || caption || `Gallery image ${index + 1}`,
@@ -166,110 +179,116 @@ const normalizeGalleryImages = (raw) => {
     .filter(Boolean);
 };
 
-/* ============================================================
-   SOCIAL HELPERS (previously undefined)
-   ============================================================ */
-const getSocialIcon = (platform = "") => {
-  const p = String(platform).toLowerCase();
-  if (p.includes("instagram")) return FaInstagram;
-  if (p.includes("linkedin")) return FaLinkedinIn;
-  if (p.includes("facebook")) return FaFacebookF;
-  if (p.includes("youtube")) return FaYoutube;
-  if (p.includes("whatsapp")) return FaWhatsapp;
-  if (p.includes("telegram")) return FaTelegram;
-  if (p === "x" || p.includes("twitter") || p.includes("/x")) return FaXTwitter;
-  if (p.includes("website") || p.includes("globe")) return FaGlobe;
-  return FaLink;
-};
-
-const getSocialBrand = (platform = "") => {
-  const p = String(platform).toLowerCase();
-  const map = {
-    instagram: { label: "Instagram", color: "#E1306C" },
-    linkedin: { label: "LinkedIn", color: "#0A66C2" },
-    facebook: { label: "Facebook", color: "#1877F2" },
-    youtube: { label: "YouTube", color: "#FF0000" },
-    whatsapp: { label: "WhatsApp", color: "#25D366" },
-    telegram: { label: "Telegram", color: "#0088CC" },
-    twitter: { label: "Twitter", color: "#1DA1F2" },
-    x: { label: "X", color: "#0F1419" },
-    website: { label: "Website", color: "#06B6D4" },
-  };
-  for (const key of Object.keys(map)) {
-    if (p.includes(key)) return map[key];
-  }
-  return { label: "Link", color: "#06B6D4" };
-};
-
-/* ============================================================
-   CONTACT-BUTTON MAPS (previously undefined)
-   ============================================================ */
+/* ============ BUTTON MAPS ============ */
 const BUTTON_ICON_MAP = {
   call: Phone,
-  whatsapp: FaWhatsapp,
+  whatsapp: MessageCircle,
   email: Mail,
-  directions: NavigationIcon,
+  saveContact: Download,
   share: Share2,
   website: Globe,
-  customLink: FaLink,
-  saveContact: UserPlus,
+  directions: NavigationIcon,
   upi: IndianRupee,
+  customLink: FaLink,
+};
+
+const SECONDARY_BTN = {
+  bg: "border border-[#29435f] bg-[#132942] hover:bg-[#1a3658]",
+  text: "text-white",
 };
 
 const BUTTON_STYLE_MAP = {
-  call: { bg: "bg-blue-500 hover:bg-blue-400", text: "text-white" },
+  call: { bg: "bg-cyan-400 hover:bg-cyan-300", text: "text-[#0b1b30]" },
   whatsapp: { bg: "bg-emerald-500 hover:bg-emerald-400", text: "text-white" },
-  email: { bg: "bg-rose-500 hover:bg-rose-400", text: "text-white" },
-  directions: { bg: "bg-amber-500 hover:bg-amber-400", text: "text-white" },
-  share: { bg: "bg-cyan-500 hover:bg-cyan-400", text: "text-white" },
-  website: { bg: "bg-indigo-500 hover:bg-indigo-400", text: "text-white" },
-  customLink: { bg: "bg-slate-600 hover:bg-slate-500", text: "text-white" },
-  saveContact: { bg: "bg-purple-500 hover:bg-purple-400", text: "text-white" },
-  upi: { bg: "bg-teal-500 hover:bg-teal-400", text: "text-white" },
+  email: { bg: "bg-blue-500 hover:bg-blue-400", text: "text-white" },
+  upi: {
+    bg: "border border-cyan-400/40 bg-cyan-400/10 hover:bg-cyan-400/20",
+    text: "text-cyan-300",
+  },
+  saveContact: SECONDARY_BTN,
+  share: SECONDARY_BTN,
+  website: SECONDARY_BTN,
+  directions: SECONDARY_BTN,
+  customLink: SECONDARY_BTN,
 };
 
-/* ============================================================
-   SHARED COMPONENTS (previously undefined)
-   ============================================================ */
+/* ============ SOCIAL MAPS ============ */
+const SOCIAL_ICON_MAP = [
+  ["instagram", FaInstagram],
+  ["linkedin", FaLinkedinIn],
+  ["facebook", FaFacebookF],
+  ["youtube", FaYoutube],
+  ["whatsapp", FaWhatsapp],
+  ["telegram", FaTelegram],
+  ["website", FaGlobe],
+];
+
+const SOCIAL_BRAND_MAP = {
+  instagram: { color: "#E4405F", label: "Instagram" },
+  facebook: { color: "#1877F2", label: "Facebook" },
+  linkedin: { color: "#0A66C2", label: "LinkedIn" },
+  youtube: { color: "#FF0000", label: "YouTube" },
+  whatsapp: { color: "#25D366", label: "WhatsApp" },
+  telegram: { color: "#26A5E4", label: "Telegram" },
+  twitter: { color: "#1DA1F2", label: "X (Twitter)" },
+};
+
+const getSocialIcon = (platform = "") => {
+  const value = platform.toLowerCase();
+  if (value.includes("twitter") || value === "x") return FaXTwitter;
+  const found = SOCIAL_ICON_MAP.find(([key]) => value.includes(key));
+  return found ? found[1] : FaLink;
+};
+
+const getSocialBrand = (platform = "") => {
+  const value = (platform || "").toLowerCase();
+  if (value.includes("twitter") || value === "x")
+    return SOCIAL_BRAND_MAP.twitter;
+  if (value.includes("web")) return { color: "#22d3ee", label: "Website" };
+  const key = Object.keys(SOCIAL_BRAND_MAP).find((item) =>
+    value.includes(item),
+  );
+  return key
+    ? SOCIAL_BRAND_MAP[key]
+    : { color: "#22d3ee", label: platform || "Link" };
+};
+
+/* ============ OVERLAY ============ */
+const Overlay = ({ onClose, children, higher, darker }) => (
+  <div
+    className={`fixed inset-0 ${
+      higher ? "z-[110]" : "z-[100]"
+    } flex items-center justify-center ${
+      darker ? "bg-[#020817]/85" : "bg-[#020817]/80"
+    } p-4 backdrop-blur-md`}
+    onClick={(event) => {
+      if (event.target === event.currentTarget) onClose();
+    }}
+  >
+    {children}
+  </div>
+);
+
+/* ============ QR DISPLAY ============ */
 const QrDisplay = ({
   id,
-  size = 160,
+  size,
   value,
-  fetching = false,
-  emptyText = "Bound QR code is not available.",
-  emptyClass = "py-10 text-sm text-slate-400",
-  wrapperClass = "rounded-xl bg-white p-3",
+  fetching,
+  emptyText = "QR code not available",
+  emptyClass = "mb-3 flex h-40 w-40 items-center justify-center rounded-xl border border-[#29435f] bg-[#0b1b30] text-sm text-slate-400",
+  wrapperClass = "mb-3 rounded-xl bg-white p-3",
 }) => {
-  if (fetching) {
-    return <p className={emptyClass}>Loading QR…</p>;
-  }
-  if (!value) {
-    return <p className={emptyClass}>{emptyText}</p>;
-  }
+  if (fetching) return <div className={emptyClass}>Loading QR...</div>;
+  if (!value) return <div className={emptyClass}>{emptyText}</div>;
   return (
     <div className={wrapperClass}>
-      <QRCodeCanvas id={id} value={value} size={size} />
+      <QRCodeCanvas id={id} value={value} size={size} level="H" includeMargin />
     </div>
   );
 };
 
-const Overlay = ({ children, onClose, darker = false, higher = false }) => (
-  <div
-    onClick={onClose}
-    style={{ zIndex: higher ? 70 : 50 }}
-    className={`fixed inset-0 flex items-center justify-center p-4 ${
-      darker ? "bg-black/80" : "bg-black/60"
-    }`}
-  >
-    <div
-      onClick={(e) => e.stopPropagation()}
-      className="flex w-full max-w-full justify-center"
-    >
-      {children}
-    </div>
-  </div>
-);
-
+/* ============ MAIN COMPONENT ============ */
 const Mini = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -312,22 +331,28 @@ const Mini = () => {
   const [showQrModal, setShowQrModal] = useState(false);
   const [qrModalTab, setQrModalTab] = useState("share");
 
+  /* -------- FETCH PROFILE -------- */
   useEffect(() => {
     let mounted = true;
+
     dispatch(fetchMyProfile())
       .unwrap()
       .then((savedProfile) => {
         if (!mounted) return;
+
         if (!hasValidProfile(savedProfile)) {
           navigate("/editprofile", { replace: true });
           return;
         }
+
         setActiveTheme(savedProfile.activeTheme || "sunset");
+
         const savedLayout = PROFILE_LAYOUTS.some(
-          (l) => l.id === savedProfile.activeLayout,
+          (layout) => layout.id === savedProfile.activeLayout,
         )
           ? savedProfile.activeLayout
           : "modern-business";
+
         setActiveLayout(savedLayout);
         setProfileChecked(true);
       })
@@ -336,11 +361,13 @@ const Mini = () => {
         console.error("Profile load failed:", error);
         navigate("/editprofile", { replace: true });
       });
+
     return () => {
       mounted = false;
     };
   }, [dispatch, navigate]);
 
+  /* -------- FETCH OTHER DATA -------- */
   useEffect(() => {
     dispatch(fetchMyBoundQR());
     dispatch(getMyProducts());
@@ -349,24 +376,37 @@ const Mini = () => {
     dispatch(fetchContactButtons());
   }, [dispatch]);
 
-  const qrTargetUrl = useMemo(
-    () => getPublicQRUrl(boundQR?.qrPath),
-    [boundQR?.qrPath],
-  );
+  /* -------- QR TARGET URL -------- */
+  const qrTargetUrl = useMemo(() => {
+    if (!boundQR?.qrPath) return "";
+    const baseURL = (api.defaults.baseURL || window.location.origin)
+      .replace(/\/api\/?$/, "")
+      .replace(/\/$/, "");
+    const qrPath = boundQR.qrPath.startsWith("/")
+      ? boundQR.qrPath
+      : `/${boundQR.qrPath}`;
+    return `${baseURL}${qrPath}`;
+  }, [boundQR?.qrPath]);
 
   const profileData = profile || {};
   const productList = Array.isArray(products) ? products : [];
 
+  /* -------- VISIBLE BUTTONS -------- */
   const visibleButtons = useMemo(() => {
     const slice = Array.isArray(contactButtons) ? contactButtons : [];
     const fromProfile = Array.isArray(profileData.contactButtons)
       ? profileData.contactButtons
       : [];
+
     return [...(slice.length > 0 ? slice : fromProfile)]
-      .filter((b) => b && b.enabled !== false && b.enabled !== "false")
+      .filter(
+        (button) =>
+          button && button.enabled !== false && button.enabled !== "false",
+      )
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   }, [contactButtons, profileData.contactButtons]);
 
+  /* -------- BUSINESS INFO -------- */
   const businessInfo = {
     name: [profileData.firstName, profileData.lastName]
       .filter(Boolean)
@@ -404,9 +444,11 @@ const Mini = () => {
     isVerified: isVerified === true,
   };
 
+  /* -------- GALLERY -------- */
   const galleryImages = useMemo(() => {
     const fromApi = normalizeGalleryImages(gallery);
     if (fromApi.length) return fromApi;
+
     return normalizeGalleryImages(
       profileData.gallery ||
         profileData.galleryImages ||
@@ -421,13 +463,16 @@ const Mini = () => {
     profileData.images,
   ]);
 
-  const activeThemeData = themes.find((t) => t.id === activeTheme);
+  const activeThemeData = themes.find((theme) => theme.id === activeTheme);
   const activeLayoutData = PROFILE_LAYOUTS.find((l) => l.id === activeLayout);
   const isFlatLayout = FLAT_LAYOUTS.includes(activeLayout);
   const layoutFamily = LAYOUT_FAMILY[activeLayout] || "business";
 
-  const socialLinks = (profileData.socialCards || []).filter((s) => s?.url);
+  const socialLinks = (profileData.socialCards || []).filter(
+    (social) => social?.url,
+  );
 
+  /* -------- HANDLERS -------- */
   const handleActivateStandee = () => {
     if (standeeCode.trim()) setStandeeActivated(true);
   };
@@ -457,11 +502,12 @@ const Mini = () => {
       }'s business`,
       url: window.location.href,
     };
+
     if (navigator.share) {
       try {
         await navigator.share(shareData);
       } catch {
-        /* cancelled */
+        // user cancelled
       }
     } else {
       handleCopyLink();
@@ -482,6 +528,7 @@ const Mini = () => {
     if (!qrTargetUrl) return alert("Bound QR code is not available.");
     const canvas = document.getElementById(canvasId);
     if (!canvas) return alert("QR code is not ready yet.");
+
     const link = document.createElement("a");
     link.href = canvas.toDataURL("image/png");
     link.download = "bio-website-qr.png";
@@ -491,18 +538,21 @@ const Mini = () => {
   };
 
   const handleSaveContact = () => {
-    const esc = (v = "") =>
-      String(v)
+    const esc = (value = "") =>
+      String(value)
         .trim()
         .replace(/\\/g, "\\\\")
         .replace(/\n/g, "\\n")
         .replace(/,/g, "\\,")
         .replace(/;/g, "\\;");
+
     const lines = ["BEGIN:VCARD", "VERSION:3.0"];
+
     const fullName = [profileData.firstName, profileData.lastName]
       .filter((value) => value?.trim())
       .join(" ")
       .trim();
+
     const displayName = fullName || profileData.businessName?.trim() || "";
 
     if (displayName) lines.push(`FN:${esc(displayName)}`);
@@ -517,12 +567,13 @@ const Mini = () => {
 
     const website =
       profileData.website?.trim() || profileData.websiteUrl?.trim();
-    if (website)
+    if (website) {
       lines.push(
         `URL:${esc(
           /^https?:\/\//i.test(website) ? website : `https://${website}`,
         )}`,
       );
+    }
 
     const address = [
       profileData.shopUnit,
@@ -532,8 +583,9 @@ const Mini = () => {
       profileData.state,
       profileData.pincode,
     ]
-      .filter((v) => v?.trim())
+      .filter((value) => value?.trim())
       .join(", ");
+
     if (address) lines.push(`ADR;TYPE=WORK:;;${esc(address)};;;;`);
 
     const note = profileData.bio?.trim() || profileData.headline?.trim();
@@ -550,20 +602,24 @@ const Mini = () => {
     }
 
     lines.push("END:VCARD");
+
     const blob = new Blob([`${lines.join("\r\n")}\r\n`], {
       type: "text/vcard;charset=utf-8",
     });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
+
     anchor.href = url;
-    anchor.download = `${
+    anchor.download =
       (displayName || "contact")
         .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-")
-        .trim() || "contact"
-    }.vcf`;
+        .trim() || "contact";
+    anchor.download += ".vcf";
+
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
+
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     setSaved(true);
     window.setTimeout(() => setSaved(false), 2000);
@@ -571,12 +627,16 @@ const Mini = () => {
 
   const handleContactClick = (type) => {
     if (type === "phone") return handleCall();
+
     if (type === "email") {
-      if (businessInfo.email)
+      if (businessInfo.email) {
         window.location.href = `mailto:${businessInfo.email}`;
-      else alert("Email address is not available.");
+      } else {
+        alert("Email address is not available.");
+      }
       return;
     }
+
     if (type === "website") {
       if (!businessInfo.website) return;
       window.open(
@@ -588,14 +648,18 @@ const Mini = () => {
       );
       return;
     }
+
     if (type === "address") {
       window.open(
-        `https://maps.google.com/?q=${encodeURIComponent(businessInfo.address)}`,
+        `https://maps.google.com/?q=${encodeURIComponent(
+          businessInfo.address,
+        )}`,
         "_blank",
         "noopener,noreferrer",
       );
       return;
     }
+
     if (type === "upi") {
       if (!profileData.upiId?.trim()) return alert("UPI ID is not available.");
       setShowPayment(true);
@@ -604,15 +668,18 @@ const Mini = () => {
 
   const handleConfiguredButton = (button) => {
     if (!button) return;
+
     switch (button.actionType) {
       case "call":
         return handleCall();
       case "whatsapp":
         return handleWhatsApp();
       case "email":
-        if (businessInfo.email)
+        if (businessInfo.email) {
           window.location.href = `mailto:${businessInfo.email}`;
-        else alert("Email address is not available.");
+        } else {
+          alert("Email address is not available.");
+        }
         return;
       case "directions":
         return window.open(
@@ -650,6 +717,7 @@ const Mini = () => {
     const subdomain = profileData.subdomain?.trim() || "";
     if (!subdomain)
       return alert("This profile does not have a subdomain configured.");
+
     const payload = {
       name: formData.name.trim(),
       phone: formData.phone.trim(),
@@ -657,6 +725,7 @@ const Mini = () => {
       message: formData.message.trim(),
       subdomain,
     };
+
     try {
       await dispatch(createInquiry(payload)).unwrap();
       setFormSubmitted(true);
@@ -670,6 +739,7 @@ const Mini = () => {
   const handleReviewSubmit = (event) => {
     event.preventDefault();
     setReviewSubmitted(true);
+
     window.setTimeout(() => {
       setShowReviewModal(false);
       setReviewSubmitted(false);
@@ -690,17 +760,8 @@ const Mini = () => {
           border-radius: var(--layout-radius);
           transition: border-radius 200ms ease, background 200ms ease;
         }
-
-        .mini-profile-preview .mini-profile-hero {
-          height: 280px;
-          transition: height 200ms ease;
-        }
-
-        .mini-profile-preview .mini-profile-header {
-          position: relative;
-          transition: background 200ms ease;
-        }
-
+        .mini-profile-preview .mini-profile-hero { height: 280px; transition: height 200ms ease; }
+        .mini-profile-preview .mini-profile-header { position: relative; transition: background 200ms ease; }
         .mini-profile-preview .mini-profile-main {
           display: grid;
           grid-template-columns: minmax(0, 1fr);
@@ -708,7 +769,6 @@ const Mini = () => {
           padding: 0 var(--layout-padding) 40px;
           transition: gap 200ms ease, padding 200ms ease;
         }
-
         .mini-profile-preview .mini-profile-left,
         .mini-profile-preview .mini-profile-right {
           min-width: 0;
@@ -716,28 +776,23 @@ const Mini = () => {
           flex-direction: column;
           gap: 20px;
         }
-
         .mini-profile-preview .mini-profile-panel {
           min-width: 0;
           border-radius: 18px;
           transition: border-radius 200ms ease, border-color 200ms ease, background 200ms ease;
         }
-
         .mini-profile-preview[data-flat-layout="true"] .mini-profile-left,
         .mini-profile-preview[data-flat-layout="true"] .mini-profile-right {
           display: contents;
         }
 
-        .mini-profile-preview[data-layout-family="card"] .mini-profile-hero {
-          height: 90px;
-        }
-
+        /* CARD family */
+        .mini-profile-preview[data-layout-family="card"] .mini-profile-hero { height: 90px; }
         .mini-profile-preview[data-layout-family="card"] .mini-profile-header {
           text-align: center;
           background: linear-gradient(180deg, #0e2338, #0b1b30);
           padding-top: 8px;
         }
-
         .mini-profile-preview[data-layout-family="card"] .mini-profile-identity-row {
           margin-top: -50px !important;
           flex-direction: column !important;
@@ -745,183 +800,108 @@ const Mini = () => {
           text-align: center;
           gap: 12px !important;
         }
-
         .mini-profile-preview[data-layout-family="card"] .mini-profile-identity-row > div:last-child {
           text-align: center;
           padding-bottom: 4px;
         }
-
-        .mini-profile-preview[data-layout-family="card"] .mini-profile-identity {
-          justify-content: center !important;
-        }
-
+        .mini-profile-preview[data-layout-family="card"] .mini-profile-identity { justify-content: center !important; }
         .mini-profile-preview[data-layout-family="card"] .mini-profile-actions {
           flex-direction: column;
           align-items: stretch;
           padding-inline: 8px;
           gap: 8px !important;
         }
+        .mini-profile-preview[data-layout-family="card"] .mini-profile-actions > button { width: 100%; justify-content: center; }
+        .mini-profile-preview[data-layout-family="card"] .mini-profile-socials { justify-content: center !important; }
+        .mini-profile-preview[data-layout-family="card"] .mini-profile-main { padding: 0 16px 40px; }
 
-        .mini-profile-preview[data-layout-family="card"] .mini-profile-actions > button {
-          width: 100%;
-          justify-content: center;
-        }
-
-        .mini-profile-preview[data-layout-family="card"] .mini-profile-socials {
-          justify-content: center !important;
-        }
-
-        .mini-profile-preview[data-layout-family="card"] .mini-profile-main {
-          padding: 0 16px 40px;
-        }
-
-        .mini-profile-preview[data-layout-family="showcase"] .mini-profile-hero {
-          height: 400px;
-        }
-
+        /* SHOWCASE family */
+        .mini-profile-preview[data-layout-family="showcase"] .mini-profile-hero { height: 400px; }
         .mini-profile-preview[data-layout-family="showcase"] .mini-profile-header {
           text-align: center;
           background: linear-gradient(180deg, rgba(11,27,48,0) 0%, #0b1b30 70%);
         }
-
         .mini-profile-preview[data-layout-family="showcase"] .mini-profile-identity-row {
           flex-direction: column !important;
           align-items: center !important;
           margin-top: -80px !important;
           gap: 16px !important;
         }
-
         .mini-profile-preview[data-layout-family="showcase"] .mini-profile-identity-row > div:last-child {
           text-align: center;
           padding-bottom: 4px;
         }
-
-        .mini-profile-preview[data-layout-family="showcase"] .mini-profile-identity {
-          justify-content: center !important;
-        }
-
+        .mini-profile-preview[data-layout-family="showcase"] .mini-profile-identity { justify-content: center !important; }
         .mini-profile-preview[data-layout-family="showcase"] .mini-profile-actions {
           justify-content: center !important;
           padding-inline: 8px;
         }
-
-        .mini-profile-preview[data-layout-family="showcase"] .mini-profile-socials {
-          justify-content: center !important;
-        }
-
+        .mini-profile-preview[data-layout-family="showcase"] .mini-profile-socials { justify-content: center !important; }
         .mini-profile-preview[data-layout-family="showcase"] .mini-profile-panel {
           border-radius: 24px;
           border-color: rgba(34, 211, 238, 0.25);
         }
+        .mini-profile-preview[data-profile-layout="creator-portfolio"] .mini-profile-panel[data-panel="gallery"] { order: -20; }
+        .mini-profile-preview[data-profile-layout="creator-portfolio"] .mini-profile-panel[data-panel="about"] { order: -10; }
+        .mini-profile-preview[data-profile-layout="agency-pro"] .mini-profile-panel[data-panel="about"] { order: -20; }
+        .mini-profile-preview[data-profile-layout="agency-pro"] .mini-profile-panel[data-panel="social"] { order: -10; }
 
-        .mini-profile-preview[data-profile-layout="creator-portfolio"] .mini-profile-panel[data-panel="gallery"] {
-          order: -20;
-        }
-        .mini-profile-preview[data-profile-layout="creator-portfolio"] .mini-profile-panel[data-panel="about"] {
-          order: -10;
-        }
-
-        .mini-profile-preview[data-profile-layout="agency-pro"] .mini-profile-panel[data-panel="about"] {
-          order: -20;
-        }
-        .mini-profile-preview[data-profile-layout="agency-pro"] .mini-profile-panel[data-panel="social"] {
-          order: -10;
-        }
-
-        .mini-profile-preview[data-layout-family="utility"] .mini-profile-hero {
-          height: 180px;
-        }
-
-        .mini-profile-preview[data-profile-layout="storefront"] .mini-profile-hero {
-          height: 220px;
-        }
-        .mini-profile-preview[data-profile-layout="storefront"] .mini-profile-panel[data-panel="products"] {
-          order: -30;
-        }
+        /* UTILITY family */
+        .mini-profile-preview[data-layout-family="utility"] .mini-profile-hero { height: 180px; }
+        .mini-profile-preview[data-profile-layout="storefront"] .mini-profile-hero { height: 220px; }
+        .mini-profile-preview[data-profile-layout="storefront"] .mini-profile-panel[data-panel="products"] { order: -30; }
         .mini-profile-preview[data-profile-layout="storefront"] .mini-profile-panel {
           border-color: rgba(34, 211, 238, 0.35);
         }
+        .mini-profile-preview[data-profile-layout="freelancer-pro"] .mini-profile-hero { height: 140px; }
+        .mini-profile-preview[data-profile-layout="freelancer-pro"] .mini-profile-panel[data-panel="about"] { order: -20; }
+        .mini-profile-preview[data-profile-layout="freelancer-pro"] .mini-profile-panel[data-panel="inquiry"] { order: -10; }
+        .mini-profile-preview[data-profile-layout="service-pro"] .mini-profile-hero { height: 180px; }
+        .mini-profile-preview[data-profile-layout="service-pro"] .mini-profile-panel[data-panel="inquiry"] { order: -30; }
+        .mini-profile-preview[data-profile-layout="service-pro"] .mini-profile-panel[data-panel="contact"] { order: -20; }
 
-        .mini-profile-preview[data-profile-layout="freelancer-pro"] .mini-profile-hero {
-          height: 140px;
-        }
-        .mini-profile-preview[data-profile-layout="freelancer-pro"] .mini-profile-panel[data-panel="about"] {
-          order: -20;
-        }
-        .mini-profile-preview[data-profile-layout="freelancer-pro"] .mini-profile-panel[data-panel="inquiry"] {
-          order: -10;
-        }
-
-        .mini-profile-preview[data-profile-layout="service-pro"] .mini-profile-hero {
-          height: 180px;
-        }
-        .mini-profile-preview[data-profile-layout="service-pro"] .mini-profile-panel[data-panel="inquiry"] {
-          order: -30;
-        }
-        .mini-profile-preview[data-profile-layout="service-pro"] .mini-profile-panel[data-panel="contact"] {
-          order: -20;
-        }
-
+        /* BUSINESS family */
         .mini-profile-preview[data-profile-layout="corporate-executive"] {
           --layout-radius: 8px;
           --layout-gap: 16px;
         }
-        .mini-profile-preview[data-profile-layout="corporate-executive"] .mini-profile-hero {
-          height: 200px;
-        }
+        .mini-profile-preview[data-profile-layout="corporate-executive"] .mini-profile-hero { height: 200px; }
         .mini-profile-preview[data-profile-layout="corporate-executive"] .mini-profile-header {
           background: linear-gradient(180deg, #102b49, #0b1b30);
         }
-        .mini-profile-preview[data-profile-layout="corporate-executive"] .mini-profile-panel {
-          border-radius: 8px;
-        }
+        .mini-profile-preview[data-profile-layout="corporate-executive"] .mini-profile-panel { border-radius: 8px; }
 
+        /* Per-layout overrides */
         .mini-profile-preview[data-profile-layout="minimal-card"] {
           --layout-radius: 14px;
           --layout-gap: 14px;
           --layout-padding: 16px;
         }
-        .mini-profile-preview[data-profile-layout="minimal-card"] .mini-profile-panel {
-          border-radius: 12px;
-        }
-
+        .mini-profile-preview[data-profile-layout="minimal-card"] .mini-profile-panel { border-radius: 12px; }
         .mini-profile-preview[data-profile-layout="creator-portfolio"] {
           --layout-radius: 26px;
           --layout-gap: 22px;
         }
-
         .mini-profile-preview[data-profile-layout="elegant-profile"] {
           --layout-radius: 28px;
           background: linear-gradient(160deg, #132942, #0b1b30 55%);
         }
-        .mini-profile-preview[data-profile-layout="elegant-profile"] .mini-profile-hero {
-          height: 100px;
-        }
-
+        .mini-profile-preview[data-profile-layout="elegant-profile"] .mini-profile-hero { height: 100px; }
         .mini-profile-preview[data-profile-layout="agency-pro"] {
           --layout-radius: 12px;
           --layout-gap: 24px;
         }
-
         .mini-profile-preview[data-profile-layout="digital-card"] {
           --layout-radius: 30px;
           --layout-gap: 12px;
           --layout-padding: 12px;
         }
-        .mini-profile-preview[data-profile-layout="digital-card"] .mini-profile-hero {
-          height: 90px;
-        }
-        .mini-profile-preview[data-profile-layout="digital-card"] .mini-profile-panel[data-panel="qr"] {
-          order: -30;
-        }
-        .mini-profile-preview[data-profile-layout="digital-card"] .mini-profile-panel[data-panel="contact"] {
-          order: -20;
-        }
+        .mini-profile-preview[data-profile-layout="digital-card"] .mini-profile-hero { height: 90px; }
+        .mini-profile-preview[data-profile-layout="digital-card"] .mini-profile-panel[data-panel="qr"] { order: -30; }
+        .mini-profile-preview[data-profile-layout="digital-card"] .mini-profile-panel[data-panel="contact"] { order: -20; }
 
         @media (min-width: 1024px) {
-          .mini-profile-preview .mini-profile-main {
-            grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
-          }
+          .mini-profile-preview .mini-profile-main { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); }
           .mini-profile-preview[data-profile-layout="corporate-executive"] .mini-profile-main {
             grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
           }
@@ -929,20 +909,11 @@ const Mini = () => {
             grid-template-columns: minmax(0, 1fr);
           }
         }
-
         @media (max-width: 640px) {
-          .mini-profile-preview .mini-profile-hero {
-            height: 200px;
-          }
-          .mini-profile-preview[data-layout-family="card"] .mini-profile-hero {
-            height: 80px;
-          }
-          .mini-profile-preview[data-layout-family="showcase"] .mini-profile-hero {
-            height: 260px;
-          }
-          .mini-profile-preview .mini-profile-main {
-            padding-inline: 12px;
-          }
+          .mini-profile-preview .mini-profile-hero { height: 200px; }
+          .mini-profile-preview[data-layout-family="card"] .mini-profile-hero { height: 80px; }
+          .mini-profile-preview[data-layout-family="showcase"] .mini-profile-hero { height: 260px; }
+          .mini-profile-preview .mini-profile-main { padding-inline: 12px; }
         }
       `}</style>
 
@@ -1208,9 +1179,8 @@ const Mini = () => {
 
                 {/* MAIN GRID */}
                 <div className="mini-profile-main">
-                  {/* LEFT COLUMN */}
+                  {/* LEFT */}
                   <div className="mini-profile-left">
-                    {/* CONTACT DETAILS */}
                     <div
                       data-panel="contact"
                       className="mini-profile-panel rounded-2xl border border-[#29435f] bg-[#132942] p-5"
@@ -1232,13 +1202,13 @@ const Mini = () => {
                           {
                             Icon: Mail,
                             text: businessInfo.email || "Email not provided",
-                            break: true,
+                            br: true,
                           },
                           {
                             Icon: Globe,
                             text:
                               businessInfo.website || "Website not provided",
-                            break: true,
+                            br: true,
                           },
                           { Icon: MapPin, text: businessInfo.address },
                           {
@@ -1247,12 +1217,10 @@ const Mini = () => {
                               businessInfo.businessHours ||
                               "Hours not provided",
                           },
-                        ].map(({ Icon, text, break: shouldBreak }, i) => (
+                        ].map(({ Icon, text, br }, i) => (
                           <p
                             key={i}
-                            className={`flex gap-3 text-white ${
-                              shouldBreak ? "break-all" : ""
-                            }`}
+                            className={`flex gap-3 text-white ${br ? "break-all" : ""}`}
                           >
                             <Icon
                               size={16}
@@ -1264,7 +1232,6 @@ const Mini = () => {
                       </div>
                     </div>
 
-                    {/* QR CODE */}
                     <div
                       data-panel="qr"
                       className="mini-profile-panel flex flex-col items-center rounded-2xl border border-[#29435f] bg-[#132942] p-5 text-center"
@@ -1278,7 +1245,7 @@ const Mini = () => {
                         value={qrTargetUrl}
                         fetching={qrFetching}
                       />
-                      <p className="mb-3 mt-3 text-xs text-slate-400">
+                      <p className="mb-3 text-xs text-slate-400">
                         Scan to visit your profile
                       </p>
                       <button
@@ -1292,7 +1259,6 @@ const Mini = () => {
                       </button>
                     </div>
 
-                    {/* SOCIAL LINK CARDS */}
                     <div
                       data-panel="social"
                       className="mini-profile-panel rounded-2xl border border-[#29435f] bg-[#132942] p-4"
@@ -1365,7 +1331,6 @@ const Mini = () => {
                       )}
                     </div>
 
-                    {/* REVIEWS */}
                     <div
                       data-panel="reviews"
                       className="mini-profile-panel rounded-2xl border border-[#29435f] bg-[#132942] p-5"
@@ -1389,9 +1354,8 @@ const Mini = () => {
                     </div>
                   </div>
 
-                  {/* RIGHT COLUMN */}
+                  {/* RIGHT */}
                   <div className="mini-profile-right">
-                    {/* ABOUT */}
                     <div
                       data-panel="about"
                       className="mini-profile-panel rounded-2xl border border-[#29435f] bg-[#132942] p-5 sm:p-6"
@@ -1414,7 +1378,6 @@ const Mini = () => {
                       </div>
                     </div>
 
-                    {/* PRODUCTS */}
                     {productList.length > 0 && (
                       <div
                         data-panel="products"
@@ -1453,7 +1416,7 @@ const Mini = () => {
                         >
                           {productList.map((product) => {
                             const cover = product.images?.find(
-                              (image) => image?.url,
+                              (i) => i?.url,
                             )?.url;
                             return (
                               <SwiperSlide key={product._id}>
@@ -1497,7 +1460,6 @@ const Mini = () => {
                       </div>
                     )}
 
-                    {/* GALLERY */}
                     <div
                       data-panel="gallery"
                       className="mini-profile-panel rounded-2xl border border-[#29435f] bg-[#132942] p-5 sm:p-6"
@@ -1561,7 +1523,6 @@ const Mini = () => {
                       )}
                     </div>
 
-                    {/* SEND INQUIRY */}
                     <div
                       data-panel="inquiry"
                       className="mini-profile-panel rounded-2xl border border-[#29435f] bg-[#132942] p-5 sm:p-6"
@@ -1996,7 +1957,6 @@ const Mini = () => {
         </Overlay>
       )}
 
-      {/* PAYMENT (single instance) */}
       <Payment
         isOpen={showPayment}
         onClose={() => setShowPayment(false)}

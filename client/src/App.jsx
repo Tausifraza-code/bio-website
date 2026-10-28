@@ -6,6 +6,8 @@ import Home from "./pages/Home";
 import AuthPage from "./pages/AuthPage";
 import CardPreview from "./pages/CardPreview";
 import Dashboard from "./pages/Dashboard";
+import RazorpayTest from "./pages/RazorpayTest";
+import ProfileLayouts from "./pages/ProfileLayouts";
 
 import DashboardLayout from "./layout/DashboardLayout";
 import EditProfile from "./pages/EditProfile";

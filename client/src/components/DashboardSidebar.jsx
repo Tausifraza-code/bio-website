@@ -45,28 +45,28 @@ const sidebarItems = [
     label: "Website Themes",
     icon: Palette,
     path: "/theme",
-    badge: { text: "5 Themes", color: "violet" },
+    // badge: { text: "5 Themes", color: "violet" },
   },
   {
     id: "profilelayouts",
     label: "Profile Layouts",
     icon: LayoutTemplate,
     path: "/profile-layouts",
-    badge: { text: "10 Layouts", color: "violet" },
+    // badge: { text: "10 Layouts", color: "violet" },
   },
   {
     id: "manageproducts",
     label: "Manage Products",
     icon: Package,
     path: "/manageproducts",
-    badge: { text: "1", color: "slate" },
+    // badge: { text: "1", color: "slate" },
   },
   {
     id: "Gallery",
     label: "Gallery Section",
     icon: Images,
     path: "/gallery",
-    badge: { text: "1", color: "slate" },
+    // badge: { text: "1", color: "slate" },
   },
   {
     id: "contactbuttons",
@@ -74,14 +74,14 @@ const sidebarItems = [
     description: "Manage mini website actions",
     icon: MessagesSquare,
     path: "/contact-buttons",
-    badge: "Manage",
+    // badge: "Manage",
   },
   {
     id: "socialcard",
     label: "Social Media Cards",
     icon: Share2,
     path: "/socialcard",
-    badge: { text: "Thumbnails", color: "rose" },
+    // badge: { text: "Thumbnails", color: "rose" },
   },
   {
     id: "leads",
@@ -94,7 +94,7 @@ const sidebarItems = [
     label: "Refer & Earn",
     icon: Gift,
     path: "/refer",
-    badge: { text: "New", color: "emerald" },
+    // badge: { text: "New", color: "emerald" },
   },
   {
     id: "qrcode",
@@ -208,13 +208,13 @@ const DashboardSidebar = ({
         {/* SECTION HEADER */}
         {!collapsed && (
           <div className="mb-1.5 flex shrink-0 items-center justify-between px-2">
-            <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">
+            {/* <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">
               Main Menu
             </span>
 
             <span className="rounded-md border border-[#164467] bg-[#082443] px-1.5 py-0.5 text-[9px] font-semibold text-slate-400">
               {sidebarItems.length}
-            </span>
+            </span> */}
           </div>
         )}
 

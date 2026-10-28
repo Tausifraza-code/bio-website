@@ -11,6 +11,7 @@ import qrReducer from "./slice/qrSlice";
 import adminQRReducer from "./slice/adminQRSlice";
 import adminPlansReducer from "./slice/adminPlansSlice";
 import referralReducer from "./slice/referSlice"
+import inquiryReducer from "./slice/inquirySlice"
 const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -25,6 +26,7 @@ const store = configureStore({
     adminQR: adminQRReducer,
     adminPlans: adminPlansReducer,
     referral: referralReducer,
+    inquiry: inquiryReducer,
   },
 });
 

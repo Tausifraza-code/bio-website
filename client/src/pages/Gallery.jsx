@@ -13,6 +13,7 @@ import {
   ImagePlus,
   Camera,
   Sparkles,
+  Check,
 } from "lucide-react";
 
 import {
@@ -43,6 +44,11 @@ const Gallery = () => {
   // Toast & Delete Modal States
   const [toast, setToast] = useState(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+
+  // Bulk selection + delete states
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedGalleryIds, setSelectedGalleryIds] = useState([]);
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
@@ -177,6 +183,45 @@ const Gallery = () => {
     setDeleteConfirmId(null);
   };
 
+  /* ==================== BULK SELECTION / DELETE ==================== */
+
+  const toggleSelectionMode = () => {
+    setIsSelectionMode((prev) => {
+      if (prev) setSelectedGalleryIds([]);
+      return !prev;
+    });
+  };
+
+  const toggleGallerySelect = (id) => {
+    setSelectedGalleryIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedGalleryIds.length === gallery.length) {
+      setSelectedGalleryIds([]);
+    } else {
+      setSelectedGalleryIds(gallery.map((img) => img._id));
+    }
+  };
+
+  const handleBulkDeleteClick = () => {
+    if (!selectedGalleryIds.length) return;
+    setBulkDeleteConfirm(true);
+  };
+
+  const handleConfirmBulkDelete = async () => {
+    if (!selectedGalleryIds.length) return;
+    const idsToDelete = [...selectedGalleryIds];
+    for (const id of idsToDelete) {
+      await dispatch(deleteGalleryImage(id));
+    }
+    setBulkDeleteConfirm(false);
+    setSelectedGalleryIds([]);
+    setIsSelectionMode(false);
+  };
+
   return (
     <div className="relative w-full bg-transparent text-slate-200">
       {/* ==================== TOAST ==================== */}
@@ -197,7 +242,7 @@ const Gallery = () => {
         </div>
       )}
 
-      {/* ==================== DELETE CONFIRM MODAL ==================== */}
+      {/* ==================== SINGLE DELETE CONFIRM MODAL ==================== */}
       {deleteConfirmId && (
         <div
           className="fixed inset-0 z-[150] flex items-center justify-center bg-[#020817]/80 p-4 backdrop-blur-md"
@@ -243,6 +288,60 @@ const Gallery = () => {
         </div>
       )}
 
+      {/* ==================== BULK DELETE CONFIRM MODAL ==================== */}
+      {bulkDeleteConfirm && (
+        <div
+          className="fixed inset-0 z-[150] flex items-center justify-center bg-[#020817]/80 p-4 backdrop-blur-md"
+          onClick={() => !deleting && setBulkDeleteConfirm(false)}
+        >
+          <div
+            className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-[#29435f] bg-[#0b1b30] p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-red-400/20 bg-red-400/10">
+              <AlertTriangle size={24} className="text-red-400" />
+            </div>
+
+            <h3 className="text-lg font-bold text-white">
+              Delete {selectedGalleryIds.length}{" "}
+              {selectedGalleryIds.length === 1 ? "Image" : "Images"}?
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-slate-400">
+              Are you sure you want to delete{" "}
+              {selectedGalleryIds.length} selected image
+              {selectedGalleryIds.length === 1 ? "" : "s"}? This action cannot
+              be undone.
+            </p>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setBulkDeleteConfirm(false)}
+                disabled={deleting}
+                className="flex-1 rounded-xl border border-[#38516e] bg-[#132942] py-2.5 text-xs font-bold text-slate-300 transition hover:bg-[#1a3658] disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmBulkDelete}
+                disabled={deleting}
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-red-500 py-2.5 text-xs font-bold text-white transition hover:bg-red-400 disabled:opacity-50"
+              >
+                {deleting ? (
+                  <Loader2 size={15} className="animate-spin" />
+                ) : (
+                  <Trash2 size={15} />
+                )}
+                {deleting
+                  ? "Deleting..."
+                  : `Delete ${selectedGalleryIds.length}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ==================== UPLOAD MODAL ==================== */}
       {isModalOpen && (
         <div
@@ -252,10 +351,8 @@ const Gallery = () => {
           }}
         >
           <div className="relative max-h-[94vh] w-full max-w-2xl overflow-hidden rounded-[26px] border border-cyan-400/20 bg-[#0b1b30] shadow-[0_30px_100px_rgba(0,0,0,0.7)] flex flex-col">
-            {/* Top gradient accent */}
             <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
 
-            {/* Modal Header */}
             <div className="flex items-center gap-3 border-b border-[#29435f] px-5 py-4 sm:px-7">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-300 shadow-inner shadow-cyan-300/5">
                 <ImagePlus size={22} strokeWidth={1.8} />
@@ -279,9 +376,7 @@ const Gallery = () => {
               </button>
             </div>
 
-            {/* Modal Body — Scrollable */}
             <div className="overflow-y-auto px-5 py-5 sm:px-7 sm:py-6">
-              {/* Hidden file input */}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -291,7 +386,6 @@ const Gallery = () => {
                 className="hidden"
               />
 
-              {/* Empty upload dropzone */}
               {selectedImages.length === 0 && (
                 <button
                   type="button"
@@ -314,10 +408,8 @@ const Gallery = () => {
                 </button>
               )}
 
-              {/* Selected images grid */}
               {selectedImages.length > 0 && (
                 <div className="space-y-5">
-                  {/* Count + Add More */}
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <span className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-400/20 bg-cyan-400/10 px-3 py-1.5 text-xs font-bold text-cyan-300">
@@ -326,9 +418,7 @@ const Gallery = () => {
                         {selectedImages.length === 1 ? "Image" : "Images"}{" "}
                         Selected
                       </span>
-                      <span className="text-xs text-slate-500">
-                        (max 10)
-                      </span>
+                      <span className="text-xs text-slate-500">(max 10)</span>
                     </div>
                     <button
                       type="button"
@@ -340,7 +430,6 @@ const Gallery = () => {
                     </button>
                   </div>
 
-                  {/* Preview grid */}
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                     {selectedImages.map((image) => (
                       <div
@@ -366,7 +455,6 @@ const Gallery = () => {
                     ))}
                   </div>
 
-                  {/* Title input */}
                   <div>
                     <label className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-200">
                       <Camera size={15} className="text-cyan-300" />
@@ -388,7 +476,6 @@ const Gallery = () => {
               )}
             </div>
 
-            {/* Modal Footer */}
             <div className="flex flex-col-reverse gap-2 border-t border-[#29435f] bg-[#0b1b30] px-5 py-4 sm:flex-row sm:items-center sm:justify-end sm:px-7">
               <button
                 type="button"
@@ -435,15 +522,32 @@ const Gallery = () => {
           </div>
         </div>
 
-        {/* Right side Add Image button */}
-        <button
-          type="button"
-          onClick={openUploadModal}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-2.5 text-sm font-bold text-[#0b1b30] shadow-lg shadow-cyan-400/20 transition hover:bg-cyan-300 active:scale-[0.98] sm:px-6 sm:py-3"
-        >
-          <Plus size={18} strokeWidth={3} />
-          Add Image
-        </button>
+        {/* Right side buttons */}
+        <div className="flex items-center gap-2">
+          {gallery.length > 0 && (
+            <button
+              type="button"
+              onClick={toggleSelectionMode}
+              className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold transition active:scale-[0.98] sm:px-5 sm:py-3 ${
+                isSelectionMode
+                  ? "border-cyan-400/40 bg-cyan-400/20 text-cyan-100 hover:bg-cyan-400/30"
+                  : "border-[#38516e] bg-[#132942] text-slate-300 hover:border-cyan-400/40 hover:bg-[#1a3658] hover:text-cyan-200"
+              }`}
+            >
+              <Check size={16} strokeWidth={3} />
+              {isSelectionMode ? "Cancel" : "Select"}
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={openUploadModal}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-2.5 text-sm font-bold text-[#0b1b30] shadow-lg shadow-cyan-400/20 transition hover:bg-cyan-300 active:scale-[0.98] sm:px-6 sm:py-3"
+          >
+            <Plus size={18} strokeWidth={3} />
+            Add Image
+          </button>
+        </div>
       </div>
 
       {/* ==================== SAVED GALLERY ==================== */}
@@ -458,6 +562,35 @@ const Gallery = () => {
           </span>
         </div>
 
+        {/* Selection toolbar */}
+        {isSelectionMode && (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/[0.04] px-3 py-2.5">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-cyan-300">
+                {selectedGalleryIds.length} selected
+              </span>
+              <button
+                type="button"
+                onClick={handleSelectAll}
+                className="text-xs font-semibold text-slate-300 underline-offset-2 transition hover:text-white hover:underline"
+              >
+                {selectedGalleryIds.length === gallery.length
+                  ? "Deselect all"
+                  : "Select all"}
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={handleBulkDeleteClick}
+              disabled={!selectedGalleryIds.length || deleting}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-red-500 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-red-400 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Trash2 size={13} />
+              Delete Selected ({selectedGalleryIds.length})
+            </button>
+          </div>
+        )}
+
         {loading ? (
           <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-[#29435f] bg-[#0b1b30] py-14">
             <Loader2 size={28} className="animate-spin text-cyan-400" />
@@ -465,44 +598,70 @@ const Gallery = () => {
           </div>
         ) : gallery.length > 0 ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
-            {gallery.map((image) => (
-              <div
-                key={image._id}
-                className="group relative overflow-hidden rounded-xl border border-[#29435f] bg-[#0b1b30] transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-400/50 hover:shadow-lg hover:shadow-cyan-400/5"
-              >
-                <div className="relative overflow-hidden">
-                  <img
-                    src={image.thumbnailUrl || image.imageUrl}
-                    alt={image.title || "Gallery image"}
-                    className="h-36 w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    loading="lazy"
-                  />
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                </div>
-
-                {image.title && (
-                  <div className="px-3 py-2">
-                    <p className="truncate text-sm font-medium text-slate-200">
-                      {image.title}
-                    </p>
-                  </div>
-                )}
-
-                <button
-                  type="button"
-                  onClick={() => handleDeleteClick(image._id)}
-                  disabled={deleting}
-                  className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-black/70 text-white opacity-100 backdrop-blur-sm transition-all hover:border-red-400/40 hover:bg-red-500 disabled:opacity-50 sm:opacity-0 sm:group-hover:opacity-100"
-                  title="Delete gallery image"
+            {gallery.map((image) => {
+              const isSelected = selectedGalleryIds.includes(image._id);
+              return (
+                <div
+                  key={image._id}
+                  onClick={
+                    isSelectionMode
+                      ? () => toggleGallerySelect(image._id)
+                      : undefined
+                  }
+                  className={`group relative overflow-hidden rounded-xl border bg-[#0b1b30] transition-all duration-300 ${
+                    isSelectionMode
+                      ? isSelected
+                        ? "cursor-pointer border-cyan-400 ring-2 ring-cyan-400/40"
+                        : "cursor-pointer border-[#29435f] hover:border-cyan-400/50"
+                      : "border-[#29435f] hover:-translate-y-0.5 hover:border-cyan-400/50 hover:shadow-lg hover:shadow-cyan-400/5"
+                  }`}
                 >
-                  {deleting && deleteConfirmId === image._id ? (
-                    <Loader2 size={15} className="animate-spin" />
-                  ) : (
-                    <Trash2 size={15} />
+                  <div className="relative overflow-hidden">
+                    <img
+                      src={image.thumbnailUrl || image.imageUrl}
+                      alt={image.title || "Gallery image"}
+                      className="h-36 w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      loading="lazy"
+                    />
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                  </div>
+
+                  {image.title && (
+                    <div className="px-3 py-2">
+                      <p className="truncate text-sm font-medium text-slate-200">
+                        {image.title}
+                      </p>
+                    </div>
                   )}
-                </button>
-              </div>
-            ))}
+
+                  {isSelectionMode ? (
+                    <div
+                      className={`absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-lg border-2 transition ${
+                        isSelected
+                          ? "border-cyan-400 bg-cyan-400 text-[#0b1b30]"
+                          : "border-white/50 bg-black/50 text-transparent"
+                      }`}
+                    >
+                      <Check size={16} strokeWidth={3} />
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteClick(image._id)}
+                      disabled={deleting}
+                      className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-black/70 text-white opacity-100 backdrop-blur-sm transition-all hover:border-red-400/40 hover:bg-red-500 disabled:opacity-50 sm:opacity-0 sm:group-hover:opacity-100"
+                      title="Delete gallery image"
+                    >
+                      {deleting && deleteConfirmId === image._id ? (
+                        <Loader2 size={15} className="animate-spin" />
+                      ) : (
+                        <Trash2 size={15} />
+                      )}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="rounded-2xl border border-dashed border-[#29435f] bg-[#0b1b30]/50 py-14 text-center">
