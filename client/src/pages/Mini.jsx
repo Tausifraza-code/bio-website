@@ -78,85 +78,43 @@ const hasValidProfile = (profile) => {
   const firstName = profile.firstName?.trim() || "";
   const lastName = profile.lastName?.trim() || "";
   const businessName = profile.businessName?.trim() || "";
-  if (/^(ankit'?s business|my business|your name)$/i.test(businessName)) return false;
-  if (/^(ankit|your name)$/i.test(firstName)) return false;
-  return Boolean(firstName || lastName || businessName || profile.phone?.trim() || profile.email?.trim());
+  const isDemo =
+    /^(ankit'?s business|my business|your name)$/i.test(businessName) ||
+    /^(ankit|your name)$/i.test(firstName);
+  const isDemo =
+    /^(ankit'?s business|my business|your name)$/i.test(businessName) ||
+    /^(ankit|your name)$/i.test(firstName);
+  if (isDemo) return false;
+  return Boolean(
+    firstName || lastName || businessName || profile.phone?.trim() || profile.email?.trim(),
+  );
 };
 
 const normalizeGalleryImages = (raw) => {
   if (!Array.isArray(raw)) return [];
-  return raw.map((item, index) => {
-    if (typeof item === "string") {
-      const url = item.trim();
-      return url ? { url, alt: `Gallery image ${index + 1}`, caption: "" } : null;
-    }
-    if (!item || typeof item !== "object") return null;
-    const url = [item.url, item.src, item.image, item.imageUrl, item.path].find((v) => typeof v === "string" && v.trim());
-    if (!url) return null;
-    const caption = item.caption?.trim() || item.title?.trim() || "";
-    return { url: url.trim(), alt: item.alt?.trim() || caption || `Gallery image ${index + 1}`, caption };
-  }).filter(Boolean);
-};
-
-const BUTTON_ICON_MAP = {
-  call: Phone, whatsapp: MessageCircle, email: Mail, saveContact: Download, share: Share2,
-  website: Globe, directions: NavigationIcon, upi: IndianRupee, customLink: FaLink,
-};
-
-const SECONDARY_BTN = { bg: "border border-[#29435f] bg-[#132942] hover:bg-[#1a3658]", text: "text-white" };
-const BUTTON_STYLE_MAP = {
-  call: { bg: "bg-cyan-400 hover:bg-cyan-300", text: "text-[#0b1b30]" },
-  whatsapp: { bg: "bg-emerald-500 hover:bg-emerald-400", text: "text-white" },
-  email: { bg: "bg-blue-500 hover:bg-blue-400", text: "text-white" },
-  upi: { bg: "border border-cyan-400/40 bg-cyan-400/10 hover:bg-cyan-400/20", text: "text-cyan-300" },
-  saveContact: SECONDARY_BTN, share: SECONDARY_BTN, website: SECONDARY_BTN, directions: SECONDARY_BTN, customLink: SECONDARY_BTN,
-};
-
-const SOCIAL_ICON_MAP = [
-  ["instagram", FaInstagram], ["linkedin", FaLinkedinIn], ["facebook", FaFacebookF],
-  ["youtube", FaYoutube], ["whatsapp", FaWhatsapp], ["telegram", FaTelegram], ["website", FaGlobe],
-];
-const SOCIAL_BRAND_MAP = {
-  instagram: { color: "#E4405F", label: "Instagram" },
-  facebook: { color: "#1877F2", label: "Facebook" },
-  linkedin: { color: "#0A66C2", label: "LinkedIn" },
-  youtube: { color: "#FF0000", label: "YouTube" },
-  whatsapp: { color: "#25D366", label: "WhatsApp" },
-  telegram: { color: "#26A5E4", label: "Telegram" },
-  twitter: { color: "#1DA1F2", label: "X (Twitter)" },
-};
-
-const getSocialIcon = (platform = "") => {
-  const v = platform.toLowerCase();
-  if (v.includes("twitter") || v === "x") return FaXTwitter;
-  const found = SOCIAL_ICON_MAP.find(([k]) => v.includes(k));
-  return found ? found[1] : FaLink;
-};
-
-const getSocialBrand = (platform = "") => {
-  const v = (platform || "").toLowerCase();
-  if (v.includes("twitter") || v === "x") return SOCIAL_BRAND_MAP.twitter;
-  if (v.includes("web")) return { color: "#22d3ee", label: "Website" };
-  const key = Object.keys(SOCIAL_BRAND_MAP).find((k) => v.includes(k));
-  return key ? SOCIAL_BRAND_MAP[key] : { color: "#22d3ee", label: platform || "Link" };
-};
-
-const Overlay = ({ onClose, children, higher, darker }) => (
-  <div
-    className={`fixed inset-0 ${higher ? "z-[110]" : "z-[100]"} flex items-center justify-center ${darker ? "bg-[#020817]/85" : "bg-[#020817]/80"} p-4 backdrop-blur-md`}
-    onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-  >
-    {children}
-  </div>
-);
-
-const QrDisplay = ({ id, size, value, fetching, emptyText = "QR code not available",
-  emptyClass = "mb-3 flex h-40 w-40 items-center justify-center rounded-xl border border-[#29435f] bg-[#0b1b30] text-sm text-slate-400",
-  wrapperClass = "mb-3 rounded-xl bg-white p-3",
-}) => {
-  if (fetching) return <div className={emptyClass}>Loading QR...</div>;
-  if (!value) return <div className={emptyClass}>{emptyText}</div>;
-  return <div className={wrapperClass}><QRCodeCanvas id={id} value={value} size={size} level="H" includeMargin /></div>;
+  return raw
+    .map((item, index) => {
+  return raw
+    .map((item, index) => {
+      if (typeof item === "string") {
+        const url = item.trim();
+        return url
+          ? { url, alt: `Gallery image ${index + 1}`, caption: "" }
+          : null;
+      }
+      if (!item || typeof item !== "object") return null;
+      const url = [item.url, item.src, item.image, item.imageUrl, item.path].find(
+        (value) => typeof value === "string" && value.trim(),
+      );
+      if (!url) return null;
+      const caption = item.caption?.trim() || item.title?.trim() || "";
+      return {
+        url: url.trim(),
+        alt: item.alt?.trim() || caption || `Gallery image ${index + 1}`,
+        caption,
+      };
+    })
+    .filter(Boolean);
 };
 
 const Mini = () => {
@@ -192,7 +150,11 @@ const Mini = () => {
 
   useEffect(() => {
     let mounted = true;
-    dispatch(fetchMyProfile()).unwrap()
+    dispatch(fetchMyProfile())
+      .unwrap()
+      .then((savedProfile) => {
+    dispatch(fetchMyProfile())
+      .unwrap()
       .then((savedProfile) => {
         if (!mounted) return;
         if (!hasValidProfile(savedProfile)) { navigate("/editprofile", { replace: true }); return; }
@@ -320,7 +282,14 @@ const Mini = () => {
   const handleSaveContact = () => {
     const esc = (v = "") => String(v).trim().replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
     const lines = ["BEGIN:VCARD", "VERSION:3.0"];
-    const fullName = [profileData.firstName, profileData.lastName].filter((v) => v?.trim()).join(" ").trim();
+    const fullName = [profileData.firstName, profileData.lastName]
+      .filter((value) => value?.trim())
+      .join(" ")
+      .trim();
+    const fullName = [profileData.firstName, profileData.lastName]
+      .filter((value) => value?.trim())
+      .join(" ")
+      .trim();
     const displayName = fullName || profileData.businessName?.trim() || "";
 
     if (displayName) lines.push(`FN:${esc(displayName)}`);
@@ -1459,7 +1428,13 @@ const Mini = () => {
         </Overlay>
       )}
 
-      {/* PAYMENT */}
+      <Payment
+        isOpen={showPayment}
+        onClose={() => setShowPayment(false)}
+        upiId={profileData.upiId || ""}
+        businessName={profileData.businessName || "My Business"}
+        businessImage={profileData.logo || profileData.avatar || ""}
+      />
       <Payment
         isOpen={showPayment}
         onClose={() => setShowPayment(false)}
