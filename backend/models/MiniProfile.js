@@ -143,6 +143,23 @@ const miniProfileSchema = new mongoose.Schema(
       default: "sunset",
     },
 
+    activeLayout: {
+  type: String,
+  enum: [
+    "modern-business",
+    "minimal-card",
+    "creator-portfolio",
+    "corporate-executive",
+    "storefront",
+    "freelancer-pro",
+    "elegant-profile",
+    "agency-pro",
+    "digital-card",
+    "service-pro",
+  ],
+  default: "modern-business",
+},
+
     selectedPlan: { type: String, default: "1year" },
 
     isActivated: { type: Boolean, default: false },

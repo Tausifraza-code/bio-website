@@ -10,6 +10,10 @@ import {
   Info,
   Check,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ArrowLeft,
+  ArrowRight,
   Link as LinkIcon,
   User,
   Briefcase,
@@ -36,6 +40,7 @@ import {
   Download,
   CheckCircle2,
   Circle,
+  Sparkles,
 } from "lucide-react";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -54,6 +59,16 @@ const secondaryButtonCls =
 
 const primaryButtonCls =
   "inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-200/30 bg-cyan-300 px-5 py-3 text-sm font-bold text-[#0b1b30] shadow-lg shadow-cyan-400/10 transition duration-200 hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-50";
+
+/* ==================== TAB ORDER ==================== */
+
+const TAB_ORDER = [
+  "Profile",
+  "Professional",
+  "Contact & Address",
+  "Gallery & QR",
+  "Appearance",
+];
 
 /* ==================== BUSINESS HOURS PRESETS ==================== */
 
@@ -357,6 +372,33 @@ const EditProfile = () => {
     }
   };
 
+  /* ==================== NEXT / PREVIOUS FLOW ==================== */
+  const currentTabIndex = TAB_ORDER.indexOf(activeTab);
+  const isFirstTab = currentTabIndex === 0;
+  const isLastTab = currentTabIndex === TAB_ORDER.length - 1;
+
+  const handleNext = () => {
+    if (!isLastTab) {
+      setActiveTab(TAB_ORDER[currentTabIndex + 1]);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const handlePrev = () => {
+    if (!isFirstTab) {
+      setActiveTab(TAB_ORDER[currentTabIndex - 1]);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const handlePrimaryAction = () => {
+    if (isLastTab) {
+      handleSave();
+    } else {
+      handleNext();
+    }
+  };
+
   /* DATA */
   const themes = [
     { id: "executive", name: "Executive Royal", category: "Corporate & Tech", description: "Prestigious sapphire and royal indigo frosted glass for corporate...", colors: ["#1e3a8a", "#7c3aed"] },
@@ -371,7 +413,7 @@ const EditProfile = () => {
   const activeThemeData = themes.find((theme) => theme.id === activeTheme);
 
   // Safe Dynamic Profile Completion
-  const totalFields = Object.keys(formData).length + 4; // formData fields + 4 images
+  const totalFields = Object.keys(formData).length + 4;
   const filledFields = Object.values(formData).filter((val) => {
     if (val === null || val === undefined) return false;
     if (typeof val === "string") return val.trim() !== "";
@@ -381,7 +423,7 @@ const EditProfile = () => {
   const completionPercentage = Math.min(100, Math.round((filledFields / totalFields) * 100));
 
   return (
-    <div className="relative min-h-screen overflow-hidden  px-1 py-5 text-white sm:px-5 sm:py-7 lg:px-8 font-sans">
+    <div className="relative min-h-screen overflow-x-clip px-1 py-5 text-white sm:px-5 sm:py-7 lg:px-8 font-sans">
       
       {/* HEADER */}
       <header className="relative mx-auto w-full max-w-[1350px] mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-[#29435f] pb-5">
@@ -398,22 +440,34 @@ const EditProfile = () => {
             Cancel
           </button>
           <button
-            onClick={handleSave}
+            onClick={handlePrimaryAction}
             disabled={loading || reduxSaving}
             className={primaryButtonCls}
           >
-            {loading || reduxSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-            {reduxSaving ? "Saving..." : saved ? "Saved!" : "Save Changes"}
+            {loading || reduxSaving ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : isLastTab ? (
+              <Save size={16} />
+            ) : (
+              <ArrowRight size={16} />
+            )}
+            {reduxSaving
+              ? "Saving..."
+              : isLastTab
+                ? saved
+                  ? "Saved!"
+                  : "Save Changes"
+                : "Next"}
           </button>
         </div>
       </header>
 
-      <div className="relative mx-auto w-full max-w-[1350px] grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="relative mx-auto w-full max-w-[1350px] grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
         
         {/* LEFT COLUMN */}
         <div className="lg:col-span-2 space-y-6">
           
-          {/* PROFILE PREVIEW CARD (Dynamic Data) */}
+          {/* PROFILE PREVIEW CARD */}
           <div className="overflow-hidden rounded-3xl border border-[#29435f] bg-[#132942]/80 shadow-2xl">
             <div 
               className="h-40 w-full bg-[#0b1b30] bg-cover bg-center relative"
@@ -466,17 +520,38 @@ const EditProfile = () => {
             </div>
           </div>
 
-          {/* TABS */}
-          <div className="flex overflow-x-auto border-b border-[#29435f] bg-[#132942]/80 rounded-t-2xl px-2 no-scrollbar">
-            {["Profile", "Professional", "Contact & Address", "Gallery & QR", "Appearance"].map((tab) => (
-              <button 
-                key={tab} 
-                onClick={() => setActiveTab(tab)}
-                className={`whitespace-nowrap px-5 py-4 text-sm font-semibold transition ${activeTab === tab ? "border-b-2 border-cyan-400 text-cyan-400" : "text-slate-400 hover:text-slate-200"}`}
-              >
-                {tab}
-              </button>
-            ))}
+          {/* TABS WITH PROGRESS */}
+          <div className="rounded-t-2xl border-b border-[#29435f] bg-[#132942]/80">
+            <div className="flex overflow-x-auto px-2 no-scrollbar">
+              {TAB_ORDER.map((tab, index) => {
+                const isActive = activeTab === tab;
+                const isCompleted = index < currentTabIndex;
+                return (
+                  <button 
+                    key={tab} 
+                    onClick={() => setActiveTab(tab)}
+                    className={`relative flex items-center gap-2 whitespace-nowrap px-4 py-4 text-sm font-semibold transition ${
+                      isActive 
+                        ? "border-b-2 border-cyan-400 text-cyan-400" 
+                        : "text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    <span
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold transition ${
+                        isActive
+                          ? "bg-cyan-400 text-[#0b1b30]"
+                          : isCompleted
+                            ? "bg-emerald-400/20 text-emerald-400"
+                            : "bg-[#0b1b30] text-slate-500"
+                      }`}
+                    >
+                      {isCompleted && !isActive ? <Check size={10} strokeWidth={4} /> : index + 1}
+                    </span>
+                    {tab}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="rounded-b-3xl border-x border-b border-[#29435f] bg-[#10233b]/90 p-5 sm:p-7">
@@ -501,7 +576,6 @@ const EditProfile = () => {
                     <Field label="Last Name" value={formData.lastName} onChange={(e) => handleChange("lastName", e.target.value)} placeholder="Last name" required />
                     <Field label="Business Name" value={formData.businessName} onChange={(e) => handleChange("businessName", e.target.value)} placeholder="Business name" required />
 
-                    {/* CATEGORY: Free-text input (dropdown removed) */}
                     <Field
                       label="Your Industry / Category"
                       icon={Building2}
@@ -535,7 +609,6 @@ const EditProfile = () => {
                 <Section title="Business Details" subtitle="Manage your working hours and main website." icon={Briefcase}>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
-                    {/* BUSINESS HOURS: Dropdown with Custom option */}
                     <div className="min-w-0">
                       <label className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-200">
                         <Clock size={15} className="shrink-0 text-cyan-300" />
@@ -719,23 +792,30 @@ const EditProfile = () => {
               </div>
             )}
 
-            {/* TAB 5: APPEARANCE */}
+            {/* TAB 5: APPEARANCE — PREMIUM REDESIGN */}
             {activeTab === "Appearance" && (
               <div className="space-y-8 animate-fadeIn">
                 <Section title="Mini Website Visual Themes" subtitle="Choose the appearance of your public visiting card." icon={Palette}>
-                  <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-[#29435f] bg-[#0b1b30]/70 p-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="text-sm font-bold text-white">Available designs</p>
-                      <p className="mt-1 text-xs text-slate-400">{themes.length} themes available</p>
+                  
+                  {/* Active Theme Header Bar */}
+                  <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-cyan-400/20 bg-gradient-to-r from-cyan-400/[0.08] via-[#0b1b30]/60 to-blue-400/[0.05] p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-400/10 text-cyan-300 shadow-inner">
+                        <Sparkles size={18} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-white">Currently Active Theme</p>
+                        <p className="mt-0.5 text-xs text-slate-400">{themes.length} premium themes available</p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 rounded-xl border border-cyan-300/20 bg-cyan-300/5 px-3 py-2.5">
-                      <span className="h-4 w-4 shrink-0 rounded-full ring-2 ring-white/10" style={{ background: `linear-gradient(135deg, ${activeThemeData?.colors[0]}, ${activeThemeData?.colors[1]})` }} />
-                      <span className="text-xs text-slate-300">Active theme:</span>
+                    <div className="flex items-center gap-2 rounded-xl border border-cyan-400/30 bg-[#0b1b30]/70 px-3 py-2 backdrop-blur-sm">
+                      <span className="h-4 w-4 shrink-0 rounded-full ring-2 ring-white/20 shadow" style={{ background: `linear-gradient(135deg, ${activeThemeData?.colors[0]}, ${activeThemeData?.colors[1]})` }} />
                       <span className="text-xs font-bold text-cyan-200">{activeThemeData?.name}</span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {/* Premium Theme Grid */}
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                     {themes.map((theme) => {
                       const isActive = activeTheme === theme.id;
                       return (
@@ -743,19 +823,80 @@ const EditProfile = () => {
                           key={theme.id}
                           type="button"
                           onClick={() => { setActiveTheme(theme.id); setSaved(false); }}
-                          className={`group relative min-w-0 overflow-hidden rounded-2xl border p-4 text-left transition duration-300 hover:-translate-y-0.5 ${isActive ? "border-cyan-300/60 bg-cyan-300/[0.07] shadow-lg shadow-cyan-300/5 ring-1 ring-cyan-300/15" : "border-[#29435f] bg-[#132942]/60 hover:border-[#38516e]"}`}
+                          className={`group relative overflow-hidden rounded-2xl border text-left transition-all duration-300 ${
+                            isActive 
+                              ? "border-cyan-400/60 bg-cyan-400/[0.05] shadow-xl shadow-cyan-400/15 ring-2 ring-cyan-400/40" 
+                              : "border-[#29435f] bg-[#132942]/60 hover:-translate-y-1 hover:border-[#38516e] hover:shadow-xl hover:shadow-black/30"
+                          }`}
                         >
-                          <div className="mb-4 h-16 overflow-hidden rounded-xl border border-white/10 p-1.5" style={{ background: `linear-gradient(135deg, ${theme.colors[0]}, ${theme.colors[1]})` }}>
-                             <div className="flex h-full flex-col justify-between rounded-lg border border-white/20 bg-black/10 p-1.5">
-                                <div className="flex items-center gap-1"><span className="h-4 w-4 rounded-md border border-white/30 bg-white/20" /><span className="h-1 w-10 rounded-full bg-white/70" /></div>
-                                <div className="space-y-1"><div className="h-1 w-3/4 rounded-full bg-white/80" /><div className="h-1 w-1/2 rounded-full bg-white/40" /></div>
-                             </div>
+                          {/* Preview Mockup */}
+                          <div
+                            className="relative h-32 overflow-hidden p-2.5"
+                            style={{
+                              background: `linear-gradient(135deg, ${theme.colors[0]}, ${theme.colors[1]})`,
+                            }}
+                          >
+                            {/* Glass overlay */}
+                            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/15 via-transparent to-black/25" />
+
+                            {/* Mock UI Card */}
+                            <div className="relative flex h-full flex-col gap-1.5 rounded-lg border border-white/25 bg-white/10 p-2 backdrop-blur-[2px]">
+                              {/* Header row */}
+                              <div className="flex items-center gap-1.5">
+                                <div className="h-6 w-6 rounded-full border border-white/50 bg-white/40 shadow-sm" />
+                                <div className="flex-1 space-y-1">
+                                  <div className="h-1.5 w-3/4 rounded-full bg-white/85" />
+                                  <div className="h-1 w-1/2 rounded-full bg-white/50" />
+                                </div>
+                              </div>
+                              {/* Body */}
+                              <div className="space-y-1">
+                                <div className="h-1 w-full rounded-full bg-white/45" />
+                                <div className="h-1 w-5/6 rounded-full bg-white/30" />
+                              </div>
+                              {/* Action pills */}
+                              <div className="mt-auto flex gap-1.5">
+                                <div className="h-2.5 flex-1 rounded bg-white/50" />
+                                <div className="h-2.5 flex-1 rounded bg-white/50" />
+                              </div>
+                            </div>
+
+                            {/* Active badge */}
+                            {isActive && (
+                              <div className="absolute right-2.5 top-2.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-white shadow-lg ring-2 ring-cyan-400/60">
+                                <Check size={14} className="text-cyan-600" strokeWidth={3.5} />
+                              </div>
+                            )}
+
+                            {/* Hover hint */}
+                            <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                              <span className="mb-2 rounded-full bg-white/95 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#0b1b30] shadow-lg">
+                                {isActive ? "Selected" : "Tap to Apply"}
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex items-start justify-between gap-2">
-                            <h3 className="text-xs font-bold leading-5 text-white">{theme.name}</h3>
-                            {isActive && <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-cyan-300 text-[#0b1b30]"><Check size={12} strokeWidth={3} /></span>}
+
+                          {/* Info Section */}
+                          <div className="p-3.5">
+                            <div className="flex items-start justify-between gap-2">
+                              <h3 className="text-sm font-bold leading-tight text-white">{theme.name}</h3>
+                              {isActive && (
+                                <span className="shrink-0 rounded-md border border-cyan-400/40 bg-cyan-400/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-cyan-300">
+                                  Active
+                                </span>
+                              )}
+                            </div>
+                            <p className="mt-1.5 line-clamp-2 text-[11px] leading-4 text-slate-400">
+                              {theme.description}
+                            </p>
+                            <div className="mt-2.5 flex items-center gap-1.5">
+                              <span className="h-2 w-2 rounded-full ring-1 ring-white/20" style={{ background: theme.colors[0] }} />
+                              <span className="h-2 w-2 rounded-full ring-1 ring-white/20" style={{ background: theme.colors[1] }} />
+                              <span className="ml-1 truncate text-[10px] font-semibold uppercase tracking-wide text-cyan-200/80">
+                                {theme.category}
+                              </span>
+                            </div>
                           </div>
-                          <p className="mt-1 text-[10px] font-medium text-cyan-200">{theme.category}</p>
                         </button>
                       );
                     })}
@@ -787,31 +928,133 @@ const EditProfile = () => {
               </div>
             )}
 
-            {/* BOTTOM SAVE BUTTON & STATUS */}
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-[#29435f] pt-6">
+            {/* ==================== BOTTOM NAVIGATION ==================== */}
+            <div className="mt-8 flex flex-col gap-4 border-t border-[#29435f] pt-6 sm:flex-row sm:items-center sm:justify-between">
+              {/* Saved indicator */}
               {saved && (
-                <div className="flex items-center gap-2 text-sm font-bold text-cyan-300 bg-cyan-300/10 px-4 py-2 rounded-xl border border-cyan-300/20">
+                <div className="flex items-center gap-2 rounded-xl border border-cyan-300/20 bg-cyan-300/10 px-4 py-2 text-sm font-bold text-cyan-300">
                   <Check size={16} /> Profile Saved Successfully!
                 </div>
               )}
-              <div className="w-full sm:w-auto sm:ml-auto">
+
+              {/* Nav buttons */}
+              <div className={`flex w-full gap-3 sm:ml-auto sm:w-auto ${saved ? "" : "sm:ml-auto"}`}>
+                {/* Previous */}
+                {!isFirstTab && (
+                  <button
+                    type="button"
+                    onClick={handlePrev}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#38516e] bg-[#132942] px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-cyan-300/50 hover:bg-[#193754] hover:text-cyan-200 sm:flex-none"
+                  >
+                    <ArrowLeft size={16} /> Previous
+                  </button>
+                )}
+
+                {/* Primary: Next or Save */}
                 <button
                   type="button"
-                  onClick={handleSave}
+                  onClick={handlePrimaryAction}
                   disabled={loading || reduxSaving}
-                  className={`${primaryButtonCls} w-full sm:w-auto min-w-[200px]`}
+                  className={`${primaryButtonCls} flex-1 sm:flex-none sm:min-w-[180px]`}
                 >
-                  {loading || reduxSaving ? <Loader2 size={17} className="animate-spin" /> : <Save size={17} />}
-                  {reduxSaving ? "Saving..." : "Save Changes"}
+                  {loading || reduxSaving ? (
+                    <Loader2 size={17} className="animate-spin" />
+                  ) : isLastTab ? (
+                    <Save size={17} />
+                  ) : (
+                    <ArrowRight size={17} />
+                  )}
+                  {reduxSaving
+                    ? "Saving..."
+                    : isLastTab
+                      ? "Save Changes"
+                      : "Next"}
                 </button>
               </div>
+            </div>
+
+            {/* Step indicator (mobile) */}
+            <div className="mt-4 flex items-center justify-center gap-2 sm:hidden">
+              {TAB_ORDER.map((tab, idx) => (
+                <span
+                  key={tab}
+                  className={`h-1.5 rounded-full transition-all ${
+                    idx === currentTabIndex
+                      ? "w-6 bg-cyan-400"
+                      : idx < currentTabIndex
+                        ? "w-1.5 bg-emerald-400/60"
+                        : "w-1.5 bg-slate-600"
+                  }`}
+                />
+              ))}
             </div>
           </div>
         </div>
 
-        {/* RIGHT COLUMN (SIDEBAR) - Dynamic Data */}
-        <div className="space-y-6">
+        {/* RIGHT COLUMN (SIDEBAR) — STICKY */}
+        <div className="space-y-6 lg:sticky lg:top-6 lg:self-start">
           
+          {/* LIVE PREVIEW CARD */}
+          <div className="overflow-hidden rounded-3xl border border-[#29435f] bg-[#132942]/80 shadow-xl">
+            <div className="flex items-center justify-between border-b border-[#29435f] px-5 py-3.5">
+              <h3 className="flex items-center gap-2 text-sm font-bold text-white">
+                <Camera size={15} className="text-cyan-400" /> Live Preview
+              </h3>
+              <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-2.5 py-0.5 text-[10px] font-bold text-cyan-300">
+                Real-time
+              </span>
+            </div>
+            <div className="p-4">
+              <div className="relative overflow-hidden rounded-xl border border-[#29435f] bg-[#0b1b30]">
+                <div
+                  className="h-20 w-full bg-cover bg-center"
+                  style={{
+                    backgroundImage: banner
+                      ? `url(${banner})`
+                      : "linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%)",
+                  }}
+                >
+                  <div className="h-full w-full bg-gradient-to-t from-[#0b1b30] via-transparent to-transparent" />
+                </div>
+                <div className="relative -mt-7 px-3 pb-3">
+                  <div className="mb-2 h-14 w-14 overflow-hidden rounded-full border-2 border-[#0b1b30] bg-[#132942] shadow-lg">
+                    {avatar ? (
+                      <img src={avatar} alt="preview" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-slate-500">
+                        <User size={22} />
+                      </div>
+                    )}
+                  </div>
+                  <p className="truncate text-sm font-bold text-white">
+                    {[formData.firstName, formData.lastName].filter(Boolean).join(" ") || "Your Name"}
+                  </p>
+                  <p className="truncate text-[11px] font-semibold text-cyan-300">
+                    {formData.jobTitle || "Your Designation"}
+                  </p>
+                  <p className="mt-0.5 truncate text-[10px] text-slate-400">
+                    {formData.businessName || "Business Name"}
+                  </p>
+                </div>
+                <div className="flex items-center justify-between border-t border-[#29435f] bg-[#071326] px-3 py-2">
+                  <span className="text-[10px] font-semibold text-slate-400">Active Theme</span>
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className="h-3 w-3 rounded-full ring-1 ring-white/20"
+                      style={{
+                        background: `linear-gradient(135deg, ${activeThemeData?.colors[0]}, ${activeThemeData?.colors[1]})`,
+                      }}
+                    />
+                    <span className="text-[10px] font-bold text-cyan-200">{activeThemeData?.name}</span>
+                  </div>
+                </div>
+              </div>
+              <p className="mt-3 text-[10px] leading-4 text-slate-500">
+                Your live mini page preview. Save to reflect changes on the public page.
+              </p>
+            </div>
+          </div>
+
           {/* DYNAMIC PROFILE COMPLETION */}
           <div className="rounded-3xl border border-[#29435f] bg-[#132942]/80 p-6 shadow-xl">
             <h3 className="mb-5 flex items-center gap-2 text-sm font-bold text-white">
