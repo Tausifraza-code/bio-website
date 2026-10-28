@@ -16,7 +16,10 @@ const { resolveQRCode } = require("./controllers/qrCode.controller");
 const adminQRRoutes = require("./routes/adminQR.routes");
 const referralRoutes = require("./routes/referral.route");
 const inquiryRoutes = require("./routes/inquiry.routes");
-
+const planRoutes = require("./routes/plan.routes");
+const planPurchaseRoutes = require("./routes/planPurchase.routes");
+const publicPlanRoutes = require("./routes/publicPlan.routes");
+const razorpayWebhookRoutes = require("./routes/razorpayWebhook.routes");
 const connectDB = require("./config/db");
 
 const app = express();
@@ -51,6 +54,7 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
+app.use("/api/webhooks/razorpay", express.raw({ type: "application/json" }));
 
 // ======================================================
 // MIDDLEWARE
@@ -62,7 +66,7 @@ app.use(express.urlencoded({ extended: true }));
 // ======================================================
 // API ROUTES
 // ======================================================
-
+app.use("/api/admin/plans", planRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/profile", profileRoutes);
@@ -74,11 +78,13 @@ app.use("/api/inquiries", inquiryRoutes);
 app.use("/api/payment-settings", paymentSettingsRoutes);
 app.use("/api/qr-codes", qrCodeRoutes);
 
+app.use("/api/plan-purchases", planPurchaseRoutes);
+app.use("/api/plans", publicPlanRoutes);
+app.use("/api/webhooks/razorpay", razorpayWebhookRoutes);
 app.use("/api/admin/qr-sets", adminQRRoutes);
 // Resolve an existing physical QR path, e.g. GET /xyz
 app.get("/:qrPath", resolveQRCode);
 app.get("/q/:qrPath", resolveQRCode);
-
 
 // ======================================================
 // STATIC FRONTEND FILES

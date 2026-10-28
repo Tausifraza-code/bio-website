@@ -83,9 +83,6 @@ const hasValidProfile = (profile) => {
   const isDemo =
     /^(ankit'?s business|my business|your name)$/i.test(businessName) ||
     /^(ankit|your name)$/i.test(firstName);
-  const isDemo =
-    /^(ankit'?s business|my business|your name)$/i.test(businessName) ||
-    /^(ankit|your name)$/i.test(firstName);
   if (isDemo) return false;
   return Boolean(
     firstName || lastName || businessName || profile.phone?.trim() || profile.email?.trim(),
@@ -94,8 +91,6 @@ const hasValidProfile = (profile) => {
 
 const normalizeGalleryImages = (raw) => {
   if (!Array.isArray(raw)) return [];
-  return raw
-    .map((item, index) => {
   return raw
     .map((item, index) => {
       if (typeof item === "string") {
@@ -163,9 +158,6 @@ const Mini = () => {
     dispatch(fetchMyProfile())
       .unwrap()
       .then((savedProfile) => {
-    dispatch(fetchMyProfile())
-      .unwrap()
-      .then((savedProfile) => {
         if (!mounted) return;
         if (!hasValidProfile(savedProfile)) {
           navigate("/editprofile", { replace: true });
@@ -173,8 +165,6 @@ const Mini = () => {
         }
         setActiveTheme(savedProfile.activeTheme || "sunset");
         setProfileChecked(true);
-      })
-      .catch((error) => {
       })
       .catch((error) => {
         if (!mounted) return;
@@ -314,11 +304,6 @@ const Mini = () => {
       text: `Check out ${businessInfo.name || businessInfo.businessName}'s business`,
       url: window.location.href,
     };
-    const shareData = {
-      title: businessInfo.name || businessInfo.businessName,
-      text: `Check out ${businessInfo.name || businessInfo.businessName}'s business`,
-      url: window.location.href,
-    };
     if (navigator.share) {
       try { await navigator.share(shareData); } catch { /* cancelled */ }
     } else { handleCopyLink(); }
@@ -350,10 +335,6 @@ const Mini = () => {
     const escapeVCard = (value = "") =>
       String(value).trim().replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
     const lines = ["BEGIN:VCARD", "VERSION:3.0"];
-    const fullName = [profileData.firstName, profileData.lastName]
-      .filter((value) => value?.trim())
-      .join(" ")
-      .trim();
     const fullName = [profileData.firstName, profileData.lastName]
       .filter((value) => value?.trim())
       .join(" ")
@@ -1344,13 +1325,6 @@ const Mini = () => {
         </div>
       )}
 
-      <Payment
-        isOpen={showPayment}
-        onClose={() => setShowPayment(false)}
-        upiId={profileData.upiId || ""}
-        businessName={profileData.businessName || "My Business"}
-        businessImage={profileData.logo || profileData.avatar || ""}
-      />
       <Payment
         isOpen={showPayment}
         onClose={() => setShowPayment(false)}
