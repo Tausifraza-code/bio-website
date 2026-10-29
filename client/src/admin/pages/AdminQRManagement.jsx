@@ -1182,7 +1182,7 @@ export default function AdminQRManagement() {
       </section>
 
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-[#0b1728]">
-        <div className="flex flex-col gap-4 border-b border-slate-200 p-5 dark:border-slate-800 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-4 border-b border-slate-200 p-5 dark:border-slate-800 xl:flex-row xl:items-center xl:justify-between">
           <div>
             <h2 className="font-semibold">QR Inventory</h2>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
@@ -1190,8 +1190,11 @@ export default function AdminQRManagement() {
             </p>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <form onSubmit={handleSearch} className="relative">
+          <div className="flex w-full min-w-0 flex-col gap-3 sm:flex-row xl:flex-1">
+            <form
+              onSubmit={handleSearch}
+              className="relative min-w-0 flex-1"
+            >
               <Search
                 size={17}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -1201,20 +1204,22 @@ export default function AdminQRManagement() {
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
                 placeholder="Search Set ID or business"
-                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none focus:border-cyan-500 sm:w-64 dark:border-slate-700 dark:bg-[#07111f]"
+                className="w-full min-w-0 rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none focus:border-cyan-500 dark:border-slate-700 dark:bg-[#07111f]"
               />
             </form>
 
-            <select
-              value={status}
-              onChange={handleStatusChange}
-              aria-label="Filter QR status"
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-cyan-500 dark:border-slate-700 dark:bg-[#07111f]"
-            >
-              <option value="">All statuses</option>
-              <option value="available">Available</option>
-              <option value="assigned">Assigned</option>
-            </select>
+            <div className="w-full min-w-0 sm:w-44 sm:flex-none">
+              <select
+                value={status}
+                onChange={handleStatusChange}
+                aria-label="Filter QR status"
+                className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-cyan-500 dark:border-slate-700 dark:bg-[#07111f]"
+              >
+                <option value="">All statuses</option>
+                <option value="available">Available</option>
+                <option value="assigned">Assigned</option>
+              </select>
+            </div>
           </div>
         </div>
 

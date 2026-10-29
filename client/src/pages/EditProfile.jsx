@@ -80,6 +80,142 @@ const businessHourPresets = [
   "Mon - Sat: 10:00 AM - 9:00 PM | Sun: 11:00 AM - 5:00 PM",
 ];
 
+// ==================== ABOUT US CATEGORY DATA ====================
+
+const aboutUs = [
+  {
+    category: "barber",
+    title: "About Our Barber Shop",
+    shortDescription: "Professional grooming and stylish haircuts.",
+    description:
+      "Welcome to our barber shop, where style meets quality. We provide professional haircuts, beard trimming, shaving, hair styling, and grooming services. Our experienced barbers focus on customer satisfaction, hygiene, and modern styles to give every customer a fresh and confident look.",
+    services: [
+      "Haircut",
+      "Beard Trimming",
+      "Clean Shave",
+      "Hair Styling",
+      "Hair Wash",
+      "Grooming Services",
+    ],
+  },
+  {
+    category: "bakery",
+    title: "About Our Bakery",
+    shortDescription: "Freshly baked products made with love.",
+    description:
+      "Welcome to our bakery, your destination for fresh, delicious, and high-quality baked goods. We prepare cakes, pastries, cookies, breads, and other bakery products using quality ingredients. Our goal is to deliver freshness, great taste, and a delightful experience for every customer.",
+    services: [
+      "Fresh Bread",
+      "Birthday Cakes",
+      "Pastries",
+      "Cookies",
+      "Custom Cakes",
+      "Bakery Snacks",
+    ],
+  },
+  {
+    category: "tool_shop",
+    title: "About Our Tool Shop",
+    shortDescription: "Reliable tools for professionals and DIY projects.",
+    description:
+      "Welcome to our tool shop, offering a wide range of reliable tools and equipment for professionals, technicians, and DIY enthusiasts. We focus on quality, durability, and affordability to help our customers complete their projects efficiently.",
+    services: [
+      "Hand Tools",
+      "Power Tools",
+      "Measuring Tools",
+      "Repair Tools",
+      "Safety Equipment",
+      "Tool Accessories",
+    ],
+  },
+  {
+    category: "hardware_shop",
+    title: "About Our Hardware Shop",
+    shortDescription: "Quality hardware supplies for every project.",
+    description:
+      "Welcome to our hardware shop, your trusted destination for construction, repair, and home improvement supplies. We offer a variety of hardware products, fittings, plumbing supplies, electrical accessories, paints, and building materials to support projects of every size.",
+    services: [
+      "Building Materials",
+      "Paints and Brushes",
+      "Plumbing Supplies",
+      "Electrical Accessories",
+      "Locks and Fittings",
+      "Screws and Fasteners",
+    ],
+  },
+  {
+    category: "biryani_shop",
+    title: "About Our Biryani Shop",
+    shortDescription: "Authentic and flavorful biryani for every occasion.",
+    description:
+      "Welcome to our biryani shop, where aromatic spices, quality ingredients, and delicious recipes come together. We serve freshly prepared biryani with rich flavors and satisfying portions. Whether you are ordering lunch, dinner, or food for a special occasion, we aim to make every meal memorable.",
+    services: [
+      "Chicken Biryani",
+      "Mutton Biryani",
+      "Veg Biryani",
+      "Egg Biryani",
+      "Family Combos",
+      "Party Orders",
+    ],
+  },
+  {
+    category: "restaurant",
+    title: "About Our Restaurant",
+    shortDescription: "Delicious food and memorable dining experiences.",
+    description:
+      "Welcome to our restaurant, where great food, warm hospitality, and a comfortable atmosphere come together. We offer a diverse menu prepared with quality ingredients and attention to taste. Our mission is to provide excellent service and a satisfying dining experience for families, friends, and food lovers.",
+    services: [
+      "Dine-In",
+      "Takeaway",
+      "Online Food Orders",
+      "Family Meals",
+      "Group Dining",
+      "Special Menu",
+    ],
+  },
+  {
+    category: "fast_food_shop",
+    title: "About Our Fast Food Shop",
+    shortDescription: "Quick bites packed with delicious flavors.",
+    description:
+      "Welcome to our fast food shop, serving tasty and freshly prepared meals for customers on the go. From burgers and pizzas to sandwiches, fries, and wraps, we offer convenient food options with great taste and friendly service.",
+    services: [
+      "Burgers",
+      "Pizza",
+      "French Fries",
+      "Sandwiches",
+      "Wraps and Rolls",
+      "Combo Meals",
+    ],
+  },
+  {
+    category: "cafe",
+    title: "About Our Cafe",
+    shortDescription: "Your cozy place for coffee, snacks, and relaxation.",
+    description:
+      "Welcome to our cafe, a welcoming space to enjoy freshly brewed coffee, refreshing beverages, and delicious snacks. Whether you are meeting friends, working remotely, or simply taking a break, we aim to create a comfortable atmosphere with quality food and friendly service.",
+    services: [
+      "Hot Coffee",
+      "Cold Coffee",
+      "Tea",
+      "Milkshakes",
+      "Snacks",
+      "Desserts",
+    ],
+  },
+];
+
+const industryOptions = [
+  { value: "barber", label: "Barber" },
+  { value: "bakery", label: "Bakery" },
+  { value: "tool_shop", label: "Tool Shop" },
+  { value: "hardware_shop", label: "Hardware Shop" },
+  { value: "biryani_shop", label: "Biryani Shop" },
+  { value: "restaurant", label: "Restaurant" },
+  { value: "fast_food_shop", label: "Fast Food Shop" },
+  { value: "cafe", label: "Cafe" },
+];
+
 /* ==================== REUSABLE COMPONENTS ==================== */
 
 const Divider = () => (
@@ -422,6 +558,10 @@ const EditProfile = () => {
   
   const completionPercentage = Math.min(100, Math.round((filledFields / totalFields) * 100));
 
+  const selectedAbout = aboutUs.find(
+    (item) => item.category === formData.industry,
+  );
+
   return (
     <div className="relative min-h-screen overflow-x-clip px-1 py-5 text-white sm:px-5 sm:py-7 lg:px-8 font-sans">
       
@@ -576,14 +716,58 @@ const EditProfile = () => {
                     <Field label="Last Name" value={formData.lastName} onChange={(e) => handleChange("lastName", e.target.value)} placeholder="Last name" required />
                     <Field label="Business Name" value={formData.businessName} onChange={(e) => handleChange("businessName", e.target.value)} placeholder="Business name" required />
 
-                    <Field
-                      label="Your Industry / Category"
-                      icon={Building2}
-                      value={formData.industry}
-                      onChange={(e) => handleChange("industry", e.target.value)}
-                      placeholder="e.g. Retail, Healthcare, IT & Software..."
-                      required
-                    />
+                    <div className="min-w-0">
+                      <label className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-200">
+                        <Building2
+                          size={15}
+                          className="shrink-0 text-cyan-300"
+                        />
+                        <span>Your Industry / Category</span>
+                        <span className="text-cyan-200">*</span>
+                      </label>
+
+                      <select
+                        value={formData.industry}
+                        onChange={(e) => {
+                          const category = e.target.value;
+                          handleChange("industry", category);
+
+                          const selectedCategory = aboutUs.find(
+                            (item) => item.category === category,
+                          );
+
+                          if (selectedCategory) {
+                            handleChange("bio", selectedCategory.description);
+                          }
+                        }}
+                        required
+                        className={`${inputCls} appearance-none`}
+                      >
+                        <option value="" disabled>
+                          Select your industry
+                        </option>
+                        {formData.industry &&
+                          !industryOptions.some(
+                            (item) => item.value === formData.industry,
+                          ) && (
+                            <option
+                              value={formData.industry}
+                              className="bg-[#132942] text-white"
+                            >
+                              Saved category: {formData.industry}
+                            </option>
+                          )}
+                        {industryOptions.map((item) => (
+                          <option
+                            key={item.value}
+                            value={item.value}
+                            className="bg-[#132942] text-white"
+                          >
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
 
                     <Field label="Job Title / Role" icon={Briefcase} value={formData.jobTitle} onChange={(e) => handleChange("jobTitle", e.target.value)} placeholder="Business Owner / Professional" />
                     <Field label="Short Headline / Slogan" value={formData.headline} onChange={(e) => handleChange("headline", e.target.value)} placeholder="Your short tagline" />
@@ -597,6 +781,34 @@ const EditProfile = () => {
                         <p className="text-xs text-slate-400">Keep your introduction clear and customer-friendly.</p>
                         <p className="text-xs font-semibold text-cyan-200">{formData.bio.length} / 500 characters</p>
                       </div>
+                      {selectedAbout && (
+                        <div className="mt-4 rounded-2xl border border-[#29435f] bg-[#132942]/70 p-4 sm:p-5">
+                          <h3 className="text-base font-bold text-white">
+                            {selectedAbout.title}
+                          </h3>
+
+                          <p className="mt-1 text-sm text-cyan-300">
+                            {selectedAbout.shortDescription}
+                          </p>
+
+                          <div className="mt-4">
+                            <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                              Available Services
+                            </p>
+
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {selectedAbout.services.map((service) => (
+                                <span
+                                  key={service}
+                                  className="rounded-lg border border-cyan-300/20 bg-cyan-300/10 px-3 py-1.5 text-xs font-medium text-cyan-100"
+                                >
+                                  {service}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </Section>
