@@ -425,11 +425,11 @@ function CardPreview() {
 
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      await navigator.clipboard.writeText(qrValue);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      alert("Unable to copy the link. Please copy it from the address bar.");
+      window.prompt("Copy your business card link:", qrValue);
     }
   };
 
