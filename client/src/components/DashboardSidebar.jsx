@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -105,16 +104,11 @@ const sidebarItems = [
 ];
 
 const badgeColors = {
-  amber:
-    "border-amber-300/20 bg-amber-300/[0.08] text-amber-200",
-  violet:
-    "border-violet-300/20 bg-violet-300/[0.08] text-violet-200",
-  slate:
-    "border-slate-300/15 bg-slate-300/[0.07] text-slate-300",
-  rose:
-    "border-rose-300/20 bg-rose-300/[0.08] text-rose-200",
-  emerald:
-    "border-emerald-300/20 bg-emerald-300/[0.08] text-emerald-200",
+  amber: "border-amber-300/20 bg-amber-300/[0.08] text-amber-200",
+  violet: "border-violet-300/20 bg-violet-300/[0.08] text-violet-200",
+  slate: "border-slate-300/15 bg-slate-300/[0.07] text-slate-300",
+  rose: "border-rose-300/20 bg-rose-300/[0.08] text-rose-200",
+  emerald: "border-emerald-300/20 bg-emerald-300/[0.08] text-emerald-200",
 };
 
 const DashboardSidebar = ({
@@ -135,24 +129,23 @@ const DashboardSidebar = ({
 
   return (
     <aside
-      className={`sticky top-[82px] hidden h-fit shrink-0 self-start lg:block ${collapsed
-          ? "w-[76px]"
-          : "w-[250px] xl:w-[270px]"
-        } transition-[width] duration-300`}
+      className={`sticky top-[82px] hidden h-fit shrink-0 self-start lg:block ${
+        collapsed ? "w-[76px]" : "w-[250px] xl:w-[270px]"
+      } transition-[width] duration-300`}
     >
       <div
-        className={`relative flex h-[calc(100vh-98px)] max-h-[calc(100vh-98px)] flex-col overflow-hidden rounded-[18px] border border-[#123A60] bg-[#031B36] shadow-[0_18px_50px_rgba(0,0,0,0.32)] ${collapsed ? "p-2" : "p-2.5"
-          }`}
+        className={`relative flex h-[calc(100vh-98px)] max-h-[calc(100vh-98px)] flex-col overflow-hidden rounded-[18px] border border-[#123A60] bg-[#031B36] shadow-[0_18px_50px_rgba(0,0,0,0.32)] ${
+          collapsed ? "p-2" : "p-2.5"
+        }`}
       >
         {/* TOP CYAN ACCENT */}
         <div className="absolute left-4 right-4 top-0 h-[2px] rounded-full bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-90" />
 
         {/* SIDEBAR HEADER */}
         <div
-          className={`mb-2 flex shrink-0 items-center ${collapsed
-              ? "justify-center"
-              : "justify-between"
-            }`}
+          className={`mb-2 flex shrink-0 items-center ${
+            collapsed ? "justify-center" : "justify-between"
+          }`}
         >
           {!collapsed && (
             <div className="flex min-w-0 items-center gap-2.5 px-1.5">
@@ -182,23 +175,11 @@ const DashboardSidebar = ({
           <button
             type="button"
             onClick={onToggle}
-            title={
-              collapsed
-                ? "Expand sidebar"
-                : "Collapse sidebar"
-            }
-            aria-label={
-              collapsed
-                ? "Expand sidebar"
-                : "Collapse sidebar"
-            }
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#164467] bg-[#082443] text-slate-400 transition-all duration-200 hover:border-cyan-400/40 hover:bg-[#0B2D50] hover:text-cyan-200 active:scale-95"
           >
-            {collapsed ? (
-              <ChevronRight size={17} />
-            ) : (
-              <ChevronLeft size={17} />
-            )}
+            {collapsed ? <ChevronRight size={17} /> : <ChevronLeft size={17} />}
           </button>
         </div>
 
@@ -225,32 +206,23 @@ const DashboardSidebar = ({
 
             const active =
               location.pathname === item.path ||
-              location.pathname.startsWith(
-                `${item.path}/`
-              ) ||
-              (activeNavItem === item.id &&
-                location.pathname === item.path);
+              location.pathname.startsWith(`${item.path}/`) ||
+              (activeNavItem === item.id && location.pathname === item.path);
 
             return (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => handleNavigation(item)}
-                title={
-                  collapsed
-                    ? item.label
-                    : undefined
-                }
-                aria-current={
-                  active ? "page" : undefined
-                }
-                className={`group relative flex w-full items-center rounded-xl border text-left transition-all duration-200 ${collapsed
-                    ? "justify-center px-0 py-2.5"
-                    : "gap-2.5 px-2 py-2"
-                  } ${active
+                title={collapsed ? item.label : undefined}
+                aria-current={active ? "page" : undefined}
+                className={`group relative flex w-full items-center rounded-xl border text-left transition-all duration-200 ${
+                  collapsed ? "justify-center px-0 py-2.5" : "gap-2.5 px-2 py-2"
+                } ${
+                  active
                     ? "border-cyan-400/20 bg-gradient-to-r from-cyan-400/[0.13] via-blue-400/[0.06] to-transparent text-white shadow-[0_5px_18px_rgba(0,0,0,0.15)]"
                     : "border-transparent text-slate-400 hover:border-[#164467]/80 hover:bg-[#082443] hover:text-slate-100"
-                  }`}
+                }`}
               >
                 {/* ACTIVE LEFT INDICATOR */}
                 {active && (
@@ -259,37 +231,37 @@ const DashboardSidebar = ({
 
                 {/* ICON */}
                 <span
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-200 ${active
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-200 ${
+                    active
                       ? "bg-cyan-400/15 text-cyan-200"
                       : "bg-[#082443] text-slate-400 group-hover:bg-[#0B2D50] group-hover:text-cyan-200"
-                    }`}
+                  }`}
                 >
-                  <Icon
-                    size={17}
-                    strokeWidth={active ? 2.15 : 1.8}
-                  />
+                  <Icon size={17} strokeWidth={active ? 2.15 : 1.8} />
                 </span>
 
                 {/* LABEL AND BADGE */}
                 {!collapsed && (
                   <>
                     <span
-                      className={`min-w-0 flex-1 truncate text-[11px] font-semibold ${active
+                      className={`min-w-0 flex-1 truncate text-[11px] font-semibold ${
+                        active
                           ? "text-white"
                           : "text-slate-300 group-hover:text-white"
-                        }`}
+                      }`}
                     >
                       {item.label}
                     </span>
 
                     {item.badge && (
                       <span
-                        className={`shrink-0 rounded-md border px-1.5 py-[3px] text-[8px] font-bold ${active
+                        className={`shrink-0 rounded-md border px-1.5 py-[3px] text-[8px] font-bold ${
+                          active
                             ? "border-cyan-300/20 bg-cyan-300/10 text-cyan-100"
                             : typeof item.badge === "object"
                               ? badgeColors[item.badge.color]
                               : "border-cyan-300/20 bg-cyan-300/[0.07] text-cyan-200"
-                          }`}
+                        }`}
                       >
                         {typeof item.badge === "object"
                           ? item.badge.text
@@ -316,29 +288,18 @@ const DashboardSidebar = ({
           {/* PREVIEW */}
           <button
             type="button"
-            onClick={() =>
-              onPreview
-                ? onPreview()
-                : navigate("/preview")
-            }
-            title={
-              collapsed
-                ? "Open Preview"
-                : undefined
-            }
-            className={`group flex w-full items-center rounded-xl border border-transparent text-slate-300 transition-all duration-200 hover:border-cyan-400/15 hover:bg-[#082443] hover:text-white ${collapsed
-                ? "justify-center px-0 py-2.5"
-                : "gap-2.5 px-2 py-2"
-              }`}
+            onClick={() => (onPreview ? onPreview() : navigate("/preview"))}
+            title={collapsed ? "Open Preview" : undefined}
+            className={`group flex w-full items-center rounded-xl border border-transparent text-slate-300 transition-all duration-200 hover:border-cyan-400/15 hover:bg-[#082443] hover:text-white ${
+              collapsed ? "justify-center px-0 py-2.5" : "gap-2.5 px-2 py-2"
+            }`}
           >
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#082443] text-cyan-200 transition-colors group-hover:bg-cyan-400/10">
               <ExternalLink size={17} />
             </span>
 
             {!collapsed && (
-              <span className="text-[11px] font-semibold">
-                Open Preview
-              </span>
+              <span className="text-[11px] font-semibold">Open Preview</span>
             )}
           </button>
 
@@ -346,22 +307,17 @@ const DashboardSidebar = ({
           <button
             type="button"
             onClick={onLogout}
-            title={
-              collapsed ? "Logout" : undefined
-            }
-            className={`group mt-1 flex w-full items-center rounded-xl border border-transparent text-slate-400 transition-all duration-200 hover:border-rose-400/15 hover:bg-rose-400/[0.07] hover:text-rose-200 ${collapsed
-                ? "justify-center px-0 py-2.5"
-                : "gap-2.5 px-2 py-2"
-              }`}
+            title={collapsed ? "Logout" : undefined}
+            className={`group mt-1 flex w-full items-center rounded-xl border border-transparent text-slate-400 transition-all duration-200 hover:border-rose-400/15 hover:bg-rose-400/[0.07] hover:text-rose-200 ${
+              collapsed ? "justify-center px-0 py-2.5" : "gap-2.5 px-2 py-2"
+            }`}
           >
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#082443] text-rose-300/80 transition-colors group-hover:bg-rose-400/10 group-hover:text-rose-200">
               <LogOut size={17} />
             </span>
 
             {!collapsed && (
-              <span className="text-[11px] font-semibold">
-                Logout
-              </span>
+              <span className="text-[11px] font-semibold">Logout</span>
             )}
           </button>
 

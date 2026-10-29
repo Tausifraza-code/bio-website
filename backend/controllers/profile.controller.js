@@ -1,6 +1,7 @@
 const MiniProfile = require("../models/MiniProfile");
 const Product = require("../models/Product");
 const Gallery = require("../models/Gallery");
+const QRCode = require("../models/QRCode");
 const { uploadToImgBB } = require("../utils/imgbb");
 
 const allowedFields = [
@@ -221,7 +222,7 @@ const getPublicProfile = async (req, res) => {
 
     // 2. Get this user's active products/services
     // 3. Get this user's gallery images
-    const [products, gallery] = await Promise.all([
+    const [products, gallery, assignedQR] = await Promise.all([
       Product.find({
         userId: profile.userId,
         status: "active",
@@ -235,6 +236,15 @@ const getPublicProfile = async (req, res) => {
         .populate("productId", "name price type")
         .sort({ createdAt: -1 })
         .lean(),
+
+      QRCode.findOne({
+        assignedUserId: profile.userId,
+        status: "assigned",
+        qrPath: { $exists: true, $nin: [null, ""] },
+      })
+        .select("qrPath")
+        .sort({ assignedAt: -1 })
+        .lean(),
     ]);
 
     // Return everything together
@@ -243,6 +253,7 @@ const getPublicProfile = async (req, res) => {
       profile,
       products,
       gallery,
+      qrPath: assignedQR?.qrPath || null,
     });
   } catch (error) {
     console.error("Get public profile error:", error);

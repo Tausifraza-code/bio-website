@@ -7,6 +7,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import api from "../redux/api";
+import { getPublicQRUrl } from "../utils/qrUrl";
 
 import {
   FaInstagram,
@@ -231,6 +232,7 @@ function CardPreview() {
   const { subdomain } = useParams();
 
   const [profile, setProfile] = useState(null);
+  const [qrPath, setQrPath] = useState("");
   const [products, setProducts] = useState([]);
   const [galleryRaw, setGalleryRaw] = useState([]);
   const [contactButtons, setContactButtons] = useState([]);
@@ -259,6 +261,7 @@ function CardPreview() {
       setLoading(true);
       setProfileError("");
       setProfile(null);
+      setQrPath("");
       setProducts([]);
       setGalleryRaw([]);
       setContactButtons([]);
@@ -277,6 +280,7 @@ function CardPreview() {
         if (cancelled) return;
 
         setProfile(pubProfile);
+        setQrPath(typeof data.qrPath === "string" ? data.qrPath : "");
 
         // Products
         const prods = data.products || pubProfile.products || [];
@@ -390,12 +394,9 @@ function CardPreview() {
   );
   const productList = Array.isArray(products) ? products : [];
 
-  // Generate a QR for this public profile URL. This does not modify the
-  // existing physical QR binding or the profile subdomain.
   const qrValue = useMemo(() => {
-    if (typeof window === "undefined" || !subdomain) return "";
-    return `${window.location.origin}/card-preview/${encodeURIComponent(subdomain)}`;
-  }, [subdomain]);
+    return getPublicQRUrl(qrPath);
+  }, [qrPath]);
 
   const isQrImage = false;
 
@@ -1644,38 +1645,46 @@ function CardPreview() {
 
             {qrModalTab === "myqr" && (
               <div className="flex flex-col items-center">
-                <div className="mb-5 rounded-xl bg-white p-4">
-                  <QRCodeCanvas
-                    id="public-qr-modal-canvas"
-                    value={qrValue}
-                    size={220}
-                    level="H"
-                    includeMargin
-                  />
-                </div>
-                <p
-                  className="mb-4 break-all text-center text-xs"
-                  style={{ color: theme.muted }}
-                >
-                  {qrValue}
-                </p>
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleDownloadQR(
-                      "public-qr-modal-canvas",
-                      "bio-website-qr.png",
-                    )
-                  }
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border py-3 text-sm font-bold"
-                  style={{
-                    borderColor: theme.primary,
-                    background: `${theme.primary}18`,
-                    color: theme.primary,
-                  }}
-                >
-                  <Download size={16} /> Download QR Code
-                </button>
+                {qrValue ? (
+                  <>
+                    <div className="mb-5 rounded-xl bg-white p-4">
+                      <QRCodeCanvas
+                        id="public-qr-modal-canvas"
+                        value={qrValue}
+                        size={220}
+                        level="H"
+                        includeMargin
+                      />
+                    </div>
+                    <p
+                      className="mb-4 break-all text-center text-xs"
+                      style={{ color: theme.muted }}
+                    >
+                      {qrValue}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleDownloadQR(
+                          "public-qr-modal-canvas",
+                          "bio-website-qr.png",
+                        )
+                      }
+                      className="flex w-full items-center justify-center gap-2 rounded-xl border py-3 text-sm font-bold"
+                      style={{
+                        borderColor: theme.primary,
+                        background: `${theme.primary}18`,
+                        color: theme.primary,
+                      }}
+                    >
+                      <Download size={16} /> Download QR Code
+                    </button>
+                  </>
+                ) : (
+                  <p className="py-8 text-sm" style={{ color: theme.muted }}>
+                    QR code is not available for this profile.
+                  </p>
+                )}
               </div>
             )}
 
@@ -1698,34 +1707,42 @@ function CardPreview() {
                 <p className="mb-4 text-sm" style={{ color: theme.muted }}>
                   Scan this QR code to open this profile.
                 </p>
-                <div className="rounded-xl bg-white p-3">
-                  <QRCodeCanvas
-                    id="public-qr-poster-canvas"
-                    value={qrValue}
-                    size={180}
-                    level="H"
-                    includeMargin
-                  />
-                </div>
-                <p
-                  className="mt-3 break-all text-xs"
-                  style={{ color: theme.muted }}
-                >
-                  {businessInfo.businessName}
-                </p>
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleDownloadQR(
-                      "public-qr-poster-canvas",
-                      "bio-profile-qr-poster.png",
-                    )
-                  }
-                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold"
-                  style={{ background: accentGradient, color: "#fff" }}
-                >
-                  <Download size={16} /> Download Poster QR
-                </button>
+                {qrValue ? (
+                  <>
+                    <div className="rounded-xl bg-white p-3">
+                      <QRCodeCanvas
+                        id="public-qr-poster-canvas"
+                        value={qrValue}
+                        size={180}
+                        level="H"
+                        includeMargin
+                      />
+                    </div>
+                    <p
+                      className="mt-3 break-all text-xs"
+                      style={{ color: theme.muted }}
+                    >
+                      {businessInfo.businessName}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleDownloadQR(
+                          "public-qr-poster-canvas",
+                          "bio-profile-qr-poster.png",
+                        )
+                      }
+                      className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold"
+                      style={{ background: accentGradient, color: "#fff" }}
+                    >
+                      <Download size={16} /> Download Poster QR
+                    </button>
+                  </>
+                ) : (
+                  <p className="py-8 text-sm" style={{ color: theme.muted }}>
+                    QR code is not available for this profile.
+                  </p>
+                )}
               </div>
             )}
           </section>
