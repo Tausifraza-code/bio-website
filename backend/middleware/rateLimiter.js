@@ -15,7 +15,8 @@ const generalLimiter = rateLimit({
 // Login and registration rate limiter
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 5,
+  limit: 100,
+  skip: () => process.env.NODE_ENV === "development",
   standardHeaders: "draft-8",
   legacyHeaders: false,
   message: {

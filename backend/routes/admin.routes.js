@@ -11,6 +11,8 @@ const {
   getAdminUsers,
   verifyUserProfile,
   unverifyUserProfile,
+  getAdminUserProfile,
+  updateAdminUserProfile,
 } = require("../controllers/adminUsers.controller");
 const {
   getAdminDashboard,
@@ -44,5 +46,14 @@ router.patch(
   protect,
   adminOnly,
   unverifyUserProfile,
+);
+
+router.get("/users/:userId/profile", protect, adminOnly, getAdminUserProfile);
+
+router.put(
+  "/users/:userId/profile",
+  protect,
+  adminOnly,
+  updateAdminUserProfile,
 );
 module.exports = router;

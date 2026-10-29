@@ -113,7 +113,7 @@ export default function AdminSidebar({ open = true, onClose, onLogout }) {
                   `group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all ${
                     isActive
                       ? "bg-cyan-500/10 text-cyan-700 ring-1 ring-cyan-500/20 dark:text-cyan-300"
-                      : "text-slate-600 hover:bg-slate-100 hover:text-white dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-white"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-white"
                   }`
                 }
               >

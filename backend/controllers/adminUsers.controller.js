@@ -197,4 +197,259 @@ const unverifyUserProfile = async (req, res) => {
   }
 };
 
-module.exports = { getAdminUsers, verifyUserProfile, unverifyUserProfile };
+// GET /api/admin/users/:userId/profile
+const getAdminUserProfile = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!mongoose.isValidObjectId(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID.",
+      });
+    }
+
+    const user = await User.findOne({
+      _id: userId,
+      role: "user",
+    })
+      .select(
+        "fullName email phone referralCode referredBy role createdAt updatedAt",
+      )
+      .populate("referredBy", "fullName email")
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    const profile = await MiniProfile.findOne({
+      userId: user._id,
+    }).lean();
+
+    return res.status(200).json({
+      success: true,
+      user,
+      profile: profile || null,
+    });
+  } catch (error) {
+    console.error("getAdminUserProfile error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to load user profile.",
+    });
+  }
+};
+
+// PUT /api/admin/users/:userId/profile
+const updateAdminUserProfile = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { user: userInput = {}, profile: profileInput = {} } = req.body;
+
+    if (!mongoose.isValidObjectId(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID.",
+      });
+    }
+
+    if (
+      !userInput ||
+      typeof userInput !== "object" ||
+      Array.isArray(userInput) ||
+      !profileInput ||
+      typeof profileInput !== "object" ||
+      Array.isArray(profileInput)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid update data.",
+      });
+    }
+
+    const existingUser = await User.findOne({
+      _id: userId,
+      role: "user",
+    });
+
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    // Only permitted account fields can be edited.
+    const allowedUserFields = ["fullName", "email", "phone"];
+    const userUpdates = {};
+
+    for (const field of allowedUserFields) {
+      if (Object.prototype.hasOwnProperty.call(userInput, field)) {
+        userUpdates[field] = userInput[field];
+      }
+    }
+
+    if (userUpdates.fullName !== undefined) {
+      if (
+        typeof userUpdates.fullName !== "string" ||
+        userUpdates.fullName.trim().length < 2 ||
+        userUpdates.fullName.trim().length > 100
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Full name must be between 2 and 100 characters.",
+        });
+      }
+
+      userUpdates.fullName = userUpdates.fullName.trim();
+    }
+
+    if (userUpdates.email !== undefined) {
+      if (
+        typeof userUpdates.email !== "string" ||
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userUpdates.email.trim())
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Please enter a valid email address.",
+        });
+      }
+
+      userUpdates.email = userUpdates.email.trim().toLowerCase();
+    }
+
+    if (userUpdates.phone !== undefined) {
+      if (typeof userUpdates.phone !== "string" || !userUpdates.phone.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: "Phone number cannot be empty.",
+        });
+      }
+
+      userUpdates.phone = userUpdates.phone.trim();
+    }
+
+    // Never accept protected or server-managed profile fields here.
+    const allowedProfileFields = [
+      "firstName",
+      "lastName",
+      "businessName",
+      "industry",
+      "jobTitle",
+      "headline",
+      "bio",
+      "phone",
+      "whatsapp",
+      "email",
+      "website",
+      "websiteUrl",
+      "shopUnit",
+      "area",
+      "city",
+      "state",
+      "pincode",
+      "landmark",
+      "mapLink",
+      "businessHours",
+      "upiId",
+      "socialCards",
+      "contactButtons",
+      "profileImage",
+      "avatar",
+      "logo",
+      "banner",
+      "activeTheme",
+      "activeLayout",
+    ];
+
+    const profileUpdates = {};
+
+    for (const field of allowedProfileFields) {
+      if (Object.prototype.hasOwnProperty.call(profileInput, field)) {
+        profileUpdates[field] = profileInput[field];
+      }
+    }
+
+    // Update the profile first so invalid profile data cannot leave
+    // account fields changed while the profile update fails.
+    let updatedProfile = await MiniProfile.findOne({
+      userId: existingUser._id,
+    });
+
+    if (Object.keys(profileUpdates).length > 0) {
+      if (updatedProfile) {
+        for (const [field, value] of Object.entries(profileUpdates)) {
+          updatedProfile.set(field, value);
+        }
+
+        updatedProfile = await updatedProfile.save();
+      } else {
+        updatedProfile = await MiniProfile.create({
+          userId: existingUser._id,
+          ...profileUpdates,
+        });
+      }
+    }
+
+    let updatedUser = existingUser;
+
+    if (Object.keys(userUpdates).length > 0) {
+      updatedUser = await User.findOneAndUpdate(
+        { _id: existingUser._id, role: "user" },
+        { $set: userUpdates },
+        { new: true, runValidators: true },
+      );
+    }
+
+    // Return only public/non-secret account fields.
+    const safeUser = await User.findById(updatedUser._id)
+      .select(
+        "fullName email phone referralCode referredBy role createdAt updatedAt",
+      )
+      .populate("referredBy", "fullName email")
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      message: "User profile updated successfully.",
+      user: safeUser,
+      profile: updatedProfile
+        ? updatedProfile.toObject()
+        : await MiniProfile.findOne({ userId: existingUser._id }).lean(),
+    });
+  } catch (error) {
+    console.error("updateAdminUserProfile error:", error);
+
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "That email or phone number is already in use.",
+      });
+    }
+
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to update user profile.",
+    });
+  }
+};
+
+module.exports = {
+  getAdminUsers,
+  verifyUserProfile,
+  unverifyUserProfile,
+  getAdminUserProfile,
+  updateAdminUserProfile,
+};

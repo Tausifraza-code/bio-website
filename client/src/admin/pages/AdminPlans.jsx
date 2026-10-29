@@ -285,7 +285,7 @@ export default function AdminPlans() {
                           disabled={saving}
                           className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:focus:ring-offset-[#0b1728] ${
                             plan.isActive
-                              ? "bg-emerald-500"
+                              ? "bg-cyan-500 dark:bg-cyan-400"
                               : "bg-slate-300 dark:bg-slate-600"
                           }`}
                         >
@@ -489,7 +489,7 @@ export default function AdminPlans() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="rounded-xl bg-cyan-500 px-5 py-2.5 text-sm font-bold text-slate-950 disabled:opacity-60"
+                  className="rounded-xl bg-cyan-500 px-5 py-2.5 text-sm font-bold text-white  disabled:opacity-60"
                 >
                   {saving
                     ? "Saving..."

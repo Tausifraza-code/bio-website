@@ -200,6 +200,37 @@ export const fetchAdminOrders = createAsyncThunk(
   },
 );
 
+export const fetchAdminUserProfile = createAsyncThunk(
+  "admin/fetchAdminUserProfile",
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/admin/users/${userId}/profile`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Unable to load user profile.",
+      );
+    }
+  },
+);
+
+export const updateAdminUserProfile = createAsyncThunk(
+  "admin/updateAdminUserProfile",
+  async ({ userId, user, profile }, { rejectWithValue }) => {
+    try {
+      const response = await api.put(`/admin/users/${userId}/profile`, {
+        user,
+        profile,
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Unable to save user profile.",
+      );
+    }
+  },
+);
+
 const initialState = {
   admin: null,
   token: localStorage.getItem("adminToken") || null,
@@ -274,6 +305,13 @@ const initialState = {
     limit: 10,
     totalPages: 0,
   },
+
+  // Selected user's profile management
+  selectedUserProfile: null,
+  selectedUserProfileLoading: false,
+  selectedUserProfileSaving: false,
+  selectedUserProfileError: null,
+  selectedUserProfileMessage: null,
 };
 
 const adminSlice = createSlice({
@@ -294,6 +332,12 @@ const adminSlice = createSlice({
       state.verificationLoading = {};
       state.verificationError = null;
       state.verificationMessage = null;
+      state.selectedUserProfile = null;
+
+      state.selectedUserProfileLoading = false;
+      state.selectedUserProfileSaving = false;
+      state.selectedUserProfileError = null;
+      state.selectedUserProfileMessage = null;
 
       localStorage.removeItem("adminToken");
     },
@@ -304,6 +348,9 @@ const adminSlice = createSlice({
       state.usersError = null;
       state.verificationError = null;
       state.verificationMessage = null;
+
+      state.selectedUserProfileError = null;
+      state.selectedUserProfileMessage = null;
     },
   },
 
@@ -483,6 +530,67 @@ const adminSlice = createSlice({
       .addCase(fetchAdminOrders.rejected, (state, action) => {
         state.ordersLoading = false;
         state.ordersError = action.payload || "Unable to load orders.";
+      })
+      // FETCH SELECTED USER PROFILE
+      .addCase(fetchAdminUserProfile.pending, (state) => {
+        state.selectedUserProfileLoading = true;
+        state.selectedUserProfileError = null;
+        state.selectedUserProfileMessage = null;
+      })
+
+      .addCase(fetchAdminUserProfile.fulfilled, (state, action) => {
+        state.selectedUserProfileLoading = false;
+        state.selectedUserProfile = {
+          user: action.payload.user || null,
+          profile: action.payload.profile || null,
+        };
+      })
+
+      .addCase(fetchAdminUserProfile.rejected, (state, action) => {
+        state.selectedUserProfileLoading = false;
+        state.selectedUserProfileError =
+          action.payload || "Unable to load user profile.";
+      })
+
+      // UPDATE SELECTED USER PROFILE
+      .addCase(updateAdminUserProfile.pending, (state) => {
+        state.selectedUserProfileSaving = true;
+        state.selectedUserProfileError = null;
+        state.selectedUserProfileMessage = null;
+      })
+
+      .addCase(updateAdminUserProfile.fulfilled, (state, action) => {
+        state.selectedUserProfileSaving = false;
+
+        state.selectedUserProfile = {
+          user: action.payload.user || null,
+          profile: action.payload.profile || null,
+        };
+
+        state.selectedUserProfileMessage =
+          action.payload.message || "User profile updated successfully.";
+
+        // Keep the users list in sync with account-level edits.
+        const updatedUser = action.payload.user;
+
+        if (updatedUser?._id) {
+          const index = state.users.findIndex(
+            (item) => item._id === updatedUser._id,
+          );
+
+          if (index !== -1) {
+            state.users[index] = {
+              ...state.users[index],
+              ...updatedUser,
+            };
+          }
+        }
+      })
+
+      .addCase(updateAdminUserProfile.rejected, (state, action) => {
+        state.selectedUserProfileSaving = false;
+        state.selectedUserProfileError =
+          action.payload || "Unable to save user profile.";
       });
   },
 });
