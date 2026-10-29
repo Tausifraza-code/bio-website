@@ -24,7 +24,6 @@ import TestQRGenerator from "./pages/TestQRGenerator";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Gallery from "./pages/Gallery";
-import RazorpayTest from "./pages/RazorpayTest";
 // admin imports
 
 import AdminLayout from "./admin/components/AdminLayout";
@@ -34,6 +33,7 @@ import AdminUsers from "./admin/pages/AdminUsers";
 import AdminReferrals from "./admin/pages/AdminReferrals";
 import AdminQRManagement from "./admin/pages/AdminQRManagement";
 import AdminPlans from "./admin/pages/AdminPlans";
+import AdminOrders from "./admin/pages/AdminOrders";
 
 function App() {
   useEffect(() => {
@@ -81,6 +81,7 @@ function App() {
           <Route path="leads" element={<Leads />} />
           <Route path="manageproducts" element={<ManageProducts />} />
           <Route path="gallery" element={<Gallery />} />
+          <Route path="profile-layouts" element={<ProfileLayouts />} />
           <Route path="mini" element={<Mini />} />
           <Route path="payment" element={<Navigate to="/mini" replace />} />
           <Route path="theme" element={<WebsiteTheme />} />
@@ -101,6 +102,7 @@ function App() {
           <Route path="/admin/referrals" element={<AdminReferrals />} />
           <Route path="/admin/qr-management" element={<AdminQRManagement />} />
           <Route path="/admin/plans" element={<AdminPlans />} />
+          <Route path="/admin/orders" element={<AdminOrders />} />
         </Route>
 
         {/* Password Reset Pages */}

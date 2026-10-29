@@ -203,24 +203,50 @@ const getQRInventory = async (req, res) => {
     }
 
     const skip = (page - 1) * limit;
+    const includeAssignedUser = req.query.includeAssignedUser === "true";
+    const inventoryQuery = QRCode.find(filter)
+      .select(
+        "serialNumber activationCode qrPath qrUrl formats businessName assignedUserId status generatedAt assignedAt generatedBy assignedBy   downloadHistory",
+      )
+      .sort({ createdAt: -1, _id: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    if (includeAssignedUser) {
+      inventoryQuery.populate("assignedUserId", "fullName email");
+    }
 
     const [sets, total] = await Promise.all([
-      QRCode.find(filter)
-        .select(
-          "serialNumber activationCode qrPath formats businessName assignedUserId status generatedAt assignedAt generatedBy assignedBy   downloadHistory",
-        )
-        .sort({ createdAt: -1, _id: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-
+      inventoryQuery.lean(),
       QRCode.countDocuments(filter),
     ]);
+
+    const inventory = includeAssignedUser
+      ? sets.map((item) => {
+          const assignedUser = item.assignedUserId;
+          const hasAssignedUser = Boolean(
+            assignedUser?.fullName || assignedUser?.email,
+          );
+
+          return {
+            ...item,
+            assignedUserId: hasAssignedUser
+              ? assignedUser._id
+              : assignedUser,
+            assignedUser: hasAssignedUser
+              ? {
+                  fullName: assignedUser.fullName,
+                  email: assignedUser.email,
+                }
+              : null,
+          };
+        })
+      : sets;
 
     return res.status(200).json({
       success: true,
       data: {
-        sets,
+        sets: inventory,
         pagination: {
           page,
           limit,

@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import QRCode from "qrcode";
 import { jsPDF } from "jspdf";
+import JSZip from "jszip";
+import * as XLSX from "xlsx";
 import {
   QrCode,
   Search,
@@ -25,6 +27,7 @@ import {
   clearQRMessages,
   recordQRDownload,
 } from "../../redux/slice/adminQRSlice";
+import api from "../../redux/api";
 import { getPublicQRUrl } from "../../utils/qrUrl";
 
 const statusStyles = {
@@ -50,10 +53,200 @@ const formatDate = (value) => {
   });
 };
 
-const downloadQRDesign = async (item, format, fileType, onDownloadRecorded) => {
+const appendStyle = (xml, collection, style) => {
+  const pattern = new RegExp(
+    `(<${collection} count=")(\\d+)(">[\\s\\S]*?)(</${collection}>)`,
+  );
+
+  if (!pattern.test(xml)) {
+    throw new Error(`Unable to format the Excel workbook (${collection}).`);
+  }
+
+  return xml.replace(
+    pattern,
+    (_, opening, count, content, closing) =>
+      `${opening}${Number(count) + 1}${content}${style}${closing}`,
+  );
+};
+
+const downloadQRInventoryWorkbook = async (items) => {
+  const headers = [
+    "Serial Number",
+    "Activation Code",
+    "QR Path",
+    "QR URL",
+    "QR Format / Design",
+    "Assigned User",
+    "Business Name",
+    "Status",
+    "Generated Date",
+    "Assigned Date",
+  ];
+  const displayValue = (value) =>
+    value === null || value === undefined || String(value).trim() === ""
+      ? "—"
+      : String(value).trim();
+  const formatNames = {
+    standee: "Standee",
+    pocket: "Pocket Card",
+    keychain: "Keychain",
+  };
+  const statusLabels = {
+    available: "Available",
+    assigned: "Assigned",
+    disabled: "Disabled",
+  };
+  const rows = items.map((item) => {
+    const assignedUser = item.assignedUser;
+    const assignedUserId = item.assignedUserId;
+    const assignedUserLabel =
+      assignedUser?.fullName && assignedUser?.email
+        ? `${assignedUser.fullName} (${assignedUser.email})`
+        : assignedUser?.fullName ||
+        assignedUser?.email ||
+        (typeof assignedUserId === "string"
+          ? assignedUserId
+          : assignedUserId?._id);
+
+    return [
+      displayValue(item.serialNumber),
+      displayValue(item.activationCode),
+      displayValue(item.qrPath),
+      displayValue(item.qrUrl || getPublicQRUrl(item.qrPath)),
+      Array.isArray(item.formats) && item.formats.length
+        ? item.formats
+            .map(
+              (format) =>
+                formatNames[format] ||
+                String(format).charAt(0).toUpperCase() +
+                  String(format).slice(1),
+            )
+            .join(", ")
+        : "—",
+      displayValue(assignedUserLabel),
+      displayValue(item.businessName),
+      statusLabels[item.status] || displayValue(item.status),
+      formatDate(item.generatedAt),
+      formatDate(item.assignedAt),
+    ];
+  });
+  const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+
+  worksheet["!cols"] = [
+    { wch: 30 },
+    { wch: 20 },
+    { wch: 36 },
+    { wch: 46 },
+    { wch: 26 },
+    { wch: 34 },
+    { wch: 28 },
+    { wch: 16 },
+    { wch: 24 },
+    { wch: 24 },
+  ];
+  worksheet["!rows"] = [{ hpt: 30 }];
+  worksheet["!autofilter"] = {
+    ref: `A1:J${rows.length + 1}`,
+  };
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "QR Inventory");
+
+  // SheetJS Community Edition does not serialize cell styles into XLSX files.
+  const archive = await JSZip.loadAsync(
+    XLSX.write(workbook, { bookType: "xlsx", type: "array" }),
+  );
+  const stylesFile = archive.file("xl/styles.xml");
+  const worksheetFile = archive.file("xl/worksheets/sheet1.xml");
+
+  if (!stylesFile || !worksheetFile) {
+    throw new Error("Unable to create the formatted Excel workbook.");
+  }
+
+  let stylesXml = await stylesFile.async("string");
+  stylesXml = appendStyle(
+    stylesXml,
+    "fonts",
+    '<font><b/><color rgb="FFFFFFFF"/><sz val="11"/><name val="Calibri"/></font>',
+  );
+  stylesXml = appendStyle(
+    stylesXml,
+    "fills",
+    '<fill><patternFill patternType="solid"><fgColor rgb="FF155E75"/><bgColor indexed="64"/></patternFill></fill>',
+  );
+  stylesXml = appendStyle(
+    stylesXml,
+    "borders",
+    '<border><left style="thin"><color rgb="FFD8E1E8"/></left><right style="thin"><color rgb="FFD8E1E8"/></right><top style="thin"><color rgb="FFD8E1E8"/></top><bottom style="thin"><color rgb="FFD8E1E8"/></bottom><diagonal/></border>',
+  );
+  stylesXml = appendStyle(
+    stylesXml,
+    "cellXfs",
+    '<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>',
+  );
+  stylesXml = appendStyle(
+    stylesXml,
+    "cellXfs",
+    '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="left" vertical="center" wrapText="1"/></xf>',
+  );
+
+  const worksheetXml = await worksheetFile.async("string");
+  const styledWorksheetXml = worksheetXml.replace(
+    /<row r="(\d+)"[^>]*>[\s\S]*?<\/row>/g,
+    (row, rowNumber) => {
+      const styleId = rowNumber === "1" ? "1" : "2";
+
+      return row.replace(/<c\b([^>]*)>/g, (_, attributes) => {
+        const cleanAttributes = attributes.replace(/\s+s="[^"]*"/g, "");
+        return `<c${cleanAttributes} s="${styleId}">`;
+      });
+    },
+  );
+
+  archive.file("xl/styles.xml", stylesXml);
+  archive.file("xl/worksheets/sheet1.xml", styledWorksheetXml);
+
+  const blob = await archive.generateAsync({
+    type: "blob",
+    mimeType:
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `qr-inventory-${new Date().toISOString().slice(0, 10)}.xlsx`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+
+const normalizeFileType = (fileType) => {
+  const type = String(fileType || "").toLowerCase();
+  return type === "jpeg" ? "jpg" : type;
+};
+
+const isDesignAlreadyDownloaded = (item, format, fileType) => {
+  const selectedType = normalizeFileType(fileType);
+
+  return (item.downloadHistory || []).some(
+    (entry) =>
+      entry.format === format &&
+      normalizeFileType(entry.fileType) === selectedType,
+  );
+};
+
+const downloadQRDesign = async (
+  item,
+  format,
+  fileType,
+  onDownloadRecorded,
+  returnBlob = false,
+) => {
   const url = getPublicQRUrl(item.qrPath);
 
   if (!url || item.status === "disabled") {
+    if (returnBlob) throw new Error("This QR code is unavailable.");
     window.alert("This QR code is unavailable.");
     return;
   }
@@ -61,6 +254,7 @@ const downloadQRDesign = async (item, format, fileType, onDownloadRecorded) => {
   const type = String(fileType).toLowerCase();
 
   if (!["png", "jpg", "jpeg", "svg", "pdf"].includes(type)) {
+    if (returnBlob) throw new Error("Unsupported file format.");
     window.alert("Unsupported file format.");
     return;
   }
@@ -210,12 +404,13 @@ const downloadQRDesign = async (item, format, fileType, onDownloadRecorded) => {
     };
 
     if (type === "svg") {
-      downloadBlob(
-        new Blob([svg], {
-          type: "image/svg+xml;charset=utf-8",
-        }),
-        "svg",
-      );
+      const blob = new Blob([svg], {
+        type: "image/svg+xml;charset=utf-8",
+      });
+
+      if (returnBlob) return blob;
+
+      downloadBlob(blob, "svg");
       await recordDownload();
       return;
     }
@@ -256,6 +451,10 @@ const downloadQRDesign = async (item, format, fileType, onDownloadRecorded) => {
 
         pdf.addImage(imageData, "PNG", 0, 0, W * 0.264583, H * 0.264583);
 
+        if (returnBlob) {
+          return pdf.output("blob");
+        }
+
         pdf.save(`${filename}.pdf`);
         await recordDownload();
       } else {
@@ -268,6 +467,10 @@ const downloadQRDesign = async (item, format, fileType, onDownloadRecorded) => {
 
         if (!blob) throw new Error("Image export failed.");
 
+        if (returnBlob) {
+          return blob;
+        }
+
         downloadBlob(blob, type === "jpeg" ? "jpg" : type);
         await recordDownload();
       }
@@ -276,6 +479,9 @@ const downloadQRDesign = async (item, format, fileType, onDownloadRecorded) => {
     }
   } catch (error) {
     console.error("QR download error:", error);
+    if (returnBlob) {
+      throw error;
+    }
     window.alert("Unable to download the QR design. Please try again.");
   }
 };
@@ -292,21 +498,14 @@ export default function AdminQRManagement() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [formError, setFormError] = useState("");
-  const [downloadTypes, setDownloadTypes] = useState({});
   const [copiedValue, setCopiedValue] = useState("");
-
-  const handleDownloadRecorded = useCallback(
-    async (item, format, fileType) => {
-      await dispatch(
-        recordQRDownload({
-          id: item._id,
-          format,
-          fileType,
-        }),
-      ).unwrap();
-    },
-    [dispatch],
-  );
+  const [bulkDownloading, setBulkDownloading] = useState(false);
+  const [bulkQuantity, setBulkQuantity] = useState("100");
+  const [bulkFileType, setBulkFileType] = useState("png");
+  const [bulkStatus, setBulkStatus] = useState("available");
+  const [skipPreviouslyDownloaded, setSkipPreviouslyDownloaded] =
+    useState(true);
+  const [bulkProgress, setBulkProgress] = useState("");
 
   const loadInventory = useCallback(() => {
     dispatch(
@@ -363,81 +562,6 @@ export default function AdminQRManagement() {
     </div>
   );
 
-  const renderFormatDownload = (item, format) => {
-    const key = `${item._id}:${format}`;
-    const fileType = downloadTypes[key] || "png";
-    const history = (item.downloadHistory || []).filter(
-      (entry) => entry.format === format,
-    );
-    const latestDownload = history.sort(
-      (a, b) => new Date(b.downloadedAt) - new Date(a.downloadedAt),
-    )[0];
-
-    return (
-      <div
-        key={format}
-        className="min-w-0 rounded-lg border border-slate-200 p-2 dark:border-slate-700"
-      >
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="text-xs font-semibold">
-            {format === "pocket"
-              ? "Pocket Card"
-              : format === "standee"
-                ? "Standee"
-                : "Keychain"}
-          </span>
-
-          <span
-            className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-semibold ${
-              latestDownload
-                ? "bg-cyan-50 text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-300"
-                : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
-            }`}
-          >
-            {latestDownload ? "Downloaded" : "Not downloaded"}
-          </span>
-        </div>
-
-        {latestDownload && (
-          <p className="mt-1 text-[10px] text-slate-500 dark:text-slate-400">
-            Last: {formatDate(latestDownload.downloadedAt)}
-          </p>
-        )}
-
-        <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
-          <select
-            aria-label={`${format} file type`}
-            value={fileType}
-            onChange={(event) =>
-              setDownloadTypes((current) => ({
-                ...current,
-                [key]: event.target.value,
-              }))
-            }
-            className="w-full min-w-0 rounded-md border border-slate-200 bg-white px-2 py-2 text-xs dark:border-slate-700 dark:bg-[#07111f]"
-          >
-            <option value="png">PNG</option>
-            <option value="jpg">JPG</option>
-            <option value="svg">SVG</option>
-            <option value="pdf">PDF</option>
-          </select>
-
-          <button
-            type="button"
-            onClick={() =>
-              downloadQRDesign(item, format, fileType, handleDownloadRecorded)
-            }
-            disabled={!item.qrPath || item.status === "disabled"}
-            className="inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md bg-cyan-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-cyan-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <Download size={13} />
-            Download
-          </button>
-        </div>
-      </div>
-    );
-  };
-
   const handleSearch = (event) => {
     event.preventDefault();
     setPage(1);
@@ -478,8 +602,263 @@ export default function AdminQRManagement() {
     }
   };
 
-  const handleExport = () => {
-    dispatch(exportQRInventory(status ? { status } : {}));
+  const handleExport = async () => {
+    try {
+      const items = await dispatch(
+        exportQRInventory({
+          ...(status ? { status } : {}),
+          ...(search ? { search } : {}),
+        }),
+      ).unwrap();
+
+      if (items.length === 0) {
+        window.alert("No QR inventory found for the selected filters.");
+        return;
+      }
+
+      await downloadQRInventoryWorkbook(items);
+    } catch (error) {
+      console.error("QR inventory Excel export failed:", error);
+      window.alert(
+        (typeof error === "string" ? error : error?.message) ||
+          "Unable to export QR inventory.",
+      );
+    }
+  };
+
+  const handleBulkDownload = async () => {
+    if (bulkDownloading) return;
+
+    const requestedQuantity = Number(bulkQuantity);
+    if (!Number.isSafeInteger(requestedQuantity) || requestedQuantity < 1) {
+      setFormError("Enter a positive whole number for the QR set quantity.");
+      return;
+    }
+
+    setFormError("");
+    setBulkProgress("Loading QR inventory...");
+    setBulkDownloading(true);
+
+    try {
+      const pageSize = 100;
+      const filters = {
+        ...(bulkStatus ? { status: bulkStatus } : {}),
+        ...(search ? { search } : {}),
+      };
+      const firstResponse = await api.get("/admin/qr-sets/inventory", {
+        params: { ...filters, page: 1, limit: pageSize },
+      });
+      if (!firstResponse.data?.success) {
+        throw new Error(
+          firstResponse.data?.message || "Unable to load QR inventory.",
+        );
+      }
+
+      const firstData = firstResponse.data.data;
+      const firstPagination = firstData?.pagination || {};
+      const actualPageSize = Number(firstPagination.limit) || pageSize;
+      const totalPages =
+        Number(firstPagination.totalPages) ||
+        Math.ceil(Number(firstPagination.total || 0) / actualPageSize);
+      const selectedSets = [];
+      const selectedSetIds = new Set();
+      let missingQRPaths = 0;
+      const addEligibleSets = (items) => {
+        for (const item of items) {
+          if (item.status === "disabled") continue;
+          if (!item.qrPath) {
+            missingQRPaths += 1;
+            continue;
+          }
+          if (selectedSets.length >= requestedQuantity) continue;
+
+          const setId = String(item._id);
+          if (selectedSetIds.has(setId)) continue;
+
+          const formats = ["standee", "pocket", "keychain"].filter(
+            (format) =>
+              !skipPreviouslyDownloaded ||
+              !isDesignAlreadyDownloaded(item, format, bulkFileType),
+          );
+          if (formats.length) {
+            selectedSets.push({ item, formats });
+            selectedSetIds.add(setId);
+          }
+        }
+      };
+
+      addEligibleSets(firstData?.sets || []);
+      for (let currentPage = 2; currentPage <= totalPages; currentPage += 1) {
+        setBulkProgress(
+          `Loading QR inventory page ${currentPage} of ${totalPages}...`,
+        );
+        const response = await api.get("/admin/qr-sets/inventory", {
+          params: {
+            ...filters,
+            page: currentPage,
+            limit: pageSize,
+          },
+        });
+        if (!response.data?.success) {
+          throw new Error(
+            response.data?.message || "Unable to load QR inventory.",
+          );
+        }
+        addEligibleSets(response.data.data?.sets || []);
+      }
+
+      if (selectedSets.length === 0) {
+        setFormError(
+          "No eligible QR designs were found. They may already be downloaded, disabled, or missing QR paths.",
+        );
+        setBulkProgress("");
+        return;
+      }
+
+      const designCount = selectedSets.reduce(
+        (total, selection) => total + selection.formats.length,
+        0,
+      );
+      const zip = new JSZip();
+      const successfullyAdded = [];
+      const designFileNames = {
+        standee: "Standee",
+        pocket: "Pocket",
+        keychain: "Keychain",
+      };
+      let failedDesigns = 0;
+      let preparedDesigns = 0;
+      const setNumberWidth = Math.max(2, String(selectedSets.length).length);
+
+      for (const [setIndex, { item, formats }] of selectedSets.entries()) {
+        const setNumber = String(setIndex + 1).padStart(setNumberWidth, "0");
+        for (const format of formats) {
+          preparedDesigns += 1;
+          setBulkProgress(
+            `Preparing design ${preparedDesigns} of ${designCount}...`,
+          );
+
+          try {
+            const blob = await downloadQRDesign(
+              item,
+              format,
+              bulkFileType,
+              undefined,
+              true,
+            );
+            if (!(blob instanceof Blob) || blob.size === 0) {
+              throw new Error("The generated design file is empty.");
+            }
+
+            const fileType = normalizeFileType(bulkFileType);
+            zip.file(
+              `QR-Set-${setNumber}-${designFileNames[format]}.${fileType}`,
+              blob,
+            );
+            successfullyAdded.push({ item, format, fileType });
+          } catch (error) {
+            failedDesigns += 1;
+            console.error(
+              `Failed to prepare ${format} for ${item.serialNumber || item._id}:`,
+              error,
+            );
+          }
+        }
+      }
+
+      if (successfullyAdded.length === 0) {
+        throw new Error(
+          "No QR designs could be generated, so no ZIP was downloaded.",
+        );
+      }
+
+      setBulkProgress("Creating ZIP file...");
+      const zipBlob = await zip.generateAsync({ type: "blob" }, (metadata) =>
+        setBulkProgress(`Creating ZIP file: ${Math.round(metadata.percent)}%`),
+      );
+      const objectUrl = URL.createObjectURL(zipBlob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = `BIO-QR-${normalizeFileType(bulkFileType).toUpperCase()}-${new Date()
+        .toISOString()
+        .slice(0, 10)}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 30000);
+
+      setBulkProgress("Recording download history...");
+      let historyFailures = 0;
+      const historyBatchSize = 10;
+      for (
+        let start = 0;
+        start < successfullyAdded.length;
+        start += historyBatchSize
+      ) {
+        const batch = successfullyAdded.slice(start, start + historyBatchSize);
+        setBulkProgress(
+          `Recording download history ${Math.min(start + historyBatchSize, successfullyAdded.length)} of ${successfullyAdded.length}...`,
+        );
+        const results = await Promise.allSettled(
+          batch.map(({ item, format, fileType }) =>
+            dispatch(
+              recordQRDownload({
+                id: item._id,
+                format,
+                fileType,
+              }),
+            ).unwrap(),
+          ),
+        );
+        historyFailures += results.filter(
+          (result) => result.status === "rejected",
+        ).length;
+      }
+
+      let inventoryRefreshFailed = false;
+      try {
+        await dispatch(
+          fetchQRInventory({
+            page,
+            limit: 20,
+            ...(status ? { status } : {}),
+            ...(search ? { search } : {}),
+          }),
+        ).unwrap();
+      } catch (error) {
+        inventoryRefreshFailed = true;
+        console.error(
+          "QR inventory refresh after bulk download failed:",
+          error,
+        );
+      }
+
+      const summary =
+        `Download complete: ${selectedSets.length} of ${requestedQuantity} requested QR sets, ` +
+        `${successfullyAdded.length} design file(s) in the ZIP.` +
+        (failedDesigns
+          ? ` ${failedDesigns} design(s) could not be generated.`
+          : "") +
+        (selectedSets.length < requestedQuantity
+          ? " Fewer eligible sets were available than requested."
+          : "") +
+        (missingQRPaths
+          ? ` ${missingQRPaths} QR set(s) were skipped because their QR path is missing.`
+          : "") +
+        (historyFailures
+          ? ` History recording failed for ${historyFailures} design(s); those may be included again next time.`
+          : "") +
+        (inventoryRefreshFailed
+          ? " The inventory list could not be refreshed."
+          : "");
+      setBulkProgress(summary);
+    } catch (error) {
+      console.error("Bulk QR ZIP download failed:", error);
+      setFormError(error?.message || "Unable to create the QR ZIP.");
+      setBulkProgress("");
+    } finally {
+      setBulkDownloading(false);
+    }
   };
 
   const changePage = (nextPage) => {
@@ -548,7 +927,7 @@ export default function AdminQRManagement() {
         </div>
       )}
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {[
           {
             label: "Total matching records",
@@ -568,12 +947,12 @@ export default function AdminQRManagement() {
             icon: Clock3,
             tone: "text-blue-600 dark:text-blue-300",
           },
-          {
-            label: "Disabled on this page",
-            value: disabled,
-            icon: Ban,
-            tone: "text-red-600 dark:text-red-300",
-          },
+          // {
+          //   label: "Disabled on this page",
+          //   value: disabled,
+          //   icon: Ban,
+          //   tone: "text-red-600 dark:text-red-300",
+          // },
         ].map((item) => {
           const Icon = item.icon;
 
@@ -691,6 +1070,117 @@ export default function AdminQRManagement() {
         </div>
       </section>
 
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-[#0b1728]">
+        <div>
+          <h2 className="font-semibold">Bulk QR Download</h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Each selected QR set can add up to three design files to one ZIP.
+            Inventory is fetched in pages of up to 100 sets (the API maximum),
+            while your quantity is not page-limited. Designs are rendered
+            sequentially; available inventory and browser memory determine the
+            practical limit.
+          </p>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          <div>
+            <label
+              htmlFor="bulk-qr-quantity"
+              className="mb-1 block text-sm font-medium"
+            >
+              Quantity (QR sets)
+            </label>
+            <input
+              id="bulk-qr-quantity"
+              type="number"
+              min="1"
+              step="1"
+              value={bulkQuantity}
+              onChange={(event) => setBulkQuantity(event.target.value)}
+              disabled={bulkDownloading}
+              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-[#07111f]"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="bulk-qr-file-type"
+              className="mb-1 block text-sm font-medium"
+            >
+              File format
+            </label>
+            <select
+              id="bulk-qr-file-type"
+              value={bulkFileType}
+              onChange={(event) => setBulkFileType(event.target.value)}
+              disabled={bulkDownloading}
+              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-[#07111f]"
+            >
+              <option value="png">PNG</option>
+              <option value="jpg">JPG</option>
+              <option value="svg">SVG</option>
+              <option value="pdf">PDF</option>
+            </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="bulk-qr-status"
+              className="mb-1 block text-sm font-medium"
+            >
+              QR status
+            </label>
+            <select
+              id="bulk-qr-status"
+              value={bulkStatus}
+              onChange={(event) => setBulkStatus(event.target.value)}
+              disabled={bulkDownloading}
+              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-[#07111f]"
+            >
+              <option value="available">Available QR sets</option>
+              <option value="assigned">Assigned QR sets</option>
+              <option value="">All eligible QR sets</option>
+            </select>
+          </div>
+
+          <label className="flex items-center gap-2 self-end pb-3 text-sm">
+            <input
+              type="checkbox"
+              checked={skipPreviouslyDownloaded}
+              onChange={(event) =>
+                setSkipPreviouslyDownloaded(event.target.checked)
+              }
+              disabled={bulkDownloading}
+              className="size-4 accent-cyan-600"
+            />
+            Skip previously downloaded
+          </label>
+
+          <button
+            type="button"
+            onClick={handleBulkDownload}
+            disabled={bulkDownloading || loading}
+            className="inline-flex items-center justify-center gap-2 self-end rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {bulkDownloading ? (
+              <RefreshCw size={16} className="animate-spin" />
+            ) : (
+              <Download size={16} />
+            )}
+            {bulkDownloading ? "Preparing ZIP..." : "Download ZIP"}
+          </button>
+        </div>
+
+        {bulkProgress && (
+          <p
+            className="mt-4 text-sm text-cyan-700 dark:text-cyan-300"
+            role="status"
+          >
+            {bulkProgress}
+          </p>
+        )}
+      </section>
+
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-[#0b1728]">
         <div className="flex flex-col gap-4 border-b border-slate-200 p-5 dark:border-slate-800 lg:flex-row lg:items-center lg:justify-between">
           <div>
@@ -724,7 +1214,6 @@ export default function AdminQRManagement() {
               <option value="">All statuses</option>
               <option value="available">Available</option>
               <option value="assigned">Assigned</option>
-              <option value="disabled">Disabled</option>
             </select>
           </div>
         </div>
@@ -738,7 +1227,6 @@ export default function AdminQRManagement() {
                 <th className="px-3 py-3 font-semibold">Activation Code</th>
                 <th className="px-3 py-3 font-semibold">Business / QR Path</th>
                 <th className="px-3 py-3 font-semibold">Status</th>
-                <th className="px-3 py-3 font-semibold">Design Downloads</th>
                 <th className="px-3 py-3 font-semibold">Assigned Date</th>
               </tr>
             </thead>
@@ -746,7 +1234,7 @@ export default function AdminQRManagement() {
               {loading ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={5}
                     className="px-5 py-14 text-center text-slate-500"
                   >
                     <RefreshCw size={17} className="mr-2 inline animate-spin" />
@@ -756,7 +1244,7 @@ export default function AdminQRManagement() {
               ) : sets.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={5}
                     className="px-5 py-14 text-center text-slate-500 dark:text-slate-400"
                   >
                     No QR sets found for these filters.
@@ -811,13 +1299,6 @@ export default function AdminQRManagement() {
                       >
                         {item.status || "unknown"}
                       </span>
-                    </td>
-                    <td className="min-w-[560px] px-3 py-3">
-                      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2 2xl:grid-cols-3">
-                        {["standee", "pocket", "keychain"].map((format) =>
-                          renderFormatDownload(item, format),
-                        )}
-                      </div>
                     </td>
                     <td className="whitespace-nowrap px-3 py-3 text-xs text-slate-500 dark:text-slate-400">
                       {formatDate(item.assignedAt)}
@@ -901,16 +1382,6 @@ export default function AdminQRManagement() {
                 </div>
                 <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">
                   Assigned: {formatDate(item.assignedAt)}
-                </div>
-                <div className="mt-4 border-t border-slate-200 pt-4 dark:border-slate-700">
-                  <h3 className="mb-3 text-sm font-semibold">
-                    Design downloads
-                  </h3>
-                  <div className="space-y-3">
-                    {["standee", "pocket", "keychain"].map((format) =>
-                      renderFormatDownload(item, format),
-                    )}
-                  </div>
                 </div>
               </article>
             ))

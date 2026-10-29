@@ -3,7 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-
+const { generalLimiter, authLimiter } = require("./middleware/rateLimiter");
 const authRoutes = require("./routes/auth.routes");
 const adminRoutes = require("./routes/admin.routes");
 const profileRoutes = require("./routes/profile.routes");
@@ -67,7 +67,7 @@ app.use(express.urlencoded({ extended: true }));
 // API ROUTES
 // ======================================================
 app.use("/api/admin/plans", planRoutes);
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/contact-buttons", contactButtonsRoutes);

@@ -105,7 +105,7 @@ export default function Testimonials() {
       {/* ────────────────────────────────────────────────────────
           TOP BAND — heading + subtext (padded)
       ──────────────────────────────────────────────────────── */}
-      <div className="px-5 pt-12 sm:px-12 sm:pt-12 lg:px-20 lg:pt-20">
+      <div className="px-5 pt-3 sm:px-3 sm:pt-3 lg:px-3 lg:pt-3">
         <div className="mx-auto max-w-[1240px]">
           <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-end sm:justify-between">
             <div>

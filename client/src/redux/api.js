@@ -3,7 +3,7 @@ import axios from "axios";
 const api = axios.create({
   baseURL: "http://localhost:5000/api",
   // baseURL: "/api",
-  // baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
+
   headers: {
     "Content-Type": "application/json",
   },
@@ -12,7 +12,9 @@ const api = axios.create({
 // Select the correct token based on the API route.
 api.interceptors.request.use(
   (config) => {
-    const isAdminRequest = config.url?.split("?")[0].startsWith("/admin");
+    const isAdminRequest =
+      config.url?.split("?")[0].startsWith("/admin") ||
+      config.url?.split("?")[0].startsWith("/plan-purchases/admin");
 
     const tokenKey = isAdminRequest ? "adminToken" : "bioToken";
     const token = localStorage.getItem(tokenKey);

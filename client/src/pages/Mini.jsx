@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { QRCodeCanvas } from "qrcode.react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
+import api from "../redux/api";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -379,7 +380,9 @@ const Mini = () => {
   /* -------- QR TARGET URL -------- */
   const qrTargetUrl = useMemo(() => {
     if (!boundQR?.qrPath) return "";
-    const baseURL = (api.defaults.baseURL || window.location.origin)
+    const baseURL = (
+      import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api"
+    )
       .replace(/\/api\/?$/, "")
       .replace(/\/$/, "");
     const qrPath = boundQR.qrPath.startsWith("/")

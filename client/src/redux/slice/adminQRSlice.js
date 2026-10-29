@@ -51,31 +51,65 @@ export const exportQRInventory = createAsyncThunk(
   "adminQR/exportInventory",
   async (params = {}, { rejectWithValue }) => {
     try {
-      const response = await api.get("/admin/qr-sets/export", {
-        params,
-        responseType: "blob",
-      });
+      const pageSize = 100;
+      const filters = {
+        ...(params.status ? { status: params.status } : {}),
+        ...(params.search ? { search: params.search } : {}),
+      };
+      const fetchPage = async (page) => {
+        const response = await api.get("/admin/qr-sets/inventory", {
+          params: {
+            ...filters,
+            includeAssignedUser: true,
+            page,
+            limit: pageSize,
+          },
+        });
 
-      const blobUrl = URL.createObjectURL(response.data);
-      const link = document.createElement("a");
+        if (!response.data?.success) {
+          throw new Error(
+            response.data?.message || "Unable to load QR inventory.",
+          );
+        }
 
-      const status = params.status ? `-${params.status}` : "";
-      link.href = blobUrl;
-      link.download = `qr-inventory${status}-${new Date()
-        .toISOString()
-        .slice(0, 10)}.csv`;
+        if (!Array.isArray(response.data.data?.sets)) {
+          throw new Error("QR inventory response is invalid.");
+        }
 
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+        return response.data.data;
+      };
 
-      // Release the temporary object URL after the download starts.
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+      const firstPage = await fetchPage(1);
+      const records = [...firstPage.sets];
+      const totalRecords = Number(firstPage.pagination?.total);
+      const totalPages = Number(firstPage.pagination?.totalPages);
 
-      return true;
+      if (
+        !Number.isSafeInteger(totalRecords) ||
+        totalRecords < 0 ||
+        !Number.isSafeInteger(totalPages) ||
+        totalPages < 0
+      ) {
+        throw new Error("QR inventory pagination response is invalid.");
+      }
+
+      for (let page = 2; page <= Math.max(1, totalPages); page += 1) {
+        const nextPage = await fetchPage(page);
+        records.push(...nextPage.sets);
+      }
+
+      if (records.length !== totalRecords) {
+        throw new Error(
+          "QR inventory changed during export. Please try again.",
+        );
+      }
+
+      return records;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Unable to export QR inventory.",
+        error.response?.data?.message ||
+          error.message ||
+          "Unable to export QR inventory.",
       );
     }
   },

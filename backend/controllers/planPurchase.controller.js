@@ -236,22 +236,23 @@ const verifyPlanPayment = async (req, res) => {
 
 const getAllPlanPurchases = async (req, res) => {
   try {
-    const { page = 1, limit = 10, status } = req.query;
+    const { page = 1, limit = 10, status, search = "", from, to } = req.query;
 
     const pageNumber = Math.max(1, Number(page) || 1);
     const pageSize = Math.min(100, Math.max(1, Number(limit) || 10));
 
     const filter = {};
 
-    if (status) {
-      const allowedStatuses = [
-        "pending",
-        "paid",
-        "failed",
-        "cancelled",
-        "refunded",
-      ];
+    // Filter by payment status
+    const allowedStatuses = [
+      "pending",
+      "paid",
+      "failed",
+      "cancelled",
+      "refunded",
+    ];
 
+    if (status) {
       if (!allowedStatuses.includes(status)) {
         return res.status(400).json({
           success: false,
@@ -262,21 +263,124 @@ const getAllPlanPurchases = async (req, res) => {
       filter.status = status;
     }
 
+    // Filter by order creation date
+    if (from || to) {
+      filter.createdAt = {};
+
+      if (from) {
+        const fromDate = new Date(from);
+
+        if (Number.isNaN(fromDate.getTime())) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid start date",
+          });
+        }
+
+        filter.createdAt.$gte = fromDate;
+      }
+
+      if (to) {
+        const toDate = new Date(to);
+
+        if (Number.isNaN(toDate.getTime())) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid end date",
+          });
+        }
+
+        toDate.setHours(23, 59, 59, 999);
+        filter.createdAt.$lte = toDate;
+      }
+    }
+
+    // Search by plan name, order ID, or user details
+    const keyword = search.trim();
+
+    if (keyword) {
+      const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+      const matchingUsers = await require("../models/User")
+        .find({
+          $or: [
+            { fullName: { $regex: escapedKeyword, $options: "i" } },
+            { email: { $regex: escapedKeyword, $options: "i" } },
+            { phone: { $regex: escapedKeyword, $options: "i" } },
+          ],
+        })
+        .select("_id")
+        .limit(500)
+        .lean();
+
+      const searchConditions = [
+        { planName: { $regex: escapedKeyword, $options: "i" } },
+        { razorpayOrderId: { $regex: escapedKeyword, $options: "i" } },
+        { razorpayPaymentId: { $regex: escapedKeyword, $options: "i" } },
+      ];
+
+      if (matchingUsers.length > 0) {
+        searchConditions.push({
+          userId: {
+            $in: matchingUsers.map((user) => user._id),
+          },
+        });
+      }
+
+      filter.$or = searchConditions;
+    }
+
     const [purchases, total] = await Promise.all([
       PlanPurchase.find(filter)
-        .populate("userId", "name email")
+        .select(
+          "userId planId planName amount durationValue durationUnit status razorpayOrderId razorpayPaymentId purchaseDate expiryDate createdAt",
+        )
+        .populate("userId", "fullName email phone")
         .populate("planId", "name price")
-        .sort({ createdAt: -1 })
+        .sort({ createdAt: -1, _id: -1 })
         .skip((pageNumber - 1) * pageSize)
         .limit(pageSize)
-        .select("-__v"),
+        .lean(),
 
       PlanPurchase.countDocuments(filter),
     ]);
 
+    // Overall statistics, independent of search and filters
+    const [statsResult] = await PlanPurchase.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalOrders: { $sum: 1 },
+          paidOrders: {
+            $sum: {
+              $cond: [{ $eq: ["$status", "paid"] }, 1, 0],
+            },
+          },
+          pendingOrders: {
+            $sum: {
+              $cond: [{ $eq: ["$status", "pending"] }, 1, 0],
+            },
+          },
+          paidRevenue: {
+            $sum: {
+              $cond: [{ $eq: ["$status", "paid"] }, "$amount", 0],
+            },
+          },
+        },
+      },
+    ]);
+
+    const stats = statsResult || {
+      totalOrders: 0,
+      paidOrders: 0,
+      pendingOrders: 0,
+      paidRevenue: 0,
+    };
+
     return res.status(200).json({
       success: true,
       data: purchases,
+      stats,
       pagination: {
         total,
         page: pageNumber,
@@ -294,4 +398,150 @@ const getAllPlanPurchases = async (req, res) => {
   }
 };
 
-module.exports = { createPlanOrder, verifyPlanPayment, getAllPlanPurchases };
+const exportPlanPurchases = async (req, res) => {
+  try {
+    const { status, search = "", from, to } = req.query;
+
+    const filter = {};
+    const allowedStatuses = [
+      "pending",
+      "paid",
+      "failed",
+      "cancelled",
+      "refunded",
+    ];
+
+    // Payment status filter
+    if (status) {
+      if (!allowedStatuses.includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid order status.",
+        });
+      }
+
+      filter.status = status;
+    }
+
+    // Date range filter — same createdAt field as order history
+    if (from || to) {
+      filter.createdAt = {};
+
+      if (from) {
+        const fromDate = new Date(`${from}T00:00:00.000`);
+        if (Number.isNaN(fromDate.getTime())) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid start date.",
+          });
+        }
+        filter.createdAt.$gte = fromDate;
+      }
+
+      if (to) {
+        const toDate = new Date(`${to}T23:59:59.999`);
+        if (Number.isNaN(toDate.getTime())) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid end date.",
+          });
+        }
+        filter.createdAt.$lte = toDate;
+      }
+
+      if (
+        filter.createdAt.$gte &&
+        filter.createdAt.$lte &&
+        filter.createdAt.$gte > filter.createdAt.$lte
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Start date cannot be after end date.",
+        });
+      }
+    }
+
+    // Search by customer, plan, or Razorpay ID
+    const keyword = search.trim();
+
+    if (keyword) {
+      const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+      const User = require("../models/User");
+
+      const matchingUsers = await User.find({
+        $or: [
+          { fullName: { $regex: escapedKeyword, $options: "i" } },
+          { email: { $regex: escapedKeyword, $options: "i" } },
+          { phone: { $regex: escapedKeyword, $options: "i" } },
+        ],
+      })
+        .select("_id")
+        .limit(500)
+        .lean();
+
+      const searchConditions = [
+        { planName: { $regex: escapedKeyword, $options: "i" } },
+        { razorpayOrderId: { $regex: escapedKeyword, $options: "i" } },
+        { razorpayPaymentId: { $regex: escapedKeyword, $options: "i" } },
+      ];
+
+      if (matchingUsers.length) {
+        searchConditions.push({
+          userId: { $in: matchingUsers.map((user) => user._id) },
+        });
+      }
+
+      filter.$or = searchConditions;
+    }
+
+    // Intentionally no skip() or limit():
+    // export every matching order, not just the current page.
+    const purchases = await PlanPurchase.find(filter)
+      .select(
+        "userId planId planName amount durationValue durationUnit status razorpayOrderId razorpayPaymentId purchaseDate expiryDate createdAt",
+      )
+      .populate("userId", "fullName email phone")
+      .populate("planId", "name price")
+      .sort({ createdAt: -1, _id: -1 })
+      .lean();
+
+    const rows = purchases.map((order) => ({
+      orderId: order._id?.toString() || "",
+      customerName: order.userId?.fullName || "Unknown user",
+      customerEmail: order.userId?.email || "",
+      customerPhone: order.userId?.phone || "",
+      planName: order.planName || order.planId?.name || "",
+      amount: order.amount ?? 0,
+      duration: `${order.durationValue ?? ""} ${
+        order.durationUnit ?? ""
+      }`.trim(),
+      status: order.status || "",
+      purchaseDate: order.purchaseDate || "",
+      expiryDate: order.expiryDate || "",
+      createdAt: order.createdAt || "",
+      razorpayOrderId: order.razorpayOrderId || "",
+      razorpayPaymentId: order.razorpayPaymentId || "",
+    }));
+
+    return res.status(200).json({
+      success: true,
+      count: rows.length,
+      data: rows,
+    });
+  } catch (error) {
+    console.error("Export plan purchases error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to export orders.",
+    });
+  }
+};
+
+module.exports = {
+  createPlanOrder,
+  verifyPlanPayment,
+  getAllPlanPurchases,
+  exportPlanPurchases,
+};

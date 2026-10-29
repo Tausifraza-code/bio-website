@@ -3,12 +3,23 @@
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .theme-dark, .theme-dark *));
 
-.bio-services-slider .swiper-pagination-bullet {
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.bio-services-slider .swiper-pagination-bullet,
+.how-it-works-slider .swiper-pagination-bullet {
   background: #0891b2;
   opacity: 0.4;
 }
 
-.bio-services-slider .swiper-pagination-bullet-active {
+.bio-services-slider .swiper-pagination-bullet-active,
+.how-it-works-slider .swiper-pagination-bullet-active {
   background: #22d3ee;
   opacity: 1;
 }

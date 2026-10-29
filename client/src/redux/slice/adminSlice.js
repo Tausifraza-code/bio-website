@@ -169,6 +169,37 @@ export const fetchReferredUsers = createAsyncThunk(
   },
 );
 
+/* FETCH ADMIN ORDERS */
+export const fetchAdminOrders = createAsyncThunk(
+  "admin/fetchOrders",
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/plan-purchases/admin/history", {
+        params: {
+          page: params.page || 1,
+          limit: params.limit || 10,
+          search: params.search || "",
+          status: params.status || "",
+          from: params.from || "",
+          to: params.to || "",
+        },
+      });
+
+      if (!response.data?.success) {
+        return rejectWithValue(
+          response.data?.message || "Failed to load orders.",
+        );
+      }
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Unable to load orders.",
+      );
+    }
+  },
+);
+
 const initialState = {
   admin: null,
   token: localStorage.getItem("adminToken") || null,
@@ -226,6 +257,23 @@ const initialState = {
   },
   referredUsersLoading: false,
   referredUsersError: null,
+
+  // Admin order management
+  orders: [],
+  ordersStats: {
+    totalOrders: 0,
+    paidOrders: 0,
+    pendingOrders: 0,
+    paidRevenue: 0,
+  },
+  ordersLoading: false,
+  ordersError: null,
+  ordersPagination: {
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 0,
+  },
 };
 
 const adminSlice = createSlice({
@@ -411,6 +459,30 @@ const adminSlice = createSlice({
         state.referredUsersLoading = false;
         state.referredUsersError =
           action.payload || "Unable to load referred users.";
+      })
+
+      // ADMIN ORDERS
+      .addCase(fetchAdminOrders.pending, (state) => {
+        state.ordersLoading = true;
+        state.ordersError = null;
+      })
+
+      .addCase(fetchAdminOrders.fulfilled, (state, action) => {
+        state.ordersLoading = false;
+        state.orders = action.payload.data || [];
+        state.ordersStats = {
+          ...initialState.ordersStats,
+          ...action.payload.stats,
+        };
+        state.ordersPagination = {
+          ...initialState.ordersPagination,
+          ...action.payload.pagination,
+        };
+      })
+
+      .addCase(fetchAdminOrders.rejected, (state, action) => {
+        state.ordersLoading = false;
+        state.ordersError = action.payload || "Unable to load orders.";
       });
   },
 });

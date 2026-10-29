@@ -72,10 +72,22 @@ const Navbar = ({ theme, onToggleTheme }) => {
   return (
     <header
       className={`absolute inset-x-0 top-0 z-50 w-full transition-colors duration-300 ${
-        isDark ? "bg-[#0b1b30]" : "bg-transparent"
+        isDark
+          ? "bg-[#0b1b30]"
+          : isMenuOpen
+          ? "bg-[#f0fdf9] shadow-md"
+          : isScrolled
+          ? "bg-[#f0fdf9]/95 backdrop-blur-md shadow-sm"
+          : "bg-transparent"
       }`}
       style={{
-        backgroundColor: isDark ? "#0b1b30" : "transparent",
+        backgroundColor: isDark
+          ? "#0b1b30"
+          : isMenuOpen
+          ? "#f0fdf9"
+          : isScrolled
+          ? "rgba(240, 253, 249, 0.95)"
+          : "transparent",
         paddingTop: "0px",
         paddingLeft: "0px",
         paddingRight: "0px",
@@ -199,8 +211,10 @@ const Navbar = ({ theme, onToggleTheme }) => {
         >
           <div className="overflow-hidden">
             <div
-              className={`overscroll-contain border-t px-3 pb-4 pt-3 min-[380px]:px-4 ${
-                isDark ? "border-[#29435f]" : "border-[#d7e3eb]"
+              className={`overscroll-contain border-t px-3 pb-6 pt-3 shadow-xl min-[380px]:px-4 ${
+                isDark
+                  ? "border-[#29435f] bg-[#0b1b30]"
+                  : "border-[#d7e3eb] bg-[#f0fdf9]"
               }`}
             >
               <div className="flex flex-col">
@@ -225,10 +239,10 @@ const Navbar = ({ theme, onToggleTheme }) => {
                 <Link
                   to="/login"
                   onClick={closeMenu}
-                  className={`flex min-h-11 items-center justify-center rounded-lg border text-sm font-semibold transition-colors touch-manipulation ${
+                  className={`flex min-h-11 items-center justify-center rounded-lg border text-sm font-semibold transition-colors touch-manipulation shadow-sm ${
                     isDark
                       ? "border-[#38516e] bg-[#0b1b30] text-slate-200 hover:border-cyan-300/40 hover:text-cyan-200"
-                      : "border-[#d7e3eb] text-[#29435f] hover:border-cyan-300 hover:bg-cyan-50"
+                      : "border-[#d7e3eb] bg-white text-[#29435f] hover:border-cyan-300 hover:bg-cyan-50"
                   }`}
                 >
                   Log in

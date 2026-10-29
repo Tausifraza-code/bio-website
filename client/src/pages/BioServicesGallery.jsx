@@ -171,7 +171,7 @@ export default function BioServicesGallery() {
           </p>
         </header>
 
-        <div className="w-full min-w-0 overflow-hidden px-4 sm:hidden">
+        <div className="w-full min-w-0 overflow-hidden sm:hidden">
           <Swiper
             modules={[Pagination]}
             slidesPerView={1}
@@ -188,7 +188,10 @@ export default function BioServicesGallery() {
             className="bio-services-slider !w-full !overflow-hidden !pb-10"
           >
             {services.map((service, index) => (
-              <SwiperSlide key={service.title} className="!h-auto">
+              <SwiperSlide
+                key={service.title}
+                className="!h-auto !w-full box-border"
+              >
                 <ServiceCard
                   service={service}
                   active={activeCard === index}
@@ -214,8 +217,15 @@ export default function BioServicesGallery() {
           <NextStepCard />
         </div>
 
-        <div className="mt-4 sm:hidden">
-          <NextStepCard />
+        {/* Mobile View: Compact pill action button matching the design */}
+        <div className="mt-5 flex justify-center sm:hidden">
+          <Link
+            to="/register"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-cyan-400 px-7 py-3 text-sm font-bold text-white shadow-lg shadow-cyan-400/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-cyan-300 hover:text-[#0b1b30] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 dark:bg-[#22d3ee] dark:text-white dark:hover:bg-[#67e8f9] dark:hover:text-[#0b1b30]"
+          >
+            <span>Create your Bio Website</span>
+            <ArrowUpRight size={17} />
+          </Link>
         </div>
       </div>
     </section>
@@ -226,20 +236,20 @@ function NextStepCard() {
   return (
     <Link
       to="/register"
-      className="group relative flex min-h-[210px] flex-col justify-between overflow-hidden rounded-[24px] bg-[#0891b2] p-5 text-white transition duration-300 hover:bg-[#0e7490] sm:min-h-[260px] sm:p-6 lg:min-h-[300px]"
+      className="group relative flex min-h-[135px] flex-col justify-between overflow-hidden rounded-[24px] bg-[#0891b2] p-3.5 text-white transition duration-300 hover:bg-[#0e7490] sm:min-h-[100px] sm:p-6 lg:min-h-[100px]"
     >
       <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/75 sm:text-xs">
         Your next step
       </span>
 
-      <span className="text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">
+      <span className="text-xl font-extrabold leading-tight tracking-tight sm:text-3xl">
         Create your
         <br />
         BIO website.
       </span>
 
-      <span className="flex h-10 w-10 items-center justify-center self-end rounded-full bg-[#0b1b30] text-white transition-transform duration-300 group-hover:translate-x-1 group-hover:scale-105 sm:h-12 sm:w-12">
-        <ArrowRight size={22} />
+      <span className="flex h-7 w-7 items-center justify-center self-end rounded-full bg-[#0b1b30] text-white transition-transform duration-300 group-hover:translate-x-1 group-hover:scale-105 sm:h-12 sm:w-12">
+        <ArrowRight className="h-4 w-4 sm:h-[22px] sm:w-[22px]" />
       </span>
     </Link>
   );

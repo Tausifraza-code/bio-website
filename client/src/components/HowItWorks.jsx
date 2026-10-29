@@ -8,6 +8,12 @@ import {
   Smartphone,
   UserPlus,
 } from "lucide-react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Pagination } from "swiper/modules";
+
+import "swiper/css";
+import "swiper/css/pagination";
+
 import stepCreate from "../assets/step-create.jpg.avif";
 import stepRegister from "../assets/step-register.jpg.jpeg";
 import stepSave from "../assets/step-save.jpg.avif";
@@ -84,11 +90,98 @@ const steps = [
   },
 ];
 
+function StepCard({ step }) {
+  const StepIcon = step.icon;
+
+  return (
+    <article className="group/card grid h-full w-full grid-cols-1 gap-4 rounded-[24px] border border-[#d7e3eb] bg-white p-5 shadow-sm transition-all duration-300 hover:shadow-md dark:border-[#29435f] dark:bg-[#132942] sm:grid-cols-[0.9fr_1.1fr] sm:gap-7 sm:rounded-[28px] sm:p-8 lg:min-h-[380px] lg:gap-8 lg:p-9">
+      {/* Card textual content */}
+      <div className="flex min-w-0 flex-col items-start justify-between">
+        <div>
+          {/* Step Number Tag */}
+          <div className="inline-flex items-center gap-2 rounded-full bg-cyan-50 px-3 py-1 text-xs font-bold text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300">
+            <StepIcon size={13} />
+            <span>{step.stepLabel}</span>
+          </div>
+
+          {/* Step Title */}
+          <h3 className="mt-4 font-serif text-2xl font-bold tracking-tight text-[#0b1b30] dark:text-white sm:text-4xl">
+            {step.title}
+          </h3>
+
+          {/* Tagline */}
+          <p className="mt-1 text-xs font-semibold text-cyan-600 dark:text-cyan-400">
+            {step.tagline}
+          </p>
+
+          {/* Description */}
+          <p className="mt-3.5 max-w-sm text-sm leading-relaxed text-[#64748b] dark:text-[#cbd5e1] sm:text-base sm:leading-7">
+            {step.description}
+          </p>
+
+          {/* Feature Bullets */}
+          <ul className="mt-5 space-y-1.5 border-t border-slate-100 pt-4 dark:border-slate-800/80">
+            {step.features.map((feat, i) => (
+              <li
+                key={i}
+                className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300"
+              >
+                <CheckCircle2
+                  size={13}
+                  className="shrink-0 text-teal-600 dark:text-teal-400"
+                />
+                <span>{feat}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Step bottom indicator */}
+        <div className="mt-6 flex items-center gap-2 text-sm font-semibold text-cyan-700 dark:text-cyan-300">
+          <span>Explore {step.title}</span>
+          <ArrowUpRight
+            size={16}
+            className="transition-transform duration-300 group-hover/card:translate-x-0.5 group-hover/card:-translate-y-0.5"
+          />
+        </div>
+      </div>
+
+      {/* Card Media (Smooth GPU-rendered, zero layout-shift container) */}
+      <div className="relative aspect-[16/10] min-h-[160px] w-full overflow-hidden rounded-2xl bg-[#d7e3eb] dark:bg-[#29435f] sm:aspect-[16/11] sm:min-h-[260px] lg:min-h-[290px]">
+        <img
+          src={step.image}
+          alt={step.imageAlt}
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 z-10 h-full w-full object-cover transition-transform duration-700 ease-out hover:scale-105"
+          onError={(event) => {
+            console.error("Failed to load How It Works image:", step.image);
+            event.currentTarget.style.display = "none";
+          }}
+        />
+
+        {/* Floating badge */}
+        <div className="absolute bottom-3 left-3 z-20 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold text-slate-800 shadow-sm backdrop-blur-md dark:bg-[#0b1b30]/90 dark:text-white">
+          <span className="h-2 w-2 rounded-full bg-cyan-500 animate-pulse" />
+          <span>{step.badge}</span>
+        </div>
+
+        {/* Fallback background if an image is missing */}
+        <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center bg-gradient-to-br from-emerald-100 via-cyan-50 to-[#d7e3eb] dark:from-[#132942] dark:via-[#0b1b30] dark:to-[#29435f]">
+          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-white/70 text-cyan-700 shadow-sm dark:bg-[#132942] dark:text-cyan-300">
+            <StepIcon size={30} />
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export default function HowItWorks() {
   return (
-    <section className="overflow-visible bg-[#eaf8f4] px-5 py-6 text-[#0b1b30] transition-colors duration-300 dark:bg-[#0b1b30] dark:text-white sm:px-6 sm:py-6 lg:px-6 lg:py-6">
+    <section className="bg-[#eaf8f4] px-5 py-6 text-[#0b1b30] transition-colors duration-300 dark:bg-[#0b1b30] dark:text-white sm:px-6 sm:py-6 lg:px-6 lg:py-6">
       <div className="mx-auto grid max-w-[1240px] grid-cols-1 gap-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-16 xl:gap-20">
-        {/* LEFT: Native Sticky Heading (Stays sticky while Cards 1-4 scroll, then naturally releases after card 4) */}
+        {/* LEFT: Native Sticky Heading (Stays sticky while Cards 1-4 scroll on desktop, then naturally releases after card 4) */}
         <div className="lg:sticky lg:top-24 lg:h-fit lg:self-start">
           <div className="max-w-[700px]">
             {/* Pill Badge */}
@@ -145,100 +238,42 @@ export default function HowItWorks() {
           </div>
         </div>
 
-        {/* RIGHT: Four naturally scrolling cards (1 to 4) */}
-        <div className="flex min-w-0 flex-col gap-8 sm:gap-10 lg:gap-12">
-          {steps.map((step) => {
-            const StepIcon = step.icon;
+        {/* RIGHT: Swiper on Mobile (Single card view, clean swipe), Vertical stack on Desktop */}
+        <div className="min-w-0">
+          {/* Mobile View with Swiper */}
+          <div className="w-full min-w-0 overflow-hidden sm:hidden">
+            <Swiper
+              modules={[Pagination]}
+              slidesPerView={1}
+              slidesPerGroup={1}
+              spaceBetween={16}
+              centeredSlides={false}
+              pagination={{ clickable: true }}
+              breakpoints={{
+                0: {
+                  slidesPerView: 1,
+                  spaceBetween: 16,
+                },
+              }}
+              className="how-it-works-slider !w-full !overflow-hidden !pb-10"
+            >
+              {steps.map((step) => (
+                <SwiperSlide
+                  key={step.number}
+                  className="!h-auto !w-full box-border"
+                >
+                  <StepCard step={step} />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </div>
 
-            return (
-              <article
-                key={step.number}
-                className="group/card grid min-h-[350px] grid-cols-1 gap-6 rounded-[28px] border border-[#d7e3eb] bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md dark:border-[#29435f] dark:bg-[#132942] sm:grid-cols-[0.9fr_1.1fr] sm:gap-7 sm:p-8 lg:min-h-[380px] lg:gap-8 lg:p-9"
-              >
-                {/* Card textual content */}
-                <div className="flex min-w-0 flex-col items-start justify-between">
-                  <div>
-                    {/* Step Number Tag */}
-                    <div className="inline-flex items-center gap-2 rounded-full bg-cyan-50 px-3 py-1 text-xs font-bold text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300">
-                      <StepIcon size={13} />
-                      <span>{step.stepLabel}</span>
-                    </div>
-
-                    {/* Step Title */}
-                    <h3 className="mt-4 font-serif text-3xl font-bold tracking-tight text-[#0b1b30] dark:text-white sm:text-4xl">
-                      {step.title}
-                    </h3>
-
-                    {/* Tagline */}
-                    <p className="mt-1 text-xs font-semibold text-cyan-600 dark:text-cyan-400">
-                      {step.tagline}
-                    </p>
-
-                    {/* Description */}
-                    <p className="mt-3.5 max-w-sm text-sm leading-relaxed text-[#64748b] dark:text-[#cbd5e1] sm:text-base sm:leading-7">
-                      {step.description}
-                    </p>
-
-                    {/* Feature Bullets */}
-                    <ul className="mt-5 space-y-1.5 border-t border-slate-100 pt-4 dark:border-slate-800/80">
-                      {step.features.map((feat, i) => (
-                        <li
-                          key={i}
-                          className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300"
-                        >
-                          <CheckCircle2
-                            size={13}
-                            className="shrink-0 text-teal-600 dark:text-teal-400"
-                          />
-                          <span>{feat}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Step bottom indicator */}
-                  <div className="mt-6 flex items-center gap-2 text-sm font-semibold text-cyan-700 dark:text-cyan-300">
-                    <span>Explore {step.title}</span>
-                    <ArrowUpRight
-                      size={16}
-                      className="transition-transform duration-300 group-hover/card:translate-x-0.5 group-hover/card:-translate-y-0.5"
-                    />
-                  </div>
-                </div>
-
-                {/* Card Media (Smooth GPU-rendered, zero layout-shift container) */}
-                <div className="relative aspect-[16/11] min-h-[230px] w-full overflow-hidden rounded-2xl bg-[#d7e3eb] dark:bg-[#29435f] sm:min-h-[260px] lg:min-h-[290px]">
-                  <img
-                    src={step.image}
-                    alt={step.imageAlt}
-                    loading="lazy"
-                    decoding="async"
-                    className="absolute inset-0 z-10 h-full w-full object-cover transition-transform duration-700 ease-out hover:scale-105"
-                    onError={(event) => {
-                      console.error(
-                        "Failed to load How It Works image:",
-                        step.image,
-                      );
-                      event.currentTarget.style.display = "none";
-                    }}
-                  />
-
-                  {/* Floating badge */}
-                  <div className="absolute bottom-3 left-3 z-20 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold text-slate-800 shadow-sm backdrop-blur-md dark:bg-[#0b1b30]/90 dark:text-white">
-                    <span className="h-2 w-2 rounded-full bg-cyan-500 animate-pulse" />
-                    <span>{step.badge}</span>
-                  </div>
-
-                  {/* Fallback background if an image is missing */}
-                  <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center bg-gradient-to-br from-emerald-100 via-cyan-50 to-[#d7e3eb] dark:from-[#132942] dark:via-[#0b1b30] dark:to-[#29435f]">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-white/70 text-cyan-700 shadow-sm dark:bg-[#132942] dark:text-cyan-300">
-                      <StepIcon size={30} />
-                    </div>
-                  </div>
-                </div>
-              </article>
-            );
-          })}
+          {/* Desktop View: Natural vertical scroll with sticky left panel */}
+          <div className="hidden min-w-0 sm:flex sm:flex-col sm:gap-10 lg:gap-12">
+            {steps.map((step) => (
+              <StepCard key={step.number} step={step} />
+            ))}
+          </div>
         </div>
       </div>
     </section>
