@@ -3,13 +3,18 @@ const { protect } = require("../middleware/auth.middleware");
 const { adminOnly } = require("../middleware/admin.middleware");
 
 const {
+
   createPlan,
+  getActivePlans,
   getAllPlans,
   updatePlan,
   togglePlanStatus,
 } = require("../controllers/plan.controller");
 
 const router = express.Router();
+
+// Public route — User side active plans
+router.get("/active", getActivePlans);
 
 // All routes require an authenticated admin
 router.use(protect, adminOnly);

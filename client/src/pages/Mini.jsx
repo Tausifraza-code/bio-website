@@ -20,6 +20,7 @@ import { getMyGallery } from "../redux/slice/gallerySlice";
 import { fetchMyBoundQR } from "../redux/slice/qrSlice";
 import { createInquiry } from "../redux/slice/inquirySlice";
 import Payment from "./Payment";
+import PlanPaymentModal from "../components/PlanPaymentModel";
 
 import {
   FaInstagram,
@@ -289,6 +290,40 @@ const QrDisplay = ({
   );
 };
 
+const loadRazorpayScript = () =>
+  new Promise((resolve, reject) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+
+    const existingScript = document.querySelector(
+      'script[src="https://checkout.razorpay.com/v1/checkout.js"]',
+    );
+
+    if (existingScript) {
+      existingScript.addEventListener("load", () => resolve(true), {
+        once: true,
+      });
+      existingScript.addEventListener(
+        "error",
+        () => reject(new Error("Razorpay Checkout load nahi ho paaya.")),
+        { once: true },
+      );
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+
+    script.onload = () => resolve(true);
+    script.onerror = () =>
+      reject(new Error("Razorpay Checkout load nahi ho paaya."));
+
+    document.body.appendChild(script);
+  });
+
 /* ============ MAIN COMPONENT ============ */
 const Mini = () => {
   const dispatch = useDispatch();
@@ -311,6 +346,7 @@ const Mini = () => {
   const [activeTheme, setActiveTheme] = useState("sunset");
   const [activeLayout, setActiveLayout] = useState("modern-business");
   const [showPayment, setShowPayment] = useState(false);
+  const [showPlanPayment, setShowPlanPayment] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedGalleryImage, setSelectedGalleryImage] = useState(null);
   const [standeeCode, setStandeeCode] = useState("");
@@ -469,6 +505,119 @@ const Mini = () => {
   /* -------- HANDLERS -------- */
   const handleActivateStandee = () => {
     if (standeeCode.trim()) setStandeeActivated(true);
+  };
+
+  const handlePlanProceed = async (selectedPlan, subdomain) => {
+    const profileSubdomain = String(
+      subdomain || profileData.subdomain || "",
+    ).trim();
+
+    if (!profileSubdomain) {
+      throw new Error("Profile subdomain configure nahi hai.");
+    }
+
+    if (!selectedPlan?._id) {
+      throw new Error("Please ek valid plan select karein.");
+    }
+
+    await loadRazorpayScript();
+
+    // ✅ FIX: subdomain bhi backend ko bhejo
+    const orderResponse = await api.post("/plan-purchases/create-order", {
+      planId: selectedPlan._id,
+      subdomain: profileSubdomain,
+    });
+
+    const orderData = orderResponse.data?.data;
+
+    if (!orderResponse.data?.success || !orderData?.orderId) {
+      throw new Error(
+        orderResponse.data?.message || "Payment order create nahi ho paaya.",
+      );
+    }
+
+    if (!orderData.razorpayKeyId) {
+      throw new Error("Razorpay key server response mein nahi mili.");
+    }
+
+    return new Promise((resolve, reject) => {
+      let settled = false;
+
+      const finish = (callback, value) => {
+        if (settled) return;
+        settled = true;
+        callback(value);
+      };
+
+      const checkout = new window.Razorpay({
+        key: orderData.razorpayKeyId,
+        amount: orderData.orderAmount,
+        currency: orderData.orderCurrency || "INR",
+        name: "BioWebsite",
+        description: `${orderData.planName || selectedPlan.name} Plan`,
+        order_id: orderData.orderId,
+
+        theme: {
+          color: "#22d3ee",
+        },
+
+        handler: async (razorpayResponse) => {
+          try {
+            // ✅ FIX: subdomain verify me bhi bhejo
+            const verifyResponse = await api.post(
+              "/plan-purchases/verify-payment",
+              {
+                razorpay_order_id: razorpayResponse.razorpay_order_id,
+                razorpay_payment_id: razorpayResponse.razorpay_payment_id,
+                razorpay_signature: razorpayResponse.razorpay_signature,
+                subdomain: profileSubdomain,
+              },
+            );
+
+            if (!verifyResponse.data?.success) {
+              throw new Error(
+                verifyResponse.data?.message ||
+                  "Payment verification fail ho gayi.",
+              );
+            }
+
+            // Redirect sirf successful server verification ke baad.
+            finish(resolve, true);
+
+            setShowPlanPayment(false);
+
+            navigate(`/card-preview/${encodeURIComponent(profileSubdomain)}`);
+          } catch (error) {
+            finish(
+              reject,
+              new Error(
+                error?.response?.data?.message ||
+                  error?.message ||
+                  "Payment verify nahi ho paayi. Please payment status check karein.",
+              ),
+            );
+          }
+        },
+
+        modal: {
+          ondismiss: () => {
+            finish(reject, new Error("Payment window close kar di gayi."));
+          },
+        },
+      });
+
+      checkout.on("payment.failed", (event) => {
+        finish(
+          reject,
+          new Error(
+            event?.error?.description ||
+              "Payment fail ho gayi. Please dobara try karein.",
+          ),
+        );
+      });
+
+      checkout.open();
+    });
   };
 
   const handleWhatsApp = () => {
@@ -1005,6 +1154,36 @@ const Mini = () => {
                 Change Layout
               </button>
             </div>
+          </div>
+        </div>
+
+        {/* PAY & PUBLISH */}
+        <div className="mb-6 overflow-hidden rounded-2xl border border-cyan-400/30 bg-gradient-to-r from-[#0b1b30] via-[#102b49] to-[#0b1b30] p-5 shadow-lg sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-400/10 text-cyan-300">
+                <ShieldCheck size={24} />
+              </div>
+
+              <div>
+                <h2 className="text-lg font-bold text-white">
+                  Publish Your Digital Profile
+                </h2>
+                <p className="mt-1 max-w-xl text-sm leading-6 text-slate-400">
+                  Apna plan select karein, secure payment complete karein aur
+                  payment verification ke baad profile preview par jaayein.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowPlanPayment(true)}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 text-sm font-extrabold text-[#0b1b30] transition hover:bg-cyan-300 hover:shadow-lg hover:shadow-cyan-400/20"
+            >
+              Pay & Publish
+              <span aria-hidden="true">→</span>
+            </button>
           </div>
         </div>
 
@@ -1951,6 +2130,15 @@ const Mini = () => {
         </Overlay>
       )}
 
+      {/* PLAN PAYMENT MODAL */}
+      <PlanPaymentModal
+        isOpen={showPlanPayment}
+        onClose={() => setShowPlanPayment(false)}
+        subdomain={profileData.subdomain || ""}
+        onProceed={handlePlanProceed}
+      />
+
+      {/* ✅ FIX: sirf EK Payment component (duplicate hata diya) */}
       <Payment
         isOpen={showPayment}
         onClose={() => setShowPayment(false)}

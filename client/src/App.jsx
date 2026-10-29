@@ -80,6 +80,7 @@ function App() {
           <Route path="editprofile" element={<EditProfile />} />
           <Route path="leads" element={<Leads />} />
           <Route path="manageproducts" element={<ManageProducts />} />
+          <Route path="profile-layouts" element={<ProfileLayouts />} />
           <Route path="gallery" element={<Gallery />} />
           <Route path="profile-layouts" element={<ProfileLayouts />} />
           <Route path="mini" element={<Mini />} />
