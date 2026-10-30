@@ -1,5 +1,7 @@
+
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 
 import {
   MonitorSmartphone,
@@ -18,6 +20,8 @@ import {
   ExternalLink,
   Images,
 } from "lucide-react";
+
+import { logoutUser, logout } from "../redux/slice/authSlice";
 
 const sidebarItems = [
   {
@@ -39,13 +43,13 @@ const sidebarItems = [
   //   path: "/upi-payments",
   //   badge: { text: "Setup", color: "amber" },
   // },
-  {
-    id: "themes",
-    label: "Website Themes",
-    icon: Palette,
-    path: "/theme",
-    // badge: { text: "5 Themes", color: "violet" },
-  },
+  // {
+  //   id: "themes",
+  //   label: "Website Themes",
+  //   icon: Palette,
+  //   path: "/theme",
+  //   badge: { text: "5 Themes", color: "violet" },
+  // },
   {
     id: "profilelayouts",
     label: "Profile Layouts",
@@ -121,10 +125,23 @@ const DashboardSidebar = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
 
   const handleNavigation = (item) => {
     onNavClick?.(item.id);
     navigate(item.path);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await dispatch(logoutUser()).unwrap();
+    } catch (error) {
+      console.error("Logout API error:", error);
+    } finally {
+      dispatch(logout());
+      onLogout?.();
+      navigate("/auth", { replace: true });
+    }
   };
 
   return (
@@ -217,7 +234,9 @@ const DashboardSidebar = ({
                 title={collapsed ? item.label : undefined}
                 aria-current={active ? "page" : undefined}
                 className={`group relative flex w-full items-center rounded-xl border text-left transition-all duration-200 ${
-                  collapsed ? "justify-center px-0 py-2.5" : "gap-2.5 px-2 py-2"
+                  collapsed
+                    ? "justify-center px-0 py-2.5"
+                    : "gap-2.5 px-2 py-2"
                 } ${
                   active
                     ? "border-cyan-400/20 bg-gradient-to-r from-cyan-400/[0.13] via-blue-400/[0.06] to-transparent text-white shadow-[0_5px_18px_rgba(0,0,0,0.15)]"
@@ -285,28 +304,10 @@ const DashboardSidebar = ({
             </p>
           )}
 
-          {/* PREVIEW */}
-          <button
-            type="button"
-            onClick={() => (onPreview ? onPreview() : navigate("/preview"))}
-            title={collapsed ? "Open Preview" : undefined}
-            className={`group flex w-full items-center rounded-xl border border-transparent text-slate-300 transition-all duration-200 hover:border-cyan-400/15 hover:bg-[#082443] hover:text-white ${
-              collapsed ? "justify-center px-0 py-2.5" : "gap-2.5 px-2 py-2"
-            }`}
-          >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#082443] text-cyan-200 transition-colors group-hover:bg-cyan-400/10">
-              <ExternalLink size={17} />
-            </span>
-
-            {!collapsed && (
-              <span className="text-[11px] font-semibold">Open Preview</span>
-            )}
-          </button>
-
           {/* LOGOUT */}
           <button
             type="button"
-            onClick={onLogout}
+            onClick={handleLogout}
             title={collapsed ? "Logout" : undefined}
             className={`group mt-1 flex w-full items-center rounded-xl border border-transparent text-slate-400 transition-all duration-200 hover:border-rose-400/15 hover:bg-rose-400/[0.07] hover:text-rose-200 ${
               collapsed ? "justify-center px-0 py-2.5" : "gap-2.5 px-2 py-2"

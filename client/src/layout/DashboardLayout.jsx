@@ -1,13 +1,17 @@
+
 import React, { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import DashboardNavbar from "../components/DashboardNavbar";
 import DashboardSidebar from "../components/DashboardSidebar";
 import DashboardMobileSidebar from "../components/DashboardMobileSidebar";
 import PaymentModal from "../components/PaymentModal";
+import { fetchMyProfile } from "../redux/slice/profileSlice";
 
 const DashboardLayout = () => {
+  const dispatch = useDispatch();
   const location = useLocation();
+
   const { profile } = useSelector((state) => state.profile || {});
   const subdomain = profile?.subdomain || "";
 
@@ -26,6 +30,14 @@ const DashboardLayout = () => {
 
   const [cardActionNotice, setCardActionNotice] = useState("");
   const [cardActionNoticeTimer, setCardActionNoticeTimer] = useState(null);
+
+  /* =========================================================
+     FETCH PROFILE
+  ========================================================= */
+
+  useEffect(() => {
+    dispatch(fetchMyProfile());
+  }, [dispatch]);
 
   /* =========================================================
      ACTIVE SIDEBAR ITEM
@@ -183,7 +195,7 @@ const DashboardLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#061426]  text-slate-100">
+    <div className="min-h-screen bg-[#061426] text-slate-100">
       {/* =======================================================
           DASHBOARD NAVBAR
       ======================================================= */}

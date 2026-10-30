@@ -7,6 +7,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import api from "../redux/api";
+import { createInquiry } from "../redux/slice/inquirySlice";
 import { getPublicQRUrl } from "../utils/qrUrl";
 
 import {
@@ -48,6 +49,7 @@ import {
   IndianRupee,
   Navigation as NavigationIcon,
 } from "lucide-react";
+import { useDispatch } from "react-redux";
 
 /* ============================================================
    THEMES — aligned with Mini.jsx primary/accent colors
@@ -230,6 +232,7 @@ const getSocialBrand = (platform = "") => {
    ============================================================ */
 function CardPreview() {
   const { subdomain } = useParams();
+  const dispatch = useDispatch();
 
   const [profile, setProfile] = useState(null);
   const [qrPath, setQrPath] = useState("");
@@ -252,6 +255,7 @@ function CardPreview() {
     message: "",
   });
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
   /* -------- FETCH PUBLIC PROFILE + ALL DATA -------- */
   useEffect(() => {
@@ -307,8 +311,8 @@ function CardPreview() {
         if (!cancelled) {
           setProfileError(
             error.response?.data?.message ||
-              error.message ||
-              "Unable to load this business profile.",
+            error.message ||
+            "Unable to load this business profile.",
           );
         }
       } finally {
@@ -541,7 +545,7 @@ function CardPreview() {
       case "directions":
         return window.open(
           profile?.mapLink ||
-            `https://maps.google.com/?q=${encodeURIComponent(businessInfo?.address || "")}`,
+          `https://maps.google.com/?q=${encodeURIComponent(businessInfo?.address || "")}`,
           "_blank",
           "noopener,noreferrer",
         );
@@ -568,12 +572,40 @@ function CardPreview() {
     }
   };
 
-  const submitInquiry = (event) => {
+  const submitInquiry = async (event) => {
     event.preventDefault();
-    // Placeholder — connect public inquiry endpoint here
-    setFormSubmitted(true);
-    setForm({ name: "", phone: "", email: "", message: "" });
-    setTimeout(() => setFormSubmitted(false), 4000);
+
+    try {
+      await dispatch(
+        createInquiry({
+          name: form.name.trim(),
+          phone: form.phone.trim(),
+          email: form.email.trim(),
+          message: form.message.trim(),
+          subdomain, // ← REQUIRED by backend
+        }),
+      ).unwrap();
+
+      setFormSubmitted(true);
+      setForm({
+        name: "",
+        phone: "",
+        email: "",
+        message: "",
+      });
+
+      // 👇 TOAST TRIGGER
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+
+      setTimeout(() => setFormSubmitted(false), 4000);
+    } catch (error) {
+      const message =
+        typeof error === "string"
+          ? error
+          : error?.message || "Failed to submit inquiry.";
+      alert(message);
+    }
   };
 
   /* -------- LOADING / ERROR -------- */
@@ -605,6 +637,28 @@ function CardPreview() {
       className="min-h-screen px-3 py-4 sm:px-5 sm:py-6"
       style={{ background: theme.background, color: theme.text }}
     >
+      {showToast && (
+        <div
+          className="fixed left-1/2 top-5 z-[200] flex -translate-x-1/2 items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold shadow-2xl"
+          style={{
+            background: theme.surface,
+            border: `1px solid ${theme.primary}`,
+            color: theme.text,
+            animation: "toastSlideIn 0.3s ease",
+          }}
+        >
+          <CheckCircle2 size={18} style={{ color: theme.primary }} />
+          Inquiry submitted successfully!
+        </div>
+      )}
+
+      <style>{`
+      @keyframes toastSlideIn {
+        from { opacity: 0; transform: translate(-50%, -10px); }
+        to { opacity: 1; transform: translate(-50%, 0); }
+      }
+    `}</style>
+
       <style>{`
         .mini-profile-preview {
           --layout-radius: 24px;
@@ -1280,10 +1334,10 @@ function CardPreview() {
                     autoplay={
                       productList.length > 1
                         ? {
-                            delay: 3000,
-                            disableOnInteraction: false,
-                            pauseOnMouseEnter: true,
-                          }
+                          delay: 3000,
+                          disableOnInteraction: false,
+                          pauseOnMouseEnter: true,
+                        }
                         : false
                     }
                     breakpoints={{
@@ -1601,15 +1655,15 @@ function CardPreview() {
                   style={
                     qrModalTab === tab.id
                       ? {
-                          borderColor: theme.primary,
-                          background: `${theme.primary}22`,
-                          color: theme.primary,
-                        }
+                        borderColor: theme.primary,
+                        background: `${theme.primary}22`,
+                        color: theme.primary,
+                      }
                       : {
-                          borderColor: theme.border,
-                          background: theme.card,
-                          color: theme.muted,
-                        }
+                        borderColor: theme.border,
+                        background: theme.card,
+                        color: theme.muted,
+                      }
                   }
                 >
                   {tab.label}

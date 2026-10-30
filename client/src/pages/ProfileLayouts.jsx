@@ -282,6 +282,7 @@ const ProfileLayouts = () => {
   const [selectedLayout, setSelectedLayout] = useState("modern-business");
   const [message, setMessage] = useState("");
   const [saveError, setSaveError] = useState("");
+  const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
     dispatch(fetchMyProfile());
@@ -301,6 +302,10 @@ const ProfileLayouts = () => {
     try {
       await dispatch(saveMyProfile({ activeLayout: selectedLayout })).unwrap();
       setMessage("Profile layout saved successfully.");
+
+      // 👇 TOAST TRIGGER
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
     } catch (err) {
       setSaveError(
         typeof err === "string"
@@ -316,6 +321,29 @@ const ProfileLayouts = () => {
 
   return (
     <div className="min-w-0 space-y-6 text-slate-100">
+      {/* 👇 GREEN TOAST — TOP RIGHT */}
+      {showToast && (
+        <div
+          className="fixed right-5 top-5 z-[200] flex items-center gap-2.5 rounded-xl px-4 py-3 text-sm font-semibold shadow-2xl"
+          style={{
+            background: "#065f46",
+            border: "1px solid #10b981",
+            color: "#ecfdf5",
+            animation: "toastSlideInRight 0.3s ease",
+          }}
+        >
+          <Check size={18} style={{ color: "#6ee7b7" }} strokeWidth={3} />
+          Layout saved successfully!
+        </div>
+      )}
+
+      <style>{`
+        @keyframes toastSlideInRight {
+          from { opacity: 0; transform: translateX(20px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+      `}</style>
+
       <header className="overflow-hidden rounded-2xl border border-[#164467] bg-gradient-to-br from-[#082443] via-[#061D38] to-[#041529] p-5 sm:p-7">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">

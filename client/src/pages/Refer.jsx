@@ -37,6 +37,7 @@ const Refer = () => {
   } = useSelector((state) => state.referral);
 
   const [copied, setCopied] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
   const [copyError, setCopyError] = useState("");
   const [page, setPage] = useState(1);
 
@@ -97,6 +98,45 @@ const Refer = () => {
     } catch (err) {
       console.error("Unable to copy referral link:", err);
       setCopyError("Unable to copy the link. Please copy it manually.");
+    }
+  };
+
+  // Copy just the referral code
+  const handleCopyCode = async () => {
+    if (!referralCode) {
+      setCopyError("Your referral code is not available yet.");
+      return;
+    }
+
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(referralCode);
+      } else {
+        const input = document.createElement("textarea");
+        input.value = referralCode;
+        input.style.position = "fixed";
+        input.style.left = "-9999px";
+        input.style.top = "0";
+
+        document.body.appendChild(input);
+        input.focus();
+        input.select();
+
+        const success = document.execCommand("copy");
+        document.body.removeChild(input);
+
+        if (!success) {
+          throw new Error("Copy failed");
+        }
+      }
+
+      setCopiedCode(true);
+      setCopyError("");
+
+      window.setTimeout(() => setCopiedCode(false), 2000);
+    } catch (err) {
+      console.error("Unable to copy referral code:", err);
+      setCopyError("Unable to copy the code. Please copy it manually.");
     }
   };
 
@@ -266,146 +306,6 @@ const Refer = () => {
           </div>
         )}
 
-        {/* Referral link card */}
-        <section className="mb-8 overflow-hidden rounded-2xl border border-[#29435f] bg-[#0b1b30] shadow-2xl shadow-black/20">
-          <div className="h-1 w-full bg-gradient-to-r from-cyan-400 via-blue-500 to-cyan-400" />
-
-          <div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.15fr]">
-            {/* Left panel */}
-            <div className="border-b border-[#29435f] p-6 sm:p-8 lg:border-b-0 lg:border-r">
-              <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/20 bg-[#132942]">
-                <Link2 size={25} className="text-cyan-400" />
-              </div>
-
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-400">
-                How it works
-              </span>
-
-              <h2 className="mt-2 text-xl font-bold text-white sm:text-2xl">
-                One link.
-                <br />
-                Easy sharing.
-              </h2>
-
-              <p className="mt-3 max-w-sm text-xs leading-6 text-slate-400 sm:text-sm">
-                Send your personal referral link to people who want to build
-                their business presence online.
-              </p>
-
-              <div className="mt-6 space-y-4">
-                {[
-                  "Copy your personal referral link",
-                  "Share it with business owners",
-                  "Track registrations in your dashboard",
-                ].map((item, index) => (
-                  <div key={item} className="flex items-center gap-3">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-cyan-400/20 bg-cyan-400/10 text-xs font-bold text-cyan-400">
-                      {index + 1}
-                    </span>
-                    <span className="text-xs font-medium text-slate-300">
-                      {item}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right panel */}
-            <div className="flex flex-col justify-center bg-[#132942]/40 p-5 sm:p-8">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <label
-                  htmlFor="referral-link"
-                  className="text-xs font-bold text-slate-200"
-                >
-                  Your referral link
-                </label>
-
-                <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-cyan-400">
-                  <span
-                    className={`h-1.5 w-1.5 rounded-full ${
-                      referralLink ? "animate-pulse bg-cyan-400" : "bg-slate-500"
-                    }`}
-                  />
-                  {referralLink ? "Ready to share" : "Loading code"}
-                </span>
-              </div>
-
-              <div className="rounded-xl border border-[#29435f] bg-[#0b1b30] p-2">
-                <input
-                  id="referral-link"
-                  type="text"
-                  readOnly
-                  value={
-                    referralLink ||
-                    (loading
-                      ? "Loading your referral link..."
-                      : "Referral code unavailable")
-                  }
-                  onFocus={(event) => event.target.select()}
-                  aria-label="Your referral link"
-                  className="w-full min-w-0 bg-transparent px-2 py-3 font-mono text-xs text-cyan-400 outline-none sm:text-sm"
-                />
-
-                <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  <button
-                    type="button"
-                    onClick={handleCopy}
-                    disabled={!referralLink}
-                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#38516e] bg-[#132942] px-4 py-3 text-xs font-bold text-slate-200 transition hover:border-cyan-400/40 hover:bg-[#1a3658] hover:text-cyan-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {copied ? (
-                      <>
-                        <Check
-                          size={15}
-                          className="text-cyan-400"
-                          strokeWidth={3}
-                        />
-                        Link Copied
-                      </>
-                    ) : (
-                      <>
-                        <Copy size={15} />
-                        Copy Referral Link
-                      </>
-                    )}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleWhatsAppShare}
-                    disabled={!referralLink}
-                    className="group inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-cyan-400 px-4 py-3 text-xs font-bold text-[#0b1b30] shadow-lg shadow-cyan-400/10 transition hover:bg-cyan-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <MessageCircle size={16} />
-                    Share on WhatsApp
-                    <ArrowUpRight
-                      size={14}
-                      className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-                    />
-                  </button>
-                </div>
-              </div>
-
-              {copied && (
-                <p className="mt-3 flex items-center gap-2 text-xs font-semibold text-cyan-400">
-                  <Check size={13} strokeWidth={3} />
-                  Referral link copied successfully.
-                </p>
-              )}
-
-              {copyError && (
-                <p className="mt-3 text-xs leading-5 text-red-300">
-                  {copyError}
-                </p>
-              )}
-
-              <p className="mt-4 text-[11px] leading-5 text-slate-500">
-                Your referral code is loaded from your account information.
-              </p>
-            </div>
-          </div>
-        </section>
-
         {/* Referral overview - no earnings section */}
         <section className="mb-8">
           <div className="mb-4">
@@ -464,11 +364,31 @@ const Refer = () => {
                   <p className="mt-2 text-[11px] text-slate-500">
                     Your unique account referral code
                   </p>
+
+                  {copiedCode && (
+                    <p className="mt-1.5 text-[11px] font-semibold text-emerald-400">
+                      Referral code copied to clipboard
+                    </p>
+                  )}
+                  {copyError && (
+                    <p className="mt-1.5 text-[11px] font-semibold text-red-400">
+                      {copyError}
+                    </p>
+                  )}
                 </div>
 
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-400/20 bg-[#132942]">
-                  <Gift size={20} className="text-cyan-400" />
-                </div>
+                <button
+                  type="button"
+                  onClick={handleCopyCode}
+                  disabled={!referralCode}
+                  title={copiedCode ? "Copied!" : "Copy referral code"}
+                  aria-label={
+                    copiedCode ? "Referral code copied" : "Copy referral code"
+                  }
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-400/20 bg-[#132942] text-cyan-400 transition hover:border-cyan-400/50 hover:bg-[#173251] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {copiedCode ? <Check size={20} /> : <Copy size={20} />}
+                </button>
               </div>
 
               <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-[#132942]">

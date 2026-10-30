@@ -893,3 +893,20 @@ html[data-theme="dark"] body,
 html[data-theme="dark"] #root {
   background-color: #0b1b30;
 }
+
+/* Hide scrollbar - Chrome, Edge, Safari */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+/* Hide scrollbar - Firefox */
+* {
+  scrollbar-width: none;
+}
+
+/* Hide scrollbar - IE/Old Edge */
+* {
+  -ms-overflow-style: none;
+}
