@@ -5,6 +5,7 @@ const { uploadToImgBB } = require("../utils/imgbb");
 const sharp = require("sharp");
 const { handleUploadError } = require("../middleware/upload.middleware");
 const MiniProfile = require("../models/MiniProfile");
+const User = require("../models/User");
 
 const handleProductError = (res, error, action) => {
   console.error(`${action} error:`, error);
@@ -416,6 +417,249 @@ const getPublicProducts = async (req, res) => {
   }
 };
 
+// Verify target user for admin product operations
+const getAdminProductTargetUser = async (userId) => {
+  if (!mongoose.isValidObjectId(userId)) {
+    const error = new Error("Invalid user ID.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const user = await User.findOne({ _id: userId, role: "user" }).select("_id");
+
+  if (!user) {
+    const error = new Error("User not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return user;
+};
+
+// GET selected user's products
+const getAdminUserProducts = async (req, res) => {
+  try {
+    const user = await getAdminProductTargetUser(req.params.userId);
+
+    const products = await Product.find({ userId: user._id }).sort({
+      createdAt: -1,
+    });
+
+    return res.status(200).json({
+      success: true,
+      count: products.length,
+      data: products,
+    });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    return handleProductError(res, error, "Fetch user products");
+  }
+};
+
+// CREATE product for selected user
+const createAdminUserProduct = async (req, res) => {
+  try {
+    const user = await getAdminProductTargetUser(req.params.userId);
+
+    const errors = validateProductInput(req.body);
+
+    if (errors.length) {
+      return res.status(400).json({
+        success: false,
+        message: errors[0],
+        errors,
+      });
+    }
+
+    const files = req.files || [];
+
+    if (files.length > 8) {
+      return res.status(400).json({
+        success: false,
+        message: "Maximum 8 images are allowed.",
+      });
+    }
+
+    const images = await uploadProductImages(files);
+
+    const product = await Product.create({
+      userId: user._id,
+      name: req.body.name.trim(),
+      description: req.body.description.trim(),
+      price: Number(req.body.price),
+      category: req.body.category?.trim() || "General",
+      type: req.body.type || "product",
+      images,
+      status: req.body.status || "active",
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Product created successfully for the user.",
+      data: product,
+    });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    return handleProductError(res, error, "Create user product");
+  }
+};
+
+// UPDATE selected user's product
+const updateAdminUserProduct = async (req, res) => {
+  try {
+    const user = await getAdminProductTargetUser(req.params.userId);
+
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid product ID.",
+      });
+    }
+
+    const product = await Product.findOne({
+      _id: req.params.id,
+      userId: user._id,
+    });
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found.",
+      });
+    }
+
+    const errors = validateProductInput(req.body, true);
+
+    if (errors.length) {
+      return res.status(400).json({
+        success: false,
+        message: errors[0],
+        errors,
+      });
+    }
+
+    const updates = {};
+
+    if (req.body.name !== undefined) {
+      updates.name = req.body.name.trim();
+    }
+
+    if (req.body.description !== undefined) {
+      updates.description = req.body.description.trim();
+    }
+
+    if (req.body.price !== undefined) {
+      updates.price = Number(req.body.price);
+    }
+
+    if (req.body.category !== undefined) {
+      updates.category = req.body.category.trim() || "General";
+    }
+
+    if (req.body.type !== undefined) {
+      updates.type = req.body.type;
+    }
+
+    if (req.body.status !== undefined) {
+      updates.status = req.body.status;
+    }
+
+    const newFiles = req.files || [];
+
+    if (product.images.length + newFiles.length > 8) {
+      return res.status(400).json({
+        success: false,
+        message: "Maximum 8 images are allowed per product/service.",
+      });
+    }
+
+    if (newFiles.length) {
+      const uploadedImages = await uploadProductImages(newFiles);
+      updates.images = [...product.images, ...uploadedImages];
+    }
+
+    if (!Object.keys(updates).length) {
+      return res.status(400).json({
+        success: false,
+        message: "No product details provided for update.",
+      });
+    }
+
+    const updatedProduct = await Product.findOneAndUpdate(
+      { _id: product._id, userId: user._id },
+      { $set: updates },
+      { new: true, runValidators: true },
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Product updated successfully.",
+      data: updatedProduct,
+    });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    return handleProductError(res, error, "Update user product");
+  }
+};
+
+// DELETE selected user's product
+const deleteAdminUserProduct = async (req, res) => {
+  try {
+    const user = await getAdminProductTargetUser(req.params.userId);
+
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid product ID.",
+      });
+    }
+
+    const product = await Product.findOneAndDelete({
+      _id: req.params.id,
+      userId: user._id,
+    });
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Product deleted successfully.",
+    });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    return handleProductError(res, error, "Delete user product");
+  }
+};
+
 module.exports = {
   createProduct,
   getMyProducts,
@@ -423,4 +667,9 @@ module.exports = {
   deleteProduct,
   parseProductImages,
   getPublicProducts,
+
+  getAdminUserProducts,
+  createAdminUserProduct,
+  updateAdminUserProduct,
+  deleteAdminUserProduct,
 };

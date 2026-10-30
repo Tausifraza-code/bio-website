@@ -396,7 +396,7 @@ export default function AdminUsers() {
                           <button
                             type="button"
                             onClick={() => navigate(`/admin/users/${user._id}`)}
-                            className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg border border-cyan-500 px-3 py-2 text-xs font-semibold text-cyan-600 transition hover:bg-cyan-50 dark:text-cyan-400 dark:hover:bg-cyan-500/10"
+                            className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg   px-1 py-2 text-xs font-semibold text-cyan-600 transition hover:bg-cyan-50 dark:text-cyan-400 dark:hover:bg-cyan-500/10"
                           >
                             <Eye size={14} />
                             View Profile

@@ -231,6 +231,229 @@ export const updateAdminUserProfile = createAsyncThunk(
   },
 );
 
+/* =========================================
+   ADMIN USER GALLERY MANAGEMENT
+========================================= */
+
+// FETCH SELECTED USER GALLERY
+export const fetchAdminUserGallery = createAsyncThunk(
+  "admin/fetchAdminUserGallery",
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/admin/users/${userId}/gallery`);
+
+      if (!response.data?.success) {
+        return rejectWithValue(
+          response.data?.message || "Unable to load user gallery.",
+        );
+      }
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Unable to load user gallery.",
+      );
+    }
+  },
+);
+
+// UPLOAD GALLERY IMAGES
+export const uploadAdminUserGallery = createAsyncThunk(
+  "admin/uploadAdminUserGallery",
+  async ({ userId, formData }, { rejectWithValue }) => {
+    try {
+      const response = await api.post(
+        `/admin/users/${userId}/gallery`,
+        formData,
+      );
+
+      if (!response.data?.success) {
+        return rejectWithValue(
+          response.data?.message || "Unable to upload gallery images.",
+        );
+      }
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Unable to upload gallery images.",
+      );
+    }
+  },
+);
+
+// UPDATE GALLERY IMAGE
+export const updateAdminUserGalleryImage = createAsyncThunk(
+  "admin/updateAdminUserGalleryImage",
+  async ({ userId, id, formData }, { rejectWithValue }) => {
+    try {
+      const response = await api.put(
+        `/admin/users/${userId}/gallery/${id}`,
+        formData,
+      );
+
+      if (!response.data?.success) {
+        return rejectWithValue(
+          response.data?.message || "Unable to update gallery image.",
+        );
+      }
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Unable to update gallery image.",
+      );
+    }
+  },
+);
+
+// DELETE GALLERY IMAGE
+export const deleteAdminUserGalleryImage = createAsyncThunk(
+  "admin/deleteAdminUserGalleryImage",
+  async ({ userId, id }, { rejectWithValue }) => {
+    try {
+      const response = await api.delete(`/admin/users/${userId}/gallery/${id}`);
+
+      if (!response.data?.success) {
+        return rejectWithValue(
+          response.data?.message || "Unable to delete gallery image.",
+        );
+      }
+
+      return { ...response.data, deletedId: id };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Unable to delete gallery image.",
+      );
+    }
+  },
+);
+
+/* =========================================
+   ADMIN USER PRODUCT MANAGEMENT
+========================================= */
+
+// FETCH SELECTED USER PRODUCTS
+export const fetchAdminUserProducts = createAsyncThunk(
+  "admin/fetchAdminUserProducts",
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/admin/users/${userId}/products`);
+
+      if (!response.data?.success) {
+        return rejectWithValue(
+          response.data?.message || "Unable to load user products.",
+        );
+      }
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Unable to load user products.",
+      );
+    }
+  },
+);
+
+// CREATE PRODUCT FOR USER
+export const createAdminUserProduct = createAsyncThunk(
+  "admin/createAdminUserProduct",
+  async ({ userId, formData }, { rejectWithValue }) => {
+    try {
+      const response = await api.post(
+        `/admin/users/${userId}/products`,
+        formData,
+      );
+
+      if (!response.data?.success) {
+        return rejectWithValue(
+          response.data?.message || "Unable to create product.",
+        );
+      }
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Unable to create product.",
+      );
+    }
+  },
+);
+
+// UPDATE USER PRODUCT
+export const updateAdminUserProduct = createAsyncThunk(
+  "admin/updateAdminUserProduct",
+  async ({ userId, id, formData }, { rejectWithValue }) => {
+    try {
+      const response = await api.put(
+        `/admin/users/${userId}/products/${id}`,
+        formData,
+      );
+
+      if (!response.data?.success) {
+        return rejectWithValue(
+          response.data?.message || "Unable to update product.",
+        );
+      }
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Unable to update product.",
+      );
+    }
+  },
+);
+
+// DELETE USER PRODUCT
+export const deleteAdminUserProduct = createAsyncThunk(
+  "admin/deleteAdminUserProduct",
+  async ({ userId, id }, { rejectWithValue }) => {
+    try {
+      const response = await api.delete(
+        `/admin/users/${userId}/products/${id}`,
+      );
+
+      if (!response.data?.success) {
+        return rejectWithValue(
+          response.data?.message || "Unable to delete product.",
+        );
+      }
+
+      return { ...response.data, deletedId: id };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Unable to delete product.",
+      );
+    }
+  },
+);
+
+// UPLOAD ADMIN USER PROFILE IMAGES
+export const uploadAdminUserProfileImages = createAsyncThunk(
+  "admin/uploadAdminUserProfileImages",
+  async ({ userId, formData }, { rejectWithValue }) => {
+    try {
+      const response = await api.put(
+        `/admin/users/${userId}/profile/images`,
+        formData,
+      );
+
+      if (!response.data?.success) {
+        return rejectWithValue(
+          response.data?.message || "Unable to upload profile images.",
+        );
+      }
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Unable to upload profile images.",
+      );
+    }
+  },
+);
+
 const initialState = {
   admin: null,
   token: localStorage.getItem("adminToken") || null,
@@ -312,6 +535,22 @@ const initialState = {
   selectedUserProfileSaving: false,
   selectedUserProfileError: null,
   selectedUserProfileMessage: null,
+
+  // Selected user's gallery management
+  userGallery: [],
+  userGalleryLoading: false,
+
+  // Selected user's product management
+  userProducts: [],
+  userProductsLoading: false,
+
+  // Gallery and product mutations
+  userContentSaving: false,
+  userContentError: null,
+  userContentMessage: null,
+
+  profileImagesSaving: false,
+  profileImagesError: null,
 };
 
 const adminSlice = createSlice({
@@ -591,6 +830,188 @@ const adminSlice = createSlice({
         state.selectedUserProfileSaving = false;
         state.selectedUserProfileError =
           action.payload || "Unable to save user profile.";
+      })
+
+      // =====================================
+      // ADMIN USER GALLERY
+      // =====================================
+
+      .addCase(fetchAdminUserGallery.pending, (state) => {
+        state.userGalleryLoading = true;
+        state.userContentError = null;
+      })
+
+      .addCase(fetchAdminUserGallery.fulfilled, (state, action) => {
+        state.userGalleryLoading = false;
+
+        state.userGallery = action.payload.data || action.payload.gallery || [];
+      })
+
+      .addCase(fetchAdminUserGallery.rejected, (state, action) => {
+        state.userGalleryLoading = false;
+        state.userContentError =
+          action.payload || "Unable to load user gallery.";
+      })
+
+      // Gallery mutations
+      .addCase(uploadAdminUserGallery.pending, (state) => {
+        state.userContentSaving = true;
+        state.userContentError = null;
+        state.userContentMessage = null;
+      })
+
+      .addCase(uploadAdminUserGallery.fulfilled, (state, action) => {
+        state.userContentSaving = false;
+        state.userContentMessage =
+          action.payload.message || "Gallery uploaded successfully.";
+      })
+
+      .addCase(uploadAdminUserGallery.rejected, (state, action) => {
+        state.userContentSaving = false;
+        state.userContentError =
+          action.payload || "Unable to upload gallery images.";
+      })
+
+      .addCase(updateAdminUserGalleryImage.pending, (state) => {
+        state.userContentSaving = true;
+        state.userContentError = null;
+      })
+
+      .addCase(updateAdminUserGalleryImage.fulfilled, (state, action) => {
+        state.userContentSaving = false;
+        state.userContentMessage =
+          action.payload.message || "Gallery image updated successfully.";
+      })
+
+      .addCase(updateAdminUserGalleryImage.rejected, (state, action) => {
+        state.userContentSaving = false;
+        state.userContentError =
+          action.payload || "Unable to update gallery image.";
+      })
+
+      .addCase(deleteAdminUserGalleryImage.pending, (state) => {
+        state.userContentSaving = true;
+        state.userContentError = null;
+      })
+
+      .addCase(deleteAdminUserGalleryImage.fulfilled, (state, action) => {
+        state.userContentSaving = false;
+
+        state.userGallery = state.userGallery.filter(
+          (item) => item._id !== action.payload.deletedId,
+        );
+
+        state.userContentMessage =
+          action.payload.message || "Gallery image deleted successfully.";
+      })
+
+      .addCase(deleteAdminUserGalleryImage.rejected, (state, action) => {
+        state.userContentSaving = false;
+        state.userContentError =
+          action.payload || "Unable to delete gallery image.";
+      })
+
+      // =====================================
+      // ADMIN USER PRODUCTS
+      // =====================================
+
+      .addCase(fetchAdminUserProducts.pending, (state) => {
+        state.userProductsLoading = true;
+        state.userContentError = null;
+      })
+
+      .addCase(fetchAdminUserProducts.fulfilled, (state, action) => {
+        state.userProductsLoading = false;
+
+        state.userProducts =
+          action.payload.data || action.payload.products || [];
+      })
+
+      .addCase(fetchAdminUserProducts.rejected, (state, action) => {
+        state.userProductsLoading = false;
+        state.userContentError =
+          action.payload || "Unable to load user products.";
+      })
+
+      // Product mutations
+      .addCase(createAdminUserProduct.pending, (state) => {
+        state.userContentSaving = true;
+        state.userContentError = null;
+        state.userContentMessage = null;
+      })
+
+      .addCase(createAdminUserProduct.fulfilled, (state, action) => {
+        state.userContentSaving = false;
+        state.userContentMessage =
+          action.payload.message || "Product created successfully.";
+      })
+
+      .addCase(createAdminUserProduct.rejected, (state, action) => {
+        state.userContentSaving = false;
+        state.userContentError = action.payload || "Unable to create product.";
+      })
+
+      .addCase(updateAdminUserProduct.pending, (state) => {
+        state.userContentSaving = true;
+        state.userContentError = null;
+      })
+
+      .addCase(updateAdminUserProduct.fulfilled, (state, action) => {
+        state.userContentSaving = false;
+        state.userContentMessage =
+          action.payload.message || "Product updated successfully.";
+      })
+
+      .addCase(updateAdminUserProduct.rejected, (state, action) => {
+        state.userContentSaving = false;
+        state.userContentError = action.payload || "Unable to update product.";
+      })
+
+      .addCase(deleteAdminUserProduct.pending, (state) => {
+        state.userContentSaving = true;
+        state.userContentError = null;
+      })
+
+      .addCase(deleteAdminUserProduct.fulfilled, (state, action) => {
+        state.userContentSaving = false;
+
+        state.userProducts = state.userProducts.filter(
+          (item) => item._id !== action.payload.deletedId,
+        );
+
+        state.userContentMessage =
+          action.payload.message || "Product deleted successfully.";
+      })
+
+      .addCase(deleteAdminUserProduct.rejected, (state, action) => {
+        state.userContentSaving = false;
+        state.userContentError = action.payload || "Unable to delete product.";
+      })
+
+      // PROFILE IMAGE UPLOAD
+      .addCase(uploadAdminUserProfileImages.pending, (state) => {
+        state.profileImagesSaving = true;
+        state.profileImagesError = null;
+      })
+
+      .addCase(uploadAdminUserProfileImages.fulfilled, (state, action) => {
+        state.profileImagesSaving = false;
+
+        if (action.payload.profile) {
+          state.selectedUserProfile = {
+            ...state.selectedUserProfile,
+            profile: action.payload.profile,
+          };
+        }
+
+        state.selectedUserProfileMessage =
+          action.payload.message || "Profile images uploaded successfully.";
+      })
+
+      .addCase(uploadAdminUserProfileImages.rejected, (state, action) => {
+        state.profileImagesSaving = false;
+        state.profileImagesError =
+          action.payload || "Unable to upload profile images.";
       });
   },
 });
