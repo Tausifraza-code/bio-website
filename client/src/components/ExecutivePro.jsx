@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 
 import {
@@ -36,6 +35,153 @@ import {
   FaXTwitter,
   FaLink,
 } from "react-icons/fa6";
+
+/* ============================================================
+   Responsive visible count hook
+   ============================================================ */
+function useVisibleCount(desktop = 3) {
+  const getCount = () => {
+    if (typeof window === "undefined") return desktop;
+    const w = window.innerWidth;
+    if (w < 640) return 1;
+    if (w < 1024) return 2;
+    return desktop;
+  };
+  const [count, setCount] = useState(getCount);
+
+  useEffect(() => {
+    const onResize = () => setCount(getCount());
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return count;
+}
+
+/* ============================================================
+   Infinite Auto-Slide Carousel (responsive)
+   ============================================================ */
+function AutoRow({ items, renderItem, desktopVisible = 3, interval = 3000 }) {
+  const visible = useVisibleCount(desktopVisible);
+  const total = items.length;
+  const step = 100 / visible;
+
+  const loopItems = total > 1 ? [...items, ...items, ...items] : items;
+  const startIndex = total > 1 ? total : 0;
+
+  const [index, setIndex] = useState(startIndex);
+  const [animate, setAnimate] = useState(true);
+  const paused = useRef(false);
+
+  // Reset position when visible count changes (breakpoint switch)
+  useEffect(() => {
+    if (total <= 1) return;
+    setAnimate(false);
+    setIndex(total);
+    const raf = requestAnimationFrame(() => setAnimate(true));
+    return () => cancelAnimationFrame(raf);
+  }, [visible, total]);
+
+  // Auto-advance
+  useEffect(() => {
+    if (total <= 1) return;
+    const id = setInterval(() => {
+      if (!paused.current) setIndex((i) => i + 1);
+    }, interval);
+    return () => clearInterval(id);
+  }, [total, interval]);
+
+  // Snap back when entering clone zone
+  useEffect(() => {
+    if (total <= 1) return;
+    const id = setTimeout(() => {
+      if (index >= total * 2) {
+        setAnimate(false);
+        setIndex(index - total);
+      } else if (index < total) {
+        setAnimate(false);
+        setIndex(index + total);
+      }
+    }, 720);
+    return () => clearTimeout(id);
+  }, [index, total]);
+
+  // Re-enable animation after snap
+  useEffect(() => {
+    if (!animate) {
+      const raf = requestAnimationFrame(() => setAnimate(true));
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [animate]);
+
+  const next = useCallback(() => {
+    if (total <= 1) return;
+    paused.current = true;
+    setIndex((i) => i + 1);
+    setTimeout(() => (paused.current = false), 400);
+  }, [total]);
+
+  const prev = useCallback(() => {
+    if (total <= 1) return;
+    paused.current = true;
+    setIndex((i) => i - 1);
+    setTimeout(() => (paused.current = false), 400);
+  }, [total]);
+
+  if (!total) return null;
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => (paused.current = true)}
+      onMouseLeave={() => (paused.current = false)}
+    >
+      <div className="overflow-hidden">
+        <div
+          className="flex gap-4"
+          style={{
+            transform: `translateX(-${index * step}%)`,
+            transition: animate
+              ? "transform 700ms cubic-bezier(0.4,0,0.2,1)"
+              : "none",
+          }}
+        >
+          {loopItems.map((item, i) => (
+            <div
+              key={`${item._id || item.id || i}-${i}`}
+              className="shrink-0"
+              style={{
+                width: `calc(${step}% - ${visible === 1 ? "0rem" : "1rem"})`,
+              }}
+            >
+              {renderItem(item, i)}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {total > 1 && (
+        <>
+          <button
+            onClick={prev}
+            className="absolute -left-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-[#29435F] bg-[#0B1B30]/90 text-cyan-300 shadow-lg transition hover:border-cyan-400 hover:bg-[#132942] sm:-left-3 sm:h-10 sm:w-10"
+            aria-label="Previous"
+          >
+            <ArrowUpRight size={16} className="-rotate-135" />
+          </button>
+          <button
+            onClick={next}
+            className="absolute -right-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-[#29435F] bg-[#0B1B30]/90 text-cyan-300 shadow-lg transition hover:border-cyan-400 hover:bg-[#132942] sm:-right-3 sm:h-10 sm:w-10"
+            aria-label="Next"
+          >
+            <ArrowUpRight size={16} className="rotate-45" />
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
 
 // ============================================
 // EXECUTIVE PRO LAYOUT
@@ -574,7 +720,9 @@ const ExecutivePro = ({
           </section>
 
 
-          {/* PRODUCTS */}
+          {/* ================================== */}
+          {/* PRODUCTS — SINGLE LINE AUTO SLIDE   */}
+          {/* ================================== */}
 
           {productList.length > 0 && (
             <section className={panelClass}>
@@ -597,17 +745,17 @@ const ExecutivePro = ({
 
               </div>
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-
-                {productList.map((product) => {
+              <AutoRow
+                items={productList}
+                desktopVisible={3}
+                renderItem={(product) => {
                   const cover = product.images?.find((item) => item?.url)?.url;
 
                   return (
                     <button
-                      key={product._id}
                       type="button"
                       onClick={() => onProductClick(product)}
-                      className="group overflow-hidden rounded-xl border border-[#29435F] bg-[#0B1B30] text-left transition duration-300 hover:-translate-y-1 hover:border-cyan-400/50"
+                      className="group block w-full overflow-hidden rounded-xl border border-[#29435F] bg-[#0B1B30] text-left transition duration-300 hover:-translate-y-1 hover:border-cyan-400/50"
                     >
 
                       <div className="relative h-44 overflow-hidden bg-[#132942]">
@@ -649,14 +797,15 @@ const ExecutivePro = ({
 
                     </button>
                   );
-                })}
-
-              </div>
+                }}
+              />
 
             </section>
           )}
 
-          {/* GALLERY */}
+          {/* ================================== */}
+          {/* GALLERY — SINGLE LINE AUTO SLIDE    */}
+          {/* ================================== */}
 
           <section className={panelClass}>
 
@@ -679,14 +828,14 @@ const ExecutivePro = ({
             </div>
 
             {galleryImages.length > 0 ? (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-
-                {galleryImages.map((image, index) => (
+              <AutoRow
+                items={galleryImages}
+                desktopVisible={4}
+                renderItem={(image, index) => (
                   <button
-                    key={`${image.url}-${index}`}
                     type="button"
                     onClick={() => onGalleryClick(image)}
-                    className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-[#29435F]"
+                    className="group relative block aspect-[4/3] w-full overflow-hidden rounded-xl border border-[#29435F]"
                   >
 
                     <img
@@ -701,9 +850,8 @@ const ExecutivePro = ({
                     </div>
 
                   </button>
-                ))}
-
-              </div>
+                )}
+              />
             ) : (
               <div className="rounded-xl border border-dashed border-[#34516E] py-10 text-center">
                 <ImageIcon size={35} className="mx-auto text-slate-500" />

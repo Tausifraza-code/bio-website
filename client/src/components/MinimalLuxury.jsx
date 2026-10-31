@@ -1,6 +1,6 @@
+
 import React from "react";
 import { QRCodeCanvas } from "qrcode.react";
-
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
 
@@ -9,48 +9,16 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 
 import {
-  MapPin,
-  Phone,
-  Mail,
-  Globe,
-  MessageCircle,
-  Share2,
-  UserRound,
-  CheckCircle2,
-  Clock,
-  Download,
-  Image as ImageIcon,
-  ArrowUpRight,
-  BriefcaseBusiness,
-  Code2,
-  Palette,
-  Headset,
-  ScanLine,
-  Send,
-  ShoppingBag,
-  Copy,
-  Menu,
-  X,
-  ExternalLink,
-  Rocket,
-  CreditCard,
+  MapPin, Phone, Mail, Globe, MessageCircle, Share2, UserRound,
+  CheckCircle2, Clock, Download, Image as ImageIcon, ArrowUpRight,
+  BriefcaseBusiness, Code2, Palette, Headset, ScanLine, Send,
+  ShoppingBag, Copy, Menu, X, ExternalLink, Rocket, CreditCard,
 } from "lucide-react";
 
 import {
-  FaInstagram,
-  FaLinkedinIn,
-  FaFacebookF,
-  FaYoutube,
-  FaWhatsapp,
-  FaTelegram,
-  FaXTwitter,
-  FaLink,
+  FaInstagram, FaLinkedinIn, FaFacebookF, FaYoutube,
+  FaWhatsapp, FaTelegram, FaXTwitter, FaLink,
 } from "react-icons/fa6";
-
-// ============================================================
-// PREMIUM LIGHT BUSINESS PROFILE
-// White + Navy + Electric Cyan
-// ============================================================
 
 const MinimalLuxury = ({
   businessInfo = {},
@@ -58,24 +26,14 @@ const MinimalLuxury = ({
   socialLinks = [],
   productList = [],
   galleryImages = [],
-
   qrTargetUrl = "",
   qrFetching = false,
-
-  formData = {
-    name: "",
-    phone: "",
-    email: "",
-    message: "",
-  },
-
+  formData = { name: "", phone: "", email: "", message: "" },
   setFormData = () => {},
   onFormSubmit = () => {},
-
   inquirySubmitting = false,
   inquirySubmitError = null,
   formSubmitted = false,
-
   onConfiguredButton = () => {},
   onShare = () => {},
   onOpenQr = () => {},
@@ -107,10 +65,6 @@ const MinimalLuxury = ({
   const [mobileMenu, setMobileMenu] = React.useState(false);
   const [copiedUpi, setCopiedUpi] = React.useState(false);
 
-  // ============================================================
-  // THEME
-  // ============================================================
-
   const COLORS = {
     navy: "#082B5C",
     navyDark: "#061F43",
@@ -124,10 +78,6 @@ const MinimalLuxury = ({
     soft: "#F1F6FA",
   };
 
-  // ============================================================
-  // SOCIAL ICONS
-  // ============================================================
-
   const socialIconMap = {
     instagram: FaInstagram,
     linkedin: FaLinkedinIn,
@@ -140,23 +90,16 @@ const MinimalLuxury = ({
 
   const getSocialIcon = (platform = "") => {
     const key = platform.toLowerCase();
-
     const found = Object.keys(socialIconMap).find((item) =>
       key.includes(item)
     );
-
     return found ? socialIconMap[found] : FaLink;
   };
 
   const normalizeUrl = (url = "") => {
     if (!url) return "#";
-
     return /^https?:\/\//i.test(url) ? url : `https://${url}`;
   };
-
-  // ============================================================
-  // BUSINESS HOURS
-  // ============================================================
 
   const defaultHours = [
     ["Monday", "09:00 AM - 06:00 PM"],
@@ -168,28 +111,17 @@ const MinimalLuxury = ({
     ["Sunday", "Closed"],
   ];
 
-  // ============================================================
-  // COPY UPI
-  // ============================================================
-
   const handleCopyUpi = async () => {
     if (!upiId) return;
 
     try {
       await navigator.clipboard.writeText(upiId);
       setCopiedUpi(true);
-
-      setTimeout(() => {
-        setCopiedUpi(false);
-      }, 1800);
+      setTimeout(() => setCopiedUpi(false), 1800);
     } catch (error) {
       console.error("UPI copy failed:", error);
     }
   };
-
-  // ============================================================
-  // SWIPER SETTINGS
-  // ============================================================
 
   const swiperAutoplay = {
     delay: 2500,
@@ -198,63 +130,20 @@ const MinimalLuxury = ({
   };
 
   const swiperBreakpoints = {
-    0: {
-      slidesPerView: 1.15,
-      spaceBetween: 12,
-    },
-    480: {
-      slidesPerView: 2,
-      spaceBetween: 14,
-    },
-    768: {
-      slidesPerView: 2.5,
-      spaceBetween: 16,
-    },
-    1024: {
-      slidesPerView: 3,
-      spaceBetween: 16,
-    },
-    1280: {
-      slidesPerView: 4,
-      spaceBetween: 18,
-    },
+    0: { slidesPerView: 1.15, spaceBetween: 12 },
+    480: { slidesPerView: 2, spaceBetween: 14 },
+    768: { slidesPerView: 2.5, spaceBetween: 16 },
+    1024: { slidesPerView: 3, spaceBetween: 16 },
+    1280: { slidesPerView: 4, spaceBetween: 18 },
   };
 
-  // ============================================================
-  // NAVIGATION
-  // ============================================================
-
   const navItems = [
-    {
-      label: "Home",
-      href: "#premium-home",
-      icon: UserRound,
-    },
-    {
-      label: "Products",
-      href: "#premium-products",
-      icon: ShoppingBag,
-    },
-    {
-      label: "Gallery",
-      href: "#premium-gallery",
-      icon: ImageIcon,
-    },
-    {
-      label: "Contact",
-      href: "#premium-contact",
-      icon: Phone,
-    },
-    {
-      label: "QR Code",
-      href: "#premium-qr",
-      icon: ScanLine,
-    },
+    { label: "Home", href: "#premium-home", icon: UserRound },
+    { label: "Products", href: "#premium-products", icon: ShoppingBag },
+    { label: "Gallery", href: "#premium-gallery", icon: ImageIcon },
+    { label: "Contact", href: "#premium-contact", icon: Phone },
+    { label: "QR Code", href: "#premium-qr", icon: ScanLine },
   ];
-
-  // ============================================================
-  // COMMON CLASSES
-  // ============================================================
 
   const cardClass =
     "rounded-[18px] border border-[#E1EAF3] bg-white shadow-[0_8px_30px_rgba(8,43,92,0.05)]";
@@ -276,51 +165,80 @@ const MinimalLuxury = ({
           "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       }}
     >
-      {/* ====================================================== */}
-      {/* MAIN CONTENT */}
-      {/* ====================================================== */}
-
       <main className="px-4 pb-8 pt-4 lg:ml-[98px] lg:px-5 lg:pb-10 lg:pt-5 xl:ml-[108px]">
         <div className="mx-auto grid max-w-[1450px] grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_285px]">
 
-          {/* ================================================== */}
-          {/* LEFT MAIN COLUMN */}
-          {/* ================================================== */}
-
           <div className="min-w-0 space-y-5">
 
-            {/* ================================================= */}
             {/* HERO */}
-            {/* ================================================= */}
-
             <section
               id="premium-home"
               className={`${cardClass} overflow-hidden`}
             >
-              {/* Banner */}
-
-              <div className="relative h-[190px] overflow-hidden sm:h-[245px]">
+              {/* PREMIUM COVER IMAGE */}
+              <div className="group relative h-[220px] overflow-hidden sm:h-[290px] lg:h-[330px]">
                 {banner ? (
                   <img
                     src={banner}
-                    alt="Profile banner"
-                    className="h-full w-full object-cover"
+                    alt="Business Cover"
+                    className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]"
                   />
                 ) : (
-                  <div className="h-full w-full bg-gradient-to-br from-[#DFF5FC] via-[#EAF7FD] to-[#B9E9F7]" />
+                  <div className="h-full w-full bg-gradient-to-br from-[#061F43] via-[#082B5C] to-[#12BCEB]" />
                 )}
 
-                <div className="absolute inset-0 bg-gradient-to-r from-[#082B5C]/15 via-transparent to-[#12BCEB]/10" />
+                {/* Cover Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-r from-[#061F43]/90 via-[#082B5C]/45 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#061F43]/65 via-transparent to-[#061F43]/10" />
 
-                {/* SHARE + SCANNER BUTTONS */}
+                {/* Decorative Elements */}
+                <div className="absolute -right-16 -top-24 h-72 w-72 rounded-full border border-white/10" />
+                <div className="absolute -right-8 -top-16 h-52 w-52 rounded-full border border-white/10" />
 
-                <div className="absolute right-4 top-4 z-10 flex flex-col items-end gap-2 sm:right-5 sm:top-5 sm:flex-row sm:items-center">
+                {/* BUSINESS BRAND */}
+                <div className="absolute left-5 top-5 z-10 flex max-w-[75%] items-center gap-3 sm:left-7 sm:top-7">
+                  <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/40 bg-white p-1.5 shadow-xl sm:h-[66px] sm:w-[66px] sm:rounded-[20px]">
+                    {logo ? (
+                      <img
+                        src={logo}
+                        alt="Business Logo"
+                        className="h-full w-full object-contain"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center rounded-xl bg-[#E8F8FD] text-[#082B5C]">
+                        <UserRound size={27} />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="truncate text-[13px] font-black tracking-wide text-white sm:text-base">
+                      {businessName || name || "Your Business"}
+                    </p>
+
+                    {industry && (
+                      <p className="mt-1 truncate text-[9px] font-bold uppercase tracking-[0.18em] text-[#8CE7FF] sm:text-[10px]">
+                        {industry}
+                      </p>
+                    )}
+
+                    {isVerified && (
+                      <span className="mt-1 inline-flex items-center gap-1 rounded-full border border-[#12BCEB]/40 bg-[#12BCEB]/20 px-2 py-0.5 text-[8px] font-bold text-white">
+                        <CheckCircle2 size={10} />
+                        VERIFIED BUSINESS
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* HERO ACTIONS */}
+                <div className="absolute right-4 top-4 z-10 flex gap-2 sm:right-6 sm:top-6">
                   <button
                     type="button"
                     onClick={onShare}
                     aria-label="Share profile"
                     title="Share Profile"
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/50 bg-white/90 text-[#082B5C] shadow-lg backdrop-blur-md transition-all duration-200 hover:scale-105 hover:bg-white hover:text-[#12BCEB]"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/30 bg-white/15 text-white shadow-lg backdrop-blur-xl transition hover:scale-110 hover:bg-white hover:text-[#082B5C]"
                   >
                     <Share2 size={17} />
                   </button>
@@ -330,50 +248,53 @@ const MinimalLuxury = ({
                     onClick={onOpenQr}
                     aria-label="Scan profile QR"
                     title="Scan Profile QR"
-                    className="flex h-10 w-10 items-center justify-center rounded-full bg-[#082B5C]/95 text-white shadow-lg backdrop-blur-md transition-all duration-200 hover:scale-105 hover:bg-[#12BCEB]"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-[#12BCEB] text-white shadow-lg transition hover:scale-110 hover:bg-white hover:text-[#082B5C]"
                   >
                     <ScanLine size={17} />
                   </button>
                 </div>
+
+                {/* COVER BOTTOM LABEL */}
+                <div className="absolute bottom-5 left-5 z-10 sm:bottom-7 sm:left-7">
+                  <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.2em] text-white/90 backdrop-blur-md">
+                    {industry || "Professional Profile"}
+                  </span>
+                </div>
               </div>
 
-              {/* Profile information */}
+              {/* PROFILE INFORMATION */}
+              <div className="relative px-5 pb-6 sm:px-7 sm:pb-8">
+                <div className="-mt-[58px] flex flex-col gap-4 sm:-mt-[72px] sm:flex-row sm:items-end sm:gap-5">
 
-              <div className="relative px-5 pb-6 pt-0 sm:px-7">
-                <div className="-mt-12 flex flex-col gap-5 sm:-mt-14 sm:flex-row sm:items-end">
-
-                  {/* Avatar */}
-
-                  <div className="relative shrink-0">
-                    <div className="h-[108px] w-[108px] overflow-hidden rounded-full border-[5px] border-white bg-[#E7F5FA] shadow-[0_8px_25px_rgba(8,43,92,0.15)] sm:h-[120px] sm:w-[120px]">
-                      {avatar ? (
-                        <img
-                          src={avatar}
-                          alt={name || "Profile"}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center">
-                          <UserRound
-                            size={50}
-                            className="text-[#8AA4BD]"
+                  {/* PROFILE IMAGE */}
+                  <div className="relative z-20 shrink-0">
+                    <div className="rounded-full bg-white p-[5px] shadow-[0_12px_35px_rgba(8,43,92,0.20)] sm:p-[7px]">
+                      <div className="h-[112px] w-[112px] overflow-hidden rounded-full border-[3px] border-[#12BCEB] bg-[#E8F8FD] sm:h-[142px] sm:w-[142px]">
+                        {avatar ? (
+                          <img
+                            src={avatar}
+                            alt={name || "Profile"}
+                            className="h-full w-full object-cover"
                           />
-                        </div>
-                      )}
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center">
+                            <UserRound size={55} className="text-[#8AA4BD]" />
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {isVerified && (
-                      <div className="absolute bottom-2 right-1 flex h-7 w-7 items-center justify-center rounded-full border-[3px] border-white bg-[#12BCEB] text-white">
-                        <CheckCircle2 size={14} fill="currentColor" />
+                      <div className="absolute bottom-3 right-1 flex h-8 w-8 items-center justify-center rounded-full border-[3px] border-white bg-[#12BCEB] text-white shadow-lg">
+                        <CheckCircle2 size={16} />
                       </div>
                     )}
                   </div>
 
-                  {/* Profile text */}
-
+                  {/* PROFILE DETAILS */}
                   <div className="min-w-0 flex-1 pb-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h1 className="text-[25px] font-black tracking-[-0.03em] text-[#082B5C] sm:text-[29px]">
+                      <h1 className="text-[25px] font-black tracking-[-0.04em] text-[#082B5C] sm:text-[32px]">
                         {name || "Your Name"}
                       </h1>
 
@@ -385,26 +306,26 @@ const MinimalLuxury = ({
                       )}
                     </div>
 
-                    <p className="mt-1 text-sm font-semibold text-[#425D7C]">
+                    <p className="mt-1 text-sm font-bold text-[#425D7C]">
                       {role || "Founder • Business Consultant"}
                     </p>
 
                     {location && (
-                      <p className="mt-1.5 flex items-center gap-1.5 text-[11px] font-medium text-[#71839A]">
-                        <MapPin size={13} className="text-[#12BCEB]" />
+                      <p className="mt-2 flex items-center gap-1.5 text-[11px] font-medium text-[#71839A]">
+                        <MapPin size={14} className="text-[#12BCEB]" />
                         {location}
                       </p>
                     )}
                   </div>
                 </div>
 
-                <p className="mt-4 max-w-[650px] text-sm leading-6 text-[#63758C]">
+                {/* ABOUT DESCRIPTION */}
+                <p className="mt-5 max-w-[750px] text-sm leading-7 text-[#63758C]">
                   {about ||
                     "Helping businesses grow digitally with modern solutions and creative ideas."}
                 </p>
 
-                {/* CTA buttons */}
-
+                {/* QUICK ACTION BUTTONS */}
                 <div className="mt-5 flex flex-wrap gap-2.5">
                   {visibleButtons.length > 0 ? (
                     visibleButtons.map((button, index) => (
@@ -416,20 +337,13 @@ const MinimalLuxury = ({
                           button.actionType === "whatsapp"
                             ? "border border-[#B8EBD2] bg-white text-[#14935D] hover:bg-[#EAFBF3]"
                             : button.actionType === "call"
-                              ? "bg-[#082B5C] text-white shadow-[0_6px_18px_rgba(8,43,92,0.15)] hover:bg-[#12BCEB]"
-                              : "border border-[#C9D8E6] bg-white text-[#24415F] hover:border-[#12BCEB] hover:text-[#12BCEB]"
+                            ? "bg-[#082B5C] text-white shadow-lg hover:bg-[#12BCEB]"
+                            : "border border-[#C9D8E6] bg-white text-[#24415F] hover:border-[#12BCEB] hover:text-[#12BCEB]"
                         }`}
                       >
-                        {button.actionType === "whatsapp" && (
-                          <FaWhatsapp size={15} />
-                        )}
-
-                        {button.actionType === "call" && (
-                          <Phone size={15} />
-                        )}
-
+                        {button.actionType === "whatsapp" && <FaWhatsapp size={15} />}
+                        {button.actionType === "call" && <Phone size={15} />}
                         {button.label}
-
                         <ArrowUpRight size={13} />
                       </button>
                     ))
@@ -439,7 +353,7 @@ const MinimalLuxury = ({
                         <button
                           type="button"
                           onClick={() => onContactClick("phone")}
-                          className="flex items-center gap-2 rounded-full bg-[#082B5C] px-5 py-3 text-xs font-bold text-white shadow-[0_7px_20px_rgba(8,43,92,0.16)] transition hover:bg-[#12BCEB]"
+                          className="flex items-center gap-2 rounded-full bg-[#082B5C] px-5 py-3 text-xs font-bold text-white shadow-lg transition hover:bg-[#12BCEB]"
                         >
                           <Phone size={15} />
                           Call
@@ -480,16 +394,12 @@ const MinimalLuxury = ({
               </div>
             </section>
 
-            {/* ================================================= */}
             {/* ABOUT */}
-            {/* ================================================= */}
-
             <section className={`${cardClass} p-5 sm:p-7`}>
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E8F8FD] text-[#12BCEB]">
                   <UserRound size={18} />
                 </div>
-
                 <div>
                   <p className={sectionLabel}>About</p>
                   <h2 className={sectionTitle}>About Me</h2>
@@ -517,12 +427,23 @@ const MinimalLuxury = ({
                   </span>
                 ))}
               </div>
+
+              {/* ADDED: INDUSTRY AND BUSINESS NAME */}
+              <div className="mt-3 flex flex-wrap gap-2">
+                {industry && (
+                  <span className="rounded-full border border-[#BCEAF5] bg-[#E8F8FD] px-3.5 py-2 text-[10px] font-semibold text-[#087DA1]">
+                    {industry}
+                  </span>
+                )}
+                {businessName && (
+                  <span className="rounded-full border border-[#E1EAF3] bg-[#F5F9FD] px-3.5 py-2 text-[10px] font-semibold text-[#46637F]">
+                    {businessName}
+                  </span>
+                )}
+              </div>
             </section>
 
-            {/* ================================================= */}
-            {/* PRODUCTS - AUTO SWIPER CAROUSEL */}
-            {/* ================================================= */}
-
+            {/* PRODUCTS */}
             {productList.length > 0 && (
               <section
                 id="premium-products"
@@ -531,10 +452,8 @@ const MinimalLuxury = ({
                 <div className="mb-5 flex items-end justify-between">
                   <div>
                     <p className={sectionLabel}>Featured collection</p>
-
                     <h2 className={sectionTitle}>Featured Products</h2>
                   </div>
-
                   <span className="text-[10px] font-bold text-[#71839A]">
                     Swipe to Explore →
                   </span>
@@ -546,24 +465,20 @@ const MinimalLuxury = ({
                   slidesPerView={1.15}
                   loop={productList.length > 4}
                   speed={700}
-                  autoplay={
-                    productList.length > 1 ? swiperAutoplay : false
-                  }
+                  autoplay={productList.length > 1 ? swiperAutoplay : false}
                   navigation
-                  pagination={{
-                    clickable: true,
-                    dynamicBullets: true,
-                  }}
+                  pagination={{ clickable: true, dynamicBullets: true }}
                   breakpoints={swiperBreakpoints}
                   className="premium-product-swiper !pb-10"
                 >
                   {productList.map((product, index) => {
-                    const cover = product.images?.find(
-                      (item) => item?.url
-                    )?.url;
+                    const cover = product.images?.find((item) => item?.url)?.url;
 
                     return (
-                      <SwiperSlide key={product._id || index} className="h-auto">
+                      <SwiperSlide
+                        key={product._id || index}
+                        className="h-auto"
+                      >
                         <button
                           type="button"
                           onClick={() => onProductClick(product)}
@@ -579,10 +494,7 @@ const MinimalLuxury = ({
                               />
                             ) : (
                               <div className="flex h-full items-center justify-center">
-                                <ImageIcon
-                                  size={34}
-                                  className="text-[#9CB1C5]"
-                                />
+                                <ImageIcon size={34} className="text-[#9CB1C5]" />
                               </div>
                             )}
 
@@ -602,13 +514,8 @@ const MinimalLuxury = ({
 
                             <div className="mt-3 flex items-center justify-between">
                               <p className="text-sm font-black text-[#082B5C]">
-                                ₹
-                                {Number(
-                                  product.price || 0
-                                ).toLocaleString("en-IN")}
-                                +
+                                ₹{Number(product.price || 0).toLocaleString("en-IN")}+
                               </p>
-
                               <span className="text-[9px] font-bold text-[#12BCEB]">
                                 View Details
                               </span>
@@ -622,10 +529,7 @@ const MinimalLuxury = ({
               </section>
             )}
 
-            {/* ================================================= */}
-            {/* GALLERY - AUTO SWIPER CAROUSEL */}
-            {/* ================================================= */}
-
+            {/* GALLERY */}
             <section
               id="premium-gallery"
               className={`${cardClass} overflow-hidden p-5 sm:p-7`}
@@ -633,10 +537,8 @@ const MinimalLuxury = ({
               <div className="mb-5 flex items-end justify-between">
                 <div>
                   <p className={sectionLabel}>A glimpse of my work</p>
-
                   <h2 className={sectionTitle}>Gallery</h2>
                 </div>
-
                 <span className="text-[10px] font-bold text-[#71839A]">
                   Swipe to Explore →
                 </span>
@@ -649,14 +551,9 @@ const MinimalLuxury = ({
                   slidesPerView={1.15}
                   loop={galleryImages.length > 4}
                   speed={700}
-                  autoplay={
-                    galleryImages.length > 1 ? swiperAutoplay : false
-                  }
+                  autoplay={galleryImages.length > 1 ? swiperAutoplay : false}
                   navigation
-                  pagination={{
-                    clickable: true,
-                    dynamicBullets: true,
-                  }}
+                  pagination={{ clickable: true, dynamicBullets: true }}
                   breakpoints={swiperBreakpoints}
                   className="premium-gallery-swiper !pb-10"
                 >
@@ -679,10 +576,7 @@ const MinimalLuxury = ({
                         </span>
 
                         <div className="absolute inset-0 flex items-center justify-center bg-[#082B5C]/35 opacity-0 transition group-hover:opacity-100">
-                          <ArrowUpRight
-                            size={22}
-                            className="text-white"
-                          />
+                          <ArrowUpRight size={22} className="text-white" />
                         </div>
                       </button>
                     </SwiperSlide>
@@ -690,11 +584,7 @@ const MinimalLuxury = ({
                 </Swiper>
               ) : (
                 <div className="rounded-xl border border-dashed border-[#D6E2EC] py-12 text-center">
-                  <ImageIcon
-                    size={35}
-                    className="mx-auto text-[#9CB1C5]"
-                  />
-
+                  <ImageIcon size={35} className="mx-auto text-[#9CB1C5]" />
                   <p className="mt-3 text-xs text-[#7B8DA0]">
                     No gallery images added yet.
                   </p>
@@ -702,10 +592,7 @@ const MinimalLuxury = ({
               )}
             </section>
 
-            {/* ================================================= */}
             {/* SOCIAL */}
-            {/* ================================================= */}
-
             {socialLinks.length > 0 && (
               <section
                 id="premium-social"
@@ -713,11 +600,9 @@ const MinimalLuxury = ({
               >
                 <div className="mb-5">
                   <p className={sectionLabel}>Stay connected</p>
-
                   <h2 className={sectionTitle}>
                     Social Media & Contact Buttons
                   </h2>
-
                   <p className="mt-1 text-xs text-[#71839A]">
                     Connect with me on social media & get in touch
                   </p>
@@ -743,10 +628,7 @@ const MinimalLuxury = ({
                           <p className="truncate text-[10px] font-bold text-[#183250]">
                             {social.platform}
                           </p>
-
-                          <p className="text-[9px] text-[#8191A3]">
-                            Connect
-                          </p>
+                          <p className="text-[9px] text-[#8191A3]">Connect</p>
                         </div>
                       </a>
                     );
@@ -755,10 +637,7 @@ const MinimalLuxury = ({
               </section>
             )}
 
-            {/* ================================================= */}
             {/* CONTACT FORM */}
-            {/* ================================================= */}
-
             <section
               id="premium-contact"
               className={`${cardClass} overflow-hidden`}
@@ -774,8 +653,8 @@ const MinimalLuxury = ({
                   </h2>
 
                   <p className="mt-4 text-sm leading-6 text-white/65">
-                    Have a project in mind? Share your ideas and
-                    let's make something meaningful together.
+                    Have a project in mind? Share your ideas and let's make
+                    something meaningful together.
                   </p>
 
                   {email && (
@@ -788,7 +667,6 @@ const MinimalLuxury = ({
                         <p className="text-[9px] font-bold uppercase tracking-wider text-white/45">
                           Email
                         </p>
-
                         <p className="mt-1 break-all text-xs font-semibold">
                           {email}
                         </p>
@@ -809,15 +687,11 @@ const MinimalLuxury = ({
                       </h3>
 
                       <p className="mt-2 max-w-sm text-xs leading-5 text-[#71839A]">
-                        Thank you for reaching out. I'll get back
-                        to you soon.
+                        Thank you for reaching out. I'll get back to you soon.
                       </p>
                     </div>
                   ) : (
-                    <form
-                      onSubmit={onFormSubmit}
-                      className="space-y-4"
-                    >
+                    <form onSubmit={onFormSubmit} className="space-y-4">
                       {inquirySubmitError && (
                         <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-600">
                           {inquirySubmitError}
@@ -905,10 +779,7 @@ const MinimalLuxury = ({
               </div>
             </section>
 
-            {/* ================================================= */}
             {/* BOTTOM CTA */}
-            {/* ================================================= */}
-
             <section className="relative overflow-hidden rounded-[18px] bg-[#082B5C] px-6 py-7 text-white shadow-[0_12px_35px_rgba(8,43,92,0.16)] sm:px-8">
               <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-[#12BCEB]/25 blur-2xl" />
 
@@ -916,7 +787,6 @@ const MinimalLuxury = ({
                 <div>
                   <div className="flex items-center gap-2">
                     <Rocket size={20} className="text-[#12BCEB]" />
-
                     <h3 className="text-lg font-black">
                       Scan • Connect • Grow
                     </h3>
@@ -939,18 +809,10 @@ const MinimalLuxury = ({
             </section>
           </div>
 
-          {/* ================================================== */}
           {/* RIGHT SIDEBAR */}
-          {/* Mobile: QR section appears below main content */}
-          {/* Desktop: QR section stays in right sidebar */}
-          {/* ================================================== */}
-
           <aside className="order-last space-y-5 xl:sticky xl:top-5 xl:order-none xl:self-start">
 
-            {/* ================================================= */}
-            {/* QR CARD - SCAN TO CONNECT */}
-            {/* ================================================= */}
-
+            {/* QR CARD */}
             <section
               id="premium-qr"
               className={`${cardClass} p-5 text-center`}
@@ -989,9 +851,7 @@ const MinimalLuxury = ({
 
               {qrTargetUrl && !qrFetching && (
                 <a
-                  href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(
-                    qrTargetUrl
-                  )}`}
+                  href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrTargetUrl)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-4 flex items-center justify-center gap-2 rounded-full bg-[#E8F8FD] py-2.5 text-[10px] font-bold text-[#087DA1] transition hover:bg-[#12BCEB] hover:text-white"
@@ -1002,16 +862,12 @@ const MinimalLuxury = ({
               )}
             </section>
 
-            {/* ================================================= */}
             {/* CONTACT INFORMATION */}
-            {/* ================================================= */}
-
             <section className={`${cardClass} p-5`}>
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E8F8FD] text-[#12BCEB]">
                   <Phone size={17} />
                 </div>
-
                 <h3 className="text-sm font-extrabold text-[#082B5C]">
                   Contact Information
                 </h3>
@@ -1032,7 +888,6 @@ const MinimalLuxury = ({
                       <p className="text-[11px] font-bold text-[#183250]">
                         {phone}
                       </p>
-
                       <p className="mt-0.5 text-[9px] text-[#7D8EA1]">
                         Call Anytime
                       </p>
@@ -1054,9 +909,29 @@ const MinimalLuxury = ({
                       <p className="break-all text-[11px] font-bold text-[#183250]">
                         {email}
                       </p>
-
                       <p className="mt-0.5 text-[9px] text-[#7D8EA1]">
                         Drop me a mail
+                      </p>
+                    </div>
+                  </button>
+                )}
+
+                {/* ADDED: WHATSAPP CONTACT */}
+                {whatsapp && (
+                  <button
+                    type="button"
+                    onClick={() => onContactClick("whatsapp")}
+                    className="flex w-full items-center gap-3 text-left"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#E8F8FD] text-[#12BCEB]">
+                      <FaWhatsapp size={15} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-bold text-[#183250]">
+                        {whatsapp}
+                      </p>
+                      <p className="mt-0.5 text-[9px] text-[#7D8EA1]">
+                        Chat on WhatsApp
                       </p>
                     </div>
                   </button>
@@ -1076,7 +951,6 @@ const MinimalLuxury = ({
                       <p className="truncate text-[11px] font-bold text-[#183250]">
                         {website || websiteUrl}
                       </p>
-
                       <p className="mt-0.5 text-[9px] text-[#7D8EA1]">
                         Visit my website
                       </p>
@@ -1098,7 +972,6 @@ const MinimalLuxury = ({
                       <p className="text-[11px] font-bold leading-5 text-[#183250]">
                         {address}
                       </p>
-
                       <p className="mt-0.5 text-[9px] text-[#7D8EA1]">
                         Available for business
                       </p>
@@ -1108,10 +981,7 @@ const MinimalLuxury = ({
               </div>
             </section>
 
-            {/* ================================================= */}
             {/* BUSINESS HOURS */}
-            {/* ================================================= */}
-
             <section className={`${cardClass} p-5`}>
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E8F8FD] text-[#12BCEB]">
@@ -1122,6 +992,18 @@ const MinimalLuxury = ({
                   Business Hours
                 </h3>
               </div>
+
+              {/* ADDED: DYNAMIC BUSINESS TIMING */}
+              {businessHours && (
+                <div className="mb-4 mt-5 rounded-xl bg-[#E8F8FD] p-3">
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-[#087DA1]">
+                    Business Timing
+                  </p>
+                  <p className="mt-1 text-xs font-semibold text-[#183250]">
+                    {businessHours}
+                  </p>
+                </div>
+              )}
 
               <div className="mt-5 space-y-2.5">
                 {defaultHours.map(([day, hours]) => (
@@ -1152,10 +1034,7 @@ const MinimalLuxury = ({
               </div>
             </section>
 
-            {/* ================================================= */}
             {/* UPI */}
-            {/* ================================================= */}
-
             {upiId && (
               <section className={`${cardClass} p-5`}>
                 <div className="flex items-center gap-2.5">
@@ -1187,17 +1066,13 @@ const MinimalLuxury = ({
                     className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#082B5C] py-3 text-[10px] font-bold text-white transition hover:bg-[#12BCEB]"
                   >
                     <Copy size={13} />
-
                     {copiedUpi ? "Copied!" : "Copy UPI ID"}
                   </button>
                 </div>
               </section>
             )}
 
-            {/* ================================================= */}
             {/* FOLLOW ME */}
-            {/* ================================================= */}
-
             {socialLinks.length > 0 && (
               <section className={`${cardClass} p-5`}>
                 <div className="flex items-center gap-2.5">
@@ -1209,7 +1084,6 @@ const MinimalLuxury = ({
                     <h3 className="text-sm font-extrabold text-[#082B5C]">
                       Follow Me
                     </h3>
-
                     <p className="mt-0.5 text-[9px] text-[#7D8EA1]">
                       Stay connected on social media
                     </p>
@@ -1240,10 +1114,28 @@ const MinimalLuxury = ({
         </div>
       </main>
 
-      {/* ====================================================== */}
-      {/* SWIPER CUSTOM STYLING */}
-      {/* ====================================================== */}
+      {/* ADDED: FOOTER */}
+      <footer className="border-t border-[#E1EAF3] bg-white px-5 py-7 text-center sm:px-8">
+        <div className="mx-auto flex max-w-[1450px] flex-col items-center justify-between gap-4 sm:flex-row">
+          <div className="flex items-center gap-2">
+            <span className="text-xl font-black text-[#082B5C]">
+              Bio<span className="text-[#12BCEB]">.</span>
+            </span>
+            <span className="text-xs text-[#71839A]">
+              Professional Digital Identity
+            </span>
+          </div>
+          <p className="text-xs text-[#71839A]">
+            © {new Date().getFullYear()} {name || businessName}. All rights reserved.
+          </p>
+        </div>
+        <p className="mt-5 text-[11px] text-[#8191A3]">
+          Powered by{" "}
+          <span className="font-bold text-[#12BCEB]">BioWebsite</span>
+        </p>
+      </footer>
 
+      {/* SWIPER CUSTOM STYLING */}
       <style>{`
         .premium-product-swiper,
         .premium-gallery-swiper {

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -27,240 +28,375 @@ const layouts = [
   { id: "service-pro", name: "Service Pro", description: "A service-focused layout for enquiries and bookings.", style: "service" },
 ];
 
-const Bar = ({ w = "w-full", h = "h-1", c = "bg-slate-500/50", extra = "" }) => (
-  <div className={`${w} ${h} rounded-full ${c} ${extra}`} />
+const PreviewLine = ({ className = "w-full", color = "bg-slate-300", height = "h-1" }) => (
+  <div className={`${className} ${height} rounded-full ${color}`} />
 );
 
-const Avatar = ({ shape = "rounded-lg", color = "from-cyan-300 to-blue-500", size = "h-8 w-8" }) => (
-  <div className={`${size} ${shape} bg-gradient-to-br ${color}`} />
+const PreviewImage = ({ className = "" }) => (
+  <div className={`overflow-hidden bg-gradient-to-br from-slate-200 via-slate-300 to-slate-400 ${className}`}>
+    <div className="flex h-full items-center justify-center">
+      <div className="h-1/2 aspect-square rounded-full border-4 border-white/50 bg-slate-400/60" />
+    </div>
+  </div>
 );
-
-/* ============ DISTINCT LAYOUT PREVIEWS ============ */
 
 const LayoutPreview = ({ style }) => {
+  const line = (width = "w-full", color = "bg-slate-300", height = "h-1") => (
+    <PreviewLine className={width} color={color} height={height} />
+  );
+
   switch (style) {
     case "modern":
       return (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Avatar />
-            <div className="flex-1 space-y-1.5">
-              <Bar w="w-20" c="bg-slate-200/80" />
-              <Bar w="w-14" h="h-1.5" />
+        <div className="overflow-hidden rounded-lg bg-white text-slate-800">
+          <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2">
+            <div className="flex items-center gap-1.5">
+              <div className="h-5 w-5 rounded-md bg-[#087FA5]" />
+              <div className="space-y-1">
+                {line("w-12", "bg-slate-700", "h-1.5")}
+                {line("w-8", "bg-slate-300", "h-0.5")}
+              </div>
             </div>
+            <div className="h-5 w-12 rounded-full bg-[#087FA5]" />
           </div>
-          <div className="min-h-12 rounded-lg border border-cyan-300/10 bg-gradient-to-br from-[#0C3556] to-[#0A2340] p-2">
-            <Bar w="w-3/4" c="bg-cyan-200/70" />
-            <Bar w="w-full" extra="mt-2" />
-            <Bar w="w-2/3" extra="mt-1" />
+          <div className="grid grid-cols-5 items-center gap-2 bg-gradient-to-br from-[#F0FAFC] to-white p-3">
+            <div className="col-span-3 space-y-2">
+              {line("w-8", "bg-cyan-600", "h-1")}
+              {line("w-full", "bg-slate-800", "h-2")}
+              {line("w-4/5", "bg-slate-700", "h-2")}
+              {line("w-full", "bg-slate-300", "h-1")}
+              {line("w-2/3", "bg-slate-300", "h-1")}
+              <div className="flex gap-1 pt-1">
+                <div className="h-5 w-14 rounded-full bg-[#087FA5]" />
+                <div className="h-5 w-12 rounded-full border border-cyan-200" />
+              </div>
+            </div>
+            <PreviewImage className="col-span-2 aspect-[3/4] rounded-xl" />
           </div>
-          <div className="flex gap-1.5">
-            <div className="h-5 flex-1 rounded-md bg-cyan-300/20" />
-            <div className="h-5 flex-1 rounded-md bg-blue-400/20" />
-            <div className="h-5 flex-1 rounded-md bg-slate-400/10" />
+          <div className="grid grid-cols-3 gap-1 border-t border-slate-100 bg-white p-2">
+            {[1, 2, 3].map((item) => (
+              <div key={item} className="rounded-md bg-[#F0F8FA] p-2">
+                {line("w-5", "bg-cyan-500", "h-1.5")}
+                <div className="mt-1">{line("w-full", "bg-slate-300", "h-1")}</div>
+              </div>
+            ))}
           </div>
         </div>
       );
 
     case "minimal":
       return (
-        <div className="flex flex-col items-center space-y-2 py-1">
-          <Avatar shape="rounded-full" />
-          <Bar w="w-16" c="bg-slate-200/80" />
-          <Bar w="w-12" />
-          <div className="mt-2 h-8 w-3/4 rounded-md border border-[#1A4568] bg-[#0A2340]" />
-          <div className="h-5 w-2/3 rounded-md bg-cyan-300/20" />
+        <div className="rounded-lg bg-[#F8F7F4] p-3 text-center">
+          <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#252525]">
+            <div className="h-5 w-5 rounded-full bg-[#D9CBB7]" />
+          </div>
+          <div className="mx-auto mt-2 w-24 space-y-1.5">
+            {line("w-full", "bg-[#292929]", "h-1.5")}
+            <div className="mx-auto">{line("w-3/4", "bg-[#A59B8D]", "h-1")}</div>
+          </div>
+          <div className="mx-auto mt-3 h-5 w-24 rounded-full bg-[#252525]" />
+          <div className="mx-auto mt-3 max-w-[170px] space-y-1.5 rounded-lg border border-[#E9E3DA] bg-white p-2">
+            {line("w-full", "bg-[#D6D0C7]")}
+            {line("w-4/5", "bg-[#D6D0C7]")}
+            {line("w-2/3", "bg-[#D6D0C7]")}
+          </div>
+          <div className="mt-3 flex justify-center gap-2">
+            {[1, 2, 3].map((item) => (
+              <div key={item} className="h-5 w-5 rounded-full border border-[#DED7CC] bg-white" />
+            ))}
+          </div>
         </div>
       );
 
     case "creator":
       return (
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Avatar shape="rounded-full" color="from-pink-400 to-purple-500" size="h-7 w-7" />
-            <div className="flex-1"><Bar w="w-16" c="bg-slate-200/80" /></div>
-            <div className="h-5 w-5 rounded-full border border-cyan-300/30 bg-cyan-300/10" />
+        <div className="overflow-hidden rounded-lg bg-white">
+          <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2">
+            <div className="flex items-center gap-2">
+              <div className="h-6 w-6 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600" />
+              <div className="space-y-1">
+                {line("w-14", "bg-slate-800", "h-1.5")}
+                {line("w-10", "bg-slate-300", "h-0.5")}
+              </div>
+            </div>
+            <div className="h-5 w-10 rounded-full bg-cyan-600" />
           </div>
-          <div className="grid grid-cols-3 gap-1">
-            <div className="h-9 rounded bg-[#123B5B]" />
-            <div className="h-9 rounded bg-[#1A4568]" />
-            <div className="h-9 rounded bg-[#123B5B]" />
-            <div className="h-9 rounded bg-[#1A4568]" />
-            <div className="h-9 rounded bg-[#123B5B]" />
-            <div className="h-9 rounded bg-[#1A4568]" />
+          <div className="bg-gradient-to-br from-[#F0FBFF] to-white p-3">
+            <div className="grid grid-cols-5 gap-2">
+              <div className="col-span-3 space-y-2 py-1">
+                {line("w-10", "bg-cyan-600")}
+                {line("w-full", "bg-slate-800", "h-2")}
+                {line("w-4/5", "bg-slate-800", "h-2")}
+                {line("w-full", "bg-slate-300")}
+                <div className="h-5 w-16 rounded-full bg-cyan-600" />
+              </div>
+              <PreviewImage className="col-span-2 aspect-[3/4] rounded-lg" />
+            </div>
           </div>
-          <div className="flex justify-center gap-1 pt-1">
-            <div className="h-4 w-4 rounded-full bg-cyan-300/25" />
-            <div className="h-4 w-4 rounded-full bg-pink-400/25" />
-            <div className="h-4 w-4 rounded-full bg-purple-400/25" />
-            <div className="h-4 w-4 rounded-full bg-blue-400/25" />
+          <div className="grid grid-cols-3 gap-1.5 p-2">
+            {[1, 2, 3, 4, 5, 6].map((item) => (
+              <div key={item} className={`aspect-square rounded-md ${item % 2 ? "bg-gradient-to-br from-cyan-100 to-blue-200" : "bg-gradient-to-br from-slate-200 to-slate-300"}`} />
+            ))}
+          </div>
+          <div className="flex justify-center gap-2 border-t border-slate-100 py-2">
+            {[1, 2, 3, 4].map((item) => (
+              <div key={item} className="h-4 w-4 rounded-full bg-cyan-100" />
+            ))}
           </div>
         </div>
       );
 
     case "corporate":
       return (
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Avatar shape="rounded" color="from-slate-300 to-slate-500" size="h-7 w-7" />
-            <div className="flex-1 space-y-1">
-              <Bar w="w-20" c="bg-slate-200/80" />
-              <Bar w="w-12" h="h-0.5" />
+        <div className="overflow-hidden rounded-lg bg-[#F4F7FA]">
+          <div className="flex items-center justify-between bg-[#102B43] px-3 py-2">
+            <div className="flex items-center gap-2">
+              <div className="h-6 w-6 rounded-md bg-white/20" />
+              {line("w-16", "bg-white/80", "h-1.5")}
+            </div>
+            <div className="h-4 w-10 rounded bg-white/15" />
+          </div>
+          <div className="grid grid-cols-5 gap-2 p-3">
+            <div className="col-span-2 space-y-2">
+              <PreviewImage className="aspect-square rounded-lg" />
+              {line("w-full", "bg-slate-700", "h-1.5")}
+              {line("w-4/5", "bg-slate-400")}
+              {line("w-full", "bg-slate-300")}
+              <div className="h-5 rounded bg-[#1C587A]" />
+            </div>
+            <div className="col-span-3 space-y-2 rounded-lg border border-slate-200 bg-white p-2">
+              {line("w-2/3", "bg-[#173C57]", "h-1.5")}
+              {line("w-full", "bg-slate-300")}
+              {line("w-full", "bg-slate-300")}
+              {line("w-4/5", "bg-slate-300")}
+              <div className="mt-2 grid grid-cols-2 gap-1">
+                <div className="h-7 rounded bg-[#E7F0F5]" />
+                <div className="h-7 rounded bg-[#E7F0F5]" />
+              </div>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-1.5">
-            <div className="col-span-1 space-y-1 rounded border border-[#1A4568] bg-[#0A2340] p-1.5">
-              <Bar h="h-0.5" c="bg-slate-400/60" />
-              <Bar h="h-0.5" c="bg-slate-400/60" />
-              <Bar h="h-0.5" c="bg-slate-400/60" />
-            </div>
-            <div className="col-span-2 space-y-1 rounded border border-cyan-300/10 bg-gradient-to-br from-[#0C3556] to-[#0A2340] p-2">
-              <Bar w="w-3/4" c="bg-cyan-200/70" />
-              <Bar extra="mt-1" />
-              <Bar w="w-2/3" extra="mt-1" />
-              <Bar w="w-3/4" extra="mt-1" />
-            </div>
-          </div>
-          <div className="flex gap-1.5">
-            <div className="h-4 flex-1 rounded bg-cyan-300/20" />
-            <div className="h-4 flex-1 rounded bg-slate-400/10" />
+          <div className="grid grid-cols-3 gap-1 border-t border-slate-200 bg-white p-2">
+            {[1, 2, 3].map((item) => (
+              <div key={item} className="rounded bg-[#EAF1F5] p-2">
+                {line("w-3/4", "bg-[#315F7A]")}
+                <div className="mt-1">{line("w-full", "bg-slate-300", "h-0.5")}</div>
+              </div>
+            ))}
           </div>
         </div>
       );
 
     case "store":
       return (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Bar w="w-16" c="bg-slate-200/80" />
-            <div className="h-5 w-5 rounded bg-cyan-300/20" />
+        <div className="overflow-hidden rounded-lg bg-white">
+          <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2">
+            <div className="flex items-center gap-1.5">
+              <div className="h-5 w-5 rounded bg-[#102B43]" />
+              {line("w-16", "bg-slate-800", "h-1.5")}
+            </div>
+            <div className="flex gap-1">
+              <div className="h-5 w-5 rounded-full bg-slate-100" />
+              <div className="h-5 w-5 rounded-full bg-slate-100" />
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-1.5">
-            <div className="h-11 rounded-lg border border-[#1A4568] bg-[#0A2340]" />
-            <div className="h-11 rounded-lg border border-[#1A4568] bg-[#0A2340]" />
-            <div className="h-11 rounded-lg border border-[#1A4568] bg-[#0A2340]" />
-            <div className="h-11 rounded-lg border border-[#1A4568] bg-[#0A2340]" />
+          <div className="bg-[#F2F6F8] p-2">
+            <div className="grid grid-cols-2 gap-2">
+              <PreviewImage className="aspect-[4/3] rounded-lg" />
+              <div className="flex flex-col justify-center space-y-2 rounded-lg bg-white p-2">
+                {line("w-10", "bg-cyan-600")}
+                {line("w-full", "bg-slate-800", "h-1.5")}
+                {line("w-4/5", "bg-slate-800", "h-1.5")}
+                {line("w-full", "bg-slate-300")}
+                <div className="h-5 w-16 rounded bg-[#102B43]" />
+              </div>
+            </div>
           </div>
-          <div className="h-5 rounded-md bg-cyan-300/20" />
+          <div className="px-3 py-2">
+            {line("w-20", "bg-slate-800", "h-1.5")}
+            <div className="mt-2 grid grid-cols-4 gap-1.5">
+              {[1, 2, 3, 4].map((item) => (
+                <div key={item} className="overflow-hidden rounded-md border border-slate-100 bg-slate-50">
+                  <div className="aspect-square bg-gradient-to-br from-slate-200 to-slate-300" />
+                  <div className="space-y-1 p-1">
+                    {line("w-full", "bg-slate-400", "h-0.5")}
+                    {line("w-2/3", "bg-slate-300", "h-0.5")}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       );
 
     case "freelancer":
       return (
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Avatar shape="rounded-full" color="from-amber-300 to-orange-500" />
-            <div className="flex-1 space-y-1">
-              <Bar w="w-16" c="bg-slate-200/80" />
-              <Bar w="w-12" />
+        <div className="overflow-hidden rounded-lg bg-[#F6F8FA]">
+          <div className="grid grid-cols-5 gap-2 bg-[#132E43] p-3">
+            <div className="col-span-3 flex flex-col justify-center space-y-2">
+              {line("w-10", "bg-[#56D5C5]")}
+              {line("w-full", "bg-white", "h-2")}
+              {line("w-4/5", "bg-white", "h-2")}
+              {line("w-full", "bg-white/40")}
+              <div className="h-5 w-16 rounded bg-[#24B6A6]" />
             </div>
+            <PreviewImage className="col-span-2 aspect-square rounded-xl" />
           </div>
-          <div className="space-y-1.5">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="flex items-center justify-between rounded-md border border-[#1A4568] bg-[#0A2340] px-2 py-1.5">
-                <Bar w="w-16" c="bg-slate-400/70" />
-                <div className="h-2 w-2 rounded-sm bg-cyan-300/60" />
-              </div>
-            ))}
+          <div className="p-3">
+            {line("w-20", "bg-slate-800", "h-1.5")}
+            <div className="mt-2 space-y-1.5">
+              {[1, 2, 3].map((item) => (
+                <div key={item} className="flex items-center gap-2 rounded-md border border-slate-200 bg-white p-2">
+                  <div className="h-5 w-5 rounded bg-[#E0F5F1]" />
+                  <div className="flex-1 space-y-1">
+                    {line("w-3/4", "bg-slate-600")}
+                    {line("w-full", "bg-slate-200", "h-0.5")}
+                  </div>
+                  <div className="h-3 w-3 rounded-sm bg-[#24B6A6]" />
+                </div>
+              ))}
+            </div>
+            <div className="mt-2 h-5 rounded bg-[#24B6A6]" />
           </div>
-          <div className="h-4 rounded-md bg-cyan-300/20" />
         </div>
       );
 
     case "elegant":
       return (
-        <div className="space-y-2">
-          <div className="flex flex-col items-center py-1">
-            <Avatar shape="rounded-full" color="from-[#0C3556] to-[#0A2340]" size="h-9 w-9" />
-            <Bar w="w-20" c="bg-slate-200/80" extra="mt-2" />
-            <div className="mt-1.5 flex items-center gap-1">
-              <div className="h-px w-3 bg-cyan-300/50" />
-              <Bar w="w-8" h="h-0.5" c="bg-cyan-300/30" />
-              <div className="h-px w-3 bg-cyan-300/50" />
+        <div className="overflow-hidden rounded-lg bg-[#FAF9F6] text-[#252525]">
+          <div className="flex items-center justify-between border-b border-[#E9E4DB] bg-white px-3 py-2">
+            {line("w-14", "bg-[#252525]", "h-1.5")}
+            <div className="h-5 w-12 rounded-full bg-[#252525]" />
+          </div>
+          <div className="px-4 py-3 text-center">
+            <PreviewImage className="mx-auto aspect-square w-14 rounded-full border-2 border-white shadow-md" />
+            <div className="mx-auto mt-2 w-24 space-y-1.5">
+              {line("w-full", "bg-[#252525]", "h-1.5")}
+              <div className="mx-auto">{line("w-3/4", "bg-[#A58A62]")}</div>
             </div>
+            <div className="mx-auto mt-2 flex w-20 items-center gap-1">
+              <div className="h-px flex-1 bg-[#A58A62]" />
+              <div className="h-1 w-4 rounded bg-[#A58A62]" />
+              <div className="h-px flex-1 bg-[#A58A62]" />
+            </div>
+            <div className="mx-auto mt-3 max-w-[180px] space-y-1.5">
+              {line("w-full", "bg-[#D4CEC4]")}
+              {line("w-full", "bg-[#D4CEC4]")}
+              {line("w-3/4", "bg-[#D4CEC4]")}
+            </div>
+            <div className="mx-auto mt-3 h-5 w-20 rounded-full bg-[#252525]" />
           </div>
-          <div className="mx-auto w-5/6 space-y-1">
-            <Bar />
-            <Bar />
-            <Bar w="w-2/3" />
+          <div className="grid grid-cols-3 gap-1 border-t border-[#E9E4DB] bg-[#F1EEE8] p-2">
+            {[1, 2, 3].map((item) => (
+              <div key={item} className="h-7 rounded bg-white" />
+            ))}
           </div>
-          <div className="mx-auto h-5 w-2/3 rounded-full border border-cyan-300/30 bg-cyan-300/10" />
         </div>
       );
 
     case "agency":
       return (
-        <div className="space-y-2">
-          <div className="rounded-lg border border-cyan-300/20 bg-gradient-to-br from-[#0C3556] to-[#0A2340] p-2">
-            <Bar w="w-3/4" h="h-1.5" c="bg-cyan-200/80" />
-            <Bar extra="mt-1.5" />
-            <Bar w="w-1/2" extra="mt-1" />
+        <div className="overflow-hidden rounded-lg bg-[#EAF1F4]">
+          <div className="relative overflow-hidden bg-[#102B3A] p-3">
+            <div className="absolute -right-5 -top-8 h-24 w-24 rounded-full border border-[#5ED8C8]/30" />
+            <div className="relative flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="h-6 w-6 rounded-lg bg-white/20" />
+                <div className="space-y-1">
+                  {line("w-14", "bg-white", "h-1.5")}
+                  {line("w-10", "bg-white/40", "h-0.5")}
+                </div>
+              </div>
+              <div className="h-5 w-12 rounded bg-[#20B7A5]" />
+            </div>
+            <div className="relative mt-4 grid grid-cols-5 gap-2">
+              <div className="col-span-3 space-y-2 py-1">
+                {line("w-12", "bg-[#8CEADD]")}
+                {line("w-full", "bg-white", "h-2")}
+                {line("w-4/5", "bg-white", "h-2")}
+                {line("w-full", "bg-white/40")}
+                <div className="h-5 w-16 rounded bg-[#20B7A5]" />
+              </div>
+              <PreviewImage className="col-span-2 aspect-[4/5] rounded-lg" />
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-1.5">
-            <div className="h-9 rounded-md bg-[#123B5B]" />
-            <div className="h-9 rounded-md bg-[#1A4568]" />
+          <div className="grid grid-cols-3 gap-1.5 p-2">
+            {[1, 2, 3].map((item) => (
+              <div key={item} className="rounded-md border border-[#D3E0E6] bg-white p-2">
+                <div className="mb-2 h-4 w-4 rounded bg-[#DDF5F0]" />
+                {line("w-full", "bg-slate-600")}
+                <div className="mt-1">{line("w-3/4", "bg-slate-300", "h-0.5")}</div>
+              </div>
+            ))}
           </div>
-          <div className="flex gap-1.5">
-            <div className="h-5 flex-1 rounded-md bg-cyan-300/30" />
-            <div className="h-5 flex-1 rounded-md bg-slate-400/10" />
-          </div>
+          <div className="mx-2 mb-2 h-5 rounded bg-[#20B7A5]" />
         </div>
       );
 
     case "digital":
       return (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Avatar size="h-7 w-7" />
-              <div className="space-y-1">
-                <Bar w="w-14" c="bg-slate-200/80" />
-                <Bar w="w-10" h="h-0.5" />
-              </div>
+        <div className="mx-auto max-w-[210px] overflow-hidden rounded-xl border border-[#D8E6EC] bg-[#F4F8FA] shadow-md">
+          <div className="bg-gradient-to-br from-[#102B43] to-[#1A5266] px-3 py-3 text-center">
+            <div className="mx-auto h-9 w-9 rounded-full border-2 border-white/70 bg-white/20" />
+            <div className="mx-auto mt-2 w-20 space-y-1">
+              {line("w-full", "bg-white", "h-1.5")}
+              <div className="mx-auto">{line("w-3/4", "bg-white/50")}</div>
             </div>
-            <div className="h-8 w-8 rounded border border-cyan-300/30 bg-cyan-300/10" />
-          </div>
-          <div className="flex justify-center">
-            <div className="h-14 w-14 rounded border border-[#1A4568] bg-[#0A2340] p-1">
-              <div className="grid h-full grid-cols-3 gap-0.5">
-                {Array.from({ length: 9 }).map((_, i) => (
-                  <div key={i} className={`rounded-sm ${i % 2 === 0 ? "bg-slate-200/70" : "bg-slate-500/40"}`} />
-                ))}
-              </div>
+            <div className="mt-3 flex justify-center gap-1">
+              <div className="h-5 w-12 rounded-full bg-[#24B6A6]" />
+              <div className="h-5 w-12 rounded-full border border-white/50" />
             </div>
           </div>
-          <div className="flex justify-center gap-1">
-            <div className="h-4 w-8 rounded-md bg-cyan-300/20" />
-            <div className="h-4 w-8 rounded-md bg-blue-400/20" />
-            <div className="h-4 w-8 rounded-md bg-slate-400/10" />
+          <div className="p-3">
+            <div className="mx-auto grid aspect-square w-14 grid-cols-5 gap-0.5 rounded border border-slate-200 bg-white p-1">
+              {Array.from({ length: 25 }).map((_, index) => (
+                <div key={index} className={`rounded-[1px] ${[0, 1, 4, 5, 8, 10, 12, 14, 16, 18, 20, 23, 24].includes(index) ? "bg-[#102B43]" : "bg-slate-200"}`} />
+              ))}
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-1.5">
+              <div className="h-7 rounded-md bg-white shadow-sm" />
+              <div className="h-7 rounded-md bg-white shadow-sm" />
+              <div className="h-7 rounded-md bg-white shadow-sm" />
+              <div className="h-7 rounded-md bg-white shadow-sm" />
+            </div>
           </div>
         </div>
       );
 
     case "service":
       return (
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Avatar color="from-emerald-300 to-cyan-500" size="h-7 w-7" />
-            <div className="flex-1"><Bar w="w-16" c="bg-slate-200/80" /></div>
-          </div>
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between rounded-lg border border-[#1A4568] bg-[#0A2340] p-1.5">
-              <div className="flex items-center gap-1.5">
-                <div className="h-4 w-4 rounded bg-cyan-300/20" />
-                <Bar w="w-12" c="bg-slate-400/70" />
-              </div>
-              <div className="h-3 w-6 rounded-sm bg-cyan-300/40" />
+        <div className="overflow-hidden rounded-lg bg-[#F4F8F9]">
+          <div className="bg-gradient-to-br from-[#102B3A] to-[#17635F] p-3">
+            <div className="flex items-center justify-between">
+              <div className="h-6 w-6 rounded-md bg-white/20" />
+              <div className="h-5 w-12 rounded-full bg-white/15" />
             </div>
-            <div className="flex items-center justify-between rounded-lg border border-[#1A4568] bg-[#0A2340] p-1.5">
-              <div className="flex items-center gap-1.5">
-                <div className="h-4 w-4 rounded bg-emerald-300/20" />
-                <Bar w="w-14" c="bg-slate-400/70" />
-              </div>
-              <div className="h-3 w-6 rounded-sm bg-emerald-300/40" />
+            <div className="mt-3 space-y-2">
+              {line("w-12", "bg-[#8CEADD]")}
+              {line("w-3/4", "bg-white", "h-2")}
+              {line("w-full", "bg-white/50")}
+              <div className="h-5 w-20 rounded bg-[#20B7A5]" />
             </div>
           </div>
-          <div className="h-5 rounded-md bg-cyan-300/20" />
+          <div className="p-3">
+            {line("w-20", "bg-slate-800", "h-1.5")}
+            <div className="mt-2 grid grid-cols-2 gap-1.5">
+              {[1, 2, 3, 4].map((item) => (
+                <div key={item} className="rounded-md border border-slate-200 bg-white p-2">
+                  <div className="mb-2 h-5 w-5 rounded bg-[#DDF5F0]" />
+                  {line("w-full", "bg-slate-700")}
+                  <div className="mt-1">{line("w-3/4", "bg-slate-300", "h-0.5")}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-2 rounded-md border border-slate-200 bg-white p-2">
+              {line("w-1/2", "bg-slate-700")}
+              <div className="mt-2 flex gap-1">
+                <div className="h-4 flex-1 rounded bg-slate-100" />
+                <div className="h-4 flex-1 rounded bg-slate-100" />
+                <div className="h-4 flex-1 rounded bg-[#20B7A5]" />
+              </div>
+            </div>
+          </div>
         </div>
       );
 
@@ -303,7 +439,6 @@ const ProfileLayouts = () => {
       await dispatch(saveMyProfile({ activeLayout: selectedLayout })).unwrap();
       setMessage("Profile layout saved successfully.");
 
-      // 👇 TOAST TRIGGER
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
     } catch (err) {
@@ -321,7 +456,6 @@ const ProfileLayouts = () => {
 
   return (
     <div className="min-w-0 space-y-6 text-slate-100">
-      {/* 👇 GREEN TOAST — TOP RIGHT */}
       {showToast && (
         <div
           className="fixed right-5 top-5 z-[200] flex items-center gap-2.5 rounded-xl px-4 py-3 text-sm font-semibold shadow-2xl"
