@@ -101,7 +101,8 @@ const Storefront = ({
     return <FaGlobe />;
   };
 
-  const profileImage = getImageUrl(logo || avatar);
+  const profileImage = getImageUrl(avatar);
+const businessLogo = getImageUrl(logo);
   const heroImage = getImageUrl(banner);
 
   const handleContact = (type) => {
@@ -236,15 +237,29 @@ const Storefront = ({
 
             </div>
 
-            {profileImage && (
-              <div className="absolute bottom-5 right-5 hidden h-24 w-24 overflow-hidden rounded-2xl border-2 border-white/30 bg-black/20 shadow-2xl backdrop-blur-sm xl:block">
-                <img
-                  src={profileImage}
-                  alt={displayName}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            )}
+           {profileImage && (
+  <div className="absolute bottom-5 right-5 hidden h-24 w-24 overflow-visible xl:block">
+    {/* Profile Photo */}
+    <div className="h-full w-full overflow-hidden rounded-2xl border-2 border-white/30 bg-black/20 shadow-2xl backdrop-blur-sm">
+      <img
+        src={profileImage}
+        alt={displayName}
+        className="h-full w-full object-cover"
+      />
+    </div>
+
+    {/* Business Logo */}
+    {businessLogo && (
+      <div className="absolute -bottom-3 -right-3 z-20 h-12 w-12 overflow-hidden rounded-full border-4 border-white bg-white shadow-xl">
+        <img
+          src={businessLogo}
+          alt="Business Logo"
+          className="h-full w-full object-contain"
+        />
+      </div>
+    )}
+  </div>
+)}
 
           </div>
         </div>

@@ -89,7 +89,8 @@ const CorporateExecutive = ({
   };
 
   const heroImage = getImageUrl(banner);
-  const profileImage = getImageUrl(avatar || logo);
+  const profileImage = getImageUrl(avatar);
+const businessLogo = getImageUrl(logo);
 
   const handleContact = (type) => onContactClick(type);
 
@@ -221,26 +222,39 @@ const CorporateExecutive = ({
         <div className="relative z-20 mx-auto -mt-14 w-[calc(100%-32px)] max-w-[1100px] sm:-mt-16 sm:w-[calc(100%-64px)]">
           <div className="flex flex-col items-center gap-4 rounded-3xl border border-slate-100 bg-white p-5 text-center shadow-[0_15px_45px_rgba(23,43,58,0.12)] sm:flex-row sm:gap-6 sm:p-7 sm:text-left">
             <div className="relative shrink-0">
-              <div className="h-24 w-24 overflow-hidden rounded-2xl border-4 border-white bg-[#FFF4D6] shadow-lg sm:h-28 sm:w-28">
-                {profileImage ? (
-                  <img
-                    src={profileImage}
-                    alt={displayName}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-4xl font-black text-[#172B3A]">
-                    {displayName.charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </div>
+  {/* PROFILE PHOTO */}
+  <div className="h-24 w-24 overflow-hidden rounded-2xl border-4 border-white bg-[#FFF4D6] shadow-lg sm:h-28 sm:w-28">
+    {profileImage ? (
+      <img
+        src={profileImage}
+        alt={displayName}
+        className="h-full w-full object-cover"
+      />
+    ) : (
+      <div className="flex h-full w-full items-center justify-center text-4xl font-black text-[#172B3A]">
+        {displayName.charAt(0).toUpperCase()}
+      </div>
+    )}
+  </div>
 
-              {isVerified && (
-                <span className="absolute -bottom-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-[#FFB703] text-xs text-[#172B3A]">
-                  <FaCheck />
-                </span>
-              )}
-            </div>
+  {/* BUSINESS LOGO */}
+  {businessLogo && (
+    <div className="absolute -bottom-2 -right-2 flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-white shadow-lg sm:h-14 sm:w-14">
+      <img
+        src={businessLogo}
+        alt="Business Logo"
+        className="h-full w-full object-contain"
+      />
+    </div>
+  )}
+
+  {/* VERIFIED BADGE */}
+  {isVerified && (
+    <span className="absolute -left-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-[#FFB703] text-xs text-[#172B3A]">
+      <FaCheck />
+    </span>
+  )}
+</div>
 
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">

@@ -231,25 +231,35 @@ const CreativePortfolio = ({
           <div className="relative px-4 pb-5 sm:px-6 sm:pb-8 lg:px-9">
             <div className="-mt-12 flex flex-col gap-3 sm:-mt-[72px] sm:flex-row sm:items-end sm:gap-6">
               {/* AVATAR */}
-              <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-[25px] border-4 border-white bg-white shadow-lg sm:h-36 sm:w-36 sm:rounded-[30px]">
-                {avatar ? (
-                  <img
-                    src={avatar}
-                    alt={name || "Profile"}
-                    className="h-full w-full object-cover"
-                  />
-                ) : logo ? (
-                  <img
-                    src={logo}
-                    alt="Business logo"
-                    className="h-full w-full object-contain p-4"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center bg-cyan-50">
-                    <UserRound size={54} className="text-cyan-500" />
-                  </div>
-                )}
-              </div>
+            <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-[25px] border-4 border-white bg-white shadow-lg sm:h-36 sm:w-36 sm:rounded-[30px]">
+  {avatar ? (
+    <img
+      src={avatar}
+      alt={name || "Profile"}
+      className="h-full w-full object-cover"
+    />
+  ) : logo ? (
+    <img
+      src={logo}
+      alt="Business logo"
+      className="h-full w-full object-contain p-4"
+    />
+  ) : (
+    <div className="flex h-full items-center justify-center bg-cyan-50">
+      <UserRound size={54} className="text-cyan-500" />
+    </div>
+  )}
+
+  {avatar && logo && (
+    <div className="absolute bottom-1 right-1 h-12 w-12 overflow-hidden rounded-full border-2 border-white bg-white shadow-md sm:h-14 sm:w-14">
+      <img
+        src={logo}
+        alt="Business logo"
+        className="h-full w-full object-contain "
+      />
+    </div>
+  )}
+</div>
 
               {/* NAME */}
               <div className="min-w-0 flex-1 pb-1">
