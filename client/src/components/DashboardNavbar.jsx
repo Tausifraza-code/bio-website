@@ -126,32 +126,32 @@ const DashboardNavbar = ({
     )}`;
   };
 
-  const handlePreview = () => {
-    setProfileOpen(false);
+const handlePreview = () => {
+  setProfileOpen(false);
 
-    if (!subdomain) {
-      alert(
-        "Preview not available. Please complete your profile (subdomain required).",
-      );
-      return;
-    }
-
-    const previewUrl = buildPreviewUrl();
-
-    const newTab = window.open(
-      previewUrl,
-      "_blank",
-      "noopener,noreferrer",
+  if (!subdomain) {
+    alert(
+      "Preview not available. Please complete your profile (subdomain required).",
     );
+    return;
+  }
 
-    if (!newTab) {
-      navigate(`/card-preview/${encodeURIComponent(subdomain)}`);
-    }
+  const previewUrl = buildPreviewUrl();
 
-    if (typeof onPreview === "function") {
-      onPreview();
-    }
-  };
+  // Always open preview in a new tab
+  const newTab = window.open(previewUrl, "_blank");
+
+  if (!newTab) {
+    alert(
+      "Please allow pop-ups in your browser to open the preview in a new tab."
+    );
+    return;
+  }
+
+  if (typeof onPreview === "function") {
+    onPreview();
+  }
+};
 
   // ==========================================
   // COPY PUBLIC LINK

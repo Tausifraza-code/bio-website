@@ -66,8 +66,7 @@ const TAB_ORDER = [
   "Profile",
   "Professional",
   "Contact & Address",
-  "Gallery & QR",
-  "Appearance",
+  "UI and Payment",
 ];
 
 /* ==================== BUSINESS HOURS PRESETS ==================== */
@@ -961,48 +960,89 @@ const EditProfile = () => {
             )}
 
             {/* TAB 4: GALLERY & QR */}
-            {activeTab === "Gallery & QR" && (
-              <div className="space-y-8 animate-fadeIn">
-                <Section title="Receive Payments & UPI" subtitle="Add your merchant UPI ID and upload your payment QR code for customers." icon={Wallet}>
-                  <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-                    <div className={cardCls}>
-                      <div className="mb-4 flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-300/10 text-cyan-200"><Wallet size={19} /></div>
-                        <div>
-                          <h3 className="text-sm font-bold text-white">Merchant UPI ID</h3>
-                          <p className="mt-1 text-xs text-slate-400">Your payment address</p>
-                        </div>
-                      </div>
-                      <Field label="UPI ID (Unified Payments Interface)" icon={AtSign} value={formData.upiId} onChange={(e) => handleChange("upiId", e.target.value)} placeholder="yourbusiness@okaxis" />
-                      <p className="mb-3 mt-5 text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Quick UPI handles</p>
-                      <div className="flex flex-wrap gap-2">
-                        {quickHandles.map((handle) => (
-                          <button
-                            key={handle}
-                            type="button"
-                            onClick={() => {
-                              const base = formData.upiId.split("@")[0] || "yourbusiness";
-                              handleChange("upiId", `${base}${handle}`);
-                            }}
-                            className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${formData.upiId.endsWith(handle) ? "border-cyan-300/50 bg-cyan-300/10 text-cyan-100" : "border-[#38516e] bg-[#0b1b30] text-slate-300 hover:border-cyan-300/40 hover:text-cyan-200"}`}
-                          >
-                            {handle}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-col gap-4">
-                      <div className="flex flex-col justify-center rounded-2xl border border-cyan-300/20 bg-gradient-to-r from-cyan-300/[0.08] to-blue-400/[0.04] p-5 text-center">
-                        <Zap size={32} className="mx-auto text-cyan-300 mb-3" />
-                        <p className="text-sm font-bold text-cyan-100">UPI Payment Setup</p>
-                        <p className="mt-2 text-xs leading-5 text-slate-300">Your UPI ID and payment QR are collected here for your card. The public card must implement the payment action.</p>
-                      </div>
-                    </div>
-                  </div>
-                </Section>
-              </div>
-            )}
+          {activeTab === "UI and Payment" && (
+  <div className="space-y-8 animate-fadeIn">
+    <Section
+      title="Receive Payments & UPI"
+      subtitle="Add your merchant UPI ID and upload your payment QR code for customers."
+      icon={Wallet}
+    >
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <div className={cardCls}>
+          <div className="mb-4 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-300/10 text-cyan-200">
+              <Wallet size={19} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-white">Merchant UPI ID</h3>
+              <p className="mt-1 text-xs text-slate-400">Your payment address</p>
+            </div>
+          </div>
+
+          <Field
+            label="UPI ID (Unified Payments Interface)"
+            icon={AtSign}
+            value={formData.upiId}
+            onChange={(e) => handleChange("upiId", e.target.value)}
+            placeholder="yourbusiness@okaxis"
+          />
+
+          <p className="mb-3 mt-5 text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
+            Quick UPI handles
+          </p>
+
+          <div className="flex flex-wrap gap-2">
+            {quickHandles.map((handle) => (
+              <button
+                key={handle}
+                type="button"
+                onClick={() => {
+                  const base = formData.upiId.split("@")[0] || "yourbusiness";
+                  handleChange("upiId", `${base}${handle}`);
+                }}
+                className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                  formData.upiId.endsWith(handle)
+                    ? "border-cyan-300/50 bg-cyan-300/10 text-cyan-100"
+                    : "border-[#38516e] bg-[#0b1b30] text-slate-300 hover:border-cyan-300/40 hover:text-cyan-200"
+                }`}
+              >
+                {handle}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col justify-center rounded-2xl border border-cyan-300/20 bg-gradient-to-r from-cyan-300/[0.08] to-blue-400/[0.04] p-5 text-center">
+            <Zap size={32} className="mx-auto mb-3 text-cyan-300" />
+            <p className="text-sm font-bold text-cyan-100">UPI Payment Setup</p>
+            <p className="mt-2 text-xs leading-5 text-slate-300">
+              Your UPI ID and payment QR are collected here for your card.
+              The public card must implement the payment action.
+            </p>
+          </div>
+        </div>
+      </div>
+    </Section>
+
+    {/* SAVE CHANGES BUTTON */}
+    {/* <div className="flex justify-end border-t border-[#29435f] pt-6">
+      <button
+        type="button"
+        onClick={handleSave}
+        disabled={loading || reduxSaving}
+        className={primaryButtonCls}
+      >
+        {reduxSaving ? (
+          <Loader2 size={17} className="animate-spin" />
+        ) : (
+          <Save size={17} />
+        )}
+        {reduxSaving ? "Saving..." : "Save Changes"}
+      </button>
+    </div> */}
+  </div>
+)}
 
             {/* TAB 5: APPEARANCE — PREMIUM REDESIGN */}
             {activeTab === "Appearance" && (
