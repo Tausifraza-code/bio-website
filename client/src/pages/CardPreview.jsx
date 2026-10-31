@@ -23,9 +23,7 @@ import AgencyPro from "../components/AgencyPro";
 import DigitalCard from "../components/DigitalCard";
 import ServicePro from "../components/ServicePro";
 
-import {
-  FaWhatsapp,
-} from "react-icons/fa6";
+import { FaWhatsapp } from "react-icons/fa6";
 
 import {
   CheckCircle2,
@@ -246,7 +244,7 @@ function CardPreview() {
         }
 
         const response = await api.get(
-          `/profile/public/${encodeURIComponent(subdomain)}`
+          `/profile/public/${encodeURIComponent(subdomain)}`,
         );
 
         const data = response.data;
@@ -260,9 +258,7 @@ function CardPreview() {
 
         setProfile(pubProfile);
 
-        setQrPath(
-          typeof data.qrPath === "string" ? data.qrPath : ""
-        );
+        setQrPath(typeof data.qrPath === "string" ? data.qrPath : "");
 
         const prods = data.products || pubProfile.products || [];
 
@@ -276,14 +272,9 @@ function CardPreview() {
           pubProfile.images ||
           [];
 
-        setGalleryRaw(
-          Array.isArray(galleryData) ? galleryData : []
-        );
+        setGalleryRaw(Array.isArray(galleryData) ? galleryData : []);
 
-        const btns =
-          data.contactButtons ||
-          pubProfile.contactButtons ||
-          [];
+        const btns = data.contactButtons || pubProfile.contactButtons || [];
 
         setContactButtons(
           (Array.isArray(btns) ? btns : [])
@@ -291,18 +282,16 @@ function CardPreview() {
               (button) =>
                 button &&
                 button.enabled !== false &&
-                button.enabled !== "false"
+                button.enabled !== "false",
             )
-            .sort(
-              (a, b) => (a.order ?? 0) - (b.order ?? 0)
-            )
+            .sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
         );
       } catch (error) {
         if (!cancelled) {
           setProfileError(
             error.response?.data?.message ||
               error.message ||
-              "Unable to load this business profile."
+              "Unable to load this business profile.",
           );
         }
       } finally {
@@ -330,19 +319,17 @@ function CardPreview() {
 
     if (!savedLayout) return "modern-business";
 
-    const normalizedLayout =
-      LAYOUT_ID_ALIASES[savedLayout] || savedLayout;
+    const normalizedLayout = LAYOUT_ID_ALIASES[savedLayout] || savedLayout;
 
     return LAYOUT_COMPONENTS[normalizedLayout]
       ? normalizedLayout
       : "modern-business";
   }, [profile?.activeLayout]);
 
-  const ActiveLayoutComponent =
-    LAYOUT_COMPONENTS[activeLayout] || ExecutivePro;
+  const ActiveLayoutComponent = LAYOUT_COMPONENTS[activeLayout] || ExecutivePro;
 
   const activeLayoutData = PROFILE_LAYOUTS.find(
-    (layout) => layout.id === activeLayout
+    (layout) => layout.id === activeLayout,
   );
 
   /* ============================================================
@@ -364,14 +351,10 @@ function CardPreview() {
 
     return {
       name:
-        [profile.firstName, profile.lastName]
-          .filter(Boolean)
-          .join(" ") || "Your Name",
+        [profile.firstName, profile.lastName].filter(Boolean).join(" ") ||
+        "Your Name",
 
-      role:
-        profile.jobTitle ||
-        profile.role ||
-        "Business Owner / Professional",
+      role: profile.jobTitle || profile.role || "Business Owner / Professional",
 
       location: address || "India",
 
@@ -384,13 +367,11 @@ function CardPreview() {
 
       phone: profile.phone || "",
 
-      whatsapp:
-        profile.whatsapp || profile.phone || "",
+      whatsapp: profile.whatsapp || profile.phone || "",
 
       email: profile.email || "",
 
-      website:
-        profile.website || profile.websiteUrl || "",
+      website: profile.website || profile.websiteUrl || "",
 
       address: address || "India",
 
@@ -402,11 +383,9 @@ function CardPreview() {
 
       industry: profile.industry || "",
 
-      businessName:
-        profile.businessName || "My Business",
+      businessName: profile.businessName || "My Business",
 
-      businessHours:
-        profile.businessHours || "",
+      businessHours: profile.businessHours || "",
 
       upiId: profile.upiId || "",
 
@@ -418,54 +397,40 @@ function CardPreview() {
 
   const galleryImages = useMemo(
     () => normalizeGalleryImages(galleryRaw),
-    [galleryRaw]
+    [galleryRaw],
   );
 
   const socialLinks = useMemo(
-    () =>
-      (profile?.socialCards || []).filter(
-        (social) => social?.url
-      ),
-    [profile?.socialCards]
+    () => (profile?.socialCards || []).filter((social) => social?.url),
+    [profile?.socialCards],
   );
 
-  const productList = Array.isArray(products)
-    ? products
-    : [];
+  const productList = Array.isArray(products) ? products : [];
 
-  const qrValue = useMemo(
-    () => getPublicQRUrl(qrPath),
-    [qrPath]
-  );
+  const qrValue = useMemo(() => getPublicQRUrl(qrPath), [qrPath]);
 
   /* ============================================================
      CONTACT HANDLERS
      ============================================================ */
 
   const openWhatsApp = () => {
-    const number = (
-      businessInfo?.whatsapp || ""
-    ).replace(/\D/g, "");
+    const number = (businessInfo?.whatsapp || "").replace(/\D/g, "");
 
     if (!number) {
-      return alert(
-        "WhatsApp number has not been added to this profile."
-      );
+      return alert("WhatsApp number has not been added to this profile.");
     }
 
     window.open(
       `https://wa.me/${number}?text=${encodeURIComponent(
-        `Hi, I'm interested in ${businessInfo.businessName}.`
+        `Hi, I'm interested in ${businessInfo.businessName}.`,
       )}`,
       "_blank",
-      "noopener,noreferrer"
+      "noopener,noreferrer",
     );
   };
 
   const handleCall = () => {
-    const phone = (
-      businessInfo?.phone || ""
-    ).replace(/\s/g, "");
+    const phone = (businessInfo?.phone || "").replace(/\s/g, "");
 
     if (!phone) {
       return alert("Phone number is not available.");
@@ -494,10 +459,7 @@ function CardPreview() {
 
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      window.prompt(
-        "Copy your business card link:",
-        qrValue
-      );
+      window.prompt("Copy your business card link:", qrValue);
     }
   };
 
@@ -508,7 +470,7 @@ function CardPreview() {
 
   const handleDownloadQR = (
     canvasId = "public-qr-modal-canvas",
-    filename = "bio-website-qr.png"
+    filename = "bio-website-qr.png",
   ) => {
     if (!qrValue) {
       return alert("Profile QR code is not available.");
@@ -534,13 +496,9 @@ function CardPreview() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title:
-            businessInfo?.businessName ||
-            "Business Profile",
+          title: businessInfo?.businessName || "Business Profile",
 
-          text: `Check out ${
-            businessInfo?.businessName || "this business"
-          }`,
+          text: `Check out ${businessInfo?.businessName || "this business"}`,
 
           url: window.location.href,
         });
@@ -567,63 +525,42 @@ function CardPreview() {
         .replace(/,/g, "\\,")
         .replace(/;/g, "\\;");
 
-    const lines = [
-      "BEGIN:VCARD",
-      "VERSION:3.0",
-    ];
+    const lines = ["BEGIN:VCARD", "VERSION:3.0"];
 
-    const fullName = [
-      profile.firstName,
-      profile.lastName,
-    ]
+    const fullName = [profile.firstName, profile.lastName]
       .filter((value) => value?.trim())
       .join(" ")
       .trim();
 
-    const displayName =
-      fullName ||
-      profile.businessName?.trim() ||
-      "";
+    const displayName = fullName || profile.businessName?.trim() || "";
 
     if (displayName) {
       lines.push(`FN:${esc(displayName)}`);
     }
 
     if (profile.businessName?.trim()) {
-      lines.push(
-        `ORG:${esc(profile.businessName)}`
-      );
+      lines.push(`ORG:${esc(profile.businessName)}`);
     }
 
     if (profile.jobTitle?.trim()) {
-      lines.push(
-        `TITLE:${esc(profile.jobTitle)}`
-      );
+      lines.push(`TITLE:${esc(profile.jobTitle)}`);
     }
 
     if (profile.phone?.trim()) {
-      lines.push(
-        `TEL;TYPE=CELL:${esc(profile.phone)}`
-      );
+      lines.push(`TEL;TYPE=CELL:${esc(profile.phone)}`);
     }
 
     if (profile.email?.trim()) {
-      lines.push(
-        `EMAIL:${esc(profile.email)}`
-      );
+      lines.push(`EMAIL:${esc(profile.email)}`);
     }
 
-    const website =
-      profile.website?.trim() ||
-      profile.websiteUrl?.trim();
+    const website = profile.website?.trim() || profile.websiteUrl?.trim();
 
     if (website) {
       lines.push(
         `URL:${esc(
-          /^https?:\/\//i.test(website)
-            ? website
-            : `https://${website}`
-        )}`
+          /^https?:\/\//i.test(website) ? website : `https://${website}`,
+        )}`,
       );
     }
 
@@ -638,14 +575,10 @@ function CardPreview() {
       .join(", ");
 
     if (address) {
-      lines.push(
-        `ADR;TYPE=WORK:;;${esc(address)};;;;`
-      );
+      lines.push(`ADR;TYPE=WORK:;;${esc(address)};;;;`);
     }
 
-    const note =
-      profile.bio?.trim() ||
-      profile.headline?.trim();
+    const note = profile.bio?.trim() || profile.headline?.trim();
 
     if (note) {
       lines.push(`NOTE:${esc(note)}`);
@@ -653,12 +586,9 @@ function CardPreview() {
 
     lines.push("END:VCARD");
 
-    const blob = new Blob(
-      [`${lines.join("\r\n")}\r\n`],
-      {
-        type: "text/vcard;charset=utf-8",
-      }
-    );
+    const blob = new Blob([`${lines.join("\r\n")}\r\n`], {
+      type: "text/vcard;charset=utf-8",
+    });
 
     const url = URL.createObjectURL(blob);
 
@@ -667,13 +597,8 @@ function CardPreview() {
     a.href = url;
 
     a.download = `${
-      (
-        displayName || "contact"
-      )
-        .replace(
-          /[<>:"/\\|?*\u0000-\u001F]/g,
-          "-"
-        )
+      (displayName || "contact")
+        .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-")
         .trim() || "contact"
     }.vcf`;
 
@@ -682,10 +607,7 @@ function CardPreview() {
     a.click();
     a.remove();
 
-    setTimeout(
-      () => URL.revokeObjectURL(url),
-      1000
-    );
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
 
     setSaved(true);
 
@@ -713,10 +635,10 @@ function CardPreview() {
         return window.open(
           profile?.mapLink ||
             `https://maps.google.com/?q=${encodeURIComponent(
-              businessInfo?.address || ""
+              businessInfo?.address || "",
             )}`,
           "_blank",
-          "noopener,noreferrer"
+          "noopener,noreferrer",
         );
 
       case "share":
@@ -725,9 +647,7 @@ function CardPreview() {
       case "website":
       case "customLink":
         if (!button.customUrl) {
-          return alert(
-            "This button has no link configured."
-          );
+          return alert("This button has no link configured.");
         }
 
         return window.open(
@@ -735,7 +655,7 @@ function CardPreview() {
             ? button.customUrl
             : `https://${button.customUrl}`,
           "_blank",
-          "noopener,noreferrer"
+          "noopener,noreferrer",
         );
 
       case "saveContact":
@@ -746,12 +666,9 @@ function CardPreview() {
           return alert("UPI ID is not available.");
         }
 
-        return (window.location.href =
-          `upi://pay?pa=${encodeURIComponent(
-            businessInfo.upiId
-          )}&pn=${encodeURIComponent(
-            businessInfo.businessName
-          )}`);
+        return (window.location.href = `upi://pay?pa=${encodeURIComponent(
+          businessInfo.upiId,
+        )}&pn=${encodeURIComponent(businessInfo.businessName)}`);
 
       default:
         return;
@@ -773,7 +690,7 @@ function CardPreview() {
           email: form.email.trim(),
           message: form.message.trim(),
           subdomain,
-        })
+        }),
       ).unwrap();
 
       setFormSubmitted(true);
@@ -787,21 +704,14 @@ function CardPreview() {
 
       setShowToast(true);
 
-      setTimeout(
-        () => setShowToast(false),
-        3000
-      );
+      setTimeout(() => setShowToast(false), 3000);
 
-      setTimeout(
-        () => setFormSubmitted(false),
-        4000
-      );
+      setTimeout(() => setFormSubmitted(false), 4000);
     } catch (error) {
       const message =
         typeof error === "string"
           ? error
-          : error?.message ||
-            "Failed to submit inquiry.";
+          : error?.message || "Failed to submit inquiry.";
 
       alert(message);
     }
@@ -826,14 +736,9 @@ function CardPreview() {
   if (profileError || !profile || !businessInfo) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-slate-950 p-6 text-center text-white">
-        <h1 className="text-2xl font-bold">
-          Profile unavailable
-        </h1>
+        <h1 className="text-2xl font-bold">Profile unavailable</h1>
 
-        <p>
-          {profileError ||
-            "This business profile could not be found."}
-        </p>
+        <p>{profileError || "This business profile could not be found."}</p>
 
         <Link to="/" className="underline">
           Go to Home
@@ -846,8 +751,7 @@ function CardPreview() {
      ACCENT STYLE
      ============================================================ */
 
-  const accentGradient =
-    `linear-gradient(100deg, ${theme.primary}, ${theme.accent})`;
+  const accentGradient = `linear-gradient(100deg, ${theme.primary}, ${theme.accent})`;
 
   /* ============================================================
      RENDER
@@ -873,11 +777,7 @@ function CardPreview() {
             animation: "toastSlideIn 0.3s ease",
           }}
         >
-          <CheckCircle2
-            size={18}
-            style={{ color: theme.primary }}
-          />
-
+          <CheckCircle2 size={18} style={{ color: theme.primary }} />
           Inquiry submitted successfully!
         </div>
       )}
@@ -897,7 +797,6 @@ function CardPreview() {
       `}</style>
 
       <div className="mx-auto w-full max-w-[1120px]">
-
         {/* TOP BAR */}
 
         <div
@@ -908,10 +807,7 @@ function CardPreview() {
           }}
         >
           <div className="flex items-center gap-3">
-            <ShieldCheck
-              size={20}
-              style={{ color: theme.primary }}
-            />
+            <ShieldCheck size={20} style={{ color: theme.primary }} />
 
             <span
               className="text-sm font-semibold"
@@ -966,12 +862,8 @@ function CardPreview() {
               setQrModalTab("myqr");
               setShowQrModal(true);
             }}
-            onProductClick={(product) =>
-              setSelectedProduct(product)
-            }
-            onGalleryClick={(image) =>
-              setSelectedGalleryImage(image)
-            }
+            onProductClick={(product) => setSelectedProduct(product)}
+            onGalleryClick={(image) => setSelectedGalleryImage(image)}
             onContactClick={handleConfiguredButton}
           />
         </article>
@@ -1079,9 +971,7 @@ function CardPreview() {
                 >
                   <Copy size={17} />
 
-                  {copied
-                    ? "Link Copied!"
-                    : "Copy Profile Link"}
+                  {copied ? "Link Copied!" : "Copy Profile Link"}
                 </button>
               </div>
             )}
@@ -1114,7 +1004,7 @@ function CardPreview() {
                       onClick={() =>
                         handleDownloadQR(
                           "public-qr-modal-canvas",
-                          "bio-website-qr.png"
+                          "bio-website-qr.png",
                         )
                       }
                       className="flex w-full items-center justify-center gap-2 rounded-xl border py-3 text-sm font-bold"
@@ -1129,10 +1019,7 @@ function CardPreview() {
                     </button>
                   </>
                 ) : (
-                  <p
-                    className="py-8 text-sm"
-                    style={{ color: theme.muted }}
-                  >
+                  <p className="py-8 text-sm" style={{ color: theme.muted }}>
                     QR code is not available for this profile.
                   </p>
                 )}
@@ -1162,10 +1049,7 @@ function CardPreview() {
                   Profile QR Poster
                 </h3>
 
-                <p
-                  className="mb-4 text-sm"
-                  style={{ color: theme.muted }}
-                >
+                <p className="mb-4 text-sm" style={{ color: theme.muted }}>
                   Scan this QR code to open this profile.
                 </p>
 
@@ -1193,7 +1077,7 @@ function CardPreview() {
                       onClick={() =>
                         handleDownloadQR(
                           "public-qr-poster-canvas",
-                          "bio-profile-qr-poster.png"
+                          "bio-profile-qr-poster.png",
                         )
                       }
                       className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold"
@@ -1207,10 +1091,7 @@ function CardPreview() {
                     </button>
                   </>
                 ) : (
-                  <p
-                    className="py-8 text-sm"
-                    style={{ color: theme.muted }}
-                  >
+                  <p className="py-8 text-sm" style={{ color: theme.muted }}>
                     QR code is not available for this profile.
                   </p>
                 )}
@@ -1226,21 +1107,15 @@ function CardPreview() {
 
       {selectedProduct &&
         (() => {
-          const imgs = Array.isArray(
-            selectedProduct.images
-          )
-            ? selectedProduct.images.filter(
-                (image) => image?.url
-              )
+          const imgs = Array.isArray(selectedProduct.images)
+            ? selectedProduct.images.filter((image) => image?.url)
             : [];
 
           return (
             <div
               className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md"
               onClick={(event) => {
-                if (
-                  event.target === event.currentTarget
-                ) {
+                if (event.target === event.currentTarget) {
                   setSelectedProduct(null);
                 }
               }}
@@ -1254,9 +1129,7 @@ function CardPreview() {
               >
                 <button
                   type="button"
-                  onClick={() =>
-                    setSelectedProduct(null)
-                  }
+                  onClick={() => setSelectedProduct(null)}
                   aria-label="Close product"
                   className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-xl"
                   style={{
@@ -1277,15 +1150,10 @@ function CardPreview() {
                     className="h-60 w-full sm:h-80"
                   >
                     {imgs.map((image, index) => (
-                      <SwiperSlide
-                        key={image._id || index}
-                      >
+                      <SwiperSlide key={image._id || index}>
                         <img
                           src={image.url}
-                          alt={
-                            image.alt ||
-                            selectedProduct.name
-                          }
+                          alt={image.alt || selectedProduct.name}
                           className="h-full w-full object-cover"
                         />
                       </SwiperSlide>
@@ -1305,14 +1173,9 @@ function CardPreview() {
                     {selectedProduct.name}
                   </h3>
 
-                  <p
-                    className="mt-2"
-                    style={{ color: theme.primary }}
-                  >
+                  <p className="mt-2" style={{ color: theme.primary }}>
                     ₹
-                    {Number(
-                      selectedProduct.price || 0
-                    ).toLocaleString("en-IN")}
+                    {Number(selectedProduct.price || 0).toLocaleString("en-IN")}
                   </p>
 
                   <p
@@ -1360,8 +1223,7 @@ function CardPreview() {
                       </button>
                     )}
 
-                    {(businessInfo.whatsapp ||
-                      businessInfo.phone) && (
+                    {(businessInfo.whatsapp || businessInfo.phone) && (
                       <button
                         type="button"
                         onClick={() => {
@@ -1393,9 +1255,7 @@ function CardPreview() {
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4 backdrop-blur-md"
           onClick={(event) => {
-            if (
-              event.target === event.currentTarget
-            ) {
+            if (event.target === event.currentTarget) {
               setSelectedGalleryImage(null);
             }
           }}
@@ -1409,9 +1269,7 @@ function CardPreview() {
           >
             <button
               type="button"
-              onClick={() =>
-                setSelectedGalleryImage(null)
-              }
+              onClick={() => setSelectedGalleryImage(null)}
               aria-label="Close gallery"
               className="absolute right-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-xl"
               style={{
