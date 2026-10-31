@@ -311,8 +311,8 @@ function CardPreview() {
         if (!cancelled) {
           setProfileError(
             error.response?.data?.message ||
-            error.message ||
-            "Unable to load this business profile.",
+              error.message ||
+              "Unable to load this business profile.",
           );
         }
       } finally {
@@ -545,7 +545,7 @@ function CardPreview() {
       case "directions":
         return window.open(
           profile?.mapLink ||
-          `https://maps.google.com/?q=${encodeURIComponent(businessInfo?.address || "")}`,
+            `https://maps.google.com/?q=${encodeURIComponent(businessInfo?.address || "")}`,
           "_blank",
           "noopener,noreferrer",
         );
@@ -1334,10 +1334,10 @@ function CardPreview() {
                     autoplay={
                       productList.length > 1
                         ? {
-                          delay: 3000,
-                          disableOnInteraction: false,
-                          pauseOnMouseEnter: true,
-                        }
+                            delay: 3000,
+                            disableOnInteraction: false,
+                            pauseOnMouseEnter: true,
+                          }
                         : false
                     }
                     breakpoints={{
@@ -1655,15 +1655,15 @@ function CardPreview() {
                   style={
                     qrModalTab === tab.id
                       ? {
-                        borderColor: theme.primary,
-                        background: `${theme.primary}22`,
-                        color: theme.primary,
-                      }
+                          borderColor: theme.primary,
+                          background: `${theme.primary}22`,
+                          color: theme.primary,
+                        }
                       : {
-                        borderColor: theme.border,
-                        background: theme.card,
-                        color: theme.muted,
-                      }
+                          borderColor: theme.border,
+                          background: theme.card,
+                          color: theme.muted,
+                        }
                   }
                 >
                   {tab.label}
