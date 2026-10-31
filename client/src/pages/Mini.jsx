@@ -53,6 +53,7 @@ import {
   Download,
   Copy,
   FileImage,
+  Share2,
 } from "lucide-react";
 
 const downloadStandeePNG = async ({
@@ -386,6 +387,7 @@ const Mini = () => {
   const [showPayment, setShowPayment] = useState(false);
   const [showPlanPayment, setShowPlanPayment] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [productPayment, setProductPayment] = useState(null);
   const [selectedGalleryImage, setSelectedGalleryImage] = useState(null);
   const [standeeCode, setStandeeCode] = useState("");
   const [standeeActivated, setStandeeActivated] = useState(false);
@@ -1441,96 +1443,58 @@ const Mini = () => {
       )}
 
       {/* PRODUCT MODAL */}
-      {selectedProduct &&
-        (() => {
-          const imgs = Array.isArray(selectedProduct.images)
-            ? selectedProduct.images.filter((i) => i?.url)
-            : [];
-          return (
-            <Overlay onClose={() => setSelectedProduct(null)}>
-              <div className="relative max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-[26px] border border-[#45414a] bg-[#17171c]">
-                <button
-                  type="button"
-                  onClick={() => setSelectedProduct(null)}
-                  aria-label="Close product details"
-                  className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-xl bg-[#22222a]/90 text-white"
-                >
-                  <X size={18} />
-                </button>
-                {imgs.length > 0 ? (
-                  <Swiper
-                    modules={[Navigation, Pagination]}
-                    navigation={imgs.length > 1}
-                    pagination={{ clickable: true }}
-                    slidesPerView={1}
-                    loop={imgs.length > 1}
-                    className="h-60 w-full sm:h-80"
-                  >
-                    {imgs.map((image, index) => (
-                      <SwiperSlide key={image._id || index}>
-                        <img
-                          src={image.url}
-                          alt={image.alt || selectedProduct.name}
-                          className="h-full w-full object-cover"
-                        />
-                      </SwiperSlide>
-                    ))}
-                  </Swiper>
-                ) : (
-                  <div className="flex h-60 items-center justify-center text-7xl sm:h-80">
-                    📦
-                  </div>
-                )}
-                <div className="p-5 sm:p-7">
-                  <h3 className="text-2xl font-bold text-white">
-                    {selectedProduct.name}
-                  </h3>
-                  <p className="mt-2 text-cyan-400">
-                    ₹
-                    {Number(selectedProduct.price || 0).toLocaleString("en-IN")}
-                  </p>
-                  <p className="mt-4 text-sm leading-7 text-slate-300">
-                    {selectedProduct.description}
-                  </p>
-                  <div className="mt-5 flex flex-wrap gap-3">
-                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/20 bg-emerald-400/[0.08] px-3 py-2 text-sm font-bold text-emerald-300">
-                      <CheckCircle2 size={16} />
-                      {selectedProduct.status === "active"
-                        ? "Available"
-                        : "Unavailable"}
-                    </span>
-                    {businessInfo.upiId && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedProduct(null);
-                          handleContactClick("upi");
-                        }}
-                        className="inline-flex items-center gap-2 rounded-xl border border-cyan-400/40 bg-cyan-400/10 px-4 py-2.5 text-sm font-bold text-cyan-300"
-                      >
-                        <IndianRupee size={16} />
-                        Pay with UPI
-                      </button>
-                    )}
-                    {(businessInfo.whatsapp || businessInfo.phone) && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedProduct(null);
-                          handleWhatsApp();
-                        }}
-                        className="inline-flex items-center gap-2 rounded-xl bg-emerald-400 px-4 py-2.5 text-sm font-bold text-[#062c25]"
-                      >
-                        <FaWhatsapp size={16} />
-                        Enquire on WhatsApp
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </Overlay>
-          );
-        })()}
+   
+{selectedProduct && (
+  <Overlay onClose={() => setSelectedProduct(null)}>
+    <div className="relative w-full max-w-sm rounded-[26px] border border-cyan-400/30 bg-[#0b1b30] p-6 text-center shadow-2xl">
+      <button
+        type="button"
+        onClick={() => setSelectedProduct(null)}
+        aria-label="Close product popup"
+        className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl border border-[#29435f] bg-[#132942] text-slate-300"
+      >
+        <X size={18} />
+      </button>
+
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-300">
+        <IndianRupee size={27} />
+      </div>
+
+      <p className="mt-5 text-sm font-medium text-slate-400">
+        Product Amount
+      </p>
+
+      <h3 className="mt-2 text-4xl font-extrabold text-white">
+        ₹{Number(selectedProduct.price || 0).toLocaleString("en-IN")}
+      </h3>
+
+      <button
+        type="button"
+        disabled={
+          !businessInfo.upiId ||
+          Number(selectedProduct.price || 0) <= 0
+        }
+        onClick={() => {
+          setProductPayment({
+            amount: Number(selectedProduct.price),
+            name: selectedProduct.name || "Product",
+          });
+          setSelectedProduct(null);
+        }}
+        className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-300 to-blue-400 px-5 py-3.5 text-sm font-extrabold text-[#0b1b30] transition hover:from-cyan-200 hover:to-blue-300 disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        <IndianRupee size={17} />
+        Pay with App
+      </button>
+
+      {!businessInfo.upiId && (
+        <p className="mt-3 text-xs text-red-300">
+          UPI ID is not available.
+        </p>
+      )}
+    </div>
+  </Overlay>
+)}
 
       {/* GALLERY MODAL */}
       {selectedGalleryImage && (
@@ -1664,13 +1628,19 @@ const Mini = () => {
       />
 
       {/* ✅ FIX: sirf EK Payment component (duplicate hata diya) */}
-      <Payment
-        isOpen={showPayment}
-        onClose={() => setShowPayment(false)}
-        upiId={profileData.upiId || ""}
-        businessName={profileData.businessName || "My Business"}
-        businessImage={profileData.logo || profileData.avatar || ""}
-      />
+     {/* UPI PAYMENT */}
+<Payment
+  isOpen={showPayment || Boolean(productPayment)}
+  onClose={() => {
+    setShowPayment(false);
+    setProductPayment(null);
+  }}
+  upiId={profileData.upiId || ""}
+  businessName={profileData.businessName || "My Business"}
+  businessImage={profileData.logo || profileData.avatar || ""}
+  fixedAmount={productPayment?.amount ?? null}
+  productName={productPayment?.name || ""}
+/>
     </div>
   );
 };
