@@ -1,27 +1,40 @@
 const User = require("../models/User");
 const ReferralLog = require("../models/ReferralLog");
+const Plan = require("../models/Plan");
+const PlanPurchase = require("../models/PlanPurchase");
 
 // GET /api/admin/dashboard
-// Returns available statistics and recent user registrations.
 const getAdminDashboard = async (req, res) => {
   try {
-    const [totalUsers, totalReferralSignups, recentUsers] = await Promise.all([
-      User.countDocuments({ role: "user" }),
-      ReferralLog.countDocuments(),
-      User.find({ role: "user" })
-        .select("fullName email createdAt")
-        .sort({ createdAt: -1, _id: -1 })
-        .limit(5)
-        .lean(),
-    ]);
+    const [totalUsers, totalReferrals, activePlans, totalOrders, recentUsers] =
+      await Promise.all([
+        // Total registered users
+        User.countDocuments({ role: "user" }),
+
+        // Total referral signups
+        ReferralLog.countDocuments(),
+
+        // Active plans available on website
+        Plan.countDocuments({ isActive: true }),
+
+        // Successfully paid orders
+        PlanPurchase.countDocuments({ status: "paid" }),
+
+        // Latest 5 registered users
+        User.find({ role: "user" })
+          .select("fullName email role createdAt")
+          .sort({ createdAt: -1, _id: -1 })
+          .limit(5)
+          .lean(),
+      ]);
 
     return res.status(200).json({
       success: true,
       stats: {
         totalUsers,
-        totalReferrals: totalReferralSignups,
-        activePlans: null,
-        totalOrders: null,
+        totalReferrals,
+        activePlans,
+        totalOrders,
       },
       recentActivity: recentUsers.map((user) => ({
         id: user._id,

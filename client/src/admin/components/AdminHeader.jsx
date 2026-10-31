@@ -4,6 +4,7 @@ export default function AdminHeader({
   onMenuClick,
   theme = "light",
   onThemeToggle,
+  branding,
 }) {
   const isDark = theme === "dark";
 
@@ -57,13 +58,15 @@ export default function AdminHeader({
           <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-cyan-500" />
         </button>
 
-        <div className="ml-1 hidden border-l border-slate-200 pl-3 dark:border-slate-700 sm:block">
-          <p className="text-sm font-semibold text-slate-800 dark:text-white">
-            Administrator
-          </p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Admin Panel
-          </p>
+        <div className="ml-1 hidden items-center gap-2 border-l border-slate-200 pl-3 dark:border-slate-700 sm:flex">
+          <div>
+            <p className="max-w-[150px] truncate text-sm font-semibold text-slate-800 dark:text-white">
+              {branding?.websiteName || "BIO Website"}
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Admin Panel
+            </p>
+          </div>
         </div>
       </div>
     </header>

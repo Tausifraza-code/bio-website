@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const multer = require("multer");
 const sharp = require("sharp");
+const User = require("../models/User");
 
 const Gallery = require("../models/Gallery");
 const Product = require("../models/Product");
@@ -83,6 +84,27 @@ const parseGalleryImages = (req, res, next) => {
       return res.status(400).json({
         success: false,
         message: error.message,
+      });
+    }
+
+    next();
+  });
+};
+
+const parseProfileImages = (req, res, next) => {
+  imageUpload.fields([
+    { name: "profileImage", maxCount: 1 },
+    { name: "avatar", maxCount: 1 },
+    { name: "logo", maxCount: 1 },
+    { name: "banner", maxCount: 1 },
+  ])(req, res, (error) => {
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        message:
+          error.code === "LIMIT_FILE_SIZE"
+            ? "Each image must be 5MB or smaller."
+            : error.message || "Image upload failed.",
       });
     }
 
@@ -406,12 +428,240 @@ const deleteGalleryImage = async (req, res) => {
   }
 };
 
+// Verify target user for admin gallery operations
+const getAdminTargetUser = async (userId) => {
+  if (!mongoose.isValidObjectId(userId)) {
+    const error = new Error("Invalid user ID.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const user = await User.findOne({ _id: userId, role: "user" }).select("_id");
+
+  if (!user) {
+    const error = new Error("User not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return user;
+};
+
+// GET selected user's gallery
+const getAdminUserGallery = async (req, res) => {
+  try {
+    const user = await getAdminTargetUser(req.params.userId);
+
+    const gallery = await Gallery.find({ userId: user._id })
+      .populate("productId", "name price type")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      count: gallery.length,
+      data: gallery,
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.statusCode
+        ? error.message
+        : "Failed to fetch user gallery.",
+    });
+  }
+};
+
+// UPLOAD images to selected user's gallery
+const uploadAdminUserGallery = async (req, res) => {
+  try {
+    const user = await getAdminTargetUser(req.params.userId);
+
+    if (!req.files?.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Please select at least one image.",
+      });
+    }
+
+    const title =
+      typeof req.body.title === "string" ? req.body.title.trim() : "";
+
+    if (title.length > 150) {
+      return res.status(400).json({
+        success: false,
+        message: "Title cannot exceed 150 characters.",
+      });
+    }
+
+    const product = await validateProductOwnership(
+      req.body.productId,
+      user._id,
+    );
+
+    const uploadedImages = await Promise.all(
+      req.files.map((file) => uploadToGallery(file)),
+    );
+
+    const records = uploadedImages.map((imageData) => ({
+      userId: user._id,
+      productId: product ? product._id : null,
+      ...imageData,
+      title,
+    }));
+
+    const savedImages = await Gallery.insertMany(records);
+
+    return res.status(201).json({
+      success: true,
+      message: "Gallery images uploaded successfully.",
+      count: savedImages.length,
+      data: savedImages,
+    });
+  } catch (error) {
+    console.error("Admin gallery upload error:", error);
+
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.statusCode
+        ? error.message
+        : "Failed to upload gallery images.",
+    });
+  }
+};
+
+// UPDATE selected user's gallery image
+const updateAdminUserGalleryImage = async (req, res) => {
+  try {
+    const user = await getAdminTargetUser(req.params.userId);
+
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid gallery image ID.",
+      });
+    }
+
+    const galleryImage = await Gallery.findOne({
+      _id: req.params.id,
+      userId: user._id,
+    });
+
+    if (!galleryImage) {
+      return res.status(404).json({
+        success: false,
+        message: "Gallery image not found.",
+      });
+    }
+
+    const updates = {};
+
+    if (req.body.title !== undefined) {
+      if (
+        typeof req.body.title !== "string" ||
+        req.body.title.trim().length > 150
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Title must be at most 150 characters.",
+        });
+      }
+
+      updates.title = req.body.title.trim();
+    }
+
+    if (req.body.productId !== undefined) {
+      const product = await validateProductOwnership(
+        req.body.productId,
+        user._id,
+      );
+
+      updates.productId = product ? product._id : null;
+    }
+
+    if (req.file) {
+      Object.assign(updates, await uploadToGallery(req.file));
+    }
+
+    if (!Object.keys(updates).length) {
+      return res.status(400).json({
+        success: false,
+        message: "Provide a title, product link, or new image.",
+      });
+    }
+
+    Object.assign(galleryImage, updates);
+    await galleryImage.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Gallery image updated successfully.",
+      data: galleryImage,
+    });
+  } catch (error) {
+    console.error("Admin gallery update error:", error);
+
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.statusCode
+        ? error.message
+        : "Failed to update gallery image.",
+    });
+  }
+};
+
+// DELETE selected user's gallery image
+const deleteAdminUserGalleryImage = async (req, res) => {
+  try {
+    const user = await getAdminTargetUser(req.params.userId);
+
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid gallery image ID.",
+      });
+    }
+
+    const deleted = await Gallery.findOneAndDelete({
+      _id: req.params.id,
+      userId: user._id,
+    });
+
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        message: "Gallery image not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Gallery image deleted successfully.",
+    });
+  } catch (error) {
+    console.error("Admin gallery delete error:", error);
+
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.statusCode
+        ? error.message
+        : "Failed to delete gallery image.",
+    });
+  }
+};
+
 module.exports = {
   parseGalleryImage,
   parseGalleryImages,
+  parseProfileImages,
+  uploadToGallery,
   uploadGalleryImage,
   getMyGallery,
   getPublicGallery,
   updateGalleryImage,
   deleteGalleryImage,
+
+  getAdminUserGallery,
+  uploadAdminUserGallery,
+  updateAdminUserGalleryImage,
+  deleteAdminUserGalleryImage,
 };

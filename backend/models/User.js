@@ -248,13 +248,49 @@ const userSchema = new mongoose.Schema(
       type: miniProfileSchema,
       default: () => ({}),
     },
+
+    adminSettings: {
+      websiteName: {
+        type: String,
+        trim: true,
+        maxlength: 150,
+        default: "BIO Website",
+      },
+      websiteLogo: {
+        type: String,
+        trim: true,
+        maxlength: 2048,
+        default: "",
+      },
+      websiteUrl: {
+        type: String,
+        trim: true,
+        maxlength: 2048,
+        default: "",
+      },
+      supportEmail: {
+        type: String,
+        trim: true,
+        lowercase: true,
+        maxlength: 254,
+        default: "",
+      },
+      supportPhone: {
+        type: String,
+        trim: true,
+        maxlength: 30,
+        default: "",
+      },
+      defaultTimezone: {
+        type: String,
+        trim: true,
+        default: "Asia/Kolkata",
+      },
+    },
   },
   {
     timestamps: true,
   },
 );
 
-
-module.exports =
-  mongoose.models.User || mongoose.model("User", userSchema);
-
+module.exports = mongoose.models.User || mongoose.model("User", userSchema);

@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+
+import { Link } from "react-router-dom";
 import {
   Users,
   GitBranch,
@@ -45,10 +47,30 @@ const statConfig = [
 ];
 
 const quickLinks = [
-  { label: "User Management", icon: Users },
-  { label: "Referral Management", icon: GitBranch },
-  { label: "Plan Management", icon: CreditCard },
-  { label: "Order Management", icon: ShoppingBag },
+  {
+    label: "User Management",
+    description: "Manage registered users",
+    icon: Users,
+    path: "/admin/users",
+  },
+  {
+    label: "Referral Management",
+    description: "View referral activity",
+    icon: GitBranch,
+    path: "/admin/referrals",
+  },
+  {
+    label: "Plan Management",
+    description: "Manage available plans",
+    icon: CreditCard,
+    path: "/admin/plans",
+  },
+  {
+    label: "Order Management",
+    description: "View and manage orders",
+    icon: ShoppingBag,
+    path: "/admin/orders",
+  },
 ];
 
 const formatDate = (date) => {
@@ -241,23 +263,37 @@ export default function AdminDashboard() {
           <h2 className="font-semibold text-slate-900 dark:text-white">
             Quick Overview
           </h2>
+
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Areas available for administration.
+            Quickly access your management sections.
           </p>
 
           <div className="mt-5 space-y-3">
-            {quickLinks.map(({ label, icon: Icon }) => (
-              <div
+            {quickLinks.map(({ label, description, icon: Icon, path }) => (
+              <Link
                 key={label}
-                className="flex items-center gap-3 rounded-xl border border-slate-100 p-3 dark:border-slate-800"
+                to={path}
+                className="group flex items-center gap-3 rounded-xl border border-slate-100 p-3 transition hover:border-cyan-200 hover:bg-cyan-50/50 dark:border-slate-800 dark:hover:border-cyan-900 dark:hover:bg-cyan-500/5"
               >
-                <div className="rounded-lg bg-slate-100 p-2 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                <div className="rounded-lg bg-slate-100 p-2 text-slate-600 transition group-hover:bg-cyan-100 group-hover:text-cyan-700 dark:bg-slate-800 dark:text-slate-300 dark:group-hover:bg-cyan-500/10 dark:group-hover:text-cyan-400">
                   <Icon size={17} />
                 </div>
-                <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                  {label}
-                </span>
-              </div>
+
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                    {label}
+                  </p>
+
+                  <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                    {description}
+                  </p>
+                </div>
+
+                <ArrowUpRight
+                  size={16}
+                  className="text-slate-400 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-cyan-600"
+                />
+              </Link>
             ))}
           </div>
         </div>

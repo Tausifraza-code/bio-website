@@ -1,5 +1,6 @@
 const Plan = require("../models/Plan");
-
+const PlanPurchase = require("../models/PlanPurchase");
+const mongoose = require("mongoose");
 // CREATE PLAN — Admin only
 const createPlan = async (req, res) => {
   try {
@@ -309,10 +310,61 @@ const getActivePlans = async (req, res) => {
   }
 };
 
+// DELETE PLAN — Admin only
+const deletePlan = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid plan ID",
+      });
+    }
+
+    const plan = await Plan.findById(id);
+
+    if (!plan) {
+      return res.status(404).json({
+        success: false,
+        message: "Plan not found",
+      });
+    }
+
+    // Check whether this plan has any purchase history
+    const hasPurchases = await PlanPurchase.exists({
+      planId: id,
+    });
+
+    if (hasPurchases) {
+      return res.status(409).json({
+        success: false,
+        message:
+          "This plan cannot be deleted because purchase records exist. You can deactivate it instead.",
+      });
+    }
+
+    await Plan.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Plan deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete Plan Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete plan",
+    });
+  }
+};
+
 module.exports = {
   createPlan,
   getAllPlans,
   getActivePlans,
   updatePlan,
   togglePlanStatus,
+  deletePlan,
 };

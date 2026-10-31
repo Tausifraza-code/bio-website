@@ -50,7 +50,12 @@ const menuItems = [
   },
 ];
 
-export default function AdminSidebar({ open = true, onClose, onLogout }) {
+export default function AdminSidebar({
+  open = true,
+  onClose,
+  onLogout,
+  branding,
+}) {
   return (
     <>
       {open && (
@@ -68,14 +73,22 @@ export default function AdminSidebar({ open = true, onClose, onLogout }) {
         }`}
       >
         <div className="flex h-20 items-center justify-between border-b border-slate-200 px-5 dark:border-slate-800">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500 text-white">
-              <ShieldCheck size={23} />
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+              {branding?.websiteLogo ? (
+                <img
+                  src={branding.websiteLogo}
+                  alt={branding.websiteName || "Website Logo"}
+                  className="h-full w-full object-contain p-1"
+                />
+              ) : (
+                <ShieldCheck size={23} className="text-cyan-500" />
+              )}
             </div>
 
-            <div>
-              <h2 className="text-lg font-extrabold tracking-tight">
-                BIO Admin
+            <div className="min-w-0">
+              <h2 className="truncate text-lg font-extrabold tracking-tight">
+                {branding?.websiteName || "BIO Admin"}
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 Management Panel

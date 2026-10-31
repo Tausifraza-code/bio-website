@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const mongoose = require("mongoose");
 const MiniProfile = require("../models/MiniProfile");
+const { uploadToGallery } = require("./gallery.controller");
 // GET /api/admin/users
 const getAdminUsers = async (req, res) => {
   try {
@@ -375,6 +376,16 @@ const updateAdminUserProfile = async (req, res) => {
       }
     }
 
+    // Keep public contact details in sync with account details unless the
+    // profile form explicitly provides its own business contact values.
+    if (userUpdates.email !== undefined && profileInput.email === undefined) {
+      profileUpdates.email = userUpdates.email;
+    }
+
+    if (userUpdates.phone !== undefined && profileInput.phone === undefined) {
+      profileUpdates.phone = userUpdates.phone;
+    }
+
     // Update the profile first so invalid profile data cannot leave
     // account fields changed while the profile update fails.
     let updatedProfile = await MiniProfile.findOne({
@@ -446,10 +457,83 @@ const updateAdminUserProfile = async (req, res) => {
   }
 };
 
+const uploadAdminUserProfileImages = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!mongoose.isValidObjectId(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID.",
+      });
+    }
+
+    const user = await User.findOne({
+      _id: userId,
+      role: "user",
+    }).select("_id");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    const allowedFields = ["profileImage", "avatar", "logo", "banner"];
+    const files = req.files || {};
+    const uploadedUrls = {};
+
+    for (const field of allowedFields) {
+      const file = files[field]?.[0];
+
+      if (file) {
+        const uploaded = await uploadToGallery(file);
+        uploadedUrls[field] = uploaded.imageUrl;
+      }
+    }
+
+    if (Object.keys(uploadedUrls).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Please select at least one image.",
+      });
+    }
+
+    const profile = await MiniProfile.findOneAndUpdate(
+      { userId: user._id },
+      {
+        $set: uploadedUrls,
+        $setOnInsert: { userId: user._id },
+      },
+      {
+        new: true,
+        upsert: true,
+        runValidators: true,
+        setDefaultsOnInsert: true,
+      },
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile images uploaded successfully.",
+      profile: profile.toObject(),
+    });
+  } catch (error) {
+    console.error("Admin profile image upload error:", error);
+
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Unable to upload profile images.",
+    });
+  }
+};
+
 module.exports = {
   getAdminUsers,
   verifyUserProfile,
   unverifyUserProfile,
   getAdminUserProfile,
   updateAdminUserProfile,
+  uploadAdminUserProfileImages,
 };

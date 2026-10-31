@@ -51,6 +51,38 @@ export const saveSocialCards = createAsyncThunk(
   },
 );
 
+// Upload social media profile image
+export const uploadSocialCardImage = createAsyncThunk(
+  "socialCards/uploadImage",
+  async ({ file, socialCardId }, { rejectWithValue }) => {
+    try {
+      const formData = new FormData();
+
+      formData.append("field", "socialCard");
+      formData.append("socialCardId", socialCardId);
+      formData.append("image", file);
+
+      const response = await api.post("/social-cards/upload-image", formData);
+
+      if (!response.data?.success) {
+        return rejectWithValue(
+          response.data?.message || "Failed to upload social profile image",
+        );
+      }
+
+      return {
+        socialCardId,
+        imageUrl: response.data.imageUrl,
+      };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+          "Failed to upload social profile image",
+      );
+    }
+  },
+);
+
 const socialCardsSlice = createSlice({
   name: "socialCards",
 
@@ -98,6 +130,25 @@ const socialCardsSlice = createSlice({
       .addCase(saveSocialCards.rejected, (state, action) => {
         state.saving = false;
         state.error = action.payload || "Failed to save social accounts";
+      })
+
+      // Upload social card image
+      .addCase(uploadSocialCardImage.pending, (state) => {
+        state.error = null;
+      })
+      .addCase(uploadSocialCardImage.fulfilled, (state, action) => {
+        const { socialCardId, imageUrl } = action.payload;
+
+        const card = state.cards.find(
+          (item) => String(item.id || item._id) === String(socialCardId),
+        );
+
+        if (card) {
+          card.profileImage = imageUrl;
+        }
+      })
+      .addCase(uploadSocialCardImage.rejected, (state, action) => {
+        state.error = action.payload || "Failed to upload social profile image";
       });
   },
 });
