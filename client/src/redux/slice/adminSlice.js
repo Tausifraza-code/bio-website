@@ -454,6 +454,124 @@ export const uploadAdminUserProfileImages = createAsyncThunk(
   },
 );
 
+// =====================================
+// ADMIN GENERAL SETTINGS
+// =====================================
+
+// FETCH GENERAL SETTINGS
+export const fetchAdminGeneralSettings = createAsyncThunk(
+  "admin/fetchGeneralSettings",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/admin/settings/general");
+
+      if (!response.data?.success) {
+        return rejectWithValue(
+          response.data?.message || "Unable to fetch general settings.",
+        );
+      }
+
+      return response.data.settings;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Unable to fetch general settings.",
+      );
+    }
+  },
+);
+
+// UPDATE GENERAL SETTINGS
+export const updateAdminGeneralSettings = createAsyncThunk(
+  "admin/updateGeneralSettings",
+  async (settings, { rejectWithValue }) => {
+    try {
+      const response = await api.put("/admin/settings/general", settings);
+
+      if (!response.data?.success) {
+        return rejectWithValue(
+          response.data?.message || "Unable to update general settings.",
+        );
+      }
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Unable to update general settings.",
+      );
+    }
+  },
+);
+
+// CHANGE ADMIN PASSWORD
+export const changeAdminPassword = createAsyncThunk(
+  "admin/changePassword",
+  async (passwordData, { rejectWithValue }) => {
+    try {
+      const response = await api.put(
+        "/admin/settings/change-password",
+        passwordData,
+      );
+
+      if (!response.data?.success) {
+        return rejectWithValue(
+          response.data?.message || "Unable to change password.",
+        );
+      }
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Unable to change password.",
+      );
+    }
+  },
+);
+
+export const uploadAdminWebsiteLogo = createAsyncThunk(
+  "admin/uploadWebsiteLogo",
+  async (formData, { rejectWithValue }) => {
+    try {
+      const response = await api.post(
+        "/admin/settings/general/upload-logo",
+        formData,
+      );
+
+      if (!response.data?.success) {
+        return rejectWithValue(
+          response.data?.message || "Unable to upload website logo.",
+        );
+      }
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Unable to upload website logo.",
+      );
+    }
+  },
+);
+
+export const fetchPublicBranding = createAsyncThunk(
+  "admin/fetchPublicBranding",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/admin/settings/branding");
+
+      if (!response.data?.success) {
+        return rejectWithValue(
+          response.data?.message || "Unable to fetch website branding",
+        );
+      }
+
+      return response.data.settings;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Unable to fetch website branding",
+      );
+    }
+  },
+);
+
 const initialState = {
   admin: null,
   token: localStorage.getItem("adminToken") || null,
@@ -551,6 +669,13 @@ const initialState = {
 
   profileImagesSaving: false,
   profileImagesError: null,
+
+  branding: {
+    websiteName: "BIO Website",
+    websiteLogo: "",
+    websiteUrl: "",
+  },
+  brandingLoading: false,
 };
 
 const adminSlice = createSlice({
@@ -1012,6 +1137,19 @@ const adminSlice = createSlice({
         state.profileImagesSaving = false;
         state.profileImagesError =
           action.payload || "Unable to upload profile images.";
+      })
+
+      .addCase(fetchPublicBranding.pending, (state) => {
+        state.brandingLoading = true;
+      })
+
+      .addCase(fetchPublicBranding.fulfilled, (state, action) => {
+        state.brandingLoading = false;
+        state.branding = action.payload;
+      })
+
+      .addCase(fetchPublicBranding.rejected, (state) => {
+        state.brandingLoading = false;
       });
   },
 });

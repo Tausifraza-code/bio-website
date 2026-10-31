@@ -35,13 +35,20 @@ import AdminQRManagement from "./admin/pages/AdminQRManagement";
 import AdminPlans from "./admin/pages/AdminPlans";
 import AdminOrders from "./admin/pages/AdminOrders";
 import AdminUserProfile from "./admin/pages/AdminUserProfile";
+import AdminSettings from "./admin/pages/AdminSettings";
 
 function App() {
   useEffect(() => {
-    try {
-      const savedTheme = localStorage.getItem("bio-theme") || "dark";
+    const isAdminRoute = window.location.pathname.startsWith("/admin");
 
-      document.documentElement.dataset.theme = savedTheme;
+    try {
+      if (isAdminRoute) {
+        const adminTheme = localStorage.getItem("adminTheme") || "light";
+        document.documentElement.dataset.theme = adminTheme;
+      } else {
+        const bioTheme = localStorage.getItem("bio-theme") || "dark";
+        document.documentElement.dataset.theme = bioTheme;
+      }
     } catch {
       document.documentElement.dataset.theme = "dark";
     }
@@ -106,6 +113,7 @@ function App() {
           <Route path="/admin/plans" element={<AdminPlans />} />
           <Route path="/admin/orders" element={<AdminOrders />} />
           <Route path="/admin/users/:userId" element={<AdminUserProfile />} />
+          <Route path="/admin/settings" element={<AdminSettings />} />
         </Route>
 
         {/* Password Reset Pages */}

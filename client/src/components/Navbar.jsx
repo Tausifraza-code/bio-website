@@ -1,12 +1,20 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { ArrowRight, ContactRound, Menu, Moon, Sun, X } from "lucide-react";
+import { fetchPublicBranding } from "../redux/slice/adminSlice";
 
 const Navbar = ({ theme, onToggleTheme }) => {
+  const dispatch = useDispatch();
+  const branding = useSelector((state) => state.admin.branding);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
   const isDark = theme === "dark";
+
+  useEffect(() => {
+    dispatch(fetchPublicBranding());
+  }, [dispatch]);
 
   const navLinks = [
     { name: "Home", href: "/" },
@@ -108,22 +116,30 @@ const Navbar = ({ theme, onToggleTheme }) => {
             aria-label="BIO home"
             className="group flex min-w-0 shrink-0 items-center gap-2 touch-manipulation"
           >
-            <span
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-colors ${
-                isDark
-                  ? "border-cyan-300/20 bg-cyan-300/10 text-cyan-200 group-hover:bg-cyan-300/20"
-                  : "border-cyan-200 bg-cyan-50 text-cyan-700 group-hover:bg-cyan-100"
-              }`}
-            >
-              <ContactRound size={22} strokeWidth={2.2} />
-            </span>
+            {branding?.websiteLogo ? (
+              <img
+                src={branding.websiteLogo}
+                alt={branding.websiteName || "BIO Website"}
+                className="h-11 w-11 shrink-0 rounded-lg bg-white object-contain p-1"
+              />
+            ) : (
+              <span
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${
+                  isDark
+                    ? "border-cyan-300/20 bg-cyan-300/10 text-cyan-200"
+                    : "border-cyan-200 bg-cyan-50 text-cyan-700"
+                }`}
+              >
+                <ContactRound size={22} strokeWidth={2.2} />
+              </span>
+            )}
 
             <span
               className={`truncate text-[19px] font-extrabold tracking-tight min-[380px]:text-[21px] ${
                 isDark ? "text-white" : "text-[#0b1b30]"
               }`}
             >
-              BIO<span className="text-cyan-400">.</span>
+              {branding?.websiteName || "BIO Website"}
             </span>
           </Link>
 

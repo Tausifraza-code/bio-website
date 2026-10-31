@@ -4,13 +4,14 @@ import { useDispatch, useSelector } from "react-redux";
 
 import AdminSidebar from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
-import { adminLogout } from "../../redux/slice/adminSlice";
+import { adminLogout, fetchPublicBranding } from "../../redux/slice/adminSlice";
 
 export default function AdminLayout() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const adminToken = useSelector((state) => state.admin.token);
+  const branding = useSelector((state) => state.admin.branding);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [theme, setTheme] = useState(() => {
@@ -20,6 +21,10 @@ export default function AdminLayout() {
       return "light";
     }
   });
+
+  useEffect(() => {
+    dispatch(fetchPublicBranding());
+  }, [dispatch]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -59,6 +64,7 @@ export default function AdminLayout() {
         open={sidebarOpen}
         onClose={handleSidebarClose}
         onLogout={handleLogout}
+        branding={branding}
       />
 
       <div className="min-h-screen lg:pl-64">
@@ -66,6 +72,7 @@ export default function AdminLayout() {
           onMenuClick={handleMenuClick}
           theme={theme}
           onThemeToggle={handleThemeToggle}
+          branding={branding}
         />
 
         <main className="mx-auto w-full max-w-[1600px] p-4 sm:p-6 lg:p-8">

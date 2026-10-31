@@ -3,9 +3,17 @@ const router = express.Router();
 
 const { protect } = require("../middleware/auth.middleware");
 const { adminOnly } = require("../middleware/admin.middleware");
+const { uploadWithField } = require("../middleware/upload.middleware");
 
 // Controllers
-const { adminLogin } = require("../controllers/admin.controller");
+const {
+  adminLogin,
+  changeAdminPassword,
+  updateAdminGeneralSettings,
+  getAdminGeneralSettings,
+  uploadAdminWebsiteLogo,
+  getPublicBranding,
+} = require("../controllers/admin.controller");
 
 const {
   getReferralReport,
@@ -167,4 +175,26 @@ router.delete(
   deleteAdminUserProduct,
 );
 
+// Change Password
+router.put(
+  "/settings/change-password",
+  protect,
+  adminOnly,
+  changeAdminPassword,
+);
+
+// Get General Settings
+router.get("/settings/general", protect, adminOnly, getAdminGeneralSettings);
+
+// Update General Settings
+router.put("/settings/general", protect, adminOnly, updateAdminGeneralSettings);
+router.post(
+  "/settings/general/upload-logo",
+  protect,
+  adminOnly,
+  uploadWithField("image"),
+  uploadAdminWebsiteLogo,
+);
+//logo
+router.get("/settings/branding", getPublicBranding);
 module.exports = router;

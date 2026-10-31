@@ -147,7 +147,7 @@ export default function AdminReferrals() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-4 sm:space-y-6">
       {/* Header */}
       <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
@@ -155,7 +155,7 @@ export default function AdminReferrals() {
             REFERRAL MANAGEMENT
           </p>
 
-          <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+          <h1 className="mt-2 text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
             {selectedUserId ? "Referral Details" : "Referral Overview"}
           </h1>
 
@@ -166,12 +166,12 @@ export default function AdminReferrals() {
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:flex">
           {selectedUserId && (
             <button
               type="button"
               onClick={handleBack}
-              className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 sm:px-4 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
             >
               <ArrowLeft size={16} />
               Back
@@ -182,7 +182,7 @@ export default function AdminReferrals() {
             type="button"
             onClick={handleRefresh}
             disabled={referralsLoading || referredUsersLoading}
-            className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60 dark:border-slate-800 dark:bg-[#0b1728] dark:text-slate-200 dark:hover:bg-slate-800"
+            className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60 sm:px-4 dark:border-slate-800 dark:bg-[#0b1728] dark:text-slate-200 dark:hover:bg-slate-800"
           >
             <RefreshCw
               size={16}
@@ -197,35 +197,35 @@ export default function AdminReferrals() {
 
       {/* Overview cards */}
       {!selectedUserId && (
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-[#0b1728]">
+        <section className="grid grid-cols-2 gap-3 sm:gap-4">
+          <div className="min-w-0 rounded-xl border border-slate-200 bg-white p-3 sm:rounded-2xl sm:p-5 dark:border-slate-800 dark:bg-[#0b1728]">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+              <div className="min-w-0">
+                <p className="text-xs leading-4 text-slate-500 sm:text-sm dark:text-slate-400">
                   Total Referral Registrations
                 </p>
-                <p className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
+                <p className="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl dark:text-white">
                   {totalReferralSignups.toLocaleString("en-IN")}
                 </p>
               </div>
-              <div className="rounded-xl bg-emerald-50 p-3 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
-                <GitBranch size={24} />
+              <div className="shrink-0 rounded-lg bg-emerald-50 p-2 text-emerald-600 sm:rounded-xl sm:p-3 dark:bg-emerald-500/10 dark:text-emerald-400">
+                <GitBranch size={20} className="sm:size-6" />
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-[#0b1728]">
+          <div className="min-w-0 rounded-xl border border-slate-200 bg-white p-3 sm:rounded-2xl sm:p-5 dark:border-slate-800 dark:bg-[#0b1728]">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+              <div className="min-w-0">
+                <p className="text-xs leading-4 text-slate-500 sm:text-sm dark:text-slate-400">
                   Referrers on This Page
                 </p>
-                <p className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
+                <p className="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl dark:text-white">
                   {referrals.length}
                 </p>
               </div>
-              <div className="rounded-xl bg-cyan-50 p-3 text-cyan-600 dark:bg-cyan-500/10 dark:text-cyan-400">
-                <Users size={24} />
+              <div className="shrink-0 rounded-lg bg-cyan-50 p-2 text-cyan-600 sm:rounded-xl sm:p-3 dark:bg-cyan-500/10 dark:text-cyan-400">
+                <Users size={20} className="sm:size-6" />
               </div>
             </div>
           </div>
@@ -234,28 +234,30 @@ export default function AdminReferrals() {
 
       {/* Search */}
       {!selectedUserId && (
-        <section className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-[#0b1728] sm:p-5">
+        <section className="min-w-0 rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 dark:border-slate-800 dark:bg-[#0b1728]">
           <form
             onSubmit={handleSearch}
-            className="flex flex-col gap-3 sm:flex-row"
+            className="grid grid-cols-2 gap-2 sm:flex sm:gap-3"
           >
-            <div className="relative flex-1">
+            <div className="relative col-span-2 min-w-0 sm:flex-1">
               <Search
                 size={18}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                aria-hidden="true"
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
               />
               <input
                 type="search"
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
                 placeholder="Search name, email or referral code..."
-                className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                aria-label="Search referrers by name, email, or referral code"
+                className="min-h-11 w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
               />
             </div>
 
             <button
               type="submit"
-              className="rounded-xl bg-cyan-600 px-5 py-3 text-sm font-semibold text-white hover:bg-cyan-700"
+              className="min-h-11 rounded-xl bg-cyan-600 px-3 py-2.5 text-sm font-semibold text-white hover:bg-cyan-700 sm:px-5"
             >
               Search
             </button>
@@ -263,7 +265,7 @@ export default function AdminReferrals() {
             <button
               type="button"
               onClick={handleClearSearch}
-              className="rounded-xl border border-slate-200 px-5 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="min-h-11 rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 sm:px-5 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
             >
               Clear
             </button>
@@ -275,16 +277,16 @@ export default function AdminReferrals() {
       {!selectedUserId && referralsError && (
         <div
           role="alert"
-          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300"
+          className="flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 sm:p-4 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300"
         >
-          <span className="flex items-center gap-2">
-            <AlertCircle size={18} />
-            {referralsError}
+          <span className="flex min-w-0 items-start gap-2">
+            <AlertCircle size={18} className="mt-0.5 shrink-0" />
+            <span className="min-w-0 break-words">{referralsError}</span>
           </span>
           <button
             type="button"
             onClick={handleRefresh}
-            className="font-semibold underline underline-offset-4"
+            className="min-h-11 shrink-0 font-semibold underline underline-offset-4"
           >
             Try again
           </button>
@@ -293,8 +295,8 @@ export default function AdminReferrals() {
 
       {/* Overview table */}
       {!selectedUserId && (
-        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-[#0b1728]">
-          <div className="border-b border-slate-200 p-5 dark:border-slate-800">
+        <section className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-[#0b1728]">
+          <div className="border-b border-slate-200 p-4 sm:p-5 dark:border-slate-800">
             <h2 className="font-semibold text-slate-900 dark:text-white">
               Referrer Overview
             </h2>
@@ -310,7 +312,78 @@ export default function AdminReferrals() {
             </div>
           ) : referrals.length > 0 ? (
             <>
-              <div className="overflow-x-auto">
+              <div className="divide-y divide-slate-100 2xl:hidden dark:divide-slate-800">
+                {referrals.map((user) => (
+                  <article
+                    key={user.userId}
+                    className="min-w-0 space-y-4 p-4"
+                  >
+                    <div className="flex min-w-0 items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h3 className="break-words font-semibold text-slate-900 dark:text-white">
+                          {user.fullName || "—"}
+                        </h3>
+                        <p className="mt-1 break-all text-sm text-slate-500 dark:text-slate-400">
+                          {user.email || "—"}
+                        </p>
+                      </div>
+                      <span className="inline-flex min-w-9 shrink-0 items-center justify-center rounded-full bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+                        {user.totalReferrals ?? 0}
+                      </span>
+                    </div>
+
+                    <div className="min-w-0 rounded-xl bg-slate-50 p-3 dark:bg-slate-900/60">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Referral code
+                      </p>
+                      <div className="mt-1 flex min-w-0 items-center justify-between gap-2">
+                        <span className="min-w-0 break-all rounded-lg bg-cyan-50 px-2.5 py-1.5 text-xs font-medium text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-400">
+                          {user.referralCode || "—"}
+                        </span>
+                        {user.referralCode && (
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(user.referralCode)}
+                            aria-label={
+                              copiedCode === user.referralCode
+                                ? "Referral code copied"
+                                : "Copy referral code"
+                            }
+                            title="Copy referral code"
+                            className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 dark:hover:bg-slate-800"
+                          >
+                            {copiedCode === user.referralCode ? (
+                              <Check size={16} />
+                            ) : (
+                              <Copy size={16} />
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex min-w-0 items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
+                      <CalendarDays
+                        size={15}
+                        className="mt-0.5 shrink-0 text-slate-400"
+                      />
+                      <span className="min-w-0 break-words">
+                        {formatDate(user.registeredAt)}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleSelectReferrer(user.userId)}
+                      className="min-h-11 w-full rounded-lg bg-cyan-50 px-3 py-2 text-sm font-semibold text-cyan-700 transition hover:bg-cyan-100 focus:outline-none focus:ring-2 focus:ring-cyan-500 dark:bg-cyan-500/10 dark:text-cyan-400 dark:hover:bg-cyan-500/20"
+                    >
+                      View referred users
+                    </button>
+                  </article>
+                ))}
+              </div>
+
+              <div className="hidden overflow-x-auto 2xl:block">
                 <table className="w-full min-w-[760px] text-left text-sm">
                   <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900/70 dark:text-slate-400">
                     <tr>
@@ -392,19 +465,19 @@ export default function AdminReferrals() {
                 </table>
               </div>
 
-              <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+              <div className="flex flex-col gap-3 border-t border-slate-200 px-3 py-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                <p className="text-xs text-slate-500 sm:text-sm dark:text-slate-400">
                   Page {referralPagination.currentPage || 1} of {totalPages}
                   {" · "}
                   {referralPagination.totalUsers || 0} referrers
                 </p>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between gap-2 sm:justify-start">
                   <button
                     type="button"
                     onClick={() => setPage((current) => current - 1)}
                     disabled={page <= 1 || referralsLoading}
-                    className="flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-sm disabled:opacity-40 dark:border-slate-700 dark:text-slate-300"
+                    className="flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-lg border border-slate-200 px-2 text-xs disabled:cursor-not-allowed disabled:opacity-40 sm:px-3 sm:text-sm dark:border-slate-700 dark:text-slate-300"
                   >
                     <ChevronLeft size={16} />
                     Previous
@@ -414,7 +487,7 @@ export default function AdminReferrals() {
                     type="button"
                     onClick={() => setPage((current) => current + 1)}
                     disabled={page >= totalPages || referralsLoading}
-                    className="flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-sm disabled:opacity-40 dark:border-slate-700 dark:text-slate-300"
+                    className="flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-lg border border-slate-200 px-2 text-xs disabled:cursor-not-allowed disabled:opacity-40 sm:px-3 sm:text-sm dark:border-slate-700 dark:text-slate-300"
                   >
                     Next
                     <ChevronRight size={16} />
@@ -438,17 +511,17 @@ export default function AdminReferrals() {
 
       {/* Selected referrer details */}
       {selectedUserId && (
-        <section className="space-y-5">
+        <section className="min-w-0 space-y-4 sm:space-y-5">
           {currentReferrer && (
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-[#0b1728]">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-cyan-50 text-cyan-600 dark:bg-cyan-500/10 dark:text-cyan-400">
-                  <UserRound size={26} />
+            <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 dark:border-slate-800 dark:bg-[#0b1728]">
+              <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center">
+                <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-cyan-50 text-cyan-600 sm:size-14 sm:rounded-2xl dark:bg-cyan-500/10 dark:text-cyan-400">
+                  <UserRound size={23} className="sm:size-[26px]" />
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-                    {currentReferrer.fullName}
+                  <h2 className="break-words text-lg font-semibold text-slate-900 dark:text-white">
+                    {currentReferrer.fullName || "—"}
                   </h2>
                   <p className="mt-1 break-all text-sm text-slate-500 dark:text-slate-400">
                     {currentReferrer.email}
@@ -458,7 +531,7 @@ export default function AdminReferrals() {
                   </p>
                 </div>
 
-                <div className="rounded-xl bg-emerald-50 px-4 py-3 dark:bg-emerald-500/10">
+                <div className="flex items-center justify-between gap-3 rounded-xl bg-emerald-50 px-4 py-3 sm:block sm:w-fit dark:bg-emerald-500/10">
                   <p className="text-xs text-emerald-700 dark:text-emerald-400">
                     Total Referrals
                   </p>
@@ -473,21 +546,21 @@ export default function AdminReferrals() {
           {referredUsersError && (
             <div
               role="alert"
-              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300"
+              className="flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 sm:p-4 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300"
             >
-              <span>{referredUsersError}</span>
+              <span className="min-w-0 break-words">{referredUsersError}</span>
               <button
                 type="button"
                 onClick={handleRefresh}
-                className="font-semibold underline underline-offset-4"
+                className="min-h-11 shrink-0 font-semibold underline underline-offset-4"
               >
                 Try again
               </button>
             </div>
           )}
 
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-[#0b1728]">
-            <div className="border-b border-slate-200 p-5 dark:border-slate-800">
+          <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-[#0b1728]">
+            <div className="border-b border-slate-200 p-4 sm:p-5 dark:border-slate-800">
               <h2 className="font-semibold text-slate-900 dark:text-white">
                 Referred Users
               </h2>
@@ -503,7 +576,60 @@ export default function AdminReferrals() {
               </div>
             ) : referredUsers.length > 0 ? (
               <>
-                <div className="overflow-x-auto">
+                <div className="divide-y divide-slate-100 2xl:hidden dark:divide-slate-800">
+                  {referredUsers.map((user) => (
+                    <article
+                      key={user.userId}
+                      className="min-w-0 space-y-4 p-4"
+                    >
+                      <div className="min-w-0">
+                        <h3 className="break-words font-semibold text-slate-900 dark:text-white">
+                          {user.fullName || "—"}
+                        </h3>
+                        <p className="mt-1 break-all text-sm text-slate-500 dark:text-slate-400">
+                          {user.email || "—"}
+                        </p>
+                      </div>
+
+                      <dl className="grid min-w-0 grid-cols-2 gap-3 text-sm">
+                        <div className="min-w-0">
+                          <dt className="text-xs text-slate-500 dark:text-slate-400">
+                            Phone
+                          </dt>
+                          <dd className="mt-1 flex min-w-0 items-start gap-1.5 break-words text-slate-700 dark:text-slate-200">
+                            <Phone
+                              size={14}
+                              className="mt-0.5 shrink-0 text-slate-400"
+                            />
+                            <span>{user.phone || "—"}</span>
+                          </dd>
+                        </div>
+                        <div className="min-w-0">
+                          <dt className="text-xs text-slate-500 dark:text-slate-400">
+                            Code used
+                          </dt>
+                          <dd className="mt-1 break-all font-medium text-cyan-700 dark:text-cyan-400">
+                            {user.referralCodeUsed || "—"}
+                          </dd>
+                        </div>
+                        <div className="col-span-2 min-w-0">
+                          <dt className="text-xs text-slate-500 dark:text-slate-400">
+                            Registered
+                          </dt>
+                          <dd className="mt-1 flex min-w-0 items-start gap-1.5 break-words text-slate-700 dark:text-slate-200">
+                            <CalendarDays
+                              size={15}
+                              className="mt-0.5 shrink-0 text-slate-400"
+                            />
+                            <span>{formatDate(user.registeredAt)}</span>
+                          </dd>
+                        </div>
+                      </dl>
+                    </article>
+                  ))}
+                </div>
+
+                <div className="hidden overflow-x-auto 2xl:block">
                   <table className="w-full min-w-[650px] text-left text-sm">
                     <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900/70 dark:text-slate-400">
                       <tr>
@@ -554,20 +680,20 @@ export default function AdminReferrals() {
                   </table>
                 </div>
 
-                <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                <div className="flex flex-col gap-3 border-t border-slate-200 px-3 py-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                  <p className="text-xs text-slate-500 sm:text-sm dark:text-slate-400">
                     Page {referredUsersPagination.currentPage || 1} of{" "}
                     {detailTotalPages}
                     {" · "}
                     {referredUsersPagination.totalUsers || 0} referred users
                   </p>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between gap-2 sm:justify-start">
                     <button
                       type="button"
                       onClick={() => setDetailPage((current) => current - 1)}
                       disabled={detailPage <= 1 || referredUsersLoading}
-                      className="flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-sm disabled:opacity-40 dark:border-slate-700 dark:text-slate-300"
+                      className="flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-lg border border-slate-200 px-2 text-xs disabled:cursor-not-allowed disabled:opacity-40 sm:px-3 sm:text-sm dark:border-slate-700 dark:text-slate-300"
                     >
                       <ChevronLeft size={16} />
                       Previous
@@ -579,7 +705,7 @@ export default function AdminReferrals() {
                       disabled={
                         detailPage >= detailTotalPages || referredUsersLoading
                       }
-                      className="flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-sm disabled:opacity-40 dark:border-slate-700 dark:text-slate-300"
+                      className="flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-lg border border-slate-200 px-2 text-xs disabled:cursor-not-allowed disabled:opacity-40 sm:px-3 sm:text-sm dark:border-slate-700 dark:text-slate-300"
                     >
                       Next
                       <ChevronRight size={16} />

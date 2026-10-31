@@ -2,6 +2,7 @@ const MiniProfile = require("../models/MiniProfile");
 const Product = require("../models/Product");
 const Gallery = require("../models/Gallery");
 const QRCode = require("../models/QRCode");
+const User = require("../models/User");
 const { uploadToImgBB } = require("../utils/imgbb");
 
 const allowedFields = [
@@ -153,6 +154,7 @@ const uploadProfileImage = async (req, res) => {
     const uploadResult = await uploadToImgBB(
       req.file.buffer,
       req.file.originalname,
+      req.file.mimetype,
     );
 
     if (!uploadResult?.url) {
@@ -265,9 +267,83 @@ const getPublicProfile = async (req, res) => {
   }
 };
 
+const uploadSocialCardImage = async (req, res) => {
+  try {
+    const { socialCardId } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "Please select an image",
+      });
+    }
+
+    if (!socialCardId) {
+      return res.status(400).json({
+        success: false,
+        message: "Social card ID is required",
+      });
+    }
+
+    // Find logged-in user
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Find social card inside embedded miniProfile
+    const socialCard = user.miniProfile?.socialCards?.id(socialCardId);
+
+    if (!socialCard) {
+      return res.status(404).json({
+        success: false,
+        message: "Social card not found",
+      });
+    }
+
+    // Upload image to ImgBB
+    const uploadResult = await uploadToImgBB(
+      req.file.buffer,
+      req.file.originalname,
+      req.file.mimetype,
+    );
+
+    if (!uploadResult?.url) {
+      return res.status(500).json({
+        success: false,
+        message: "ImgBB did not return an image URL",
+      });
+    }
+
+    // Update only this social card's image
+    socialCard.profileImage = uploadResult.url;
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Social card image uploaded successfully",
+      imageUrl: uploadResult.url,
+      socialCard,
+    });
+  } catch (error) {
+    console.error("Social Card Image Upload Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to upload social card image",
+    });
+  }
+};
+
 module.exports = {
   saveProfile,
   getProfile,
   getPublicProfile,
   uploadProfileImage,
+  uploadSocialCardImage,
 };

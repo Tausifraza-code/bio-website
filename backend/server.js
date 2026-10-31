@@ -20,6 +20,8 @@ const planRoutes = require("./routes/plan.routes");
 const planPurchaseRoutes = require("./routes/planPurchase.routes");
 const publicPlanRoutes = require("./routes/publicPlan.routes");
 const razorpayWebhookRoutes = require("./routes/razorpayWebhook.routes");
+const uploadSocialMediaImage = require("./routes/socialCard.routes");
+const reviewRoutes = require("./routes/review.routes");
 const connectDB = require("./config/db");
 
 const app = express();
@@ -71,6 +73,7 @@ app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/contact-buttons", contactButtonsRoutes);
+app.use("/api/social-cards", uploadSocialMediaImage);
 app.use("/api/products", productRoutes);
 app.use("/api/gallery", galleryRoutes);
 app.use("/api/referrals", referralRoutes);
@@ -79,8 +82,10 @@ app.use("/api/payment-settings", paymentSettingsRoutes);
 app.use("/api/qr-codes", qrCodeRoutes);
 
 app.use("/api/plan-purchases", planPurchaseRoutes);
+app.use("/api/plans", planRoutes);
 app.use("/api/plans", publicPlanRoutes);
 app.use("/api/webhooks/razorpay", razorpayWebhookRoutes);
+app.use("/api/reviews", reviewRoutes);
 app.use("/api/admin/qr-sets", adminQRRoutes);
 // Resolve an existing physical QR path, e.g. GET /xyz
 app.get("/:qrPath", resolveQRCode);

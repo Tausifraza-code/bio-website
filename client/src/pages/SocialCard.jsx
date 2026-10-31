@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchSocialCards,
   saveSocialCards,
+  uploadSocialCardImage,
 } from "../redux/slice/socialCardsSlice";
 import {
   Share2,
@@ -18,6 +19,8 @@ import {
   ArrowUpRight,
   Globe,
   AlertTriangle,
+  Upload,
+  ImagePlus,
 } from "lucide-react";
 
 /* ==================== BRAND ICONS ==================== */
@@ -191,9 +194,22 @@ const SocialCards = () => {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({ ...INITIAL_FORM });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [pendingImageCardId, setPendingImageCardId] = useState(null);
+  const imagePreviewUrl = useRef("");
 
   // Custom Delete Modal State
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+
+  useEffect(() => {
+    return () => {
+      if (imagePreviewUrl.current) {
+        URL.revokeObjectURL(imagePreviewUrl.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!loaded && !loading) {
@@ -213,20 +229,34 @@ const SocialCards = () => {
 
   const CurrentIcon = currentPlatform.icon;
 
+  const clearImageSelection = () => {
+    if (imagePreviewUrl.current) {
+      URL.revokeObjectURL(imagePreviewUrl.current);
+      imagePreviewUrl.current = "";
+    }
+
+    setImageFile(null);
+    setImagePreview("");
+  };
+
   const openModal = (platformId = "instagram") => {
     setFormData({
       ...INITIAL_FORM,
       platform: PLATFORMS[platformId] ? platformId : "instagram",
     });
 
+    clearImageSelection();
+    setPendingImageCardId(null);
     setError("");
     setSaved(false);
     setModalOpen(true);
   };
 
   const closeModal = () => {
-    if (saving || reduxSaving) return;
+    if (saving || reduxSaving || uploadingImage) return;
 
+    clearImageSelection();
+    setPendingImageCardId(null);
     setModalOpen(false);
     setError("");
     setSaved(false);
@@ -238,6 +268,42 @@ const SocialCards = () => {
       [field]: value,
     }));
 
+    setError("");
+    setSaved(false);
+  };
+
+  const handleImageChange = (event) => {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/jpg",
+      "image/webp",
+      "image/gif",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      setError("Only JPEG, PNG, JPG, WEBP, and GIF images are allowed.");
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image size must be less than 5 MB.");
+      event.target.value = "";
+      return;
+    }
+
+    if (imagePreviewUrl.current) {
+      URL.revokeObjectURL(imagePreviewUrl.current);
+    }
+
+    imagePreviewUrl.current = URL.createObjectURL(file);
+    setImageFile(file);
+    setImagePreview(imagePreviewUrl.current);
     setError("");
     setSaved(false);
   };
@@ -262,42 +328,102 @@ const SocialCards = () => {
       }
     }
 
-    const platform = PLATFORMS[formData.platform];
-    const newCard = {
-      ...formData,
-      platformName:
-        formData.platform === "custom"
-          ? formData.platformName.trim()
-          : platform?.name || formData.platformName || formData.platform,
-      icon:
-        formData.platform === "custom"
-          ? formData.icon || "link"
-          : formData.platform,
-      handle: formData.handle.trim(),
-      url: formData.url.trim(),
-      id: `social-${Date.now()}`,
-    };
+    if (imageFile && !pendingImageCardId) {
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/jpg",
+        "image/webp",
+        "image/gif",
+      ];
+
+      if (!allowedTypes.includes(imageFile.type)) {
+        setError("Please select a valid image.");
+        return;
+      }
+
+      if (imageFile.size > 5 * 1024 * 1024) {
+        setError("Image size must be less than 5 MB.");
+        return;
+      }
+    }
 
     setSaving(true);
     setError("");
+    let cardAlreadySaved = Boolean(pendingImageCardId);
 
     try {
-      await dispatch(saveSocialCards([...cards, newCard])).unwrap();
+      let socialCardId = pendingImageCardId;
+
+      if (!socialCardId) {
+        const platform = PLATFORMS[formData.platform];
+        const newCard = {
+          ...formData,
+          platformName:
+            formData.platform === "custom"
+              ? formData.platformName.trim()
+              : platform?.name || formData.platformName || formData.platform,
+          icon:
+            formData.platform === "custom"
+              ? formData.icon || "link"
+              : formData.platform,
+          handle: formData.handle.trim(),
+          url: formData.url.trim(),
+          id: `social-${Date.now()}`,
+        };
+
+        const savedCards = await dispatch(
+          saveSocialCards([...cards, newCard]),
+        ).unwrap();
+
+        cardAlreadySaved = true;
+        const savedCard = savedCards[savedCards.length - 1];
+        socialCardId = savedCard?._id || savedCard?.id;
+
+        if (!socialCardId || String(socialCardId).startsWith("social-")) {
+          throw new Error(
+            "Social profile was saved, but its database ID could not be verified. Please refresh your social profiles.",
+          );
+        }
+
+        socialCardId = String(socialCardId);
+        setPendingImageCardId(socialCardId);
+      }
+
+      if (imageFile) {
+        setUploadingImage(true);
+        await dispatch(
+          uploadSocialCardImage({
+            file: imageFile,
+            socialCardId: String(socialCardId),
+          }),
+        ).unwrap();
+      }
+
+      setPendingImageCardId(null);
       setSaved(true);
 
       setTimeout(() => {
         setSaved(false);
         setModalOpen(false);
         setFormData({ ...INITIAL_FORM });
+        clearImageSelection();
+        setPendingImageCardId(null);
       }, 800);
     } catch (err) {
-      setError(
+      const message =
         typeof err === "string"
           ? err
-          : "Unable to save your social profile. Please try again.",
+          : err?.message || "Please try again.";
+
+      setError(
+        cardAlreadySaved
+          ? `Profile is saved, but image upload failed: ${message}. Please retry the image upload.`
+          : message,
       );
     } finally {
       setSaving(false);
+      setUploadingImage(false);
     }
   };
 
@@ -562,10 +688,19 @@ const SocialCards = () => {
                     <div className="p-5">
                       <div className="flex items-start gap-3">
                         <div
-                          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 transition group-hover:scale-105"
+                          className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 transition group-hover:scale-105"
                           style={{ backgroundColor: `${platform.color}15` }}
                         >
-                          <Icon size={22} style={{ color: platform.color }} />
+                          {card.profileImage ? (
+                            <img
+                              src={card.profileImage}
+                              alt={`${platform.name} profile`}
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <Icon size={22} style={{ color: platform.color }} />
+                          )}
                         </div>
 
                         <div className="min-w-0 flex-1">
@@ -692,7 +827,7 @@ const SocialCards = () => {
                 <button
                   type="button"
                   onClick={closeModal}
-                  disabled={saving || reduxSaving}
+                  disabled={saving || reduxSaving || uploadingImage}
                   aria-label="Close dialog"
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#29435f] bg-[#132942] text-slate-400 transition hover:border-cyan-400/50 hover:text-cyan-400 disabled:opacity-50"
                 >
@@ -791,6 +926,54 @@ const SocialCards = () => {
                   placeholder={currentPlatform.placeholderUrl}
                   className={inputCls}
                 />
+              </Field>
+
+              {/* Social Profile Image */}
+              <Field label="Social Profile Image">
+                <div className="rounded-2xl border border-dashed border-[#38516e] bg-[#132942] p-4">
+                  <div className="flex flex-col items-center gap-3 sm:flex-row">
+                    <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#38516e] bg-[#0b1b30]">
+                      {imagePreview ? (
+                        <img
+                          src={imagePreview}
+                          alt="Social profile preview"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <ImagePlus size={27} className="text-cyan-400" />
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1 text-center sm:text-left">
+                      <p className="text-xs font-bold text-white">
+                        Upload Profile Picture
+                      </p>
+
+                      <p className="mt-1 text-[11px] leading-5 text-slate-400">
+                        JPEG, PNG, JPG, WEBP or GIF. Maximum size 5 MB.
+                      </p>
+
+                      <label className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-3 py-2 text-[11px] font-bold text-cyan-400 transition hover:bg-cyan-400/20">
+                        <Upload size={14} />
+                        {imageFile ? "Change Image" : "Choose Image"}
+
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/jpg,image/webp,image/gif"
+                          onChange={handleImageChange}
+                          disabled={saving || uploadingImage}
+                          className="hidden"
+                        />
+                      </label>
+
+                      {imageFile && (
+                        <p className="mt-2 break-all text-[10px] text-slate-400">
+                          {imageFile.name}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </Field>
 
               {/* Description */}
@@ -892,7 +1075,7 @@ const SocialCards = () => {
               <button
                 type="button"
                 onClick={closeModal}
-                disabled={saving || reduxSaving}
+                disabled={saving || reduxSaving || uploadingImage}
                 className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#38516e] bg-[#132942] px-5 py-3 text-xs font-bold text-slate-300 transition hover:bg-[#1a3658] disabled:opacity-50"
               >
                 Cancel
@@ -901,13 +1084,15 @@ const SocialCards = () => {
               <button
                 type="button"
                 onClick={handleSubmit}
-                disabled={saving || reduxSaving || saved}
+                disabled={saving || reduxSaving || uploadingImage || saved}
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 text-xs font-bold text-[#0b1b30] shadow-lg shadow-cyan-400/20 transition hover:bg-cyan-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {saving || reduxSaving ? (
+                {saving || reduxSaving || uploadingImage ? (
                   <>
                     <Loader2 size={15} className="animate-spin" />
-                    Adding Profile...
+                    {uploadingImage
+                      ? "Uploading Image..."
+                      : "Saving Profile..."}
                   </>
                 ) : saved ? (
                   <>
@@ -917,7 +1102,9 @@ const SocialCards = () => {
                 ) : (
                   <>
                     <Plus size={15} />
-                    Add Profile Card
+                    {pendingImageCardId && imageFile
+                      ? "Retry Image Upload"
+                      : "Add Profile Card"}
                     <ArrowUpRight size={14} />
                   </>
                 )}

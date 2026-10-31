@@ -3,12 +3,12 @@ const { protect } = require("../middleware/auth.middleware");
 const { adminOnly } = require("../middleware/admin.middleware");
 
 const {
-
   createPlan,
   getActivePlans,
   getAllPlans,
   updatePlan,
   togglePlanStatus,
+  deletePlan,
 } = require("../controllers/plan.controller");
 
 const router = express.Router();
@@ -30,5 +30,7 @@ router.put("/:id", updatePlan);
 
 // Enable or disable a plan
 router.patch("/:id/status", togglePlanStatus);
+// Delete  plan
+router.delete("/:id", deletePlan);
 
 module.exports = router;
