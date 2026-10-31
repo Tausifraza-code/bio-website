@@ -2,26 +2,29 @@ const Inquiry = require("../models/Inquiry");
 const MiniProfile = require("../models/MiniProfile");
 
 // POST: Submit inquiry from a public mini website
+
 const createInquiry = async (req, res) => {
   try {
-    const { name, email, phone, subject, message, subdomain } = req.body;
+    const { name, email, phone, subject, message, subdomain, source } =
+      req.body;
+
+    const isQRLead = source === "qr";
 
     if (
       !name?.trim() ||
-      !message?.trim() ||
       !phone?.trim() ||
-      !subdomain?.trim()
+      !subdomain?.trim() ||
+      (!isQRLead && !message?.trim())
     ) {
       return res.status(400).json({
         success: false,
-        message: "Name,  phone ,   message  and subdomain are required.",
+        message: "Required fields are missing.",
       });
     }
 
-    // Find the existing public mini profile
     const profile = await MiniProfile.findOne({
-      subdomain: subdomain.trim(),
-    }).select("_id userId whatsapp");
+      subdomain: subdomain.trim().toLowerCase(),
+    }).select("_id userId whatsapp leadCapture");
 
     if (!profile) {
       return res.status(404).json({
@@ -30,12 +33,22 @@ const createInquiry = async (req, res) => {
       });
     }
 
+    // QR popup must respect shopkeeper's setting
+    if (isQRLead && !profile.leadCapture?.enabled) {
+      return res.status(403).json({
+        success: false,
+        message: "Lead capture is disabled.",
+      });
+    }
+
     const inquiry = await Inquiry.create({
       name: name.trim(),
       email: email?.trim() || "",
-      phone: phone?.trim() || "",
-      subject: subject?.trim() || "",
-      message: message.trim(),
+      phone: phone.trim(),
+      subject: subject?.trim() || (isQRLead ? "QR Scan Lead" : ""),
+      message:
+        message?.trim() ||
+        (isQRLead ? "Customer submitted details through QR code." : ""),
       userId: profile.userId,
       miniProfileId: profile._id,
     });
@@ -60,9 +73,6 @@ const createInquiry = async (req, res) => {
 const getMyInquiries = async (req, res) => {
   try {
     const userId = req.user._id;
-
-    console.log("Logged-in user ID:", req.user?._id);
-    console.log("Inquiry owner IDs:", await Inquiry.distinct("userId"));
 
     const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
     const limit = Math.min(

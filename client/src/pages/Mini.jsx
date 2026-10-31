@@ -2,6 +2,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { QRCodeCanvas } from "qrcode.react";
+import QRCode from "qrcode";
+
+import { renderToStaticMarkup } from "react-dom/server";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 import api from "../redux/api";
@@ -32,7 +35,17 @@ import AgencyPro from "../components/AgencyPro";
 import DigitalCard from "../components/DigitalCard";
 import ServicePro from "../components/ServicePro";
 
-import { FaWhatsapp } from "react-icons/fa6";
+import {
+  FaInstagram,
+  FaLinkedinIn,
+  FaFacebookF,
+  FaYoutube,
+  FaWhatsapp,
+  FaTelegram,
+  FaXTwitter,
+  FaGlobe,
+  FaLink,
+} from "react-icons/fa6";
 
 import {
   Star,
@@ -87,6 +100,188 @@ const LAYOUT_ID_ALIASES = {
 };
 
 const DEFAULT_LAYOUT = "modern-business";
+
+const downloadStandeePNG = async ({
+  qrValue,
+  businessName,
+  ownerName,
+  profile,
+}) => {
+  if (!qrValue) {
+    throw new Error("Existing bound QR code available nahi hai.");
+  }
+
+  const width = 2550;
+  const height = 3300;
+  const scale = 3;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx = canvas.getContext("2d");
+
+  if (!ctx) {
+    throw new Error("Canvas initialize nahi ho paaya.");
+  }
+
+  // Background
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, width, height);
+
+  // Top navy section
+  ctx.fillStyle = "#0b1b30";
+  ctx.fillRect(0, 0, width, 850);
+
+  // Cyan accent
+  ctx.fillStyle = "#22d3ee";
+  ctx.fillRect(0, 820, width, 30);
+
+  // Business heading
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 100px Arial";
+  ctx.fillText("WELCOME TO", width / 2, 250);
+
+  ctx.fillStyle = "#22d3ee";
+  ctx.font = "bold 145px Arial";
+
+  const title = businessName || ownerName || "Our Business";
+
+  const maxTitleWidth = width - 260;
+  let titleFontSize = 145;
+
+  while (ctx.measureText(title).width > maxTitleWidth && titleFontSize > 65) {
+    titleFontSize -= 5;
+    ctx.font = `bold ${titleFontSize}px Arial`;
+  }
+
+  ctx.fillText(title, width / 2, 500, maxTitleWidth);
+
+  ctx.fillStyle = "#dbeafe";
+  ctx.font = "55px Arial";
+  ctx.fillText("Scan to explore our digital profile", width / 2, 680);
+
+  // QR code generation using the exact existing bound URL
+  const qrCanvas = document.createElement("canvas");
+
+  await QRCode.toCanvas(qrCanvas, qrValue, {
+    width: 1050,
+    margin: 2,
+    errorCorrectionLevel: "H",
+    color: {
+      dark: "#0b1b30",
+      light: "#ffffff",
+    },
+  });
+
+  // QR card
+  const qrX = (width - 1250) / 2;
+  const qrY = 1050;
+
+  ctx.fillStyle = "#f1f5f9";
+  ctx.beginPath();
+  ctx.roundRect(qrX, qrY, 1250, 1300, 55);
+  ctx.fill();
+
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.roundRect(qrX + 70, qrY + 70, 1110, 1110, 35);
+  ctx.fill();
+
+  ctx.drawImage(qrCanvas, qrX + 100, qrY + 100, 1050, 1050);
+
+  ctx.fillStyle = "#0b1b30";
+  ctx.font = "bold 65px Arial";
+  ctx.fillText("SCAN ME", width / 2, 2510);
+
+  // Social links: only saved profile socialCards
+  const socialCards = Array.isArray(profile?.socialCards)
+    ? profile.socialCards.filter((item) => item?.url)
+    : [];
+
+  if (socialCards.length > 0) {
+    ctx.fillStyle = "#0b1b30";
+    ctx.font = "bold 58px Arial";
+    ctx.fillText("CONNECT WITH US", width / 2, 2730);
+
+    const gap = 35;
+    const maxWidth = width - 220;
+    const itemWidth = Math.min(
+      650,
+      (maxWidth - gap * Math.min(socialCards.length - 1, 3)) /
+        Math.min(socialCards.length, 4),
+    );
+
+    const rows = Math.ceil(socialCards.length / 4);
+
+    socialCards.forEach((social, index) => {
+      const row = Math.floor(index / 4);
+      const col = index % 4;
+      const countInRow = Math.min(4, socialCards.length - row * 4);
+      const rowWidth = countInRow * itemWidth + (countInRow - 1) * gap;
+      const startX = (width - rowWidth) / 2;
+
+      const x = startX + col * (itemWidth + gap);
+      const y = 2800 + row * 150;
+
+      ctx.fillStyle = "#e0f2fe";
+      ctx.beginPath();
+      ctx.roundRect(x, y, itemWidth, 105, 22);
+      ctx.fill();
+
+      ctx.fillStyle = "#0b1b30";
+      ctx.font = "bold 32px Arial";
+
+      const label =
+        social.platformName || social.platform || social.handle || "Social";
+
+      ctx.fillText(
+        label.length > 20 ? `${label.slice(0, 17)}...` : label,
+        x + itemWidth / 2,
+        y + 43,
+        itemWidth - 30,
+      );
+
+      ctx.font = "26px Arial";
+      ctx.fillText(
+        social.handle || social.url,
+        x + itemWidth / 2,
+        y + 78,
+        itemWidth - 30,
+      );
+    });
+  }
+
+  // Footer
+  ctx.fillStyle = "#0b1b30";
+  ctx.fillRect(0, 3170, width, 130);
+
+  ctx.fillStyle = "#22d3ee";
+  ctx.font = "bold 43px Arial";
+  ctx.fillText("POWERED BY BIO WEBSITE", width / 2, 3250);
+
+  // PNG download
+  const blob = await new Promise((resolve) =>
+    canvas.toBlob(resolve, "image/png"),
+  );
+
+  if (!blob) {
+    throw new Error("PNG generate nahi ho paaya.");
+  }
+
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+
+  anchor.href = url;
+  anchor.download = `${title.replace(/[^a-z0-9]/gi, "-")}-standee.png`;
+
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+
+  window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+};
 
 /* ============ HELPERS ============ */
 const hasValidProfile = (profile) => {
@@ -384,8 +579,7 @@ const Mini = () => {
     profileData.images,
   ]);
 
-  const ActiveLayoutComponent =
-    LAYOUT_COMPONENTS[activeLayout] || ExecutivePro;
+  const ActiveLayoutComponent = LAYOUT_COMPONENTS[activeLayout] || ExecutivePro;
 
   const socialLinks = (profileData.socialCards || []).filter(
     (social) => social?.url,
@@ -567,6 +761,306 @@ const Mini = () => {
     document.body.appendChild(link);
     link.click();
     link.remove();
+  };
+
+  const handleDownloadStandee = async () => {
+    if (!qrTargetUrl) {
+      return alert("Bound QR code is not available.");
+    }
+
+    try {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      const W = 1800;
+      const socialRows = Math.ceil(socialLinks.length / 6);
+      const currentY = 1785;
+      const ctaY = socialLinks.length
+        ? currentY + socialRows * 190 + 85
+        : currentY + 100;
+      const footerHeight = 230;
+      const H = Math.max(2700, ctaY + footerHeight + 120);
+      const footerY = H - footerHeight;
+
+      canvas.width = W;
+      canvas.height = H;
+
+      // Helpers
+      const roundedRect = (x, y, w, h, r, fill, stroke) => {
+        ctx.beginPath();
+        ctx.roundRect(x, y, w, h, r);
+
+        if (fill) {
+          ctx.fillStyle = fill;
+          ctx.fill();
+        }
+
+        if (stroke) {
+          ctx.strokeStyle = stroke;
+          ctx.lineWidth = 5;
+          ctx.stroke();
+        }
+      };
+
+      const centerText = (text, y, font, color) => {
+        ctx.textAlign = "center";
+        ctx.font = font;
+        ctx.fillStyle = color;
+        ctx.fillText(text, W / 2, y);
+      };
+
+      // Background
+      ctx.fillStyle = "#F5F8FC";
+      ctx.fillRect(0, 0, W, H);
+
+      // Header gradient
+      const headerGradient = ctx.createLinearGradient(0, 0, W, 600);
+      headerGradient.addColorStop(0, "#073B91");
+      headerGradient.addColorStop(1, "#1265CC");
+
+      ctx.fillStyle = headerGradient;
+      ctx.fillRect(0, 0, W, 570);
+
+      // Header bottom curved accent
+      ctx.beginPath();
+      ctx.moveTo(0, 490);
+      ctx.quadraticCurveTo(W / 2, 690, W, 490);
+      ctx.lineTo(W, 570);
+      ctx.lineTo(0, 570);
+      ctx.closePath();
+      ctx.fillStyle = "#1265CC";
+      ctx.fill();
+
+      const shopName =
+        profileData.businessName?.trim() ||
+        businessInfo.name?.trim() ||
+        "My Business";
+
+      centerText("Contact to", 180, "italic 75px Arial", "#FFFFFF");
+      centerText(shopName, 340, "bold 90px Arial", "#FFFFFF");
+
+      // Decorative small line
+      roundedRect(W / 2 - 95, 460, 190, 10, 5, "#67E8F9");
+
+      // QR card
+      const qrDataUrl = await QRCode.toDataURL(qrTargetUrl, {
+        width: 1100,
+        margin: 2,
+        errorCorrectionLevel: "H",
+        color: {
+          dark: "#071B35",
+          light: "#FFFFFF",
+        },
+      });
+
+      const qrImage = new Image();
+
+      await new Promise((resolve, reject) => {
+        qrImage.onload = resolve;
+        qrImage.onerror = reject;
+        qrImage.src = qrDataUrl;
+      });
+
+      const qrSize = 900;
+      const qrX = (W - qrSize) / 2;
+      const qrY = 700;
+
+      // QR white card and blue border
+      roundedRect(
+        qrX - 65,
+        qrY - 65,
+        qrSize + 130,
+        qrSize + 130,
+        38,
+        "#FFFFFF",
+        "#D5E5F8",
+      );
+
+      // Inner blue border
+      roundedRect(
+        qrX - 22,
+        qrY - 22,
+        qrSize + 44,
+        qrSize + 44,
+        22,
+        null,
+        "#1765C5",
+      );
+
+      ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
+
+      // SOCIAL MEDIA SECTION
+      if (socialLinks.length > 0) {
+        const iconSize = 100;
+        const columns = 6;
+        const itemWidth = 150;
+        const itemHeight = 165;
+        const gapX = 18;
+        const gapY = 35;
+
+        const brandColors = {
+          instagram: "#E4405F",
+          facebook: "#1877F2",
+          linkedin: "#0A66C2",
+          youtube: "#FF0000",
+          whatsapp: "#25D366",
+          telegram: "#26A5E4",
+          twitter: "#111827",
+          website: "#1265CC",
+        };
+
+        const iconComponents = {
+          instagram: FaInstagram,
+          facebook: FaFacebookF,
+          linkedin: FaLinkedinIn,
+          youtube: FaYoutube,
+          whatsapp: FaWhatsapp,
+          telegram: FaTelegram,
+          twitter: FaXTwitter,
+          website: FaGlobe,
+        };
+
+        for (let index = 0; index < socialLinks.length; index++) {
+          const social = socialLinks[index];
+
+          const platform = String(
+            social.platform || social.name || social.type || "Social",
+          );
+
+          const normalized = platform.toLowerCase();
+
+          const key = normalized.includes("instagram")
+            ? "instagram"
+            : normalized.includes("facebook")
+              ? "facebook"
+              : normalized.includes("linkedin")
+                ? "linkedin"
+                : normalized.includes("youtube")
+                  ? "youtube"
+                  : normalized.includes("whatsapp")
+                    ? "whatsapp"
+                    : normalized.includes("telegram")
+                      ? "telegram"
+                      : normalized.includes("twitter") || normalized === "x"
+                        ? "twitter"
+                        : normalized.includes("web")
+                          ? "website"
+                          : null;
+
+          const brandColor = key ? brandColors[key] : "#1265CC";
+          const Icon = key ? iconComponents[key] : FaLink;
+
+          const row = Math.floor(index / columns);
+          const itemsInRow = Math.min(
+            columns,
+            socialLinks.length - row * columns,
+          );
+
+          const rowWidth = itemsInRow * itemWidth + (itemsInRow - 1) * gapX;
+          const startX = (W - rowWidth) / 2;
+
+          const col = index % columns;
+          const x = startX + col * (itemWidth + gapX);
+          const y = currentY + row * (itemHeight + gapY);
+
+          // Only colored icon background.
+          const iconX = x + (itemWidth - iconSize) / 2;
+          const iconY = y + 5;
+
+          roundedRect(iconX, iconY, iconSize, iconSize, 20, brandColor);
+
+          const iconSvg = renderToStaticMarkup(
+            React.createElement(Icon, {
+              color: "#FFFFFF",
+              size: 76,
+            }),
+          );
+
+          const svgBlob = new Blob(
+            [iconSvg.replace(/currentColor/g, "#FFFFFF")],
+            { type: "image/svg+xml;charset=utf-8" },
+          );
+
+          const svgUrl = URL.createObjectURL(svgBlob);
+          const iconImage = new Image();
+
+          try {
+            await new Promise((resolve, reject) => {
+              iconImage.onload = resolve;
+              iconImage.onerror = reject;
+              iconImage.src = svgUrl;
+            });
+
+            ctx.drawImage(iconImage, iconX + 12, iconY + 12, 76, 76);
+          } finally {
+            URL.revokeObjectURL(svgUrl);
+          }
+
+          const platformName =
+            key === "twitter"
+              ? "X"
+              : key === "website"
+                ? "Website"
+                : platform.charAt(0).toUpperCase() + platform.slice(1);
+
+          ctx.textAlign = "center";
+          ctx.fillStyle = "#10233D";
+          ctx.font = "bold 27px Arial";
+
+          ctx.fillText(platformName, x + itemWidth / 2, y + 140, itemWidth - 8);
+        }
+      }
+
+      // SCAN & CONNECT
+      centerText(
+        "Scan & Connect",
+        footerY - 75,
+        "italic bold 75px Arial",
+        "#1265CC",
+      );
+
+      // FOOTER DESIGN
+      const footerGradient = ctx.createLinearGradient(0, footerY, W, H);
+
+      footerGradient.addColorStop(0, "#073B91");
+      footerGradient.addColorStop(1, "#1265CC");
+
+      // Curved top footer shape
+      ctx.beginPath();
+      ctx.moveTo(0, footerY + 75);
+
+      ctx.quadraticCurveTo(W / 2, footerY - 75, W, footerY + 75);
+
+      ctx.lineTo(W, H);
+      ctx.lineTo(0, H);
+      ctx.closePath();
+
+      ctx.fillStyle = footerGradient;
+      ctx.fill();
+
+      // Subtle cyan accent curve
+      ctx.beginPath();
+      ctx.moveTo(0, footerY + 75);
+
+      ctx.quadraticCurveTo(W / 2, footerY - 75, W, footerY + 75);
+
+      ctx.strokeStyle = "#67E8F9";
+      ctx.lineWidth = 7;
+      ctx.stroke();
+
+      // Download PNG
+      const link = document.createElement("a");
+
+      link.href = canvas.toDataURL("image/png");
+      link.download = `${shopName.replace(/[^a-z0-9]/gi, "-").toLowerCase()}-premium-qr-standee.png`;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Standee download failed:", error);
+      alert("Standee download nahi ho paaya. Please try again.");
+    }
   };
 
   const handleSaveContact = () => {
@@ -784,10 +1278,7 @@ const Mini = () => {
 
   return (
     <div className="relative min-h-screen bg-transparent font-sans text-slate-800">
-
-
       <main className="relative mx-auto w-full max-w-[1300px] px-2 py-3 sm:px-4 sm:py-5 lg:px-6">
-    
         {/* PAY & PUBLISH */}
         <div className="mb-6 overflow-hidden rounded-2xl border border-cyan-400/30 bg-gradient-to-r from-[#0b1b30] via-[#102b49] to-[#0b1b30] p-5 shadow-lg sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -946,8 +1437,19 @@ const Mini = () => {
                   <Download size={16} />
                   Download QR Code
                 </button>
+
+                <button
+                  type="button"
+                  onClick={handleDownloadStandee}
+                  disabled={!qrTargetUrl || qrFetching}
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 py-3 text-sm font-bold text-[#0b1b30] disabled:opacity-50"
+                >
+                  <FileImage size={16} />
+                  Download QR Standee (PNG)
+                </button>
               </div>
             )}
+
             {qrModalTab === "poster" && (
               <div className="flex flex-col items-center rounded-xl border border-[#29435f] bg-[#132942] p-5 text-center">
                 <FileImage size={32} className="mb-3 text-cyan-400" />

@@ -160,6 +160,12 @@ const miniProfileSchema = new mongoose.Schema(
       default: "modern-business",
     },
 
+    leadCapture: {
+      enabled: {
+        type: Boolean,
+        default: false,
+      },
+    },
     selectedPlan: { type: String, default: "1year" },
 
     isActivated: { type: Boolean, default: false },

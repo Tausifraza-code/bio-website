@@ -29,6 +29,7 @@ const allowedFields = [
   "businessHours",
   "upiId",
   "socialCards",
+  "leadCapture",
   "avatar",
   "logo",
   "banner",
