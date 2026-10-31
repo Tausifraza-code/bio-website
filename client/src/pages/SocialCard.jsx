@@ -543,7 +543,7 @@ const SocialCards = () => {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               {cards.map((card) => {
                 const platform = PLATFORMS[card.platform] || {
                   name: card.platformName || card.platform || "Social Profile",
