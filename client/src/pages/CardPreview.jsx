@@ -1,5 +1,7 @@
+
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { QRCodeCanvas } from "qrcode.react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
@@ -10,7 +12,6 @@ import "swiper/css/pagination";
 import api from "../redux/api";
 import { createInquiry } from "../redux/slice/inquirySlice";
 import { getPublicQRUrl } from "../utils/qrUrl";
-import { useDispatch } from "react-redux";
 
 import ExecutivePro from "../components/ExecutivePro";
 import MinimalLuxury from "../components/MinimalLuxury";
@@ -30,14 +31,11 @@ import {
   Copy,
   Download,
   IndianRupee,
-  Image as ImageIcon,
-  Maximize2,
   QrCode,
-  Send,
   Share2,
   ShieldCheck,
-  ShoppingBag,
   X,
+  Edit,
 } from "lucide-react";
 
 /* ============================================================
@@ -98,7 +96,7 @@ const themes = {
 };
 
 /* ============================================================
-   LAYOUT COMPONENTS — SAME AS Mini.jsx
+   LAYOUT COMPONENTS
    ============================================================ */
 
 const LAYOUT_COMPONENTS = {
@@ -192,7 +190,11 @@ const normalizeGalleryImages = (raw) => {
 
 function CardPreview() {
   const { subdomain } = useParams();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  // Logged-in user information
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
 
   const [profile, setProfile] = useState(null);
   const [qrPath, setQrPath] = useState("");
@@ -307,6 +309,32 @@ function CardPreview() {
       cancelled = true;
     };
   }, [subdomain]);
+
+  /* ============================================================
+     CHECK PROFILE OWNER
+     ============================================================ */
+
+  const loggedInUserId = user?._id || user?.id;
+
+  const profileOwnerId =
+    profile?.userId?._id ||
+    profile?.userId?.id ||
+    profile?.userId ||
+    profile?.user?._id ||
+    profile?.user?.id;
+
+  const isProfileOwner = Boolean(
+    isAuthenticated &&
+      loggedInUserId &&
+      profileOwnerId &&
+      String(loggedInUserId) === String(profileOwnerId),
+  );
+
+  const handleEditProfile = () => {
+    if (!isProfileOwner) return;
+
+    navigate("/dashboard");
+  };
 
   /* ============================================================
      THEME + ACTIVE LAYOUT
@@ -817,24 +845,42 @@ function CardPreview() {
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={copyLink}
-            className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold"
-            style={{
-              background: accentGradient,
-              color: "#ffffff",
-            }}
-          >
-            <Copy size={16} />
+          <div className="flex flex-wrap items-center gap-2">
+            {/* EDIT PROFILE — ONLY PROFILE OWNER */}
 
-            {copied ? "Copied!" : "Copy Card Link"}
-          </button>
+            {isProfileOwner && (
+              <button
+                type="button"
+                onClick={handleEditProfile}
+                className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition hover:opacity-90"
+                style={{
+                  background: theme.card,
+                  border: `1px solid ${theme.primary}`,
+                  color: theme.text,
+                }}
+              >
+                <Edit size={16} />
+                Edit Profile
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={copyLink}
+              className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold"
+              style={{
+                background: accentGradient,
+                color: "#ffffff",
+              }}
+            >
+              <Copy size={16} />
+
+              {copied ? "Copied!" : "Copy Card Link"}
+            </button>
+          </div>
         </div>
 
-        {/* ====================================================
-            ACTUAL MINI.JSX LAYOUT COMPONENT
-            ==================================================== */}
+        {/* ACTUAL MINI.JSX LAYOUT COMPONENT */}
 
         <article
           className="overflow-hidden rounded-2xl border shadow-2xl"
@@ -869,9 +915,7 @@ function CardPreview() {
         </article>
       </div>
 
-      {/* ====================================================
-          SHARE / MY QR / POSTER MODAL
-          ==================================================== */}
+      {/* SHARE / MY QR / POSTER MODAL */}
 
       {showQrModal && (
         <div
@@ -1101,9 +1145,7 @@ function CardPreview() {
         </div>
       )}
 
-      {/* ====================================================
-          PRODUCT MODAL
-          ==================================================== */}
+      {/* PRODUCT MODAL */}
 
       {selectedProduct &&
         (() => {
@@ -1247,9 +1289,7 @@ function CardPreview() {
           );
         })()}
 
-      {/* ====================================================
-          GALLERY MODAL
-          ==================================================== */}
+      {/* GALLERY MODAL */}
 
       {selectedGalleryImage && (
         <div

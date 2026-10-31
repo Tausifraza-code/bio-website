@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
@@ -7,6 +8,7 @@ import {
   loginUser,
   clearAuthMessage,
 } from "../redux/slice/authSlice";
+import { fetchMyProfile } from "../redux/slice/profileSlice";
 import toast from "react-hot-toast";
 
 import {
@@ -153,6 +155,7 @@ function AuthPage() {
       return;
     }
 
+    // LOGIN
     try {
       const result = await dispatch(
         loginUser({
@@ -162,9 +165,36 @@ function AuthPage() {
       ).unwrap();
 
       toast.success(result.message || "Login successful");
-      navigate("/dashboard");
+
+      // Fetch logged-in user's profile
+      const profile = await dispatch(fetchMyProfile()).unwrap();
+
+      // Get profile subdomain
+      const subdomain = profile?.subdomain;
+
+      if (subdomain) {
+        // Redirect to user's Preview Page
+        navigate(
+          `/card-preview/${encodeURIComponent(subdomain)}`,
+        );
+      } else {
+        toast.error(
+          "Profile subdomain not found. Please complete your profile.",
+        );
+        navigate("/dashboard");
+      }
     } catch (err) {
-      toast.error(typeof err === "string" ? err : "Login failed");
+      toast.error(
+        typeof err === "string"
+          ? err
+          : "Unable to complete login or load profile.",
+      );
+
+      // If login succeeded but profile fetch failed,
+      // allow the user to access the dashboard.
+      if (localStorage.getItem("bioToken")) {
+        navigate("/dashboard");
+      }
     }
   };
 
@@ -197,8 +227,6 @@ function AuthPage() {
         ? "border border-cyan-500 bg-white text-[#0b1b30] ring-1 ring-cyan-500/30 dark:border-cyan-400 dark:bg-[#0b1b30] dark:text-white"
         : "border border-[#d7e3eb] bg-white text-[#0b1b30] placeholder:text-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 dark:border-[#29435f] dark:bg-[#0b1b30] dark:text-white dark:placeholder:text-slate-500"
     }`;
-
-  // Continue with the existing return (...) JSX below.
 
   return (
     <div
@@ -599,6 +627,7 @@ function AuthPage() {
                       </button>
                     </div>
                   </div>
+
                   {mode === "login" && (
                     <div className="flex justify-end">
                       <Link
