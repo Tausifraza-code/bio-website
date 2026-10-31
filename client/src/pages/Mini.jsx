@@ -292,8 +292,8 @@ const hasValidProfile = (profile) => {
   const businessName = profile.businessName?.trim() || "";
 
   const isDemo =
-    /^(ankit'?s business|my business|your name)$/i.test(businessName) ||
-    /^(ankit|your name)$/i.test(firstName);
+    /^(ankit's business|my business|your name)$/i.test(businessName) ||
+    /^your name$/i.test(firstName);
 
   if (isDemo) return false;
 
