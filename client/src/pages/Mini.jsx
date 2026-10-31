@@ -13,6 +13,12 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 
 import { getPublicQRUrl } from "../utils/qrUrl";
+import {
+  getLayoutComponent,
+  normalizeLayoutId,
+  DEFAULT_LAYOUT,
+} from "../utils/profileLayoutRegistry";
+import { getProfileTheme, getThemeVariables } from "../utils/profileThemes";
 import { fetchMyProfile } from "../redux/slice/profileSlice";
 import {
   fetchContactButtons,
@@ -24,16 +30,6 @@ import { fetchMyBoundQR } from "../redux/slice/qrSlice";
 import { createInquiry } from "../redux/slice/inquirySlice";
 import Payment from "./Payment";
 import PlanPaymentModal from "../components/PlanPaymentModel";
-import ExecutivePro from "../components/ExecutivePro";
-import MinimalLuxury from "../components/MinimalLuxury";
-import CreativePortfolio from "../components/CreativePortfolio";
-import CorporateExecutive from "../components/CorporateExecutive";
-import Storefront from "../components/Storefront";
-import FreelancerPro from "../components/FreelancerPro";
-import ElegantProfile from "../components/ElegantProfile";
-import AgencyPro from "../components/AgencyPro";
-import DigitalCard from "../components/DigitalCard";
-import ServicePro from "../components/ServicePro";
 
 import {
   FaInstagram,
@@ -58,48 +54,6 @@ import {
   Copy,
   FileImage,
 } from "lucide-react";
-
-/* ============ PROFILE LAYOUTS ============ */
-/* Legacy IDs are retained so existing saved profiles keep their selection. */
-const PROFILE_LAYOUTS = [
-  { id: "modern-business", name: "Executive Pro" },
-  { id: "minimal-card", name: "Minimal Luxury" },
-  { id: "creator-portfolio", name: "Creative Portfolio" },
-  { id: "corporate-executive", name: "Corporate Executive" },
-  { id: "storefront", name: "Storefront" },
-  { id: "freelancer-pro", name: "Freelancer Pro" },
-  { id: "elegant-profile", name: "Elegant Profile" },
-  { id: "agency-pro", name: "Agency Pro" },
-  { id: "digital-card", name: "Digital Card" },
-  { id: "service-pro", name: "Service Pro" },
-];
-
-const LAYOUT_COMPONENTS = {
-  "modern-business": ExecutivePro,
-  "minimal-card": MinimalLuxury,
-  "creator-portfolio": CreativePortfolio,
-  "corporate-executive": CorporateExecutive,
-  storefront: Storefront,
-  "freelancer-pro": FreelancerPro,
-  "elegant-profile": ElegantProfile,
-  "agency-pro": AgencyPro,
-  "digital-card": DigitalCard,
-  "service-pro": ServicePro,
-};
-
-const LAYOUT_ID_ALIASES = {
-  executivePro: "modern-business",
-  minimalLuxury: "minimal-card",
-  creativePortfolio: "creator-portfolio",
-  corporateExecutive: "corporate-executive",
-  freelancerPro: "freelancer-pro",
-  elegantProfile: "elegant-profile",
-  agencyPro: "agency-pro",
-  digitalCard: "digital-card",
-  servicePro: "service-pro",
-};
-
-const DEFAULT_LAYOUT = "modern-business";
 
 const downloadStandeePNG = async ({
   qrValue,
@@ -429,7 +383,6 @@ const Mini = () => {
   } = useSelector((s) => s.inquiry || {});
 
   const [profileChecked, setProfileChecked] = useState(false);
-  const [activeLayout, setActiveLayout] = useState("modern-business");
   const [showPayment, setShowPayment] = useState(false);
   const [showPlanPayment, setShowPlanPayment] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -467,16 +420,6 @@ const Mini = () => {
           return;
         }
 
-        const requestedLayout = savedProfile.activeLayout || DEFAULT_LAYOUT;
-        const normalizedLayout =
-          LAYOUT_ID_ALIASES[requestedLayout] || requestedLayout;
-        const savedLayout = PROFILE_LAYOUTS.some(
-          (layout) => layout.id === normalizedLayout,
-        )
-          ? normalizedLayout
-          : DEFAULT_LAYOUT;
-
-        setActiveLayout(savedLayout);
         setProfileChecked(true);
       })
       .catch((error) => {
@@ -579,7 +522,12 @@ const Mini = () => {
     profileData.images,
   ]);
 
-  const ActiveLayoutComponent = LAYOUT_COMPONENTS[activeLayout] || ExecutivePro;
+  const activeLayout = normalizeLayoutId(
+    profile?.activeLayout || DEFAULT_LAYOUT,
+  );
+  const ActiveLayoutComponent = getLayoutComponent(activeLayout);
+  const activeTheme = profile?.activeTheme || "sunset";
+  const theme = getProfileTheme(activeTheme);
 
   const socialLinks = (profileData.socialCards || []).filter(
     (social) => social?.url,
@@ -1312,7 +1260,15 @@ const Mini = () => {
         {/* PROFILE PREVIEW — layout changes never mutate profile content */}
         {isPreviewMode && (
           <section className="pb-10">
-            <div className="w-full overflow-hidden rounded-[24px] border border-cyan-400/20 bg-[#0b1b30] shadow-2xl sm:rounded-[28px]">
+            <div
+              className="w-full overflow-hidden rounded-[24px] border border-cyan-400/20 shadow-2xl sm:rounded-[28px]"
+              data-profile-theme={activeTheme}
+              style={{
+                ...getThemeVariables(theme),
+                background: theme.background,
+                color: theme.text,
+              }}
+            >
               <ActiveLayoutComponent
                 businessInfo={businessInfo}
                 visibleButtons={visibleButtons}
@@ -1336,6 +1292,7 @@ const Mini = () => {
                 onProductClick={(product) => setSelectedProduct(product)}
                 onGalleryClick={(image) => setSelectedGalleryImage(image)}
                 onContactClick={handleContactClick}
+                theme={theme}
               />
             </div>
 

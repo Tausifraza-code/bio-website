@@ -1,4 +1,3 @@
-
 import React from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -107,9 +106,7 @@ const CreativePortfolio = ({
 
   const getSocialIcon = (platform = "") => {
     const key = platform.toLowerCase();
-    const found = Object.keys(socialIconMap).find((item) =>
-      key.includes(item)
-    );
+    const found = Object.keys(socialIconMap).find((item) => key.includes(item));
     return found ? socialIconMap[found] : FaLink;
   };
 
@@ -183,14 +180,12 @@ const CreativePortfolio = ({
 
   return (
     <div className="creative-portfolio relative w-full min-w-0 overflow-hidden bg-white pb-24 font-sans text-slate-800">
-
       {/* PROFILE / HERO */}
       <section
         id="creative-home"
         className="w-full px-3 pb-7 pt-3 sm:px-6 sm:pb-12 sm:pt-5 lg:px-8 xl:px-10"
       >
         <div className="relative w-full overflow-hidden rounded-[22px] border border-cyan-100 bg-[#F4FBFD] shadow-sm sm:rounded-[28px]">
-
           {/* COVER BANNER */}
           <div className="relative h-36 overflow-hidden bg-gradient-to-r from-[#087FA5] via-[#0B9CC1] to-[#6AD6E7] sm:h-52 md:h-60">
             {banner && (
@@ -235,7 +230,6 @@ const CreativePortfolio = ({
           {/* PROFILE DETAILS */}
           <div className="relative px-4 pb-5 sm:px-6 sm:pb-8 lg:px-9">
             <div className="-mt-12 flex flex-col gap-3 sm:-mt-[72px] sm:flex-row sm:items-end sm:gap-6">
-
               {/* AVATAR */}
               <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-[25px] border-4 border-white bg-white shadow-lg sm:h-36 sm:w-36 sm:rounded-[30px]">
                 {avatar ? (
@@ -294,7 +288,10 @@ const CreativePortfolio = ({
 
                     {industry && (
                       <span className="inline-flex items-center gap-1">
-                        <BriefcaseBusiness size={13} className="text-cyan-600" />
+                        <BriefcaseBusiness
+                          size={13}
+                          className="text-cyan-600"
+                        />
                         {industry}
                       </span>
                     )}
@@ -320,8 +317,8 @@ const CreativePortfolio = ({
                       button.actionType === "whatsapp"
                         ? "bg-emerald-500 text-white hover:bg-emerald-600"
                         : button.actionType === "call"
-                        ? "bg-cyan-700 text-white hover:bg-cyan-800"
-                        : "border border-cyan-200 bg-white text-cyan-800 hover:bg-cyan-50"
+                          ? "bg-cyan-700 text-white hover:bg-cyan-800"
+                          : "border border-cyan-200 bg-white text-cyan-800 hover:bg-cyan-50"
                     }`}
                   >
                     {button.label}
@@ -395,13 +392,11 @@ const CreativePortfolio = ({
         className="w-full px-4 py-10 sm:px-7 sm:py-14 lg:px-10"
       >
         <div className="relative overflow-hidden rounded-[28px] border border-cyan-100 bg-gradient-to-br from-[#F2FBFD] via-white to-[#EAF8FC] p-5 sm:p-8 lg:p-10">
-
           {/* Decorative background */}
           <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-cyan-100/50 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-24 -left-20 h-64 w-64 rounded-full bg-sky-100/70 blur-3xl" />
 
           <div className="relative grid items-center gap-8 lg:grid-cols-12 lg:gap-12">
-
             {/* LEFT CONTENT */}
             <div className="lg:col-span-7">
               <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-white px-4 py-2 shadow-sm">
@@ -447,7 +442,6 @@ const CreativePortfolio = ({
             {/* RIGHT HIGHLIGHT CARD */}
             <div className="relative lg:col-span-5">
               <div className="rounded-[25px] border border-white bg-white/90 p-5 shadow-[0_15px_45px_rgba(8,127,165,0.10)] backdrop-blur sm:p-7">
-
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-[10px] font-extrabold uppercase tracking-[2px] text-cyan-600">
@@ -536,7 +530,8 @@ const CreativePortfolio = ({
               <p className={sectionLabel}>Featured Products</p>
               <h2 className={sectionHeading}>Our Products</h2>
               <p className="mt-2 text-xs text-slate-500">
-                Quality products built for your success. Explore our latest collection.
+                Quality products built for your success. Explore our latest
+                collection.
               </p>
             </div>
 
@@ -737,7 +732,6 @@ const CreativePortfolio = ({
         </div>
 
         <div className="grid min-w-0 gap-4 lg:grid-cols-12">
-
           {/* CONTACT BANNER */}
           <div className="relative flex min-h-[260px] min-w-0 flex-col justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#07516E] to-[#0799B8] p-6 text-white lg:col-span-4">
             {banner && (
@@ -758,7 +752,8 @@ const CreativePortfolio = ({
               </h2>
 
               <p className="mt-4 text-xs leading-6 text-cyan-50/90">
-                Have a project in mind? Share your ideas and let's make something meaningful together.
+                Have a project in mind? Share your ideas and let's make
+                something meaningful together.
               </p>
 
               <button
@@ -910,9 +905,7 @@ const CreativePortfolio = ({
             {/* SOCIAL MEDIA */}
             {socialLinks.length > 0 && (
               <div className={`${cardClass} min-w-0 p-5`}>
-                <h3 className="text-sm font-black text-slate-900">
-                  Follow Me
-                </h3>
+                <h3 className="text-sm font-black text-slate-900">Follow Me</h3>
 
                 <p className="mt-1 text-[10px] text-slate-400">
                   Stay connected on social media
@@ -945,15 +938,12 @@ const CreativePortfolio = ({
       {/* PREMIUM SCANNER SECTION - BOTTOM */}
       {qrTargetUrl && (
         <section className="relative w-full overflow-hidden px-4 py-10 sm:px-7 sm:py-16 lg:px-10">
-
           <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#063B59] via-[#075E7D] to-[#0799B8] p-5 text-white shadow-[0_20px_60px_rgba(7,81,110,0.20)] sm:p-9 lg:p-12">
-
             {/* Decorative background */}
             <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full border-[35px] border-white/5" />
             <div className="pointer-events-none absolute -bottom-28 -left-20 h-72 w-72 rounded-full border-[35px] border-white/5" />
 
             <div className="relative grid items-center gap-9 lg:grid-cols-12 lg:gap-12">
-
               {/* SCANNER CONTENT */}
               <div className="lg:col-span-7">
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 backdrop-blur">
@@ -971,7 +961,9 @@ const CreativePortfolio = ({
                 </h2>
 
                 <p className="mt-5 max-w-xl text-sm leading-7 text-cyan-50/80 sm:text-base">
-                  Connect with us instantly. Scan this QR code to access our digital profile, contact information and business details in seconds.
+                  Connect with us instantly. Scan this QR code to access our
+                  digital profile, contact information and business details in
+                  seconds.
                 </p>
 
                 <div className="mt-7 flex flex-wrap gap-3">
@@ -988,7 +980,7 @@ const CreativePortfolio = ({
                   {!qrFetching && (
                     <a
                       href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(
-                        qrTargetUrl
+                        qrTargetUrl,
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -1021,7 +1013,6 @@ const CreativePortfolio = ({
               {/* QR CODE CARD */}
               <div className="flex justify-center lg:col-span-5 lg:justify-end">
                 <div className="w-full max-w-[310px] rounded-[25px] border border-white/50 bg-white p-5 text-center shadow-2xl sm:p-7">
-
                   <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-50 text-cyan-700">
                     <ScanLine size={25} />
                   </div>
