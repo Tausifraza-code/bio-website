@@ -100,8 +100,9 @@ const FreelancerPro = ({
     return <FaGlobe />;
   };
 
-  const profileImage = getImageUrl(avatar || logo);
-  const heroImage = getImageUrl(banner);
+ const profileImage = getImageUrl(avatar);
+const businessLogo = getImageUrl(logo);
+const heroImage = getImageUrl(banner);
 
   const handleContact = (type) => {
     onContactClick(type);
@@ -256,48 +257,59 @@ const FreelancerPro = ({
             </div>
 
             {/* RIGHT IMAGE */}
-            <div className="relative mx-auto w-full max-w-[560px]">
-              <div className="absolute -inset-5 rounded-[2.5rem] bg-gradient-to-br from-[#b9e4f8]/70 to-[#d9effb]/70 blur-2xl" />
+          <div className="relative mx-auto w-full max-w-[560px]">
+  <div className="absolute -inset-5 rounded-[2.5rem] bg-gradient-to-br from-[#b9e4f8]/70 to-[#d9effb]/70 blur-2xl" />
 
-              <div className="relative overflow-hidden rounded-[2rem] border border-white/90 bg-white p-3 shadow-[0_25px_70px_rgba(37,105,145,0.16)]">
-                {heroImage ? (
-                  <img
-                    src={heroImage}
-                    alt={displayName}
-                    className="h-[360px] w-full rounded-[1.5rem] object-cover sm:h-[430px]"
-                  />
-                ) : profileImage ? (
-                  <img
-                    src={profileImage}
-                    alt={displayName}
-                    className="h-[360px] w-full rounded-[1.5rem] object-cover sm:h-[430px]"
-                  />
-                ) : (
-                  <div className="flex h-[360px] items-center justify-center rounded-[1.5rem] bg-gradient-to-br from-[#d9f0fc] to-[#b9e2f5] sm:h-[430px]">
-                    <span className="text-[180px] font-black text-[#1687bd]/15">
-                      {displayName.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                )}
+  <div className="relative overflow-hidden rounded-[2rem] border border-white/90 bg-white p-3 shadow-[0_25px_70px_rgba(37,105,145,0.16)]">
+    {heroImage ? (
+      <img
+        src={heroImage}
+        alt={displayName}
+        className="h-[360px] w-full rounded-[1.5rem] object-cover sm:h-[430px]"
+      />
+    ) : profileImage ? (
+      <img
+        src={profileImage}
+        alt={displayName}
+        className="h-[360px] w-full rounded-[1.5rem] object-cover sm:h-[430px]"
+      />
+    ) : (
+      <div className="flex h-[360px] items-center justify-center rounded-[1.5rem] bg-gradient-to-br from-[#d9f0fc] to-[#b9e2f5] sm:h-[430px]">
+        <span className="text-[180px] font-black text-[#1687bd]/15">
+          {displayName.charAt(0).toUpperCase()}
+        </span>
+      </div>
+    )}
 
-                <div className="absolute bottom-8 left-8 right-8 rounded-2xl border border-white/40 bg-[#123c55]/75 p-5 text-white shadow-xl backdrop-blur-xl">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/65">
-                    Professional
-                  </p>
-                  <p className="mt-1 text-lg font-bold">{displayRole}</p>
-                  {location && (
-                    <p className="mt-1 flex items-center gap-2 text-xs text-white/75">
-                      <FaLocationDot />
-                      {location}
-                    </p>
-                  )}
-                </div>
-              </div>
+    <div className="absolute bottom-8 left-8 right-8 rounded-2xl border border-white/40 bg-[#123c55]/75 p-5 text-white shadow-xl backdrop-blur-xl">
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/65">
+        Professional
+      </p>
+      <p className="mt-1 text-lg font-bold">{displayRole}</p>
+      {location && (
+        <p className="mt-1 flex items-center gap-2 text-xs text-white/75">
+          <FaLocationDot />
+          {location}
+        </p>
+      )}
+    </div>
 
-              <div className="absolute -bottom-5 -right-3 hidden h-20 w-20 items-center justify-center rounded-2xl border border-white bg-white text-3xl text-[#1687bd] shadow-xl sm:flex">
-                <FaCheck />
-              </div>
-            </div>
+    {/* BUSINESS LOGO */}
+    {businessLogo && (
+      <div className="absolute right-6 top-6 z-20 h-20 w-20 overflow-hidden rounded-2xl border-4 border-white bg-white shadow-xl">
+        <img
+          src={businessLogo}
+          alt="Business Logo"
+          className="h-full w-full object-contain "
+        />
+      </div>
+    )}
+  </div>
+
+  <div className="absolute -bottom-5 -right-3 hidden h-20 w-20 items-center justify-center rounded-2xl border border-white bg-white text-3xl text-[#1687bd] shadow-xl sm:flex">
+    <FaCheck />
+  </div>
+</div>
           </div>
         </div>
       </section>
