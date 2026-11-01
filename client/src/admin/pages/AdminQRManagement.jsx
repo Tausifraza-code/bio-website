@@ -37,6 +37,31 @@ const statusStyles = {
   disabled: "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300",
 };
 
+const qrFormatOptions = [
+  { value: "standee", label: "Standee" },
+  { value: "pocket", label: "Pocket Card" },
+  { value: "keychain", label: "Keychain" },
+];
+
+const qrFormatLabels = {
+  standee: "Standee",
+  pocket: "Pocket Card",
+  keychain: "Keychain",
+};
+
+// New records have one format; legacy records use the formats array.
+const getItemFormats = (item) => {
+  if (item?.format) {
+    return [item.format];
+  }
+
+  return Array.isArray(item?.formats)
+    ? item.formats.filter((format) =>
+        qrFormatOptions.some((option) => option.value === format),
+      )
+    : [];
+};
+
 const formatDate = (value) => {
   if (!value) return "—";
 
@@ -103,26 +128,19 @@ const downloadQRInventoryWorkbook = async (items) => {
       assignedUser?.fullName && assignedUser?.email
         ? `${assignedUser.fullName} (${assignedUser.email})`
         : assignedUser?.fullName ||
-        assignedUser?.email ||
-        (typeof assignedUserId === "string"
-          ? assignedUserId
-          : assignedUserId?._id);
+          assignedUser?.email ||
+          (typeof assignedUserId === "string"
+            ? assignedUserId
+            : assignedUserId?._id);
 
     return [
       displayValue(item.serialNumber),
       displayValue(item.activationCode),
       displayValue(item.qrPath),
       displayValue(item.qrUrl || getPublicQRUrl(item.qrPath)),
-      Array.isArray(item.formats) && item.formats.length
-        ? item.formats
-            .map(
-              (format) =>
-                formatNames[format] ||
-                String(format).charAt(0).toUpperCase() +
-                  String(format).slice(1),
-            )
-            .join(", ")
-        : "—",
+      getItemFormats(item)
+        .map((format) => formatNames[format] || format)
+        .join(", ") || "—",
       displayValue(assignedUserLabel),
       displayValue(item.businessName),
       statusLabels[item.status] || displayValue(item.status),
@@ -507,6 +525,18 @@ export default function AdminQRManagement() {
     useState(true);
   const [bulkProgress, setBulkProgress] = useState("");
 
+  const [selectedFormats, setSelectedFormats] = useState([
+    "standee",
+    "pocket",
+    "keychain",
+  ]);
+
+  const [bulkFormats, setBulkFormats] = useState([
+    "standee",
+    "pocket",
+    "keychain",
+  ]);
+
   const loadInventory = useCallback(() => {
     dispatch(
       fetchQRInventory({
@@ -584,14 +614,24 @@ export default function AdminQRManagement() {
       return;
     }
 
-    const result = await dispatch(generateQRBatch(amount));
+    if (selectedFormats.length === 0) {
+      setFormError("Please select at least one QR format.");
+      return;
+    }
+
+    const result = await dispatch(
+      generateQRBatch({
+        count: amount,
+        formats: selectedFormats,
+      }),
+    );
 
     if (generateQRBatch.fulfilled.match(result)) {
       setPage(1);
       setStatus("available");
       setSearch("");
       setSearchInput("");
-      // Reload inventory after the new batch is created.
+
       dispatch(
         fetchQRInventory({
           page: 1,
@@ -631,7 +671,14 @@ export default function AdminQRManagement() {
 
     const requestedQuantity = Number(bulkQuantity);
     if (!Number.isSafeInteger(requestedQuantity) || requestedQuantity < 1) {
-      setFormError("Enter a positive whole number for the QR set quantity.");
+      setFormError(
+        "Enter a positive whole number for the QR code quantity per format.",
+      );
+      return;
+    }
+
+    if (bulkFormats.length === 0) {
+      setFormError("Please select at least one format for bulk download.");
       return;
     }
 
@@ -661,7 +708,10 @@ export default function AdminQRManagement() {
         Number(firstPagination.totalPages) ||
         Math.ceil(Number(firstPagination.total || 0) / actualPageSize);
       const selectedSets = [];
-      const selectedSetIds = new Set();
+      const selectedSetMap = new Map();
+      const selectedCounts = Object.fromEntries(
+        bulkFormats.map((format) => [format, 0]),
+      );
       let missingQRPaths = 0;
       const addEligibleSets = (items) => {
         for (const item of items) {
@@ -670,19 +720,34 @@ export default function AdminQRManagement() {
             missingQRPaths += 1;
             continue;
           }
-          if (selectedSets.length >= requestedQuantity) continue;
 
+          const availableFormats = getItemFormats(item);
           const setId = String(item._id);
-          if (selectedSetIds.has(setId)) continue;
+          for (const format of availableFormats) {
+            if (!bulkFormats.includes(format)) continue;
+            if (selectedCounts[format] >= requestedQuantity) continue;
+            if (
+              skipPreviouslyDownloaded &&
+              isDesignAlreadyDownloaded(item, format, bulkFileType)
+            ) {
+              continue;
+            }
 
-          const formats = ["standee", "pocket", "keychain"].filter(
-            (format) =>
-              !skipPreviouslyDownloaded ||
-              !isDesignAlreadyDownloaded(item, format, bulkFileType),
-          );
-          if (formats.length) {
-            selectedSets.push({ item, formats });
-            selectedSetIds.add(setId);
+            let selection = selectedSetMap.get(setId);
+            if (!selection) {
+              selection = {
+                item,
+                formats: [],
+              };
+
+              selectedSetMap.set(setId, selection);
+              selectedSets.push(selection);
+            }
+
+            if (selection.formats.includes(format)) continue;
+
+            selection.formats.push(format);
+            selectedCounts[format] += 1;
           }
         }
       };
@@ -833,20 +898,31 @@ export default function AdminQRManagement() {
         );
       }
 
+      const formatSummary = bulkFormats
+        .map(
+          (format) =>
+            `${qrFormatLabels[format]}: ${selectedCounts[format]}/${requestedQuantity}`,
+        )
+        .join(", ");
+
+      const incompleteFormats = bulkFormats.filter(
+        (format) => selectedCounts[format] < requestedQuantity,
+      );
+
       const summary =
-        `Download complete: ${selectedSets.length} of ${requestedQuantity} requested QR sets, ` +
-        `${successfullyAdded.length} design file(s) in the ZIP.` +
+        `Download complete: ${formatSummary}. ` +
+        `${successfullyAdded.length} design file(s) added to ZIP.` +
         (failedDesigns
           ? ` ${failedDesigns} design(s) could not be generated.`
           : "") +
-        (selectedSets.length < requestedQuantity
-          ? " Fewer eligible sets were available than requested."
+        (incompleteFormats.length
+          ? " Some selected formats had fewer eligible records than requested."
           : "") +
         (missingQRPaths
-          ? ` ${missingQRPaths} QR set(s) were skipped because their QR path is missing.`
+          ? ` ${missingQRPaths} QR record(s) were skipped because their QR path is missing.`
           : "") +
         (historyFailures
-          ? ` History recording failed for ${historyFailures} design(s); those may be included again next time.`
+          ? ` History recording failed for ${historyFailures} design(s).`
           : "") +
         (inventoryRefreshFailed
           ? " The inventory list could not be refreshed."
@@ -981,31 +1057,31 @@ export default function AdminQRManagement() {
         })}
       </section>
 
-      <section className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+      <section className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <form
           onSubmit={handleGenerate}
-          className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-[#0b1728] xl:col-span-2"
+          className="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-[#0b1728] lg:col-span-2"
         >
           <div className="flex items-start gap-3">
             <div className="rounded-xl bg-cyan-50 p-3 text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-300">
               <PackagePlus size={22} />
             </div>
             <div>
-              <h2 className="font-semibold">Generate QR Sets</h2>
+              <h2 className="font-semibold">Generate Independent QR Codes</h2>
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                Each set includes all three print formats and one unique QR
-                destination.
+                Select the formats you want to generate. Each format gets its
+                own serial number, activation code and QR destination.
               </p>
             </div>
           </div>
 
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-            <div className="flex-1">
+          <div className="mt-5 grid grid-cols-1 items-end gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+            <div className="min-w-0">
               <label
                 htmlFor="qr-count"
                 className="mb-2 block text-sm font-medium"
               >
-                Number of sets
+                Number of QR codes per selected format
               </label>
               <input
                 id="qr-count"
@@ -1015,32 +1091,71 @@ export default function AdminQRManagement() {
                 step="1"
                 value={count}
                 onChange={(event) => setCount(event.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 dark:border-slate-700 dark:bg-[#07111f]"
+                className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 dark:border-slate-700 dark:bg-[#07111f]"
               />
             </div>
 
             <button
               type="submit"
               disabled={generating}
-              className="self-end rounded-xl bg-cyan-500 px-5 py-3 font-semibold text-white transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full rounded-xl bg-cyan-500 px-5 py-3 font-semibold text-white transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
             >
-              {generating ? "Generating..." : "Generate Sets"}
+              {generating ? "Generating..." : "Generate QR"}
             </button>
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            {["Standee", "Pocket Card", "Keychain"].map((format) => (
-              <span
-                key={format}
-                className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 dark:border-slate-700 dark:text-slate-300"
-              >
-                {format}
-              </span>
-            ))}
+          <div className="mt-6">
+            <p className="mb-3 text-sm font-semibold">Select QR formats</p>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <label className="flex min-w-0 cursor-pointer items-center gap-3 rounded-xl border border-cyan-200 bg-cyan-50/70 p-3 dark:border-cyan-800 dark:bg-cyan-500/10">
+                <input
+                  type="checkbox"
+                  checked={selectedFormats.length === qrFormatOptions.length}
+                  onChange={(event) =>
+                    setSelectedFormats(
+                      event.target.checked
+                        ? qrFormatOptions.map((option) => option.value)
+                        : [],
+                    )
+                  }
+                  disabled={generating}
+                  className="size-4 shrink-0 accent-cyan-600"
+                />
+                <span className="text-sm font-semibold">All Formats</span>
+              </label>
+
+              {qrFormatOptions.map((format) => (
+                <label
+                  key={format.value}
+                  className="flex min-w-0 cursor-pointer items-center gap-3 rounded-xl border border-slate-200 p-3 transition hover:border-cyan-400 dark:border-slate-700"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedFormats.includes(format.value)}
+                    onChange={(event) =>
+                      setSelectedFormats((current) =>
+                        event.target.checked
+                          ? [...current, format.value]
+                          : current.filter((item) => item !== format.value),
+                      )
+                    }
+                    disabled={generating}
+                    className="size-4 shrink-0 accent-cyan-600"
+                  />
+
+                  <span className="text-sm font-medium">{format.label}</span>
+                </label>
+              ))}
+            </div>
+
+            <p className="mt-3 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+              Example: Quantity 100 + All Formats = 300 independent QR codes.
+            </p>
           </div>
         </form>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-[#0b1728]">
+        <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-[#0b1728]">
           <div className="flex items-start gap-3">
             <div className="rounded-xl bg-emerald-50 p-3 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
               <Download size={21} />
@@ -1070,25 +1185,25 @@ export default function AdminQRManagement() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-[#0b1728]">
+      <section className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-[#0b1728] sm:p-5">
         <div>
           <h2 className="font-semibold">Bulk QR Download</h2>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Each selected QR set can add up to three design files to one ZIP.
-            Inventory is fetched in pages of up to 100 sets (the API maximum),
-            while your quantity is not page-limited. Designs are rendered
-            sequentially; available inventory and browser memory determine the
-            practical limit.
+            Select designs and set a quantity for each format. Inventory is
+            fetched in pages of up to 100 QR codes (the API maximum), while your
+            quantity is not page-limited. Designs are rendered sequentially;
+            available inventory and browser memory determine the practical
+            limit.
           </p>
         </div>
 
-        <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
-          <div>
+        <div className="mt-5 grid grid-cols-1 gap-4 min-[360px]:grid-cols-2 lg:grid-cols-4">
+          <div className="min-w-0">
             <label
               htmlFor="bulk-qr-quantity"
               className="mb-1 block text-sm font-medium"
             >
-              Quantity (QR sets)
+              Quantity per selected format
             </label>
             <input
               id="bulk-qr-quantity"
@@ -1102,7 +1217,7 @@ export default function AdminQRManagement() {
             />
           </div>
 
-          <div>
+          <div className="min-w-0">
             <label
               htmlFor="bulk-qr-file-type"
               className="mb-1 block text-sm font-medium"
@@ -1123,7 +1238,7 @@ export default function AdminQRManagement() {
             </select>
           </div>
 
-          <div>
+          <div className="min-w-0 min-[360px]:col-span-2 lg:col-span-1">
             <label
               htmlFor="bulk-qr-status"
               className="mb-1 block text-sm font-medium"
@@ -1143,7 +1258,54 @@ export default function AdminQRManagement() {
             </select>
           </div>
 
-          <label className="flex items-center gap-2 self-end pb-3 text-sm">
+          <div className="min-[360px]:col-span-2 lg:col-span-4">
+            <p className="mb-3 text-sm font-semibold">
+              Select designs for ZIP download
+            </p>
+
+            <div className="mb-3 grid grid-cols-1 gap-2 min-[360px]:grid-cols-2 sm:grid-cols-4">
+              <label className="flex min-w-0 cursor-pointer items-center gap-2 rounded-xl border border-cyan-200 bg-cyan-50/70 p-3 text-sm font-medium dark:border-cyan-800 dark:bg-cyan-500/10">
+                <input
+                  type="checkbox"
+                  checked={bulkFormats.length === qrFormatOptions.length}
+                  onChange={(event) =>
+                    setBulkFormats(
+                      event.target.checked
+                        ? qrFormatOptions.map((option) => option.value)
+                        : [],
+                    )
+                  }
+                  disabled={bulkDownloading}
+                  className="size-4 shrink-0 accent-cyan-600"
+                />
+                <span className="min-w-0 leading-tight">All Formats</span>
+              </label>
+
+              {qrFormatOptions.map((format) => (
+                <label
+                  key={format.value}
+                  className="flex min-w-0 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 p-3 text-sm dark:border-slate-700"
+                >
+                  <input
+                    type="checkbox"
+                    checked={bulkFormats.includes(format.value)}
+                    onChange={(event) =>
+                      setBulkFormats((current) =>
+                        event.target.checked
+                          ? [...current, format.value]
+                          : current.filter((item) => item !== format.value),
+                      )
+                    }
+                    disabled={bulkDownloading}
+                    className="size-4 shrink-0 accent-cyan-600"
+                  />
+                  <span className="min-w-0 leading-tight">{format.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <label className="flex min-w-0 cursor-pointer items-center gap-3 rounded-xl border border-slate-200 p-3 text-sm dark:border-slate-700 min-[360px]:col-span-2 lg:col-span-1">
             <input
               type="checkbox"
               checked={skipPreviouslyDownloaded}
@@ -1151,7 +1313,7 @@ export default function AdminQRManagement() {
                 setSkipPreviouslyDownloaded(event.target.checked)
               }
               disabled={bulkDownloading}
-              className="size-4 accent-cyan-600"
+              className="size-4 shrink-0 accent-cyan-600"
             />
             Skip previously downloaded
           </label>
@@ -1160,7 +1322,7 @@ export default function AdminQRManagement() {
             type="button"
             onClick={handleBulkDownload}
             disabled={bulkDownloading || loading}
-            className="inline-flex items-center justify-center gap-2 self-end rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-50 min-[360px]:col-span-2 lg:col-span-1"
           >
             {bulkDownloading ? (
               <RefreshCw size={16} className="animate-spin" />
@@ -1191,10 +1353,7 @@ export default function AdminQRManagement() {
           </div>
 
           <div className="flex w-full min-w-0 flex-col gap-3 sm:flex-row xl:flex-1">
-            <form
-              onSubmit={handleSearch}
-              className="relative min-w-0 flex-1"
-            >
+            <form onSubmit={handleSearch} className="relative min-w-0 flex-1">
               <Search
                 size={17}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -1229,6 +1388,7 @@ export default function AdminQRManagement() {
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800/50 dark:text-slate-400">
               <tr>
                 <th className="px-3 py-3 font-semibold">Set ID</th>
+                <th className="px-3 py-3 font-semibold">QR Format</th>
                 <th className="px-3 py-3 font-semibold">Activation Code</th>
                 <th className="px-3 py-3 font-semibold">Business / QR Path</th>
                 <th className="px-3 py-3 font-semibold">Status</th>
@@ -1239,7 +1399,7 @@ export default function AdminQRManagement() {
               {loading ? (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={6}
                     className="px-5 py-14 text-center text-slate-500"
                   >
                     <RefreshCw size={17} className="mr-2 inline animate-spin" />
@@ -1249,7 +1409,7 @@ export default function AdminQRManagement() {
               ) : sets.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={6}
                     className="px-5 py-14 text-center text-slate-500 dark:text-slate-400"
                   >
                     No QR sets found for these filters.
@@ -1265,6 +1425,20 @@ export default function AdminQRManagement() {
                       <span className="break-all font-semibold">
                         {item.serialNumber}
                       </span>
+                    </td>
+                    <td className="px-3 py-3">
+                      <div className="flex flex-wrap gap-1.5">
+                        {getItemFormats(item).length
+                          ? getItemFormats(item).map((format) => (
+                              <span
+                                key={format}
+                                className="rounded-full bg-cyan-50 px-2.5 py-1 text-xs font-semibold text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-300"
+                              >
+                                {qrFormatLabels[format] || format}
+                              </span>
+                            ))
+                          : "—"}
+                      </div>
                     </td>
                     <td className="px-3 py-3">
                       <div className="space-y-1">
@@ -1346,6 +1520,24 @@ export default function AdminQRManagement() {
                   >
                     {item.status || "unknown"}
                   </span>
+                </div>
+                <div className="mt-3">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    QR Format
+                  </p>
+
+                  <div className="mt-1 flex flex-wrap gap-1.5">
+                    {getItemFormats(item).length
+                      ? getItemFormats(item).map((format) => (
+                          <span
+                            key={format}
+                            className="rounded-full bg-cyan-50 px-2.5 py-1 text-xs font-semibold text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-300"
+                          >
+                            {qrFormatLabels[format] || format}
+                          </span>
+                        ))
+                      : "—"}
+                  </div>
                 </div>
                 <div className="mt-4 rounded-xl bg-slate-50 p-3 dark:bg-slate-800/50">
                   <p className="text-xs text-slate-500 dark:text-slate-400">

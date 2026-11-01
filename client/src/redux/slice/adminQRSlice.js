@@ -26,22 +26,49 @@ export const fetchQRInventory = createAsyncThunk(
 
 export const generateQRBatch = createAsyncThunk(
   "adminQR/generateBatch",
-  async (count, { rejectWithValue }) => {
+  async (payload, { rejectWithValue }) => {
     try {
+      // Backward compatibility: old code can still send only a number.
+      const count =
+        typeof payload === "object" && payload !== null
+          ? Number(payload.count)
+          : Number(payload);
+
+      const formats =
+        typeof payload === "object" && payload !== null
+          ? payload.formats
+          : ["standee", "pocket", "keychain"];
+
+      const allowedFormats = ["standee", "pocket", "keychain"];
+
+      if (!Number.isInteger(count) || count < 1 || count > 1000) {
+        return rejectWithValue("Quantity must be between 1 and 1000.");
+      }
+
+      if (
+        !Array.isArray(formats) ||
+        formats.length === 0 ||
+        formats.some((format) => !allowedFormats.includes(format)) ||
+        new Set(formats).size !== formats.length
+      ) {
+        return rejectWithValue("Please select valid QR formats.");
+      }
+
       const response = await api.post("/admin/qr-sets/generate", {
-        count: Number(count),
+        count,
+        formats,
       });
 
       if (!response.data?.success) {
         return rejectWithValue(
-          response.data?.message || "Unable to generate QR sets.",
+          response.data?.message || "Unable to generate QR records.",
         );
       }
 
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Unable to generate QR sets.",
+        error.response?.data?.message || "Unable to generate QR records.",
       );
     }
   },

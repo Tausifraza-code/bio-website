@@ -135,7 +135,20 @@ const miniProfileSchema = new mongoose.Schema(
     avatar: { type: String, default: null },
     logo: { type: String, default: null },
     banner: { type: String, default: null },
-    qrCode: { type: String, default: null },
+
+    // Permanent ImgBB QR image URL
+    qrCode: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+
+    // URL encoded inside the Digital QR
+    qrUrl: {
+      type: String,
+      trim: true,
+      default: "",
+    },
 
     activeTheme: {
       type: String,

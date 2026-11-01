@@ -3,7 +3,7 @@ const crypto = require("crypto");
 
 const qrCodeSchema = new mongoose.Schema(
   {
-    // Unique ID for the complete Standee + Pocket + Keychain set
+    // Unique ID for the individual physical QR
     serialNumber: {
       type: String,
       required: true,
@@ -33,11 +33,18 @@ const qrCodeSchema = new mongoose.Schema(
     // Original QR URL, if available
     qrUrl: {
       type: String,
-      default: null,
+      default: "",
       trim: true,
     },
 
-    // All three formats belong to the same QR set
+    // Individual physical QR format
+    format: {
+      type: String,
+      enum: ["standee", "pocket", "keychain"],
+      default: undefined,
+    },
+
+    // Legacy QR sets can continue using this array
     formats: {
       type: [String],
       enum: ["standee", "pocket", "keychain"],
@@ -49,6 +56,13 @@ const qrCodeSchema = new mongoose.Schema(
       ref: "User",
       default: null,
       index: true,
+    },
+
+    // User's physical QR slot: 1, 2 or 3
+    assignedSlot: {
+      type: Number,
+      enum: [1, 2, 3],
+      default: null,
     },
 
     downloadHistory: {
@@ -78,14 +92,12 @@ const qrCodeSchema = new mongoose.Schema(
       default: [],
     },
 
-    // Admin/staff who generated the set
     generatedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null,
     },
 
-    // Admin/staff who assigned the set
     assignedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -114,13 +126,24 @@ const qrCodeSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-
-    // Future use: immutable assignment history can be added here
   },
   { timestamps: true },
 );
 
-// Generate unpredictable public QR paths in the backend
+// One user can have only one QR in each assigned slot.
+// Legacy records without assignedSlot are excluded.
+qrCodeSchema.index(
+  { assignedUserId: 1, assignedSlot: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      assignedSlot: { $in: [1, 2, 3] },
+    },
+    name: "unique_user_physical_qr_slot",
+  },
+);
+
+// Generate unpredictable public QR paths
 qrCodeSchema.statics.generateQRPath = function () {
   return `/q/${crypto.randomBytes(16).toString("hex")}`;
 };

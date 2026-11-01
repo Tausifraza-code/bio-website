@@ -4,7 +4,7 @@ const User = require("../models/User");
 const ReferralLog = require("../models/ReferralLog");
 const bcrypt = require("bcryptjs");
 const nodemailer = require("nodemailer");
-
+const { ensureDigitalQR } = require("../utils/digitalQr");
 const generateReferralCode = () => {
   return `BIO-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
 };
@@ -267,6 +267,13 @@ const loginUser = async (req, res) => {
         success: false,
         message: "Invalid email/phone number or password",
       });
+    }
+
+    // Generate or verify Digital QR without blocking login
+    try {
+      await ensureDigitalQR(user._id);
+    } catch (qrError) {
+      console.error("Login Digital QR generation failed:", qrError);
     }
 
     // 4. Ensure JWT secret is configured

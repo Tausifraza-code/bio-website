@@ -98,6 +98,9 @@ const generateQRBatch = async (req, res) => {
   try {
     const requestedCount = Number(req.body?.count);
 
+    const allowedFormats = ["standee", "pocket", "keychain"];
+    const requestedFormats = req.body?.formats;
+
     if (
       !Number.isSafeInteger(requestedCount) ||
       requestedCount < 1 ||
@@ -109,42 +112,63 @@ const generateQRBatch = async (req, res) => {
       });
     }
 
+    if (
+      !Array.isArray(requestedFormats) ||
+      requestedFormats.length === 0 ||
+      requestedFormats.some((format) => !allowedFormats.includes(format)) ||
+      new Set(requestedFormats).size !== requestedFormats.length
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Please select valid QR formats.",
+      });
+    }
+
     const adminId = req.user._id;
     const timestamp = Date.now();
 
-    const records = Array.from({ length: requestedCount }, (_, index) => {
-      const uniqueId = crypto.randomBytes(12).toString("hex").toUpperCase();
-      const qrPath = QRCode.generateQRPath();
+    const records = [];
 
-      return {
-        serialNumber: `BIO-${timestamp}-${index + 1}-${uniqueId}`,
-        activationCode: generateActivationCode(),
-        qrPath,
-        qrUrl: null,
-        formats: ["standee", "pocket", "keychain"],
-        assignedUserId: null,
-        generatedBy: adminId,
-        assignedBy: null,
-        businessName: null,
-        status: "available",
-        generatedAt: new Date(),
-        assignedAt: null,
-      };
-    });
+    for (const format of requestedFormats) {
+      for (let index = 0; index < requestedCount; index += 1) {
+        const uniqueId = crypto.randomBytes(12).toString("hex").toUpperCase();
+
+        records.push({
+          serialNumber: `BIO-${format.toUpperCase()}-${timestamp}-${index + 1}-${uniqueId}`,
+          activationCode: generateActivationCode(),
+          qrPath: QRCode.generateQRPath(),
+          qrUrl: "",
+
+          // New individual-format record
+          format,
+          formats: [format],
+
+          assignedUserId: null,
+          generatedBy: adminId,
+          assignedBy: null,
+          businessName: null,
+          status: "available",
+          generatedAt: new Date(),
+          assignedAt: null,
+        });
+      }
+    }
 
     const createdRecords = await insertRecordsWithActivationCodeRetry(records);
 
     return res.status(201).json({
       success: true,
-      message: `${createdRecords.length} QR sets generated successfully.`,
+      message: `${createdRecords.length} independent QR records generated successfully.`,
       data: {
         count: createdRecords.length,
-        formats: ["standee", "pocket", "keychain"],
+        quantityPerFormat: requestedCount,
+        formats: requestedFormats,
         sets: createdRecords.map((item) => ({
           id: item._id,
           serialNumber: item.serialNumber,
           activationCode: item.activationCode,
           qrPath: item.qrPath,
+          format: item.format,
           status: item.status,
         })),
       },
@@ -162,7 +186,7 @@ const generateQRBatch = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "Failed to generate QR sets.",
+      message: "Failed to generate QR records.",
     });
   }
 };
@@ -206,7 +230,7 @@ const getQRInventory = async (req, res) => {
     const includeAssignedUser = req.query.includeAssignedUser === "true";
     const inventoryQuery = QRCode.find(filter)
       .select(
-        "serialNumber activationCode qrPath qrUrl formats businessName assignedUserId status generatedAt assignedAt generatedBy assignedBy   downloadHistory",
+        "serialNumber activationCode qrPath qrUrl format formats businessName assignedUserId status generatedAt assignedAt generatedBy assignedBy downloadHistory",
       )
       .sort({ createdAt: -1, _id: -1 })
       .skip(skip)
@@ -230,9 +254,7 @@ const getQRInventory = async (req, res) => {
 
           return {
             ...item,
-            assignedUserId: hasAssignedUser
-              ? assignedUser._id
-              : assignedUser,
+            assignedUserId: hasAssignedUser ? assignedUser._id : assignedUser,
             assignedUser: hasAssignedUser
               ? {
                   fullName: assignedUser.fullName,
@@ -276,7 +298,7 @@ const recordQRDownload = async (req, res) => {
     if (!mongoose.isValidObjectId(id)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid QR set ID.",
+        message: "Invalid QR record ID.",
       });
     }
 
@@ -301,6 +323,16 @@ const recordQRDownload = async (req, res) => {
         _id: id,
         status: { $ne: "disabled" },
         qrPath: { $exists: true, $ne: "" },
+
+        // New records: only their own format.
+        // Legacy records: any format in their formats array.
+        $or: [
+          { format },
+          {
+            format: { $exists: false },
+            formats: format,
+          },
+        ],
       },
       {
         $push: {
@@ -316,12 +348,13 @@ const recordQRDownload = async (req, res) => {
         new: true,
         runValidators: true,
       },
-    ).select("serialNumber downloadHistory");
+    ).select("serialNumber format formats downloadHistory");
 
     if (!item) {
       return res.status(404).json({
         success: false,
-        message: "QR set not found or unavailable.",
+        message:
+          "QR record not found, disabled, or this format is not available for the record.",
       });
     }
 
@@ -330,6 +363,7 @@ const recordQRDownload = async (req, res) => {
       message: "QR download recorded successfully.",
       data: {
         serialNumber: item.serialNumber,
+        format: item.format,
         downloadHistory: item.downloadHistory,
       },
     });
@@ -362,7 +396,7 @@ const exportQRInventory = async (req, res) => {
     }
 
     const fields =
-      "serialNumber qrPath formats businessName assignedUserId status generatedAt assignedAt generatedBy assignedBy";
+      "serialNumber qrPath format formats businessName assignedUserId status generatedAt assignedAt generatedBy assignedBy";
 
     // Stream database records instead of loading the entire inventory.
     cursor = QRCode.find(filter)
@@ -396,10 +430,11 @@ const exportQRInventory = async (req, res) => {
     };
 
     const headers = [
-      "Set ID",
+      "Serial Number",
       "QR Path",
       "Business Name",
       "Assigned User ID",
+      "Format",
       "Formats",
       "Status",
       "Generated At",
@@ -420,6 +455,7 @@ const exportQRInventory = async (req, res) => {
         item.qrPath,
         item.businessName,
         item.assignedUserId,
+        item.format || "legacy-set",
         Array.isArray(item.formats) ? item.formats.join(" | ") : "",
         item.status,
         item.generatedAt ? item.generatedAt.toISOString() : "",

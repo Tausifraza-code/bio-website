@@ -818,7 +818,7 @@ article {
 }
 
 /* Prevent form fields from overflowing */
-input,
+input:not([type="checkbox"]):not([type="radio"]),
 textarea,
 select {
   width: 100%;

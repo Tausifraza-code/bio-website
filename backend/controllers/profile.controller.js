@@ -3,6 +3,7 @@ const Product = require("../models/Product");
 const Gallery = require("../models/Gallery");
 const QRCode = require("../models/QRCode");
 const User = require("../models/User");
+const { ensureDigitalQR } = require("../utils/digitalQr");
 const { uploadToImgBB } = require("../utils/imgbb");
 
 const allowedFields = [
@@ -33,7 +34,7 @@ const allowedFields = [
   "avatar",
   "logo",
   "banner",
-  "qrCode",
+
   "activeTheme",
   "activeLayout",
   "selectedPlan",
@@ -49,16 +50,31 @@ const saveProfile = async (req, res) => {
       }
     }
 
-    const profile = await MiniProfile.findOneAndUpdate(
+    let profile = await MiniProfile.findOneAndUpdate(
       { userId: req.user._id },
-      { $set: updates, $setOnInsert: { userId: req.user._id } },
       {
-        returnDocument: "after",
+        $set: updates,
+        $setOnInsert: { userId: req.user._id },
+      },
+      {
+        new: true,
         upsert: true,
         runValidators: true,
         setDefaultsOnInsert: true,
       },
     );
+
+    // Generate or reuse Digital QR through the common helper
+    try {
+      await ensureDigitalQR(req.user._id);
+    } catch (qrError) {
+      console.error("Profile Digital QR generation failed:", qrError);
+    }
+
+    // Fetch updated profile so response includes QR fields
+    profile = await MiniProfile.findOne({
+      userId: req.user._id,
+    });
 
     return res.status(200).json({
       success: true,
@@ -71,6 +87,7 @@ const saveProfile = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Unable to save profile",
+      error: error.message,
     });
   }
 };
@@ -99,13 +116,7 @@ const uploadProfileImage = async (req, res) => {
   try {
     const { field, socialCardId } = req.body;
 
-    const allowedImageFields = [
-      "avatar",
-      "logo",
-      "banner",
-      "qrCode",
-      "socialCard",
-    ];
+    const allowedImageFields = ["avatar", "logo", "banner", "socialCard"];
 
     if (!allowedImageFields.includes(field)) {
       return res.status(400).json({

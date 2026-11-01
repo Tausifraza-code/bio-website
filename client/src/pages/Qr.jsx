@@ -1,14 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
-import QRCode from "qrcode";
 
 import { useDispatch, useSelector } from "react-redux";
+import { QRCodeSVG } from "qrcode.react";
 import {
   bindPhysicalQR,
   clearQRMessages,
   fetchMyBoundQR,
   activateQRByCode,
 } from "../redux/slice/qrSlice";
+import { fetchMyProfile } from "../redux/slice/profileSlice";
 import {
   Copy,
   Check,
@@ -26,89 +27,63 @@ import {
   CreditCard,
   UserRound,
 } from "lucide-react";
-import { getPublicQRUrl } from "../utils/qrUrl";
 
 const Qr = () => {
+  const [activeSlot, setActiveSlot] = useState(null);
+  const [activationCodeInput, setActivationCodeInput] = useState("");
   const [copiedField, setCopiedField] = useState(null);
   const [standeeCode, setStandeeCode] = useState("");
-  const [downloading, setDownloading] = useState(false);
-  const [qrImage, setQrImage] = useState("");
-  const [decodedQRUrl, setDecodedQRUrl] = useState("");
-  const [qrPath, setQrPath] = useState("");
+  const [downloading, setDownloading] = useState("");
   const [scannerOpen, setScannerOpen] = useState(false);
-  const [qrBusy, setQrBusy] = useState(false);
   const [qrMessage, setQrMessage] = useState("");
   const scannerRef = useRef(null);
   const scannerInstanceRef = useRef(null);
   const dispatch = useDispatch();
 
-  const { boundQR, binding, fetching, activatingCode, successMessage, error } =
-    useSelector((state) => state.qr);
+  const {
+    boundQR,
+    qrSlots,
+    binding,
+    fetching,
+    activatingCode,
+    successMessage,
+    error,
+  } = useSelector((state) => state.qr);
 
-  const directCardLink = boundQR?.subdomain
-    ? `${window.location.origin}/card-preview/${encodeURIComponent(
-        boundQR.subdomain,
-      )}`
-    : "";
+  const physicalQRSlots = qrSlots || {
+    1: null,
+    2: null,
+    3: null,
+  };
 
-  const customSubdomain = boundQR?.subdomain
-    ? `${window.location.origin}/card-preview/${encodeURIComponent(
-        boundQR.subdomain,
-      )}`
-    : "";
+  const profile = useSelector((state) => state.profile?.profile);
+  const qrImage = profile?.qrCode || "";
+  const qrPublicUrl = profile?.qrUrl || "";
+
+  const directCardLink = qrPublicUrl;
+  const customSubdomain = qrPublicUrl;
+  const profileUrl = qrPublicUrl;
 
   const businessName =
-    boundQR?.businessName || boundQR?.subdomain || "Your Business";
-  const qrPublicUrl = getPublicQRUrl(boundQR?.qrPath);
-  const profileUrl = boundQR?.subdomain
-    ? `${window.location.origin}/card-preview/${encodeURIComponent(
-        boundQR.subdomain,
-      )}`
-    : "";
+    profile?.businessName ||
+    boundQR?.businessName ||
+    profile?.subdomain ||
+    boundQR?.subdomain ||
+    "Your Business";
   const whatsappMessage =
-    `Check out my ${businessName} Mini Website Card! ` +
-    `${qrPublicUrl} Visit my digital business card for more information.`;
+    `Check out my ${businessName} Mini Website Card! ` + `${qrPublicUrl}`;
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
     whatsappMessage,
   )}`;
 
   useEffect(() => {
     dispatch(fetchMyBoundQR());
+    dispatch(fetchMyProfile());
 
     return () => {
       dispatch(clearQRMessages());
     };
   }, [dispatch]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function generateQRImage() {
-      if (!qrPublicUrl) {
-        setQrImage("");
-        return;
-      }
-
-      try {
-        const image = await QRCode.toDataURL(qrPublicUrl, {
-          width: 1000,
-          margin: 2,
-          errorCorrectionLevel: "H",
-        });
-
-        if (!cancelled) setQrImage(image);
-      } catch (error) {
-        console.error("QR image generation failed:", error);
-        if (!cancelled) setQrImage("");
-      }
-    }
-
-    generateQRImage();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [qrPublicUrl]);
 
   useEffect(
     () => () => {
@@ -135,8 +110,6 @@ const Qr = () => {
   const handleDecodedQR = (decodedText) => {
     try {
       const parsed = new URL(decodedText);
-      console.log("Decoded QR URL:", decodedText);
-      console.log("Decoded pathname:", parsed.pathname);
 
       if (!["http:", "https:"].includes(parsed.protocol)) {
         throw new Error("Unsupported QR URL protocol.");
@@ -145,25 +118,27 @@ const Qr = () => {
       const existingPath = parsed.pathname.replace(/\/+$/, "");
 
       if (!existingPath || existingPath === "/") {
-        throw new Error("The QR URL does not contain an existing path.");
+        throw new Error("QR URL does not contain an existing path.");
       }
 
-      setDecodedQRUrl(decodedText);
-      setQrPath(existingPath);
-      setQrMessage(
-        "QR decoded successfully. Verify the original URL before binding.",
-      );
+      setQrMessage("QR scanned successfully. Binding your physical QR...");
+
+      return existingPath;
     } catch (error) {
       setQrMessage(
         error instanceof Error
           ? error.message
           : "Unable to read a valid QR URL.",
       );
+
+      return null;
     }
   };
 
   const startQRScanner = async () => {
-    if (!scannerRef.current || scannerInstanceRef.current) return;
+    if (!scannerRef.current || scannerInstanceRef.current || !activeSlot) {
+      return;
+    }
 
     setQrMessage("");
 
@@ -175,117 +150,91 @@ const Qr = () => {
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 240, height: 240 } },
         async (decodedText) => {
-          handleDecodedQR(decodedText);
+          const existingPath = handleDecodedQR(decodedText);
 
           try {
             await scanner.stop();
             scanner.clear();
           } catch (error) {
-            console.error("Unable to stop QR scanner after decoding:", error);
-            setQrMessage(
-              "QR decoded, but the camera could not be stopped cleanly.",
-            );
+            console.error("Scanner stop error:", error);
           }
 
           scannerInstanceRef.current = null;
           setScannerOpen(false);
+
+          if (!existingPath) return;
+
+          try {
+            await dispatch(
+              bindPhysicalQR({
+                qrPath: existingPath,
+                slotNumber: activeSlot,
+              }),
+            ).unwrap();
+
+            await dispatch(fetchMyBoundQR()).unwrap();
+
+            setQrMessage("Physical QR bound successfully!");
+            setActiveSlot(null);
+          } catch (error) {
+            console.error("Physical QR binding failed:", error);
+          }
         },
         () => {},
       );
 
       setScannerOpen(true);
     } catch (error) {
-      console.error("QR camera could not start:", error);
+      console.error("Camera startup failed:", error);
 
       try {
         scanner.clear();
       } catch (cleanupError) {
-        console.error(
-          "Unable to clear QR scanner after startup failure:",
-          cleanupError,
-        );
+        console.error(cleanupError);
       }
 
       scannerInstanceRef.current = null;
-      setQrMessage(
-        "Camera could not start. Allow camera access or upload a QR image.",
-      );
-    }
-  };
-
-  const handleQRImageUpload = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setQrBusy(true);
-    setQrMessage("");
-
-    let scanner;
-
-    try {
-      scanner = new Html5Qrcode("qr-file-reader");
-
-      const decodedText = await scanner.scanFile(file, true);
-      handleDecodedQR(decodedText);
-    } catch (error) {
-      console.error("Unable to decode uploaded QR image:", error);
-      setQrMessage("Could not decode this image. Try a clearer QR photo.");
-    } finally {
-      if (scanner) {
-        try {
-          scanner.clear();
-        } catch (error) {
-          console.error("Unable to clear uploaded QR scanner:", error);
-          setQrMessage(
-            "QR image was processed, but its reader could not be cleared.",
-          );
-        }
-      }
-
-      setQrBusy(false);
-      event.target.value = "";
+      setQrMessage("Camera could not start. Please allow camera access.");
     }
   };
 
   const stopQRScanner = async () => {
     const scanner = scannerInstanceRef.current;
-    let stopFailed = false;
 
     if (scanner) {
       try {
         await scanner.stop();
-      } catch (error) {
-        console.error("Unable to stop QR scanner:", error);
-        stopFailed = true;
-      }
-
-      try {
         scanner.clear();
       } catch (error) {
-        console.error("Unable to clear QR scanner:", error);
-        stopFailed = true;
+        console.error("Unable to stop scanner:", error);
       }
     }
 
     scannerInstanceRef.current = null;
     setScannerOpen(false);
-
-    if (stopFailed) {
-      setQrMessage(
-        "Camera could not be stopped cleanly. Please check camera access.",
-      );
-    }
   };
 
-  const handleBindPhysicalQR = async () => {
-    if (!qrPath) return;
+  const handleActivateStandee = async () => {
+    const code = activationCodeInput.trim().toUpperCase();
+
+    if (!code || !activeSlot || activatingCode) return;
 
     dispatch(clearQRMessages());
 
     try {
-      await dispatch(bindPhysicalQR({ qrPath })).unwrap();
-    } catch (err) {
-      console.error("QR binding failed:", err);
+      await dispatch(
+        activateQRByCode({
+          activationCode: code,
+          slotNumber: activeSlot,
+        }),
+      ).unwrap();
+
+      await dispatch(fetchMyBoundQR()).unwrap();
+
+      setActivationCodeInput("");
+      setActiveSlot(null);
+    } catch (error) {
+      console.error("Activation failed:", error);
     }
   };
 
@@ -319,26 +268,90 @@ const Qr = () => {
 
   /* ==================== DOWNLOAD QR ==================== */
 
-  const handleDownloadQR = () => {
-    if (!qrImage || !boundQR) return;
+  const handleDownloadQR = async (format = "png") => {
+    if (!qrImage || !profile || !qrPublicUrl || downloading) return;
 
-    setDownloading(true);
+    setDownloading(format);
+
     try {
+      let blob;
+
+      if (format === "png" || format === "jpg") {
+        const response = await fetch(qrImage);
+
+        if (!response.ok) {
+          throw new Error("Unable to fetch saved QR image.");
+        }
+
+        const imageBlob = await response.blob();
+
+        if (format === "png") {
+          blob = new Blob([imageBlob], { type: "image/png" });
+        } else {
+          const imageBitmap = await createImageBitmap(imageBlob);
+          const canvas = document.createElement("canvas");
+
+          canvas.width = imageBitmap.width;
+          canvas.height = imageBitmap.height;
+
+          const context = canvas.getContext("2d");
+
+          context.fillStyle = "#ffffff";
+          context.fillRect(0, 0, canvas.width, canvas.height);
+          context.drawImage(imageBitmap, 0, 0);
+
+          imageBitmap.close();
+
+          blob = await new Promise((resolve, reject) => {
+            canvas.toBlob(
+              (result) => {
+                if (result) resolve(result);
+                else reject(new Error("JPG conversion failed."));
+              },
+              "image/jpeg",
+              0.95,
+            );
+          });
+        }
+      } else if (format === "svg") {
+        const svgElement = document.getElementById("digital-qr-svg");
+
+        if (!svgElement) {
+          throw new Error("SVG QR element not found.");
+        }
+
+        const svgClone = svgElement.cloneNode(true);
+        svgClone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+
+        const svgContent = new XMLSerializer().serializeToString(svgClone);
+
+        blob = new Blob([svgContent], {
+          type: "image/svg+xml;charset=utf-8",
+        });
+      } else {
+        throw new Error("Unsupported QR format.");
+      }
+
+      const downloadUrl = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
-      anchor.href = qrImage;
-      anchor.download = `business-qr-${boundQR.qrPath
-        .replace(/^\/+/, "")
-        .replace(/[^a-zA-Z0-9_-]/g, "-")}.png`;
+
+      anchor.href = downloadUrl;
+      anchor.download = `digital-qr-${profile.subdomain || "profile"}.${format}`;
+
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
+
+      setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
     } catch (error) {
       console.error("QR download failed:", error);
+      window.alert(
+        `Unable to download ${format.toUpperCase()} QR. Please try again.`,
+      );
     } finally {
-      setDownloading(false);
+      setDownloading("");
     }
   };
-
   /* ==================== DOWNLOAD VCARD ==================== */
 
   const handleDownloadVCard = () => {
@@ -379,23 +392,6 @@ const Qr = () => {
   };
 
   /* ==================== STANDEE ==================== */
-
-  const handleActivateStandee = async () => {
-    const code = standeeCode.trim().toUpperCase();
-
-    if (!code || activatingCode) return;
-
-    dispatch(clearQRMessages());
-
-    try {
-      await dispatch(activateQRByCode({ activationCode: code })).unwrap();
-
-      setStandeeCode("");
-      dispatch(fetchMyBoundQR());
-    } catch (err) {
-      console.error("Standee activation failed:", err);
-    }
-  };
 
   const standeeActivated = Boolean(boundQR?.activationCode);
 
@@ -504,133 +500,226 @@ const Qr = () => {
 
         {/* ==================== BUSINESS LINKS ==================== */}
 
-       
-
-        {/* ==================== BIND EXISTING QR ==================== */}
+        {/* ==================== PHYSICAL QR SLOTS ==================== */}
 
         <section className="mb-6 rounded-2xl border border-[#29435f] bg-[#10243b] p-5 sm:p-6">
-          <h2 className="text-lg font-bold text-white">
-            Bind Existing Physical QR
-          </h2>
-
-          <p className="mt-2 text-sm leading-6 text-slate-400">
-            Scan your already-printed QR or upload its image. We will read the
-            original URL and preserve its existing path.
-          </p>
-
-          <div className="mt-5 flex flex-wrap gap-3">
-            {/* <button
-              type="button"
-              onClick={startQRScanner}
-              disabled={scannerOpen || qrBusy}
-              className="rounded-xl bg-cyan-300 px-4 py-3 text-sm font-bold text-[#0b1b30] disabled:opacity-50"
-            >
-              Scan with Camera
-            </button> */}
-
-            <label
-              className={`rounded-xl border border-[#38516e] px-4 py-3 text-sm font-semibold text-white ${
-                qrBusy || scannerOpen
-                  ? "cursor-not-allowed opacity-50"
-                  : "cursor-pointer"
-              }`}
-            >
-              Upload QR Image
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                disabled={qrBusy || scannerOpen}
-                onChange={handleQRImageUpload}
-              />
-            </label>
+          <div className="mb-5">
+            <h2 className="text-lg font-bold text-white">
+              My Physical QR Codes
+            </h2>
+            <p className="mt-2 text-sm text-slate-400">
+              Bind your physical QR standee, pocket QR or keychain to your
+              business profile.
+            </p>
           </div>
 
-          <div
-            id="qr-camera-reader"
-            ref={scannerRef}
-            aria-hidden={!scannerOpen}
-            className={`mt-5 max-w-md overflow-hidden rounded-xl ${
-              scannerOpen ? "" : "hidden"
-            }`}
-          />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {[1, 2, 3].map((slot) => {
+              const qr = physicalQRSlots[slot];
 
-          {scannerOpen && (
-            <button
-              type="button"
-              onClick={stopQRScanner}
-              className="mt-3 rounded-lg border border-[#38516e] px-4 py-2 text-sm text-white"
-            >
-              Stop Camera
-            </button>
-          )}
+              return (
+                <div
+                  key={slot}
+                  className="rounded-xl border border-[#38516e] bg-[#0b1b30] p-5"
+                >
+                  <div className="mb-4 flex items-center justify-between">
+                    <span className="text-sm font-bold text-white">
+                      Physical QR {slot}
+                    </span>
 
-          <div id="qr-file-reader" className="hidden" />
+                    {qr ? (
+                      <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+                        Bound
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-slate-400/10 px-3 py-1 text-xs text-slate-400">
+                        Empty
+                      </span>
+                    )}
+                  </div>
 
-          {qrMessage && (
-            <p className="mt-4 text-sm text-cyan-200" role="status">
-              {qrMessage}
-            </p>
-          )}
+                  {qr ? (
+                    <div className="space-y-2">
+                      <p className="break-all text-xs text-slate-400">
+                        Serial: {qr.serialNumber || "N/A"}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        Type: {qr.format || "Physical QR"}
+                      </p>
+                      <p className="break-all text-xs text-cyan-300">
+                        {qr.qrPath}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="mb-5 min-h-10 text-xs leading-5 text-slate-400">
+                      No physical QR is connected to this slot.
+                    </p>
+                  )}
 
-          {qrBusy && (
-            <p className="mt-2 text-sm text-slate-400" aria-live="polite">
-              Decoding QR image…
-            </p>
-          )}
-
-          {decodedQRUrl && (
-            <div className="mt-5 rounded-xl border border-[#38516e] bg-[#0b1b30] p-4">
-              <p className="text-xs font-semibold text-slate-400">
-                Original decoded URL
-              </p>
-
-              <p className="mt-2 break-all text-sm text-white">
-                {decodedQRUrl}
-              </p>
-
-              <p className="mt-4 text-xs font-semibold text-slate-400">
-                Existing QR path
-              </p>
-
-              <p className="mt-1 font-mono text-sm text-cyan-200">{qrPath}</p>
-
-              <p className="mt-3 text-xs leading-5 text-amber-200">
-                Verify that this QR belongs to your business before binding.
-                Decoding the URL does not itself change the printed QR
-                destination.
-              </p>
-            </div>
-          )}
-
-          <button
-            type="button"
-            onClick={handleBindPhysicalQR}
-            disabled={!qrPath || binding}
-            className="mt-4 w-full rounded-xl bg-cyan-300 px-4 py-3 text-sm font-bold text-[#0b1b30] transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {binding ? "Binding QR..." : "Bind QR to My Profile"}
-          </button>
+                  {!qr && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        dispatch(clearQRMessages());
+                        setQrMessage("");
+                        setActiveSlot(slot);
+                        setActivationCodeInput("");
+                      }}
+                      className="w-full rounded-xl bg-cyan-300 px-4 py-3 text-sm font-bold text-[#0b1b30] transition hover:bg-cyan-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b1b30]"
+                    >
+                      Add Physical QR Code {slot}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
 
           {successMessage && (
-            <p className="mt-3 text-sm text-emerald-500" role="status">
+            <p className="mt-4 text-sm text-emerald-400" role="status">
               {successMessage}
             </p>
           )}
 
           {error && (
-            <p className="mt-3 text-sm text-red-500" role="alert">
-              {error}
+            <p className="mt-4 text-sm text-red-400" role="alert">
+              {typeof error === "string"
+                ? error
+                : error.message || "Something went wrong."}
             </p>
           )}
-
-          {boundQR && boundQR.qrPath === qrPath && (
-            <div className="mt-3 text-sm text-slate-300">
-              <p>QR Path: {boundQR.qrPath}</p>
-              <p>Profile: {boundQR.subdomain}</p>
-            </div>
-          )}
         </section>
+
+        {/* ==================== PHYSICAL QR BINDING MODAL ==================== */}
+
+        {activeSlot !== null && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/70 p-4">
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="physical-qr-modal-title"
+              className="my-auto w-full max-w-lg rounded-2xl border border-[#38516e] bg-[#10243b] p-5 shadow-2xl sm:p-6"
+            >
+              <div className="mb-5 flex items-center justify-between">
+                <div>
+                  <h2
+                    id="physical-qr-modal-title"
+                    className="text-lg font-bold text-white"
+                  >
+                    Add Physical QR Code {activeSlot}
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-400">
+                    Choose your preferred binding method.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await stopQRScanner();
+                    setActiveSlot(null);
+                    setActivationCodeInput("");
+                    setQrMessage("");
+                  }}
+                  className="rounded-lg border border-[#38516e] px-3 py-2 text-sm text-slate-300 hover:bg-[#193754] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200"
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="rounded-xl border border-[#38516e] bg-[#0b1b30] p-4">
+                <h3 className="font-semibold text-white">
+                  1. Scan QR Code and Bind
+                </h3>
+
+                <p className="mt-2 text-xs leading-5 text-slate-400">
+                  Scan the physical QR code using your camera.
+                </p>
+
+                <div
+                  id="qr-camera-reader"
+                  ref={scannerRef}
+                  className="mt-4 min-h-2 overflow-hidden rounded-xl"
+                />
+
+                {!scannerOpen ? (
+                  <button
+                    type="button"
+                    onClick={startQRScanner}
+                    disabled={binding}
+                    className="mt-4 w-full rounded-xl bg-cyan-300 px-4 py-3 text-sm font-bold text-[#0b1b30] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b1b30] disabled:opacity-50"
+                  >
+                    <ScanLine size={16} className="mr-2 inline" />
+                    Scan QR Code and Bind
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={stopQRScanner}
+                    className="mt-4 w-full rounded-xl border border-[#38516e] px-4 py-3 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200"
+                  >
+                    Stop Camera
+                  </button>
+                )}
+              </div>
+
+              <div className="mt-4 rounded-xl border border-[#38516e] bg-[#0b1b30] p-4">
+                <h3 className="font-semibold text-white">
+                  2. Enter Activation Code
+                </h3>
+
+                <p className="mt-2 text-xs leading-5 text-slate-400">
+                  Enter the activation code provided with your physical QR.
+                </p>
+
+                <input
+                  type="text"
+                  value={activationCodeInput}
+                  onChange={(e) =>
+                    setActivationCodeInput(e.target.value.toUpperCase())
+                  }
+                  placeholder="E.g. BIO-8QTYQKJF"
+                  autoComplete="off"
+                  disabled={activatingCode}
+                  className="mt-4 w-full rounded-xl border border-[#38516e] bg-[#10243b] px-4 py-3 font-mono text-sm text-white outline-none focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/40 disabled:opacity-50"
+                />
+
+                <button
+                  type="button"
+                  onClick={handleActivateStandee}
+                  disabled={!activationCodeInput.trim() || activatingCode}
+                  className="mt-3 w-full rounded-xl bg-cyan-300 px-4 py-3 text-sm font-bold text-[#0b1b30] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b1b30] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {activatingCode ? "Binding..." : "Verify Code and Bind"}
+                </button>
+              </div>
+
+              {qrMessage && (
+                <p className="mt-4 text-sm text-cyan-200" role="status">
+                  {qrMessage}
+                </p>
+              )}
+
+              {error && (
+                <p className="mt-3 text-sm text-red-400" role="alert">
+                  {typeof error === "string"
+                    ? error
+                    : error.message || "Binding failed."}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="hidden" aria-hidden="true">
+          <QRCodeSVG
+            id="digital-qr-svg"
+            value={qrPublicUrl}
+            size={1000}
+            level="H"
+            includeMargin
+          />
+        </div>
 
         {/* ==================== QR CODE WORKSPACE ==================== */}
 
@@ -679,23 +768,21 @@ const Qr = () => {
                 ) : qrImage ? (
                   <img
                     src={qrImage}
-                    alt="Bound business QR code"
+                    alt="Saved Digital QR code"
                     className="mx-auto h-60 w-60 rounded-xl bg-white p-2"
                   />
                 ) : (
                   <p className="max-w-48 text-center text-sm text-slate-600">
-                    Bind a QR code to display it here.
+                    Your Digital QR will appear here after your public profile
+                    is saved.
                   </p>
                 )}
               </div>
 
-              {boundQR && (
+              {profile && (
                 <div className="mt-4 max-w-sm text-center">
                   <p className="font-semibold text-white">
-                    Profile: {boundQR.subdomain}
-                  </p>
-                  <p className="text-sm text-slate-400">
-                    QR Path: {boundQR.qrPath}
+                    Profile: {profile.subdomain || "Not configured"}
                   </p>
                   <p className="break-all text-sm text-cyan-200">
                     {qrPublicUrl}
@@ -763,13 +850,13 @@ const Qr = () => {
 
                 <button
                   type="button"
-                  onClick={handleDownloadQR}
-                  disabled={!qrImage || downloading}
+                  onClick={() => handleDownloadQR("png")}
+                  disabled={!qrImage || !qrPublicUrl || downloading !== ""}
                   className="flex w-full items-center justify-between gap-3 rounded-xl bg-cyan-300 p-4 text-left text-[#0b1b30] transition hover:bg-cyan-200 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span className="flex items-center gap-3">
                     <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0b1b30]/10">
-                      {downloading ? (
+                      {downloading === "png" ? (
                         <Loader2 size={17} className="animate-spin" />
                       ) : (
                         <Download size={17} />
@@ -778,9 +865,9 @@ const Qr = () => {
 
                     <span>
                       <span className="block text-xs font-bold">
-                        {downloading
+                        {downloading === "png"
                           ? "Preparing download..."
-                          : "Download QR code"}
+                          : "Download PNG"}
                       </span>
 
                       <span className="mt-1 block text-[10px] text-[#0b1b30]/70">

@@ -1,12 +1,47 @@
 const QRCode = require("../models/QRCode");
 const MiniProfile = require("../models/MiniProfile");
 
+const validateSlotNumber = (value) => {
+  const slot = Number(value);
+  return [1, 2, 3].includes(slot) ? slot : null;
+};
+
+const getProfileForUser = async (userId) => {
+  const profile = await MiniProfile.findOne({ userId })
+    .select("subdomain businessName")
+    .lean();
+
+  return profile?.subdomain ? profile : null;
+};
+
+const formatBoundQR = (qr, profile) => ({
+  _id: qr._id,
+  serialNumber: qr.serialNumber,
+  activationCode: qr.activationCode,
+  qrPath: qr.qrPath,
+  format: qr.format || null,
+  assignedSlot: qr.assignedSlot,
+  status: qr.status,
+  subdomain: profile.subdomain,
+  businessName: profile.businessName,
+  assignedAt: qr.assignedAt,
+});
+
+// Activate a physical QR using its activation code.
 const activateQRCodeByCode = async (req, res) => {
   try {
     const userId = req.user._id;
     const activationCode = String(req.body?.activationCode || "")
       .trim()
       .toUpperCase();
+    const slotNumber = validateSlotNumber(req.body?.slotNumber);
+
+    if (!slotNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "Select a valid physical QR slot (1, 2 or 3).",
+      });
+    }
 
     if (!/^BIO-[A-HJ-NP-Z2-9]{8}$/.test(activationCode)) {
       return res.status(400).json({
@@ -15,59 +50,30 @@ const activateQRCodeByCode = async (req, res) => {
       });
     }
 
-    const profile = await MiniProfile.findOne({ userId })
-      .select("subdomain businessName")
-      .lean();
+    const profile = await getProfileForUser(userId);
 
-    if (!profile?.subdomain) {
+    if (!profile) {
       return res.status(400).json({
         success: false,
         message: "Create and save your public profile first.",
       });
     }
 
-    // Atomic claim: one available QR can be claimed by one user.
-    const claimedQR = await QRCode.findOneAndUpdate(
-      {
-        activationCode,
-        status: "available",
-        assignedUserId: null,
-      },
-      {
-        $set: {
-          assignedUserId: userId,
-          status: "assigned",
-          assignedAt: new Date(),
-          businessName: profile.businessName || null,
-        },
-      },
-      {
-        new: true,
-        runValidators: true,
-      },
-    ).select("serialNumber activationCode qrPath status assignedAt");
+    const existingSlot = await QRCode.findOne({
+      assignedUserId: userId,
+      assignedSlot: slotNumber,
+      status: "assigned",
+    }).lean();
 
-    if (claimedQR) {
-      return res.status(200).json({
-        success: true,
-        message: "Standee activated successfully.",
-        data: {
-          serialNumber: claimedQR.serialNumber,
-          activationCode: claimedQR.activationCode,
-          qrPath: claimedQR.qrPath,
-          status: claimedQR.status,
-          subdomain: profile.subdomain,
-          businessName: profile.businessName,
-          assignedAt: claimedQR.assignedAt,
-        },
+    if (existingSlot) {
+      return res.status(409).json({
+        success: false,
+        message: `Physical QR Code ${slotNumber} is already occupied.`,
       });
     }
 
-    // Explain whether the code is already claimed or unavailable.
     const existingQR = await QRCode.findOne({ activationCode })
-      .select(
-        "status assignedUserId serialNumber activationCode qrPath assignedAt",
-      )
+      .select("assignedUserId assignedSlot status")
       .lean();
 
     if (!existingQR) {
@@ -84,36 +90,104 @@ const activateQRCodeByCode = async (req, res) => {
       });
     }
 
-    if (String(existingQR.assignedUserId) === String(userId)) {
+    if (existingQR.assignedUserId) {
+      if (String(existingQR.assignedUserId) !== String(userId)) {
+        return res.status(409).json({
+          success: false,
+          message: "This QR is already assigned to another account.",
+        });
+      }
+
+      if (existingQR.assignedSlot === slotNumber) {
+        const sameQR = await QRCode.findOne({ activationCode });
+        return res.status(200).json({
+          success: true,
+          message: "This QR is already linked to your account.",
+          data: formatBoundQR(sameQR, profile),
+        });
+      }
+
+      if (existingQR.assignedSlot != null) {
+        return res.status(409).json({
+          success: false,
+          message: "This QR is already linked to another slot.",
+        });
+      }
+
+      // Migrate an older QR already assigned to this user.
+      const migratedQR = await QRCode.findOneAndUpdate(
+        {
+          activationCode,
+          assignedUserId: userId,
+          assignedSlot: null,
+          status: "assigned",
+        },
+        { $set: { assignedSlot: slotNumber } },
+        { new: true, runValidators: true },
+      );
+
+      if (!migratedQR) {
+        return res.status(409).json({
+          success: false,
+          message: "QR assignment changed. Please try again.",
+        });
+      }
+
       return res.status(200).json({
         success: true,
-        message: "This QR is already linked to your account.",
-        data: {
-          serialNumber: existingQR.serialNumber,
-          activationCode: existingQR.activationCode,
-          qrPath: existingQR.qrPath,
-          status: existingQR.status,
-          subdomain: profile.subdomain,
-          businessName: profile.businessName,
-          assignedAt: existingQR.assignedAt,
-        },
+        message: `Physical QR Code ${slotNumber} linked successfully.`,
+        data: formatBoundQR(migratedQR, profile),
       });
     }
 
-    return res.status(409).json({
-      success: false,
-      message: "This QR is already assigned or unavailable.",
+    const claimedQR = await QRCode.findOneAndUpdate(
+      {
+        activationCode,
+        status: "available",
+        assignedUserId: null,
+      },
+      {
+        $set: {
+          assignedUserId: userId,
+          assignedSlot: slotNumber,
+          status: "assigned",
+          assignedAt: new Date(),
+          businessName: profile.businessName || null,
+        },
+      },
+      { new: true, runValidators: true },
+    );
+
+    if (!claimedQR) {
+      return res.status(409).json({
+        success: false,
+        message: "This QR was just assigned or is no longer available.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Physical QR Code ${slotNumber} linked successfully.`,
+      data: formatBoundQR(claimedQR, profile),
     });
   } catch (error) {
     console.error("Activate QR by code error:", error);
 
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "This physical QR slot is already occupied.",
+      });
+    }
+
     return res.status(500).json({
       success: false,
-      message: "Failed to activate standee.",
+      message: "Failed to activate physical QR.",
     });
   }
 };
 
+// Validate existing QR paths.
 const normalizeQRPath = (value) => {
   if (typeof value !== "string") return null;
 
@@ -136,11 +210,19 @@ const normalizeQRPath = (value) => {
   return isLegacyPath || isGeneratedPath ? path : null;
 };
 
-// Bind an existing physical QR path to the logged-in owner's profile.
+// Bind an existing physical QR by scanning its URL.
 const bindQRCodeToProfile = async (req, res) => {
   try {
     const userId = req.user._id;
     const qrPath = normalizeQRPath(req.body?.qrPath);
+    const slotNumber = validateSlotNumber(req.body?.slotNumber);
+
+    if (!slotNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "Select a valid physical QR slot (1, 2 or 3).",
+      });
+    }
 
     if (!qrPath) {
       return res.status(400).json({
@@ -149,22 +231,34 @@ const bindQRCodeToProfile = async (req, res) => {
       });
     }
 
-    const profile = await MiniProfile.findOne({ userId })
-      .select("subdomain businessName")
-      .lean();
+    const profile = await getProfileForUser(userId);
 
-    if (!profile?.subdomain) {
+    if (!profile) {
       return res.status(400).json({
         success: false,
         message: "Create and save your public profile first.",
       });
     }
 
+    const existingSlot = await QRCode.findOne({
+      assignedUserId: userId,
+      assignedSlot: slotNumber,
+      status: "assigned",
+    }).lean();
+
+    if (existingSlot) {
+      return res.status(409).json({
+        success: false,
+        message: `Physical QR Code ${slotNumber} is already occupied.`,
+      });
+    }
+
     const existingQR = await QRCode.findOne({ qrPath })
-      .select("serialNumber qrPath status assignedUserId assignedAt")
+      .select(
+        "serialNumber qrPath format status assignedUserId assignedSlot assignedAt",
+      )
       .lean();
 
-    // Unknown paths must never create inventory records.
     if (!existingQR) {
       return res.status(404).json({
         success: false,
@@ -179,7 +273,6 @@ const bindQRCodeToProfile = async (req, res) => {
       });
     }
 
-    // Make repeated requests from the same account idempotent.
     if (existingQR.assignedUserId) {
       if (String(existingQR.assignedUserId) !== String(userId)) {
         return res.status(409).json({
@@ -188,20 +281,47 @@ const bindQRCodeToProfile = async (req, res) => {
         });
       }
 
+      if (existingQR.assignedSlot === slotNumber) {
+        return res.status(200).json({
+          success: true,
+          message: "This QR is already linked to your account.",
+          data: formatBoundQR(existingQR, profile),
+        });
+      }
+
+      if (existingQR.assignedSlot != null) {
+        return res.status(409).json({
+          success: false,
+          message: "This QR is already linked to another slot.",
+        });
+      }
+
+      // Migrate an older QR already assigned to this user.
+      const migratedQR = await QRCode.findOneAndUpdate(
+        {
+          _id: existingQR._id,
+          assignedUserId: userId,
+          assignedSlot: null,
+          status: "assigned",
+        },
+        { $set: { assignedSlot: slotNumber } },
+        { new: true, runValidators: true },
+      );
+
+      if (!migratedQR) {
+        return res.status(409).json({
+          success: false,
+          message: "QR assignment changed. Please try again.",
+        });
+      }
+
       return res.status(200).json({
         success: true,
-        message: "This QR is already linked to your account.",
-        data: {
-          qrPath: existingQR.qrPath,
-          serialNumber: existingQR.serialNumber,
-          subdomain: profile.subdomain,
-          businessName: profile.businessName,
-          assignedAt: existingQR.assignedAt,
-        },
+        message: `Physical QR Code ${slotNumber} linked successfully.`,
+        data: formatBoundQR(migratedQR, profile),
       });
     }
 
-    // Atomic claim: only one request can claim an available QR.
     const claimedQR = await QRCode.findOneAndUpdate(
       {
         _id: existingQR._id,
@@ -211,16 +331,14 @@ const bindQRCodeToProfile = async (req, res) => {
       {
         $set: {
           assignedUserId: userId,
+          assignedSlot: slotNumber,
           status: "assigned",
           assignedAt: new Date(),
           businessName: profile.businessName || null,
         },
       },
-      {
-        new: true,
-        runValidators: true,
-      },
-    ).select("serialNumber qrPath status assignedAt");
+      { new: true, runValidators: true },
+    );
 
     if (!claimedQR) {
       return res.status(409).json({
@@ -231,14 +349,8 @@ const bindQRCodeToProfile = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "QR linked to your profile successfully.",
-      data: {
-        qrPath: claimedQR.qrPath,
-        serialNumber: claimedQR.serialNumber,
-        subdomain: profile.subdomain,
-        businessName: profile.businessName,
-        assignedAt: claimedQR.assignedAt,
-      },
+      message: `Physical QR Code ${slotNumber} linked successfully.`,
+      data: formatBoundQR(claimedQR, profile),
     });
   } catch (error) {
     console.error("Bind QR error:", error);
@@ -246,7 +358,7 @@ const bindQRCodeToProfile = async (req, res) => {
     if (error.code === 11000) {
       return res.status(409).json({
         success: false,
-        message: "QR assignment conflict. Please check its current status.",
+        message: "This physical QR slot is already occupied.",
       });
     }
 
@@ -257,7 +369,7 @@ const bindQRCodeToProfile = async (req, res) => {
   }
 };
 
-// Resolve a scanned path such as /xyz and redirect to its owner's profile.
+// Resolve an assigned physical QR and redirect to its owner's profile.
 const resolveQRCode = async (req, res, next) => {
   try {
     const qrPath = normalizeQRPath(
@@ -274,14 +386,13 @@ const resolveQRCode = async (req, res, next) => {
       assignedUserId: { $ne: null },
     }).select("assignedUserId");
 
-    // Not a registered QR: allow the normal React fallback to handle it.
     if (!qrCode) return next();
 
     const profile = await MiniProfile.findOne({
       userId: qrCode.assignedUserId,
     }).select("subdomain");
 
-    if (!profile || !profile.subdomain) {
+    if (!profile?.subdomain) {
       return res.status(404).send("The linked public profile was not found.");
     }
 
@@ -290,8 +401,6 @@ const resolveQRCode = async (req, res, next) => {
     if (!frontendBaseUrl) {
       return res.status(500).send("Public profile URL is not configured.");
     }
-
-    // Adjust this route if your React app uses a different profile URL.
 
     const destination =
       `${frontendBaseUrl.replace(/\/+$/, "")}/card-preview/` +
@@ -304,50 +413,50 @@ const resolveQRCode = async (req, res, next) => {
   }
 };
 
-// Get the logged-in user's bound QR and public profile.
+// Return all three physical QR slots.
 const getMyBoundQRCode = async (req, res) => {
   try {
     const userId = req.user._id;
+    const profile = await getProfileForUser(userId);
 
-    const profile = await MiniProfile.findOne({ userId }).select(
-      "subdomain businessName",
-    );
-
-    if (!profile || !profile.subdomain) {
+    if (!profile) {
       return res.status(200).json({
         success: true,
         message: "No saved public profile found.",
-        data: null,
+        data: {
+          slots: { 1: null, 2: null, 3: null },
+          qrCodes: [],
+        },
       });
     }
 
-    const qrCode = await QRCode.findOne({
+    const qrCodes = await QRCode.find({
       assignedUserId: userId,
       status: "assigned",
-      qrPath: { $exists: true, $ne: null },
+      assignedSlot: { $in: [1, 2, 3] },
     })
-      .select("serialNumber activationCode qrPath status assignedAt")
-      .sort({ assignedAt: -1 });
+      .select(
+        "serialNumber activationCode qrPath format assignedSlot status assignedAt",
+      )
+      .sort({ assignedSlot: 1 })
+      .lean();
 
-    if (!qrCode) {
-      return res.status(200).json({
-        success: true,
-        message: "No QR is linked to your account yet.",
-        data: null,
-      });
-    }
+    const slots = {
+      1: null,
+      2: null,
+      3: null,
+    };
+
+    qrCodes.forEach((qr) => {
+      slots[qr.assignedSlot] = formatBoundQR(qr, profile);
+    });
 
     return res.status(200).json({
       success: true,
-      message: "Bound QR fetched successfully.",
+      message: "Physical QR slots fetched successfully.",
       data: {
-        qrPath: qrCode.qrPath,
-        serialNumber: qrCode.serialNumber,
-        activationCode: qrCode.activationCode,
-        subdomain: profile.subdomain,
-        businessName: profile.businessName,
-        status: qrCode.status,
-        assignedAt: qrCode.assignedAt,
+        slots,
+        qrCodes,
       },
     });
   } catch (error) {
@@ -355,10 +464,11 @@ const getMyBoundQRCode = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "Failed to fetch your bound QR.",
+      message: "Failed to fetch your physical QR slots.",
     });
   }
 };
+
 module.exports = {
   bindQRCodeToProfile,
   activateQRCodeByCode,

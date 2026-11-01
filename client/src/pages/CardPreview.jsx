@@ -1,4 +1,3 @@
-
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -12,6 +11,7 @@ import "swiper/css/pagination";
 import api from "../redux/api";
 import { createInquiry } from "../redux/slice/inquirySlice";
 import { getPublicQRUrl } from "../utils/qrUrl";
+import { downloadStandeePNG } from "../utils/downloadStandeePNG";
 
 import ExecutivePro from "../components/ExecutivePro";
 import MinimalLuxury from "../components/MinimalLuxury";
@@ -36,6 +36,7 @@ import {
   ShieldCheck,
   X,
   Edit,
+  FileImage,
 } from "lucide-react";
 
 /* ============================================================
@@ -325,9 +326,9 @@ function CardPreview() {
 
   const isProfileOwner = Boolean(
     isAuthenticated &&
-      loggedInUserId &&
-      profileOwnerId &&
-      String(loggedInUserId) === String(profileOwnerId),
+    loggedInUserId &&
+    profileOwnerId &&
+    String(loggedInUserId) === String(profileOwnerId),
   );
 
   const handleEditProfile = () => {
@@ -435,7 +436,12 @@ function CardPreview() {
 
   const productList = Array.isArray(products) ? products : [];
 
-  const qrValue = useMemo(() => getPublicQRUrl(qrPath), [qrPath]);
+  const qrImage = profile?.qrCode || "";
+
+  const qrValue = useMemo(
+    () => profile?.qrUrl || getPublicQRUrl(qrPath),
+    [profile?.qrUrl, qrPath],
+  );
 
   /* ============================================================
      CONTACT HANDLERS
@@ -518,6 +524,26 @@ function CardPreview() {
     document.body.appendChild(link);
     link.click();
     link.remove();
+  };
+
+  const handleDownloadStandee = async () => {
+    if (!qrValue) {
+      return alert("Profile QR code is not available.");
+    }
+
+    try {
+      await downloadStandeePNG({
+        qrValue,
+        shopName:
+          profile?.businessName?.trim() ||
+          businessInfo?.name?.trim() ||
+          "My Business",
+        socialLinks,
+      });
+    } catch (error) {
+      console.error("Standee download failed:", error);
+      alert("Standee download nahi ho paaya. Please try again.");
+    }
   };
 
   const shareProfile = async () => {
@@ -1027,13 +1053,30 @@ function CardPreview() {
                 {qrValue ? (
                   <>
                     <div className="mb-5 rounded-xl bg-white p-4">
-                      <QRCodeCanvas
-                        id="public-qr-modal-canvas"
-                        value={qrValue}
-                        size={220}
-                        level="H"
-                        includeMargin
-                      />
+                      {qrImage ? (
+                        <img
+                          src={qrImage}
+                          alt="Digital Profile QR Code"
+                          className="mx-auto h-[220px] w-[220px] object-contain"
+                        />
+                      ) : (
+                        <QRCodeCanvas
+                          value={qrValue}
+                          size={220}
+                          level="H"
+                          includeMargin
+                        />
+                      )}
+
+                      <div className="hidden">
+                        <QRCodeCanvas
+                          id="public-qr-modal-canvas"
+                          value={qrValue}
+                          size={220}
+                          level="H"
+                          includeMargin
+                        />
+                      </div>
                     </div>
 
                     <p
@@ -1060,6 +1103,15 @@ function CardPreview() {
                     >
                       <Download size={16} />
                       Download QR Code
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDownloadStandee}
+                      disabled={!qrValue}
+                      className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 py-3 text-sm font-bold text-[#0b1b30] disabled:opacity-50"
+                    >
+                      <FileImage size={16} />
+                      Download QR Standee (PNG)
                     </button>
                   </>
                 ) : (
@@ -1100,13 +1152,30 @@ function CardPreview() {
                 {qrValue ? (
                   <>
                     <div className="rounded-xl bg-white p-3">
-                      <QRCodeCanvas
-                        id="public-qr-poster-canvas"
-                        value={qrValue}
-                        size={180}
-                        level="H"
-                        includeMargin
-                      />
+                      {qrImage ? (
+                        <img
+                          src={qrImage}
+                          alt="Digital Profile QR Code"
+                          className="mx-auto h-[180px] w-[180px] object-contain"
+                        />
+                      ) : (
+                        <QRCodeCanvas
+                          value={qrValue}
+                          size={180}
+                          level="H"
+                          includeMargin
+                        />
+                      )}
+
+                      <div className="hidden">
+                        <QRCodeCanvas
+                          id="public-qr-poster-canvas"
+                          value={qrValue}
+                          size={180}
+                          level="H"
+                          includeMargin
+                        />
+                      </div>
                     </div>
 
                     <p
