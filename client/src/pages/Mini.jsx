@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -58,10 +57,10 @@ const hasValidProfile = (profile) => {
 
   return Boolean(
     firstName ||
-      lastName ||
-      businessName ||
-      profile.phone?.trim() ||
-      profile.email?.trim(),
+    lastName ||
+    businessName ||
+    profile.phone?.trim() ||
+    profile.email?.trim(),
   );
 };
 
@@ -90,21 +89,15 @@ const normalizeGalleryImages = (raw) => {
         item.image,
         item.imageUrl,
         item.path,
-      ].find(
-        (value) => typeof value === "string" && value.trim(),
-      );
+      ].find((value) => typeof value === "string" && value.trim());
 
       if (!url) return null;
 
-      const caption =
-        item.caption?.trim() || item.title?.trim() || "";
+      const caption = item.caption?.trim() || item.title?.trim() || "";
 
       return {
         url: url.trim(),
-        alt:
-          item.alt?.trim() ||
-          caption ||
-          `Gallery image ${index + 1}`,
+        alt: item.alt?.trim() || caption || `Gallery image ${index + 1}`,
         caption,
       };
     })
@@ -202,18 +195,13 @@ const loadRazorpayScript = () =>
     );
 
     if (existingScript) {
-      existingScript.addEventListener(
-        "load",
-        () => resolve(true),
-        { once: true },
-      );
+      existingScript.addEventListener("load", () => resolve(true), {
+        once: true,
+      });
 
       existingScript.addEventListener(
         "error",
-        () =>
-          reject(
-            new Error("Razorpay Checkout load nahi ho paaya."),
-          ),
+        () => reject(new Error("Razorpay Checkout load nahi ho paaya.")),
         { once: true },
       );
 
@@ -228,9 +216,7 @@ const loadRazorpayScript = () =>
     script.onload = () => resolve(true);
 
     script.onerror = () =>
-      reject(
-        new Error("Razorpay Checkout load nahi ho paaya."),
-      );
+      reject(new Error("Razorpay Checkout load nahi ho paaya."));
 
     document.body.appendChild(script);
   });
@@ -251,17 +237,13 @@ const Mini = () => {
     loading: profileLoading,
   } = useSelector((state) => state.profile || {});
 
-  const { products = [] } = useSelector(
-    (state) => state.product || {},
-  );
+  const { products = [] } = useSelector((state) => state.product || {});
 
   const { buttons: contactButtons = [] } = useSelector(
     (state) => state.contactButtons || {},
   );
 
-  const { gallery = [] } = useSelector(
-    (state) => state.gallery || {},
-  );
+  const { gallery = [] } = useSelector((state) => state.gallery || {});
 
   const {
     submitting: inquirySubmitting = false,
@@ -279,8 +261,7 @@ const Mini = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [productPayment, setProductPayment] = useState(null);
 
-  const [selectedGalleryImage, setSelectedGalleryImage] =
-    useState(null);
+  const [selectedGalleryImage, setSelectedGalleryImage] = useState(null);
 
   const [standeeCode, setStandeeCode] = useState("");
   const [standeeActivated, setStandeeActivated] = useState(false);
@@ -305,7 +286,6 @@ const Mini = () => {
     email: "",
     message: "",
   });
-
 
   const [formSubmitted, setFormSubmitted] = useState(false);
 
@@ -372,22 +352,16 @@ const Mini = () => {
   ========================================== */
 
   const visibleButtons = useMemo(() => {
-    const slice = Array.isArray(contactButtons)
-      ? contactButtons
-      : [];
+    const slice = Array.isArray(contactButtons) ? contactButtons : [];
 
-    const fromProfile = Array.isArray(
-      profileData.contactButtons,
-    )
+    const fromProfile = Array.isArray(profileData.contactButtons)
       ? profileData.contactButtons
       : [];
 
     return [...(slice.length > 0 ? slice : fromProfile)]
       .filter(
         (button) =>
-          button &&
-          button.enabled !== false &&
-          button.enabled !== "false",
+          button && button.enabled !== false && button.enabled !== "false",
       )
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   }, [contactButtons, profileData.contactButtons]);
@@ -397,18 +371,11 @@ const Mini = () => {
   ========================================== */
 
   const businessInfo = useMemo(() => {
-    const fullName = [
-      profileData.firstName,
-      profileData.lastName,
-    ]
+    const fullName = [profileData.firstName, profileData.lastName]
       .filter(Boolean)
       .join(" ");
 
-    const location = [
-      profileData.area,
-      profileData.city,
-      profileData.state,
-    ]
+    const location = [profileData.area, profileData.city, profileData.state]
       .filter(Boolean)
       .join(", ");
 
@@ -429,19 +396,13 @@ const Mini = () => {
 
       location: location || "Location not added",
 
-      about:
-        profileData.bio ||
-        profileData.headline ||
-        "",
+      about: profileData.bio || profileData.headline || "",
 
       phone: profileData.phone || "",
       whatsapp: profileData.whatsapp || "",
       email: profileData.email || "",
 
-      website:
-        profileData.website ||
-        profileData.websiteUrl ||
-        "",
+      website: profileData.website || profileData.websiteUrl || "",
 
       address: address || "Address not added",
 
@@ -455,9 +416,7 @@ const Mini = () => {
       businessHours: profileData.businessHours || "",
       upiId: profileData.upiId || "",
 
-      isVerified:
-        profileData.isVerified === true ||
-        isVerified === true,
+      isVerified: profileData.isVerified === true || isVerified === true,
     };
   }, [profileData, isVerified]);
 
@@ -509,16 +468,12 @@ const Mini = () => {
       .filter((social) => social?.url)
       .map((social) => {
         const platform =
-          social.platform ||
-          social.platformName ||
-          social.icon ||
-          "";
+          social.platform || social.platformName || social.icon || "";
 
         return {
           ...social,
           platform,
-          platformName:
-            social.platformName || platform,
+          platformName: social.platformName || platform,
           icon: social.icon || platform,
         };
       });
@@ -544,43 +499,30 @@ const Mini = () => {
     ).trim();
 
     if (!profileSubdomain) {
-      throw new Error(
-        "Profile subdomain configure nahi hai.",
-      );
+      throw new Error("Profile subdomain configure nahi hai.");
     }
 
     if (!selectedPlan?._id) {
-      throw new Error(
-        "Please ek valid plan select karein.",
-      );
+      throw new Error("Please ek valid plan select karein.");
     }
 
     await loadRazorpayScript();
 
-    const orderResponse = await api.post(
-      "/plan-purchases/create-order",
-      {
-        planId: selectedPlan._id,
-        subdomain: profileSubdomain,
-      },
-    );
+    const orderResponse = await api.post("/plan-purchases/create-order", {
+      planId: selectedPlan._id,
+      subdomain: profileSubdomain,
+    });
 
     const orderData = orderResponse.data?.data;
 
-    if (
-      !orderResponse.data?.success ||
-      !orderData?.orderId
-    ) {
+    if (!orderResponse.data?.success || !orderData?.orderId) {
       throw new Error(
-        orderResponse.data?.message ||
-          "Payment order create nahi ho paaya.",
+        orderResponse.data?.message || "Payment order create nahi ho paaya.",
       );
     }
 
     if (!orderData.razorpayKeyId) {
-      throw new Error(
-        "Razorpay key server response mein nahi mili.",
-      );
+      throw new Error("Razorpay key server response mein nahi mili.");
     }
 
     return new Promise((resolve, reject) => {
@@ -602,9 +544,7 @@ const Mini = () => {
 
         name: "BioWebsite",
 
-        description: `${
-          orderData.planName || selectedPlan.name
-        } Plan`,
+        description: `${orderData.planName || selectedPlan.name} Plan`,
 
         order_id: orderData.orderId,
 
@@ -617,14 +557,11 @@ const Mini = () => {
             const verifyResponse = await api.post(
               "/plan-purchases/verify-payment",
               {
-                razorpay_order_id:
-                  razorpayResponse.razorpay_order_id,
+                razorpay_order_id: razorpayResponse.razorpay_order_id,
 
-                razorpay_payment_id:
-                  razorpayResponse.razorpay_payment_id,
+                razorpay_payment_id: razorpayResponse.razorpay_payment_id,
 
-                razorpay_signature:
-                  razorpayResponse.razorpay_signature,
+                razorpay_signature: razorpayResponse.razorpay_signature,
 
                 subdomain: profileSubdomain,
               },
@@ -641,11 +578,7 @@ const Mini = () => {
 
             setShowPlanPayment(false);
 
-            navigate(
-              `/card-preview/${encodeURIComponent(
-                profileSubdomain,
-              )}`,
-            );
+            navigate(`/card-preview/${encodeURIComponent(profileSubdomain)}`);
           } catch (error) {
             finish(
               reject,
@@ -660,12 +593,7 @@ const Mini = () => {
 
         modal: {
           ondismiss: () => {
-            finish(
-              reject,
-              new Error(
-                "Payment window close kar di gayi.",
-              ),
-            );
+            finish(reject, new Error("Payment window close kar di gayi."));
           },
         },
       });
@@ -688,24 +616,31 @@ const Mini = () => {
      WHATSAPP
   ========================================== */
 
-  const handleWhatsApp = () => {
-    const number =
-      businessInfo.whatsapp || businessInfo.phone;
+  const handleProductWhatsAppInquiry = (product) => {
+    const number = (businessInfo?.whatsapp || "").replace(/\D/g, "");
 
     if (!number) {
-      return alert("WhatsApp number is not available.");
+      return alert("WhatsApp number is not available in this profile.");
     }
 
-    window.open(
-      `https://wa.me/${number.replace(
-        /\D/g,
-        "",
-      )}?text=${encodeURIComponent(
-        "Hi, I'm interested in your business.",
-      )}`,
-      "_blank",
-      "noopener,noreferrer",
-    );
+    if (!product) {
+      return alert("Product details are not available.");
+    }
+
+    const message = [
+      "Hi, I'm interested in the following product/service:",
+      "",
+      `Name: ${product.name || "N/A"}`,
+      `Price: ₹${Number(product.price || 0).toLocaleString("en-IN")}`,
+      `Category: ${product.category || "General"}`,
+      `Type: ${product.type || "product"}`,
+      "",
+      "Please share more details.",
+    ].join("\n");
+
+    const whatsappUrl = `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
 
   /* ==========================================
@@ -717,10 +652,7 @@ const Mini = () => {
       return alert("Phone number is not available.");
     }
 
-    window.location.href = `tel:${businessInfo.phone.replace(
-      /\s/g,
-      "",
-    )}`;
+    window.location.href = `tel:${businessInfo.phone.replace(/\s/g, "")}`;
   };
 
   /* ==========================================
@@ -729,13 +661,10 @@ const Mini = () => {
 
   const handleShare = async () => {
     const shareData = {
-      title:
-        businessInfo.name ||
-        businessInfo.businessName,
+      title: businessInfo.name || businessInfo.businessName,
 
       text: `Check out ${
-        businessInfo.name ||
-        businessInfo.businessName
+        businessInfo.name || businessInfo.businessName
       }'s business`,
 
       url: window.location.href,
@@ -758,20 +687,13 @@ const Mini = () => {
 
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(
-        window.location.href,
-      );
+      await navigator.clipboard.writeText(window.location.href);
 
       setCopied(true);
 
-      window.setTimeout(
-        () => setCopied(false),
-        2000,
-      );
+      window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      alert(
-        "Unable to copy the link. Please copy it from the address bar.",
-      );
+      alert("Unable to copy the link. Please copy it from the address bar.");
     }
   };
 
@@ -779,9 +701,7 @@ const Mini = () => {
      DOWNLOAD QR
   ========================================== */
 
-  const handleDownloadQR = (
-    canvasId = "bound-qr-canvas",
-  ) => {
+  const handleDownloadQR = (canvasId = "bound-qr-canvas") => {
     if (!qrTargetUrl) {
       return alert("Bound QR code is not available.");
     }
@@ -824,14 +744,9 @@ const Mini = () => {
         socialLinks,
       });
     } catch (error) {
-      console.error(
-        "Standee download failed:",
-        error,
-      );
+      console.error("Standee download failed:", error);
 
-      alert(
-        "Standee download nahi ho paaya. Please try again.",
-      );
+      alert("Standee download nahi ho paaya. Please try again.");
     }
   };
 
@@ -848,62 +763,42 @@ const Mini = () => {
         .replace(/,/g, "\\,")
         .replace(/;/g, "\\;");
 
-    const lines = [
-      "BEGIN:VCARD",
-      "VERSION:3.0",
-    ];
+    const lines = ["BEGIN:VCARD", "VERSION:3.0"];
 
-    const fullName = [
-      profileData.firstName,
-      profileData.lastName,
-    ]
+    const fullName = [profileData.firstName, profileData.lastName]
       .filter((value) => value?.trim())
       .join(" ")
       .trim();
 
-    const displayName =
-      fullName ||
-      profileData.businessName?.trim() ||
-      "";
+    const displayName = fullName || profileData.businessName?.trim() || "";
 
     if (displayName) {
       lines.push(`FN:${esc(displayName)}`);
     }
 
     if (profileData.businessName?.trim()) {
-      lines.push(
-        `ORG:${esc(profileData.businessName)}`,
-      );
+      lines.push(`ORG:${esc(profileData.businessName)}`);
     }
 
     if (profileData.jobTitle?.trim()) {
-      lines.push(
-        `TITLE:${esc(profileData.jobTitle)}`,
-      );
+      lines.push(`TITLE:${esc(profileData.jobTitle)}`);
     }
 
     if (profileData.phone?.trim()) {
-      lines.push(
-        `TEL;TYPE=CELL:${esc(profileData.phone)}`,
-      );
+      lines.push(`TEL;TYPE=CELL:${esc(profileData.phone)}`);
     }
 
     if (profileData.email?.trim()) {
-      lines.push(
-        `EMAIL:${esc(profileData.email)}`,
-      );
+      lines.push(`EMAIL:${esc(profileData.email)}`);
     }
 
     const website =
-      profileData.website?.trim() ||
-      profileData.websiteUrl?.trim();
+      profileData.website?.trim() || profileData.websiteUrl?.trim();
 
     if (website) {
       lines.push(
         `URL:${esc(
-          /^https?:\/\//i.test(website)
-            ? website
-            : `https://${website}`,
+          /^https?:\/\//i.test(website) ? website : `https://${website}`,
         )}`,
       );
     }
@@ -920,14 +815,10 @@ const Mini = () => {
       .join(", ");
 
     if (address) {
-      lines.push(
-        `ADR;TYPE=WORK:;;${esc(address)};;;;`,
-      );
+      lines.push(`ADR;TYPE=WORK:;;${esc(address)};;;;`);
     }
 
-    const note =
-      profileData.bio?.trim() ||
-      profileData.headline?.trim();
+    const note = profileData.bio?.trim() || profileData.headline?.trim();
 
     if (note) {
       lines.push(`NOTE:${esc(note)}`);
@@ -945,12 +836,9 @@ const Mini = () => {
 
     lines.push("END:VCARD");
 
-    const blob = new Blob(
-      [`${lines.join("\r\n")}\r\n`],
-      {
-        type: "text/vcard;charset=utf-8",
-      },
-    );
+    const blob = new Blob([`${lines.join("\r\n")}\r\n`], {
+      type: "text/vcard;charset=utf-8",
+    });
 
     const url = URL.createObjectURL(blob);
 
@@ -970,17 +858,11 @@ const Mini = () => {
     anchor.click();
     anchor.remove();
 
-    window.setTimeout(
-      () => URL.revokeObjectURL(url),
-      1000,
-    );
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 
     setSaved(true);
 
-    window.setTimeout(
-      () => setSaved(false),
-      2000,
-    );
+    window.setTimeout(() => setSaved(false), 2000);
   };
 
   /* ==========================================
@@ -1075,9 +957,7 @@ const Mini = () => {
       case "website":
       case "customLink":
         if (!button.customUrl) {
-          return alert(
-            "This button has no link configured.",
-          );
+          return alert("This button has no link configured.");
         }
 
         return window.open(
@@ -1106,13 +986,10 @@ const Mini = () => {
   const handleFormSubmit = async (event) => {
     event.preventDefault();
 
-    const subdomain =
-      profileData.subdomain?.trim() || "";
+    const subdomain = profileData.subdomain?.trim() || "";
 
     if (!subdomain) {
-      return alert(
-        "This profile does not have a subdomain configured.",
-      );
+      return alert("This profile does not have a subdomain configured.");
     }
 
     const payload = {
@@ -1124,9 +1001,7 @@ const Mini = () => {
     };
 
     try {
-      await dispatch(
-        createInquiry(payload),
-      ).unwrap();
+      await dispatch(createInquiry(payload)).unwrap();
 
       setFormSubmitted(true);
 
@@ -1137,15 +1012,9 @@ const Mini = () => {
         message: "",
       });
 
-      window.setTimeout(
-        () => setFormSubmitted(false),
-        3000,
-      );
+      window.setTimeout(() => setFormSubmitted(false), 3000);
     } catch (error) {
-      console.error(
-        "Inquiry submission failed:",
-        error,
-      );
+      console.error("Inquiry submission failed:", error);
     }
   };
 
@@ -1175,11 +1044,7 @@ const Mini = () => {
      LOADING
   ========================================== */
 
-  if (
-    profileLoading ||
-    !profileChecked ||
-    !profile
-  ) {
+  if (profileLoading || !profileChecked || !profile) {
     return null;
   }
 
@@ -1190,12 +1055,10 @@ const Mini = () => {
   return (
     <div className="relative min-h-screen bg-transparent font-sans text-slate-800">
       <main className="relative mx-auto w-full max-w-[1300px] px-2 py-3 sm:px-4 sm:py-5 lg:px-6">
-
         {/* PAY & PUBLISH */}
 
         <div className="mb-6 overflow-hidden rounded-2xl border border-cyan-400/30 bg-gradient-to-r from-[#0b1b30] via-[#102b49] to-[#0b1b30] p-5 shadow-lg sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
             <div className="flex items-start gap-3">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-400/10 text-cyan-300">
                 <ShieldCheck size={24} />
@@ -1207,9 +1070,8 @@ const Mini = () => {
                 </h2>
 
                 <p className="mt-1 max-w-xl text-sm leading-6 text-slate-400">
-                  Apna plan select karein, secure payment
-                  complete karein aur payment verification
-                  ke baad profile preview par jaayein.
+                  Apna plan select karein, secure payment complete karein aur
+                  payment verification ke baad profile preview par jaayein.
                 </p>
               </div>
             </div>
@@ -1222,7 +1084,6 @@ const Mini = () => {
               Pay & Publish
               <span aria-hidden="true">→</span>
             </button>
-
           </div>
         </div>
 
@@ -1230,7 +1091,6 @@ const Mini = () => {
 
         {isPreviewMode && (
           <section className="pb-10">
-
             <div
               className="w-full overflow-hidden rounded-[24px] border border-cyan-400/20 shadow-2xl sm:rounded-[28px]"
               data-profile-theme={activeTheme}
@@ -1253,21 +1113,16 @@ const Mini = () => {
                 onFormSubmit={handleFormSubmit}
                 inquirySubmitting={inquirySubmitting}
                 inquirySubmitError={inquirySubmitError}
-                formSubmitted={
-                  formSubmitted || inquirySubmitSuccess
-                }
+                formSubmitted={formSubmitted || inquirySubmitSuccess}
                 onConfiguredButton={handleConfiguredButton}
                 onShare={handleShare}
                 onOpenQr={() => {
                   setQrModalTab("myqr");
                   setShowQrModal(true);
                 }}
-                onProductClick={(product) =>
-                  setSelectedProduct(product)
-                }
-                onGalleryClick={(image) =>
-                  setSelectedGalleryImage(image)
-                }
+                onProductClick={(product) => setSelectedProduct(product)}
+                onProductWhatsAppInquiry={handleProductWhatsAppInquiry}
+                onGalleryClick={(image) => setSelectedGalleryImage(image)}
                 onContactClick={handleContactClick}
                 theme={theme}
               />
@@ -1276,19 +1131,15 @@ const Mini = () => {
             {/* REVIEWS */}
 
             <div className="mx-auto mt-5 flex max-w-6xl flex-col gap-3 rounded-2xl border border-[#29435f] bg-[#0b1b30] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-400">
                   Customer feedback
                 </p>
 
-                <h3 className="mt-1 text-lg font-bold text-white">
-                  Reviews
-                </h3>
+                <h3 className="mt-1 text-lg font-bold text-white">Reviews</h3>
 
                 <p className="mt-1 text-sm text-slate-400">
-                  Be the first to share your experience with
-                  this business.
+                  Be the first to share your experience with this business.
                 </p>
               </div>
 
@@ -1299,7 +1150,6 @@ const Mini = () => {
               >
                 Write Review
               </button>
-
             </div>
           </section>
         )}
@@ -1310,13 +1160,8 @@ const Mini = () => {
       ========================================== */}
 
       {showQrModal && (
-        <Overlay
-          higher
-          darker
-          onClose={() => setShowQrModal(false)}
-        >
+        <Overlay higher darker onClose={() => setShowQrModal(false)}>
           <div className="relative w-full max-w-md rounded-2xl border border-[#29435f] bg-[#0b1b30] p-5 shadow-2xl sm:p-7">
-
             <button
               type="button"
               onClick={() => setShowQrModal(false)}
@@ -1355,7 +1200,6 @@ const Mini = () => {
 
             {qrModalTab === "share" && (
               <div className="space-y-3">
-
                 <button
                   type="button"
                   onClick={handleShare}
@@ -1371,11 +1215,8 @@ const Mini = () => {
                   className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#29435f] bg-[#132942] py-3 font-semibold text-white"
                 >
                   <Copy size={17} />
-                  {copied
-                    ? "Link Copied!"
-                    : "Copy Profile Link"}
+                  {copied ? "Link Copied!" : "Copy Profile Link"}
                 </button>
-
               </div>
             )}
 
@@ -1383,7 +1224,6 @@ const Mini = () => {
 
             {qrModalTab === "myqr" && (
               <div className="flex flex-col items-center">
-
                 <QrDisplay
                   id="bound-qr-modal-canvas"
                   size={220}
@@ -1397,14 +1237,8 @@ const Mini = () => {
 
                 <button
                   type="button"
-                  onClick={() =>
-                    handleDownloadQR(
-                      "bound-qr-modal-canvas",
-                    )
-                  }
-                  disabled={
-                    !qrTargetUrl || profileLoading
-                  }
+                  onClick={() => handleDownloadQR("bound-qr-modal-canvas")}
+                  disabled={!qrTargetUrl || profileLoading}
                   className="flex w-full items-center justify-center gap-2 rounded-xl border border-cyan-400/30 bg-cyan-400/10 py-3 text-sm font-bold text-cyan-400 disabled:opacity-50"
                 >
                   <Download size={16} />
@@ -1414,15 +1248,12 @@ const Mini = () => {
                 <button
                   type="button"
                   onClick={handleDownloadStandee}
-                  disabled={
-                    !qrTargetUrl || profileLoading
-                  }
+                  disabled={!qrTargetUrl || profileLoading}
                   className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 py-3 text-sm font-bold text-[#0b1b30] disabled:opacity-50"
                 >
                   <FileImage size={16} />
                   Download QR Standee (PNG)
                 </button>
-
               </div>
             )}
 
@@ -1430,11 +1261,7 @@ const Mini = () => {
 
             {qrModalTab === "poster" && (
               <div className="flex flex-col items-center rounded-xl border border-[#29435f] bg-[#132942] p-5 text-center">
-
-                <FileImage
-                  size={32}
-                  className="mb-3 text-cyan-400"
-                />
+                <FileImage size={32} className="mb-3 text-cyan-400" />
 
                 <h3 className="mb-2 text-lg font-bold text-white">
                   Profile QR Poster
@@ -1457,23 +1284,15 @@ const Mini = () => {
 
                 <button
                   type="button"
-                  onClick={() =>
-                    handleDownloadQR(
-                      "bound-qr-poster-canvas",
-                    )
-                  }
-                  disabled={
-                    !qrTargetUrl || profileLoading
-                  }
+                  onClick={() => handleDownloadQR("bound-qr-poster-canvas")}
+                  disabled={!qrTargetUrl || profileLoading}
                   className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 py-3 text-sm font-bold text-[#0b1b30] disabled:opacity-50"
                 >
                   <Download size={16} />
                   Download Poster QR
                 </button>
-
               </div>
             )}
-
           </div>
         </Overlay>
       )}
@@ -1485,7 +1304,6 @@ const Mini = () => {
       {selectedProduct && (
         <Overlay onClose={() => setSelectedProduct(null)}>
           <div className="relative w-full max-w-sm rounded-[26px] border border-cyan-400/30 bg-[#0b1b30] p-6 text-center shadow-2xl">
-
             <button
               type="button"
               onClick={() => setSelectedProduct(null)}
@@ -1498,35 +1316,24 @@ const Mini = () => {
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-300">
               <IndianRupee size={27} />
             </div>
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-300">
-              <IndianRupee size={27} />
-            </div>
 
-            <p className="mt-5 text-sm font-medium text-slate-400">
-              Product Amount
-            </p>
             <p className="mt-5 text-sm font-medium text-slate-400">
               Product Amount
             </p>
 
             <h3 className="mt-2 text-4xl font-extrabold text-white">
-              ₹
-              {Number(
-                selectedProduct.price || 0,
-              ).toLocaleString("en-IN")}
+              ₹{Number(selectedProduct.price || 0).toLocaleString("en-IN")}
             </h3>
 
             <button
               type="button"
               disabled={
-                !businessInfo.upiId ||
-                Number(selectedProduct.price || 0) <= 0
+                !businessInfo.upiId || Number(selectedProduct.price || 0) <= 0
               }
               onClick={() => {
                 setProductPayment({
                   amount: Number(selectedProduct.price),
-                  name:
-                    selectedProduct.name || "Product",
+                  name: selectedProduct.name || "Product",
                 });
 
                 setSelectedProduct(null);
@@ -1542,7 +1349,6 @@ const Mini = () => {
                 UPI ID is not available.
               </p>
             )}
-
           </div>
         </Overlay>
       )}
@@ -1552,17 +1358,11 @@ const Mini = () => {
       ========================================== */}
 
       {selectedGalleryImage && (
-        <Overlay
-          darker
-          onClose={() => setSelectedGalleryImage(null)}
-        >
+        <Overlay darker onClose={() => setSelectedGalleryImage(null)}>
           <div className="relative w-full max-w-3xl overflow-hidden rounded-[24px] border border-[#45414a] bg-[#17171c]">
-
             <button
               type="button"
-              onClick={() =>
-                setSelectedGalleryImage(null)
-              }
+              onClick={() => setSelectedGalleryImage(null)}
               aria-label="Close gallery image"
               className="absolute right-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-xl bg-[#22222a]/90 text-white"
             >
@@ -1582,7 +1382,6 @@ const Mini = () => {
                 </p>
               </div>
             )}
-
           </div>
         </Overlay>
       )}
@@ -1594,7 +1393,6 @@ const Mini = () => {
       {showReviewModal && (
         <Overlay onClose={() => setShowReviewModal(false)}>
           <div className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[26px] border border-cyan-400/20 bg-[#0b1b30] p-5 shadow-2xl sm:p-7">
-
             <button
               type="button"
               onClick={() => setShowReviewModal(false)}
@@ -1606,11 +1404,7 @@ const Mini = () => {
 
             {reviewSubmitted ? (
               <div className="py-10 text-center">
-
-                <CheckCircle2
-                  size={50}
-                  className="mx-auto text-cyan-400"
-                />
+                <CheckCircle2 size={50} className="mx-auto text-cyan-400" />
 
                 <h3 className="mt-5 text-xl font-bold text-white">
                   Thank You!
@@ -1619,16 +1413,11 @@ const Mini = () => {
                 <p className="mt-2 text-slate-300">
                   Thank you for your review!
                 </p>
-
               </div>
             ) : (
               <form onSubmit={handleReviewSubmit}>
-
                 <div className="mb-5 flex items-center gap-3">
-                  <Star
-                    size={24}
-                    className="text-cyan-400"
-                  />
+                  <Star size={24} className="text-cyan-400" />
 
                   <div>
                     <h3 className="text-xl font-bold text-white">
@@ -1667,9 +1456,7 @@ const Mini = () => {
                     <button
                       key={number}
                       type="button"
-                      onClick={() =>
-                        setReviewRating(number)
-                      }
+                      onClick={() => setReviewRating(number)}
                       aria-label={`Rate ${number} out of 5`}
                     >
                       <Star
@@ -1709,10 +1496,8 @@ const Mini = () => {
                   <Send size={17} />
                   Submit Review
                 </button>
-
               </form>
             )}
-
           </div>
         </Overlay>
       )}
@@ -1733,30 +1518,17 @@ const Mini = () => {
       ========================================== */}
 
       <Payment
-        isOpen={
-          showPayment || Boolean(productPayment)
-        }
+        isOpen={showPayment || Boolean(productPayment)}
         onClose={() => {
           setShowPayment(false);
           setProductPayment(null);
         }}
         upiId={profileData.upiId || ""}
-        businessName={
-          profileData.businessName || "My Business"
-        }
-        businessImage={
-          profileData.logo ||
-          profileData.avatar ||
-          ""
-        }
-        fixedAmount={
-          productPayment?.amount ?? null
-        }
-        productName={
-          productPayment?.name || ""
-        }
+        businessName={profileData.businessName || "My Business"}
+        businessImage={profileData.logo || profileData.avatar || ""}
+        fixedAmount={productPayment?.amount ?? null}
+        productName={productPayment?.name || ""}
       />
-
     </div>
   );
 };

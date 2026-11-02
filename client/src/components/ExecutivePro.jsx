@@ -217,6 +217,7 @@ const ExecutivePro = ({
   onShare = () => {},
   onOpenQr = () => {},
   onProductClick = () => {},
+  onProductWhatsAppInquiry = () => {},
   onGalleryClick = () => {},
   onContactClick = () => {},
 }) => {
@@ -254,9 +255,7 @@ const ExecutivePro = ({
   const getSocialIcon = (platform = "") => {
     const key = platform.toLowerCase();
 
-    const found = Object.keys(socialIconMap).find((item) =>
-      key.includes(item)
-    );
+    const found = Object.keys(socialIconMap).find((item) => key.includes(item));
 
     return found ? socialIconMap[found] : FaLink;
   };
@@ -264,30 +263,24 @@ const ExecutivePro = ({
   const normalizeUrl = (url = "") => {
     if (!url) return "#";
 
-    return /^https?:\/\//i.test(url)
-      ? url
-      : `https://${url}`;
+    return /^https?:\/\//i.test(url) ? url : `https://${url}`;
   };
-
 
   const panelClass =
     "rounded-2xl border border-[#29435F] bg-[#132942] p-5 sm:p-6 transition-all duration-300 hover:border-cyan-400/40";
 
-  const headingClass =
-    "text-lg font-bold tracking-tight text-white sm:text-xl";
+  const headingClass = "text-lg font-bold tracking-tight text-white sm:text-xl";
 
   const inputClass =
     "w-full rounded-xl border border-[#29435F] bg-[#0B1B30] px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10 disabled:opacity-50";
 
   return (
     <div className="executive-pro w-full overflow-hidden rounded-[20px] border border-[#29435F] bg-[#0B1B30] text-white shadow-2xl shadow-black/30 sm:rounded-[28px]">
-
       {/* ================================== */}
       {/* HERO BANNER */}
       {/* ================================== */}
 
       <section className="relative h-[260px] overflow-hidden sm:h-[340px] lg:h-[390px]">
-
         <img
           src={
             banner ||
@@ -309,9 +302,7 @@ const ExecutivePro = ({
               />
             ) : (
               <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-400/10">
-                <span className="text-lg font-black text-cyan-300">
-                  B
-                </span>
+                <span className="text-lg font-black text-cyan-300">B</span>
               </div>
             )}
 
@@ -324,7 +315,6 @@ const ExecutivePro = ({
         {/* HERO ACTIONS */}
 
         <div className="absolute right-5 top-5 z-10 flex gap-2 sm:right-8 sm:top-7">
-
           <button
             type="button"
             onClick={onShare}
@@ -342,7 +332,6 @@ const ExecutivePro = ({
           >
             <ScanLine size={19} />
           </button>
-
         </div>
 
         {/* HERO BOTTOM LABEL */}
@@ -356,7 +345,6 @@ const ExecutivePro = ({
             Welcome to my digital space
           </p>
         </div>
-
       </section>
 
       {/* ================================== */}
@@ -364,15 +352,11 @@ const ExecutivePro = ({
       {/* ================================== */}
 
       <section className="relative px-5 pb-5 sm:px-8 lg:px-10">
-
         <div className="flex flex-col items-center gap-5 sm:items-start md:flex-row md:items-end">
-
           {/* PROFILE IMAGE */}
 
           <div className="-mt-16 relative h-32 w-32 shrink-0 sm:-mt-20 sm:h-40 sm:w-40">
-
             <div className="h-full w-full overflow-hidden rounded-full border-[5px] border-[#0B1B30] bg-[#132942] shadow-[0_0_30px_rgba(34,211,238,0.18)]">
-
               {avatar ? (
                 <img
                   src={avatar}
@@ -384,7 +368,6 @@ const ExecutivePro = ({
                   <UserRound size={48} className="text-slate-500" />
                 </div>
               )}
-
             </div>
 
             {logo && (
@@ -396,15 +379,12 @@ const ExecutivePro = ({
                 />
               </div>
             )}
-
           </div>
 
           {/* PROFILE DETAILS */}
 
           <div className="min-w-0 flex-1 pb-2 text-center sm:text-left">
-
             <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-
               <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl lg:text-4xl">
                 {name || "Your Name"}
               </h1>
@@ -417,7 +397,6 @@ const ExecutivePro = ({
                   />
                 </span>
               )}
-
             </div>
 
             <p className="mt-2 text-sm font-bold text-cyan-400 sm:text-base">
@@ -432,15 +411,12 @@ const ExecutivePro = ({
               <MapPin size={14} className="text-cyan-400" />
               {location || "Location not added"}
             </p>
-
           </div>
-
         </div>
 
         {/* CONTACT BUTTONS */}
 
         <div className="mt-6 flex flex-wrap justify-center gap-2 sm:justify-start">
-
           {visibleButtons.map((button, index) => (
             <button
               key={button._id || button.id || index}
@@ -458,14 +434,12 @@ const ExecutivePro = ({
               <ArrowUpRight size={14} />
             </button>
           ))}
-
         </div>
 
         {/* SOCIAL ICONS */}
 
         {socialLinks.length > 0 && (
           <div className="mt-5 flex flex-wrap justify-center gap-2 sm:justify-start">
-
             {socialLinks.map((social, index) => {
               const Icon = getSocialIcon(social.platform);
 
@@ -482,33 +456,24 @@ const ExecutivePro = ({
                 </a>
               );
             })}
-
           </div>
         )}
-
       </section>
-
 
       {/* ================================== */}
       {/* MAIN CONTENT GRID */}
       {/* ================================== */}
 
       <main className="grid grid-cols-1 gap-5 px-5 pb-8 sm:px-8 lg:grid-cols-12 lg:gap-6 lg:px-10">
-
         {/* LEFT COLUMN */}
 
         <aside className="flex flex-col gap-5 lg:col-span-4">
-
           {/* CONTACT INFORMATION */}
 
           <section className={panelClass}>
-
-            <h2 className={headingClass}>
-              Contact Information
-            </h2>
+            <h2 className={headingClass}>Contact Information</h2>
 
             <div className="mt-5 space-y-4">
-
               {[
                 {
                   Icon: Phone,
@@ -546,61 +511,55 @@ const ExecutivePro = ({
                   value: businessHours,
                   type: "hours",
                 },
-              ].filter((item) => item.value).map((item) => (
-                <button
-                  key={item.type}
-                  type="button"
-                  onClick={() => {
-                    if (item.type !== "hours") {
-                      onContactClick(item.type);
-                    }
-                  }}
-                  className="group flex w-full min-w-0 items-start gap-3 text-left"
-                >
+              ]
+                .filter((item) => item.value)
+                .map((item) => (
+                  <button
+                    key={item.type}
+                    type="button"
+                    onClick={() => {
+                      if (item.type !== "hours") {
+                        onContactClick(item.type);
+                      }
+                    }}
+                    className="group flex w-full min-w-0 items-start gap-3 text-left"
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-400 transition group-hover:bg-cyan-400 group-hover:text-[#0B1B30]">
+                      <item.Icon size={17} />
+                    </div>
 
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-400 transition group-hover:bg-cyan-400 group-hover:text-[#0B1B30]">
-                    <item.Icon size={17} />
-                  </div>
+                    <div className="min-w-0 flex-1 pt-0.5">
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                        {item.label}
+                      </p>
 
-                  <div className="min-w-0 flex-1 pt-0.5">
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                      {item.label}
-                    </p>
-
-                    <p className="mt-1 break-words text-xs font-medium leading-5 text-slate-200 group-hover:text-cyan-300 sm:text-sm">
-                      {item.value}
-                    </p>
-                  </div>
-
-                </button>
-              ))}
-
+                      <p className="mt-1 break-words text-xs font-medium leading-5 text-slate-200 group-hover:text-cyan-300 sm:text-sm">
+                        {item.value}
+                      </p>
+                    </div>
+                  </button>
+                ))}
             </div>
-
           </section>
 
           {/* QR CODE */}
 
-          <section className={`${panelClass} flex flex-col items-center text-center`}>
-
+          <section
+            className={`${panelClass} flex flex-col items-center text-center`}
+          >
             <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-400">
               <ScanLine size={22} />
             </div>
 
-            <h2 className={headingClass}>
-              Scan My QR
-            </h2>
+            <h2 className={headingClass}>Scan My QR</h2>
 
             <p className="mt-1 text-xs text-slate-400">
               Scan to visit my digital profile
             </p>
 
             <div className="mt-5 flex min-h-[190px] w-full items-center justify-center rounded-2xl border border-[#29435F] bg-[#0B1B30] p-4">
-
               {qrFetching ? (
-                <p className="text-sm text-slate-400">
-                  Loading QR...
-                </p>
+                <p className="text-sm text-slate-400">Loading QR...</p>
               ) : qrTargetUrl ? (
                 <div className="rounded-xl bg-white p-3">
                   <QRCodeCanvas
@@ -612,11 +571,8 @@ const ExecutivePro = ({
                   />
                 </div>
               ) : (
-                <p className="text-xs text-slate-500">
-                  QR code not available
-                </p>
+                <p className="text-xs text-slate-500">QR code not available</p>
               )}
-
             </div>
 
             {qrTargetUrl && (
@@ -630,20 +586,15 @@ const ExecutivePro = ({
                 Download QR
               </a>
             )}
-
           </section>
 
           {/* SOCIAL LINKS */}
 
           {socialLinks.length > 0 && (
             <section className={panelClass}>
-
-              <h2 className={headingClass}>
-                Connect With Me
-              </h2>
+              <h2 className={headingClass}>Connect With Me</h2>
 
               <div className="mt-4 grid grid-cols-2 gap-2">
-
                 {socialLinks.map((social, index) => {
                   const Icon = getSocialIcon(social.platform);
 
@@ -663,24 +614,18 @@ const ExecutivePro = ({
                     </a>
                   );
                 })}
-
               </div>
-
             </section>
           )}
-
         </aside>
 
         {/* RIGHT COLUMN */}
 
         <div className="flex min-w-0 flex-col gap-5 lg:col-span-8">
-
           {/* ABOUT ME */}
 
           <section className={panelClass}>
-
             <div className="flex items-center justify-between gap-3">
-
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[2px] text-cyan-400">
                   Get to know me
@@ -694,15 +639,14 @@ const ExecutivePro = ({
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-400">
                 <UserRound size={22} />
               </div>
-
             </div>
 
             <p className="mt-5 text-sm leading-7 text-slate-300">
-              {about || "Welcome to my business! Contact me for business inquiries."}
+              {about ||
+                "Welcome to my business! Contact me for business inquiries."}
             </p>
 
             <div className="mt-5 flex flex-wrap gap-2">
-
               {industry && (
                 <span className="rounded-lg border border-cyan-400/20 bg-cyan-400/10 px-3 py-1.5 text-xs font-semibold text-cyan-300">
                   {industry}
@@ -714,11 +658,8 @@ const ExecutivePro = ({
                   {businessName}
                 </span>
               )}
-
             </div>
-
           </section>
-
 
           {/* ================================== */}
           {/* PRODUCTS — SINGLE LINE AUTO SLIDE   */}
@@ -726,9 +667,7 @@ const ExecutivePro = ({
 
           {productList.length > 0 && (
             <section className={panelClass}>
-
               <div className="mb-5 flex items-center justify-between gap-3">
-
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[2px] text-cyan-400">
                     Explore collection
@@ -742,7 +681,6 @@ const ExecutivePro = ({
                 <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-bold text-cyan-300">
                   {productList.length} Items
                 </span>
-
               </div>
 
               <AutoRow
@@ -752,54 +690,66 @@ const ExecutivePro = ({
                   const cover = product.images?.find((item) => item?.url)?.url;
 
                   return (
-                    <button
-                      type="button"
-                      onClick={() => onProductClick(product)}
-                      className="group block w-full overflow-hidden rounded-xl border border-[#29435F] bg-[#0B1B30] text-left transition duration-300 hover:-translate-y-1 hover:border-cyan-400/50"
+                    <div
+                      key={product._id}
+                      className="overflow-hidden rounded-xl border border-[#29435F] bg-[#0B1B30]"
                     >
+                      {/* Existing Product Card */}
+                      <button
+                        type="button"
+                        onClick={() => onProductClick(product)}
+                        className="group block w-full overflow-hidden text-left"
+                      >
+                        <div className="relative h-44 overflow-hidden bg-[#132942]">
+                          {cover ? (
+                            <img
+                              src={cover}
+                              alt={product.name}
+                              loading="lazy"
+                              className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center">
+                              <ImageIcon size={35} className="text-slate-500" />
+                            </div>
+                          )}
 
-                      <div className="relative h-44 overflow-hidden bg-[#132942]">
+                          <span className="absolute right-3 top-3 rounded-lg bg-[#071326]/80 p-2 text-cyan-300 backdrop-blur">
+                            <ArrowUpRight size={16} />
+                          </span>
+                        </div>
 
-                        {cover ? (
-                          <img
-                            src={cover}
-                            alt={product.name}
-                            loading="lazy"
-                            className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
-                          />
-                        ) : (
-                          <div className="flex h-full items-center justify-center">
-                            <ImageIcon size={35} className="text-slate-500" />
-                          </div>
-                        )}
+                        <div className="p-4">
+                          <h3 className="truncate text-sm font-bold text-white">
+                            {product.name}
+                          </h3>
 
-                        <span className="absolute right-3 top-3 rounded-lg bg-[#071326]/80 p-2 text-cyan-300 backdrop-blur">
-                          <ArrowUpRight size={16} />
-                        </span>
+                          <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-400">
+                            {product.description}
+                          </p>
 
+                          <p className="mt-3 text-lg font-black text-cyan-400">
+                            ₹
+                            {Number(product.price || 0).toLocaleString("en-IN")}
+                          </p>
+                        </div>
+                      </button>
+
+                      {/* WhatsApp Inquiry Button */}
+                      <div className="px-4 pb-4">
+                        <button
+                          type="button"
+                          onClick={() => onProductWhatsAppInquiry(product)}
+                          className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-400"
+                        >
+                          <FaWhatsapp size={19} />
+                          WhatsApp Inquiry
+                        </button>
                       </div>
-
-                      <div className="p-4">
-
-                        <h3 className="truncate text-sm font-bold text-white">
-                          {product.name}
-                        </h3>
-
-                        <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-400">
-                          {product.description}
-                        </p>
-
-                        <p className="mt-3 text-lg font-black text-cyan-400">
-                          ₹{Number(product.price || 0).toLocaleString("en-IN")}
-                        </p>
-
-                      </div>
-
-                    </button>
+                    </div>
                   );
                 }}
               />
-
             </section>
           )}
 
@@ -808,23 +758,18 @@ const ExecutivePro = ({
           {/* ================================== */}
 
           <section className={panelClass}>
-
             <div className="mb-5 flex items-center justify-between gap-3">
-
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[2px] text-cyan-400">
                   Our work
                 </p>
 
-                <h2 className="mt-1 text-xl font-black text-white">
-                  Gallery
-                </h2>
+                <h2 className="mt-1 text-xl font-black text-white">Gallery</h2>
               </div>
 
               <span className="text-xs font-semibold text-slate-400">
                 {galleryImages.length} Photos
               </span>
-
             </div>
 
             {galleryImages.length > 0 ? (
@@ -837,7 +782,6 @@ const ExecutivePro = ({
                     onClick={() => onGalleryClick(image)}
                     className="group relative block aspect-[4/3] w-full overflow-hidden rounded-xl border border-[#29435F]"
                   >
-
                     <img
                       src={image.url}
                       alt={image.alt || `Gallery ${index + 1}`}
@@ -848,7 +792,6 @@ const ExecutivePro = ({
                     <div className="absolute inset-0 flex items-center justify-center bg-[#071326]/50 opacity-0 transition group-hover:opacity-100">
                       <ArrowUpRight size={25} className="text-cyan-300" />
                     </div>
-
                   </button>
                 )}
               />
@@ -861,13 +804,11 @@ const ExecutivePro = ({
                 </p>
               </div>
             )}
-
           </section>
 
           {/* INQUIRY FORM */}
 
           <section className="overflow-hidden rounded-2xl border border-cyan-400/20 bg-gradient-to-br from-[#132942] to-[#0B1B30] p-5 sm:p-7">
-
             <div className="mb-5">
               <p className="text-[10px] font-bold uppercase tracking-[2px] text-cyan-400">
                 Let's work together
@@ -892,7 +833,6 @@ const ExecutivePro = ({
               </div>
             ) : (
               <form onSubmit={onFormSubmit} className="space-y-3">
-
                 {inquirySubmitError && (
                   <div className="rounded-xl border border-red-400/20 bg-red-400/10 p-3 text-sm text-red-300">
                     {inquirySubmitError}
@@ -900,7 +840,6 @@ const ExecutivePro = ({
                 )}
 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-
                   <input
                     type="text"
                     required
@@ -930,7 +869,6 @@ const ExecutivePro = ({
                     }
                     className={inputClass}
                   />
-
                 </div>
 
                 <input
@@ -976,14 +914,10 @@ const ExecutivePro = ({
                     </>
                   )}
                 </button>
-
               </form>
             )}
-
           </section>
-
         </div>
-
       </main>
 
       {/* ================================== */}
@@ -991,9 +925,7 @@ const ExecutivePro = ({
       {/* ================================== */}
 
       <footer className="border-t border-[#29435F] bg-[#071326] px-5 py-7 text-center sm:px-8">
-
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-
           <div className="flex items-center gap-2">
             <span className="text-xl font-black text-white">
               Bio<span className="text-cyan-400">.</span>
@@ -1005,20 +937,15 @@ const ExecutivePro = ({
           </div>
 
           <p className="text-xs text-slate-500">
-            © {new Date().getFullYear()} {name || businessName}. All rights reserved.
+            © {new Date().getFullYear()} {name || businessName}. All rights
+            reserved.
           </p>
-
         </div>
 
         <p className="mt-5 text-[11px] text-slate-600">
-          Powered by{" "}
-          <span className="font-bold text-cyan-400">
-            BioWebsite
-          </span>
+          Powered by <span className="font-bold text-cyan-400">BioWebsite</span>
         </p>
-
       </footer>
-
     </div>
   );
 };

@@ -5,6 +5,13 @@ import { jsPDF } from "jspdf";
 import JSZip from "jszip";
 import * as XLSX from "xlsx";
 import {
+  siInstagram,
+  siFacebook,
+  siWhatsapp,
+  siYoutube,
+  siX,
+} from "simple-icons";
+import {
   QrCode,
   Search,
   Download,
@@ -291,8 +298,8 @@ const downloadQRDesign = async (
   try {
     const qrDataUrl = await QRCode.toDataURL(url, {
       errorCorrectionLevel: "H",
-      margin: 2,
-      width: 1000,
+      margin: 3,
+      width: 2400,
       color: {
         dark: "#102C35",
         light: "#FFFFFF",
@@ -304,11 +311,6 @@ const downloadQRDesign = async (
         width: 900,
         height: 1273,
         qrSize: 440,
-        qrY: 385,
-        title: "SCAN TO CONNECT",
-        subtitle: "One scan. Instant connection.",
-        titleY: 285,
-        subtitleY: 325,
         activationX: 735,
         activationY: 620,
         socialY: 1010,
@@ -319,39 +321,56 @@ const downloadQRDesign = async (
       pocket: {
         width: 1011,
         height: 638,
-        qrSize: 225,
-        qrY: 195,
-        title: "SCAN TO CONNECT",
-        subtitle: "One scan. Instant connection.",
-        titleY: 135,
-        subtitleY: 163,
-        activationX: 680,
-        activationY: 315,
-        socialY: 450,
-        socialSize: 16,
-        socialGap: 75,
-        footerY: 590,
+        qrSize: 200,
+        activationX: 850,
+        activationY: 320,
+        activationWidth: 175,
+        socialY: 500,
+        socialSize: 20,
+        socialGap: 82,
+        footerY: 640,
       },
       keychain: {
         width: 600,
         height: 600,
-        qrSize: 180,
-        qrY: 190,
-        title: "SCAN ME",
-        subtitle: "Connect instantly",
-        titleY: 115,
-        subtitleY: 140,
-        activationX: 550,
-        activationY: 285,
-        socialY: 435,
-        socialSize: 11,
-        socialGap: 42,
-        footerY: 555,
+        qrSize: 190,
+        activationX: 510,
+        activationY: 300,
+        activationWidth: 110,
+        socialY: 465,
+        socialSize: 17,
+        socialGap: 48,
+        footerY: 590,
       },
     };
 
     const layout = layouts[format];
     if (!layout) throw new Error("Invalid QR design format.");
+
+    const headingPositions = {
+      standee: {
+        title: 315,
+        subtitle: 350,
+      },
+      pocket: {
+        title: 155,
+        subtitle: 185,
+      },
+      keychain: {
+        title: 155,
+        subtitle: 185,
+      },
+    };
+
+    const headingY = headingPositions[format];
+
+    const qrPositions = {
+      standee: 405,
+      pocket: 220,
+      keychain: 220,
+    };
+
+    const qrY = qrPositions[format];
 
     const activationCode = String(item.activationCode || "CODE UNAVAILABLE");
 
@@ -372,7 +391,22 @@ const downloadQRDesign = async (
     const H = layout.height;
     const qrSize = layout.qrSize;
     const qrX = (W - qrSize) / 2;
-    const qrY = layout.qrY;
+    const qrBottom = qrY + qrSize;
+
+    const formatPositions = {
+      pocket: {
+        connectTextY: qrBottom + 42,
+        socialIconsY: qrBottom + 90,
+      },
+      keychain: {
+        connectTextY: qrBottom + 42,
+        socialIconsY: qrBottom + 90,
+      },
+    };
+
+    const formatPosition = formatPositions[format];
+    const connectTextY = formatPosition?.connectTextY ?? qrBottom + 57;
+    const socialIconsY = formatPosition?.socialIconsY ?? layout.socialY;
 
     // Brand-style SVG icons with their labels.
 
@@ -392,17 +426,7 @@ const downloadQRDesign = async (
         stroke-linecap="round"/>
     `,
       },
-      {
-        name: "Instagram",
-        color: "#E4405F",
-        path: `
-      <rect x="-12" y="-12" width="24" height="24" rx="6"
-        fill="none" stroke="#fff" stroke-width="2.5"/>
-      <circle cx="0" cy="0" r="5.5"
-        fill="none" stroke="#fff" stroke-width="2.5"/>
-      <circle cx="7" cy="-7" r="1.8" fill="#fff"/>
-    `,
-      },
+      { name: "Instagram", color: "#E4405F", icon: siInstagram },
       {
         name: "LinkedIn",
         color: "#0A66C2",
@@ -415,46 +439,10 @@ const downloadQRDesign = async (
         C8 -4 2 -4 2 1 V11 H-3 Z"/>
     `,
       },
-      {
-        name: "Facebook",
-        color: "#1877F2",
-        path: `
-      <path fill="#fff" d="
-        M3 -14 H9 V-9 H5
-        C3 -9 3 -7 3 -5 V-2 H9 L8 4 H3 V14 H-4 V4 H-8 V-2 H-4 V-6
-        C-4 -12 0 -14 3 -14 Z"/>
-    `,
-      },
-      {
-        name: "WhatsApp",
-        color: "#25D366",
-        path: `
-      <path d="M-12 12 L-9 5 A13 13 0 1 1 -4 10 Z"
-        fill="none" stroke="#fff" stroke-width="2.5"
-        stroke-linejoin="round"/>
-      <path d="M-6 -6 Q-9 -2 -3 4 Q2 9 7 5 L4 1
-        L1 3 Q-2 1 -3 -2 L-1 -4 Z"
-        fill="#fff"/>
-    `,
-      },
-      {
-        name: "YouTube",
-        color: "#FF0000",
-        path: `
-      <rect x="-14" y="-10" width="28" height="20" rx="6"
-        fill="#fff"/>
-      <path d="M-3 -6 L7 0 L-3 6 Z" fill="#FF0000"/>
-    `,
-      },
-      {
-        name: "X",
-        color: "#111827",
-        path: `
-      <path d="M-12 -13 L-2 0 L-12 13 H-7 L1 4 L8 13 H13
-        L3 -1 L12 -13 H7 L0 -4 L-7 -13 Z"
-        fill="#fff"/>
-    `,
-      },
+      { name: "Facebook", color: "#1877F2", icon: siFacebook },
+      { name: "WhatsApp", color: "#25D366", icon: siWhatsapp },
+      { name: "YouTube", color: "#FF0000", icon: siYoutube },
+      { name: "X", color: "#111827", icon: siX },
     ];
 
     const socialStartX =
@@ -463,19 +451,39 @@ const downloadQRDesign = async (
     const socialIcons = socialItems
       .map((social, index) => {
         const x = socialStartX + index * layout.socialGap;
-        const y = layout.socialY;
+        const y = socialIconsY;
 
         return `
-          <g transform="translate(${x}, ${y})">
-            <circle r="${layout.socialSize}" fill="${social.color}"/>
-            ${social.path}
+ <g transform="translate(${x}, ${y})">
+  <circle r="${layout.socialSize}" fill="${social.color}"/>
+  ${
+    social.icon
+      ? `
+      <svg
+        x="-12"
+        y="-12"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+      >
+        <path d="${social.icon.path}" fill="#ffffff" />
+      </svg>
+    `
+      : `
+      <g transform="scale(${layout.socialSize / 29})">
+        ${social.path}
+      </g>
+    `
+  }
 
             <text
               x="0"
               y="${layout.socialSize + (format === "standee" ? 24 : 17)}"
               text-anchor="middle"
               font-family="Arial,sans-serif"
-              font-size="${format === "standee" ? 14 : format === "pocket" ? 11 : 8}"
+              font-size="${
+                format === "standee" ? 14 : format === "pocket" ? 10 : 7
+              }"
               font-weight="700"
               fill="#10243A"
             >${social.name}</text>
@@ -487,7 +495,7 @@ const downloadQRDesign = async (
     const activationCodeText = `
       <g transform="translate(${layout.activationX}, ${layout.activationY}) rotate(90)">
         <text
-          x="${format === "standee" ? -72 : format === "pocket" ? -48 : -28}"
+        x="${format === "standee" ? -72 : format === "pocket" ? -75 : -55}"
           y="0"
           text-anchor="middle"
           font-family="Arial,sans-serif"
@@ -497,7 +505,7 @@ const downloadQRDesign = async (
         >ACTIVATION CODE</text>
 
         <text
-          x="${format === "standee" ? 72 : format === "pocket" ? 48 : 28}"
+          x="${format === "standee" ? 72 : format === "pocket" ? 75 : 55}"
           y="0"
           text-anchor="middle"
           font-family="Arial,sans-serif"
@@ -525,9 +533,19 @@ const downloadQRDesign = async (
       />
     `;
 
+    const footerTextY = {
+      standee: 1210,
+      pocket: 620,
+      keychain: 580,
+    }[format];
+
     const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg"
-        width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="${W}"
+        height="${H}"
+        viewBox="0 0 ${W} ${H}"
+      >
 
         <defs>
           <linearGradient id="headerGradient" x1="0" y1="0" x2="1" y2="1">
@@ -568,22 +586,22 @@ const downloadQRDesign = async (
         <!-- Main heading -->
         <text
           x="${W / 2}"
-          y="${layout.titleY}"
+          y="${headingY.title}"
           text-anchor="middle"
           font-family="Arial,sans-serif"
-          font-size="${format === "standee" ? 43 : format === "pocket" ? 29 : 26}"
+          font-size="${format === "standee" ? 43 : format === "pocket" ? 30 : 27}"
           font-weight="700"
-          fill="#123F91"
-        >${escapeXml(layout.title)}</text>
+          fill="#164A9B"
+        >SCAN TO CONNECT</text>
 
         <text
           x="${W / 2}"
-          y="${layout.subtitleY}"
+          y="${headingY.subtitle}"
           text-anchor="middle"
           font-family="Arial,sans-serif"
-          font-size="${format === "standee" ? 22 : 15}"
+          font-size="${format === "standee" ? 22 : format === "pocket" ? 19 : 16}"
           fill="#1765A8"
-        >${escapeXml(layout.subtitle)}</text>
+        >One scan. Instant connection.</text>
 
         <!-- QR card -->
         <rect
@@ -621,7 +639,7 @@ const downloadQRDesign = async (
         <!-- QR caption -->
         <text
           x="${W / 2}"
-          y="${qrY + qrSize + 57}"
+          y="${connectTextY}"
           text-anchor="middle"
           font-family="Arial,sans-serif"
           font-size="${format === "standee" ? 24 : 16}"
@@ -640,7 +658,7 @@ const downloadQRDesign = async (
 
         <text
           x="${W / 2}"
-          y="${format === "standee" ? 1210 : format === "pocket" ? 620 : 585}"
+          y="${footerTextY}"
           text-anchor="middle"
           font-family="Arial,sans-serif"
           font-size="${format === "standee" ? 34 : 20}"
@@ -701,12 +719,16 @@ const downloadQRDesign = async (
       });
 
       const canvas = document.createElement("canvas");
-      canvas.width = W;
-      canvas.height = H;
+      const exportScale = 3;
+      canvas.width = W * exportScale;
+      canvas.height = H * exportScale;
 
       const context = canvas.getContext("2d");
       if (!context) throw new Error("Canvas is unavailable.");
 
+      context.setTransform(exportScale, 0, 0, exportScale, 0, 0);
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = "high";
       context.fillStyle = "#ffffff";
       context.fillRect(0, 0, W, H);
       context.drawImage(image, 0, 0, W, H);

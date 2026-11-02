@@ -93,13 +93,12 @@ const validateProductInput = (body, isUpdate = false) => {
     }
   }
 
-  if (!isUpdate || body.description !== undefined) {
+  if (body.description !== undefined) {
     if (
       typeof body.description !== "string" ||
-      !body.description.trim() ||
       body.description.trim().length > 5000
     ) {
-      errors.push("Description is required (maximum 5000 characters).");
+      errors.push("Description must be a string of at most 5000 characters.");
     }
   }
 
@@ -224,7 +223,7 @@ const createProduct = async (req, res) => {
     const product = await Product.create({
       userId: req.user._id,
       name: req.body.name.trim(),
-      description: req.body.description.trim(),
+      description: req.body.description?.trim() || "",
       price: Number(req.body.price),
       category: req.body.category?.trim() || "General",
       type: req.body.type || "product",
@@ -491,7 +490,7 @@ const createAdminUserProduct = async (req, res) => {
     const product = await Product.create({
       userId: user._id,
       name: req.body.name.trim(),
-      description: req.body.description.trim(),
+      description: req.body.description?.trim() || "",
       price: Number(req.body.price),
       category: req.body.category?.trim() || "General",
       type: req.body.type || "product",
