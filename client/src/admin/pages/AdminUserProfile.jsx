@@ -398,11 +398,6 @@ export default function AdminUserProfile() {
       return;
     }
 
-    if (!productForm.description.trim()) {
-      toast.error("Product description is required.");
-      return;
-    }
-
     if (
       productForm.price === "" ||
       !Number.isFinite(Number(productForm.price)) ||
@@ -1620,9 +1615,8 @@ export default function AdminUserProfile() {
                   </label>
                 </div>
                 <label className="block text-sm font-medium text-slate-600 dark:text-slate-300">
-                  Description
+                  Description (optional)
                   <textarea
-                    required
                     maxLength={5000}
                     rows={4}
                     value={productForm.description}

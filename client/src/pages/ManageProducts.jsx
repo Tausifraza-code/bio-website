@@ -264,11 +264,6 @@ const ManageProducts = () => {
       return;
     }
 
-    if (!formData.description.trim()) {
-      setFormError("Please enter a product description.");
-      return;
-    }
-
     if (formData.description.trim().length > 5000) {
       setFormError("Description must be 5000 characters or fewer.");
       return;
@@ -638,7 +633,7 @@ const ManageProducts = () => {
                 </div>
 
                 <div className="mt-5">
-                  <FormField label="Description" required>
+                  <FormField label="Description (optional)">
                     <textarea
                       rows={4}
                       maxLength={5000}

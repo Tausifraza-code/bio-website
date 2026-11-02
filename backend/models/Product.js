@@ -56,8 +56,8 @@ const productSchema = new mongoose.Schema(
     // Product/service description
     description: {
       type: String,
-      required: [true, "Description is required"],
       trim: true,
+      default: "",
       maxlength: 5000,
     },
 
