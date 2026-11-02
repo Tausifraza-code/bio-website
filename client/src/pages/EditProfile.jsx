@@ -1372,6 +1372,7 @@ const EditProfile = () => {
                       <button
                         type="button"
                         role="switch"
+                        aria-label="Enable customer lead capture"
                         aria-checked={Boolean(formData.leadCapture?.enabled)}
                         onClick={() => {
                           setFormData((prev) => ({
@@ -1383,19 +1384,23 @@ const EditProfile = () => {
                           }));
                           setSaved(false);
                         }}
-                        className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
-                          formData.leadCapture?.enabled
-                            ? "bg-emerald-500"
-                            : "bg-slate-600"
-                        }`}
+                        className="flex h-11 w-16 shrink-0 self-end items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 sm:self-auto"
                       >
                         <span
-                          className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                          className={`relative h-7 w-12 rounded-full transition-colors ${
                             formData.leadCapture?.enabled
-                              ? "translate-x-6"
-                              : "translate-x-1"
+                              ? "bg-emerald-500"
+                              : "bg-slate-600"
                           }`}
-                        />
+                        >
+                          <span
+                            className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                              formData.leadCapture?.enabled
+                                ? "translate-x-5"
+                                : "translate-x-0"
+                            }`}
+                          />
+                        </span>
                       </button>
                     </div>
                   </div>
