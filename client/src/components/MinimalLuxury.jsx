@@ -2,22 +2,39 @@
 import React from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, Navigation, Pagination } from "swiper/modules";
+import { Autoplay, Pagination } from "swiper/modules";
 
 import "swiper/css";
-import "swiper/css/navigation";
 import "swiper/css/pagination";
 
 import {
-  MapPin, Phone, Mail, Globe, MessageCircle, Share2, UserRound,
-  CheckCircle2, Clock, Download, Image as ImageIcon, ArrowUpRight,
-  BriefcaseBusiness, Code2, Palette, Headset, ScanLine, Send,
-  ShoppingBag, Copy, Menu, X, ExternalLink, Rocket, CreditCard,
+  MapPin,
+  Phone,
+  Mail,
+  Globe,
+  Share2,
+  UserRound,
+  CheckCircle2,
+  Clock,
+  Download,
+  Image as ImageIcon,
+  ArrowUpRight,
+  ScanLine,
+  Send,
+  Copy,
+  CreditCard,
+  Bookmark,
 } from "lucide-react";
 
 import {
-  FaInstagram, FaLinkedinIn, FaFacebookF, FaYoutube,
-  FaWhatsapp, FaTelegram, FaXTwitter, FaLink,
+  FaInstagram,
+  FaLinkedinIn,
+  FaFacebookF,
+  FaYoutube,
+  FaWhatsapp,
+  FaTelegram,
+  FaXTwitter,
+  FaLink,
 } from "react-icons/fa6";
 
 const MinimalLuxury = ({
@@ -28,7 +45,12 @@ const MinimalLuxury = ({
   galleryImages = [],
   qrTargetUrl = "",
   qrFetching = false,
-  formData = { name: "", phone: "", email: "", message: "" },
+  formData = {
+    name: "",
+    phone: "",
+    email: "",
+    message: "",
+  },
   setFormData = () => {},
   onFormSubmit = () => {},
   inquirySubmitting = false,
@@ -62,21 +84,7 @@ const MinimalLuxury = ({
     upiId = "",
   } = businessInfo;
 
-  const [mobileMenu, setMobileMenu] = React.useState(false);
   const [copiedUpi, setCopiedUpi] = React.useState(false);
-
-  const COLORS = {
-    navy: "#082B5C",
-    navyDark: "#061F43",
-    cyan: "#12BCEB",
-    cyanLight: "#E8F8FD",
-    bg: "#F5F9FD",
-    white: "#FFFFFF",
-    text: "#10233F",
-    muted: "#61738C",
-    border: "#E1EAF3",
-    soft: "#F1F6FA",
-  };
 
   const socialIconMap = {
     instagram: FaInstagram,
@@ -86,41 +94,62 @@ const MinimalLuxury = ({
     whatsapp: FaWhatsapp,
     telegram: FaTelegram,
     twitter: FaXTwitter,
+    x: FaXTwitter,
   };
 
-  const getSocialIcon = (platform = "") => {
-    const key = platform.toLowerCase();
+  const socialColors = {
+    instagram:
+      "bg-gradient-to-tr from-[#FEDA75] via-[#FA7E1E] to-[#D62976]",
+    facebook: "bg-[#1877F2]",
+    whatsapp: "bg-[#25D366]",
+    youtube: "bg-[#FF0000]",
+    linkedin: "bg-[#0A66C2]",
+    twitter: "bg-[#000000]",
+    x: "bg-[#000000]",
+    telegram: "bg-[#26A5E4]",
+    pinterest: "bg-[#E60023]",
+    snapchat: "bg-[#FFFC00] text-black",
+    github: "bg-[#181717]",
+    tiktok: "bg-[#000000]",
+    threads: "bg-[#000000]",
+    discord: "bg-[#5865F2]",
+    reddit: "bg-[#FF4500]",
+    website: "bg-[#4285F4]",
+  };
+
+  const normalizePlatform = (social = {}) => {
+    return String(
+      social.platform ||
+        social.platformName ||
+        social.icon ||
+        ""
+    )
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "");
+  };
+
+  const getSocialIcon = (social = {}) => {
+    const platform = normalizePlatform(social);
+
     const found = Object.keys(socialIconMap).find((item) =>
-      key.includes(item)
+      platform.includes(item)
     );
+
     return found ? socialIconMap[found] : FaLink;
   };
 
   const normalizeUrl = (url = "") => {
-    if (!url) return "#";
-    return /^https?:\/\//i.test(url) ? url : `https://${url}`;
-  };
+    if (!url) return "";
 
-  const defaultHours = [
-    ["Monday", "09:00 AM - 06:00 PM"],
-    ["Tuesday", "09:00 AM - 06:00 PM"],
-    ["Wednesday", "09:00 AM - 06:00 PM"],
-    ["Thursday", "09:00 AM - 06:00 PM"],
-    ["Friday", "09:00 AM - 06:00 PM"],
-    ["Saturday", "10:00 AM - 04:00 PM"],
-    ["Sunday", "Closed"],
-  ];
+    const value = String(url).trim();
 
-  const handleCopyUpi = async () => {
-    if (!upiId) return;
+    if (!value) return "";
 
-    try {
-      await navigator.clipboard.writeText(upiId);
-      setCopiedUpi(true);
-      setTimeout(() => setCopiedUpi(false), 1800);
-    } catch (error) {
-      console.error("UPI copy failed:", error);
+    if (/^(https?:\/\/|mailto:|tel:)/i.test(value)) {
+      return value;
     }
+
+    return `https://${value}`;
   };
 
   const swiperAutoplay = {
@@ -129,769 +158,410 @@ const MinimalLuxury = ({
     pauseOnMouseEnter: true,
   };
 
-  const swiperBreakpoints = {
-    0: { slidesPerView: 1.15, spaceBetween: 12 },
-    480: { slidesPerView: 2, spaceBetween: 14 },
-    768: { slidesPerView: 2.5, spaceBetween: 16 },
-    1024: { slidesPerView: 3, spaceBetween: 16 },
-    1280: { slidesPerView: 4, spaceBetween: 18 },
-  };
-
-  const navItems = [
-    { label: "Home", href: "#premium-home", icon: UserRound },
-    { label: "Products", href: "#premium-products", icon: ShoppingBag },
-    { label: "Gallery", href: "#premium-gallery", icon: ImageIcon },
-    { label: "Contact", href: "#premium-contact", icon: Phone },
-    { label: "QR Code", href: "#premium-qr", icon: ScanLine },
-  ];
-
-  const cardClass =
-    "rounded-[18px] border border-[#E1EAF3] bg-white shadow-[0_8px_30px_rgba(8,43,92,0.05)]";
-
-  const sectionTitle =
-    "text-[18px] font-extrabold tracking-[-0.02em] text-[#10233F] sm:text-[21px]";
-
-  const sectionLabel =
-    "text-[10px] font-bold uppercase tracking-[0.18em] text-[#12BCEB]";
-
   const inputClass =
     "w-full rounded-xl border border-[#DFE8F1] bg-[#F8FBFD] px-4 py-3.5 text-sm text-[#10233F] placeholder:text-[#8B9AAF] outline-none transition focus:border-[#12BCEB] focus:ring-4 focus:ring-[#12BCEB]/10 disabled:opacity-50";
 
+  const configuredButtons = Array.isArray(visibleButtons)
+    ? visibleButtons
+    : [];
+
+  const products = Array.isArray(productList)
+    ? productList
+    : [];
+
+  const gallery = Array.isArray(galleryImages)
+    ? galleryImages.filter((image) => image?.url)
+    : [];
+
+  const socials = Array.isArray(socialLinks)
+    ? socialLinks.filter((social) => social?.url)
+    : [];
+
+  const firstSocialLinks = socials.slice(0, 7);
+
+  const contactButtons = configuredButtons.filter((button) => {
+    const action = String(button?.actionType || "").toLowerCase();
+
+    return ![
+      "call",
+      "phone",
+      "whatsapp",
+      "save",
+      "address",
+      "map",
+    ].includes(action);
+  });
+
+  const hasBusinessName = Boolean(businessName || name);
+
+  const hasWebsite = Boolean(website || websiteUrl);
+
+  const handleCopyUpi = async () => {
+    if (!upiId) return;
+
+    try {
+      await navigator.clipboard.writeText(upiId);
+      setCopiedUpi(true);
+
+      window.setTimeout(() => {
+        setCopiedUpi(false);
+      }, 1800);
+    } catch (error) {
+      console.error("UPI copy failed:", error);
+    }
+  };
+
+  const handleMobileAction = (type) => {
+    if (type === "save") {
+      onOpenQr();
+      return;
+    }
+
+    onContactClick(type);
+  };
+
+  const handleDownloadQr = () => {
+    const canvas = document.getElementById("mobile-profile-qr");
+
+    if (!canvas) return;
+
+    try {
+      const imageUrl = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+
+      link.href = imageUrl;
+      link.download = `${businessName || name || "profile"}-qr.png`;
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("QR download failed:", error);
+    }
+  };
+
   return (
     <div
-      className="min-h-screen w-full overflow-hidden bg-[#F5F9FD] text-[#10233F]"
+      className="min-h-screen w-full overflow-x-hidden bg-[#F5F9FD] text-[#10233F]"
       style={{
         fontFamily:
           "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       }}
     >
-      <main className="px-4 pb-8 pt-4 lg:ml-[98px] lg:px-5 lg:pb-10 lg:pt-5 xl:ml-[108px]">
-        <div className="mx-auto grid max-w-[1450px] grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_285px]">
+      <div className="block">
+        <main className="mx-auto w-full max-w-[430px] overflow-hidden bg-[#F5F9FD] pb-5 md:max-w-[560px] lg:max-w-[700px] lg:pt-2">
 
-          <div className="min-w-0 space-y-5">
+          {/* HERO */}
+          <section
+            id="premium-home"
+            className="relative overflow-hidden rounded-[26px] bg-white shadow-[0_5px_22px_rgba(8,43,92,0.08)]"
+          >
+            {/* COVER */}
+            <div className="relative h-[178px] overflow-hidden bg-[#082B5C]">
+              {banner ? (
+                <img
+                  src={banner}
+                  alt={businessName || name || "Cover"}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="h-full w-full bg-gradient-to-br from-[#061F43] via-[#082B5C] to-[#12BCEB]" />
+              )}
 
-            {/* HERO */}
-            <section
-              id="premium-home"
-              className={`${cardClass} overflow-hidden`}
-            >
-              {/* PREMIUM COVER IMAGE */}
-              <div className="group relative h-[220px] overflow-hidden sm:h-[290px] lg:h-[330px]">
-                {banner ? (
-                  <img
-                    src={banner}
-                    alt="Business Cover"
-                    className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]"
-                  />
-                ) : (
-                  <div className="h-full w-full bg-gradient-to-br from-[#061F43] via-[#082B5C] to-[#12BCEB]" />
-                )}
+              <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/10 to-[#061F43]/35" />
 
-                {/* Cover Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-r from-[#061F43]/90 via-[#082B5C]/45 to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#061F43]/65 via-transparent to-[#061F43]/10" />
-
-                {/* Decorative Elements */}
-                <div className="absolute -right-16 -top-24 h-72 w-72 rounded-full border border-white/10" />
-                <div className="absolute -right-8 -top-16 h-52 w-52 rounded-full border border-white/10" />
-
-                {/* BUSINESS BRAND */}
-                <div className="absolute left-5 top-5 z-10 flex max-w-[75%] items-center gap-3 sm:left-7 sm:top-7">
-                  <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/40 bg-white p-1.5 shadow-xl sm:h-[66px] sm:w-[66px] sm:rounded-[20px]">
-                    {logo ? (
-                      <img
-                        src={logo}
-                        alt="Business Logo"
-                        className="h-full w-full object-contain"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center rounded-xl bg-[#E8F8FD] text-[#082B5C]">
-                        <UserRound size={27} />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="min-w-0">
-                    <p className="truncate text-[13px] font-black tracking-wide text-white sm:text-base">
-                      {businessName || name || "Your Business"}
-                    </p>
-
-                    {industry && (
-                      <p className="mt-1 truncate text-[9px] font-bold uppercase tracking-[0.18em] text-[#8CE7FF] sm:text-[10px]">
-                        {industry}
-                      </p>
-                    )}
-
-                    {isVerified && (
-                      <span className="mt-1 inline-flex items-center gap-1 rounded-full border border-[#12BCEB]/40 bg-[#12BCEB]/20 px-2 py-0.5 text-[8px] font-bold text-white">
-                        <CheckCircle2 size={10} />
-                        VERIFIED BUSINESS
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* HERO ACTIONS */}
-                <div className="absolute right-4 top-4 z-10 flex gap-2 sm:right-6 sm:top-6">
-                  <button
-                    type="button"
-                    onClick={onShare}
-                    aria-label="Share profile"
-                    title="Share Profile"
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/30 bg-white/15 text-white shadow-lg backdrop-blur-xl transition hover:scale-110 hover:bg-white hover:text-[#082B5C]"
-                  >
-                    <Share2 size={17} />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={onOpenQr}
-                    aria-label="Scan profile QR"
-                    title="Scan Profile QR"
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-[#12BCEB] text-white shadow-lg transition hover:scale-110 hover:bg-white hover:text-[#082B5C]"
-                  >
-                    <ScanLine size={17} />
-                  </button>
-                </div>
-
-                {/* COVER BOTTOM LABEL */}
-                <div className="absolute bottom-5 left-5 z-10 sm:bottom-7 sm:left-7">
-                  <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.2em] text-white/90 backdrop-blur-md">
-                    {industry || "Professional Profile"}
-                  </span>
-                </div>
-              </div>
-
-              {/* PROFILE INFORMATION */}
-              <div className="relative px-5 pb-6 sm:px-7 sm:pb-8">
-                <div className="-mt-[58px] flex flex-col gap-4 sm:-mt-[72px] sm:flex-row sm:items-end sm:gap-5">
-
-                  {/* PROFILE IMAGE */}
-                  <div className="relative z-20 shrink-0">
-                    <div className="rounded-full bg-white p-[5px] shadow-[0_12px_35px_rgba(8,43,92,0.20)] sm:p-[7px]">
-                      <div className="h-[112px] w-[112px] overflow-hidden rounded-full border-[3px] border-[#12BCEB] bg-[#E8F8FD] sm:h-[142px] sm:w-[142px]">
-                        {avatar ? (
-                          <img
-                            src={avatar}
-                            alt={name || "Profile"}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center">
-                            <UserRound size={55} className="text-[#8AA4BD]" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {isVerified && (
-                      <div className="absolute bottom-3 right-1 flex h-8 w-8 items-center justify-center rounded-full border-[3px] border-white bg-[#12BCEB] text-white shadow-lg">
-                        <CheckCircle2 size={16} />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* PROFILE DETAILS */}
-                  <div className="min-w-0 flex-1 pb-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h1 className="text-[25px] font-black tracking-[-0.04em] text-[#082B5C] sm:text-[32px]">
-                        {name || "Your Name"}
-                      </h1>
-
-                      {isVerified && (
-                        <CheckCircle2
-                          size={19}
-                          className="fill-[#12BCEB] text-white"
-                        />
-                      )}
-                    </div>
-
-                    <p className="mt-1 text-sm font-bold text-[#425D7C]">
-                      {role || "Founder • Business Consultant"}
-                    </p>
-
-                    {location && (
-                      <p className="mt-2 flex items-center gap-1.5 text-[11px] font-medium text-[#71839A]">
-                        <MapPin size={14} className="text-[#12BCEB]" />
-                        {location}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* ABOUT DESCRIPTION */}
-                <p className="mt-5 max-w-[750px] text-sm leading-7 text-[#63758C]">
-                  {about ||
-                    "Helping businesses grow digitally with modern solutions and creative ideas."}
-                </p>
-
-                {/* QUICK ACTION BUTTONS */}
-                <div className="mt-5 flex flex-wrap gap-2.5">
-                  {visibleButtons.length > 0 ? (
-                    visibleButtons.map((button, index) => (
-                      <button
-                        key={button._id || button.id || index}
-                        type="button"
-                        onClick={() => onConfiguredButton(button)}
-                        className={`flex items-center gap-2 rounded-full px-5 py-3 text-xs font-bold transition ${
-                          button.actionType === "whatsapp"
-                            ? "border border-[#B8EBD2] bg-white text-[#14935D] hover:bg-[#EAFBF3]"
-                            : button.actionType === "call"
-                            ? "bg-[#082B5C] text-white shadow-lg hover:bg-[#12BCEB]"
-                            : "border border-[#C9D8E6] bg-white text-[#24415F] hover:border-[#12BCEB] hover:text-[#12BCEB]"
-                        }`}
-                      >
-                        {button.actionType === "whatsapp" && <FaWhatsapp size={15} />}
-                        {button.actionType === "call" && <Phone size={15} />}
-                        {button.label}
-                        <ArrowUpRight size={13} />
-                      </button>
-                    ))
+              {/* LOGO AND PROFILE LABEL */}
+              <div className="absolute left-4 top-4 z-10 flex items-center gap-2">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/50 bg-white p-1 shadow-lg">
+                  {logo ? (
+                    <img
+                      src={logo}
+                      alt={businessName || name || "Logo"}
+                      className="h-full w-full object-contain"
+                    />
                   ) : (
-                    <>
-                      {phone && (
-                        <button
-                          type="button"
-                          onClick={() => onContactClick("phone")}
-                          className="flex items-center gap-2 rounded-full bg-[#082B5C] px-5 py-3 text-xs font-bold text-white shadow-lg transition hover:bg-[#12BCEB]"
-                        >
-                          <Phone size={15} />
-                          Call
-                        </button>
-                      )}
-
-                      {whatsapp && (
-                        <button
-                          type="button"
-                          onClick={() => onContactClick("whatsapp")}
-                          className="flex items-center gap-2 rounded-full border border-[#B8EBD2] bg-white px-5 py-3 text-xs font-bold text-[#14935D] transition hover:bg-[#EAFBF3]"
-                        >
-                          <FaWhatsapp size={15} />
-                          WhatsApp
-                        </button>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={onShare}
-                        className="flex items-center gap-2 rounded-full border border-[#C9D8E6] bg-white px-5 py-3 text-xs font-bold text-[#24415F] transition hover:border-[#12BCEB] hover:text-[#12BCEB]"
-                      >
-                        <Share2 size={15} />
-                        Share
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={onOpenQr}
-                        className="flex items-center gap-2 rounded-full bg-[#12BCEB] px-5 py-3 text-xs font-bold text-white transition hover:bg-[#082B5C]"
-                      >
-                        <ScanLine size={15} />
-                        Save Contact
-                      </button>
-                    </>
+                    <UserRound
+                      size={15}
+                      className="text-[#082B5C]"
+                    />
                   )}
                 </div>
-              </div>
-            </section>
 
-            {/* ABOUT */}
-            <section className={`${cardClass} p-5 sm:p-7`}>
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E8F8FD] text-[#12BCEB]">
-                  <UserRound size={18} />
-                </div>
-                <div>
-                  <p className={sectionLabel}>About</p>
-                  <h2 className={sectionTitle}>About Me</h2>
-                </div>
-              </div>
-
-              <p className="mt-5 max-w-4xl text-sm leading-7 text-[#61738C]">
-                {about ||
-                  "I am a passionate entrepreneur and digital solutions expert, helping businesses grow through technology, creativity and smart strategies. With a focus on innovation and customer satisfaction, I work towards building strong brands and creating meaningful digital experiences."}
-              </p>
-
-              <div className="mt-5 flex flex-wrap gap-2">
-                {[
-                  ["Business Growth", BriefcaseBusiness],
-                  ["Digital Solutions", Code2],
-                  ["Creative Design", Palette],
-                  ["Reliable Support", Headset],
-                ].map(([label, Icon]) => (
-                  <span
-                    key={label}
-                    className="flex items-center gap-2 rounded-full bg-[#EFF8FC] px-3.5 py-2 text-[10px] font-semibold text-[#46637F]"
-                  >
-                    <Icon size={14} className="text-[#12BCEB]" />
-                    {label}
-                  </span>
-                ))}
-              </div>
-
-              {/* ADDED: INDUSTRY AND BUSINESS NAME */}
-              <div className="mt-3 flex flex-wrap gap-2">
-                {industry && (
-                  <span className="rounded-full border border-[#BCEAF5] bg-[#E8F8FD] px-3.5 py-2 text-[10px] font-semibold text-[#087DA1]">
-                    {industry}
-                  </span>
-                )}
-                {businessName && (
-                  <span className="rounded-full border border-[#E1EAF3] bg-[#F5F9FD] px-3.5 py-2 text-[10px] font-semibold text-[#46637F]">
-                    {businessName}
-                  </span>
-                )}
-              </div>
-            </section>
-
-            {/* PRODUCTS */}
-            {productList.length > 0 && (
-              <section
-                id="premium-products"
-                className={`${cardClass} overflow-hidden p-5 sm:p-7`}
-              >
-                <div className="mb-5 flex items-end justify-between">
-                  <div>
-                    <p className={sectionLabel}>Featured collection</p>
-                    <h2 className={sectionTitle}>Featured Products</h2>
+                {hasBusinessName && (
+                  <div className="max-w-[210px] truncate rounded-full border border-white/20 bg-black/35 px-3 py-1.5 text-[11px] font-bold text-white backdrop-blur-md md:text-[12px]">
+                    {businessName || name}
                   </div>
-                  <span className="text-[10px] font-bold text-[#71839A]">
-                    Swipe to Explore →
-                  </span>
-                </div>
-
-                <Swiper
-                  modules={[Autoplay, Navigation, Pagination]}
-                  spaceBetween={12}
-                  slidesPerView={1.15}
-                  loop={productList.length > 4}
-                  speed={700}
-                  autoplay={productList.length > 1 ? swiperAutoplay : false}
-                  navigation
-                  pagination={{ clickable: true, dynamicBullets: true }}
-                  breakpoints={swiperBreakpoints}
-                  className="premium-product-swiper !pb-10"
-                >
-                  {productList.map((product, index) => {
-                    const cover = product.images?.find((item) => item?.url)?.url;
-
-                    return (
-                      <SwiperSlide
-                        key={product._id || index}
-                        className="h-auto"
-                      >
-                        <button
-                          type="button"
-                          onClick={() => onProductClick(product)}
-                          className="group h-full w-full overflow-hidden rounded-xl border border-[#E2EAF2] bg-white text-left transition duration-300 hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(8,43,92,0.09)]"
-                        >
-                          <div className="relative h-40 overflow-hidden bg-[#EEF5F9]">
-                            {cover ? (
-                              <img
-                                src={cover}
-                                alt={product.name}
-                                loading="lazy"
-                                className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                              />
-                            ) : (
-                              <div className="flex h-full items-center justify-center">
-                                <ImageIcon size={34} className="text-[#9CB1C5]" />
-                              </div>
-                            )}
-
-                            <div className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#082B5C] shadow-sm">
-                              <ArrowUpRight size={15} />
-                            </div>
-                          </div>
-
-                          <div className="p-4">
-                            <h3 className="truncate text-xs font-bold text-[#183250] sm:text-sm">
-                              {product.name}
-                            </h3>
-
-                            <p className="mt-1.5 line-clamp-2 text-[10px] leading-5 text-[#7C8EA2]">
-                              {product.description}
-                            </p>
-
-                            <div className="mt-3 flex items-center justify-between">
-                              <p className="text-sm font-black text-[#082B5C]">
-                                ₹{Number(product.price || 0).toLocaleString("en-IN")}+
-                              </p>
-                              <span className="text-[9px] font-bold text-[#12BCEB]">
-                                View Details
-                              </span>
-                            </div>
-                          </div>
-                        </button>
-                      </SwiperSlide>
-                    );
-                  })}
-                </Swiper>
-              </section>
-            )}
-
-            {/* GALLERY */}
-            <section
-              id="premium-gallery"
-              className={`${cardClass} overflow-hidden p-5 sm:p-7`}
-            >
-              <div className="mb-5 flex items-end justify-between">
-                <div>
-                  <p className={sectionLabel}>A glimpse of my work</p>
-                  <h2 className={sectionTitle}>Gallery</h2>
-                </div>
-                <span className="text-[10px] font-bold text-[#71839A]">
-                  Swipe to Explore →
-                </span>
+                )}
               </div>
 
-              {galleryImages.length > 0 ? (
-                <Swiper
-                  modules={[Autoplay, Navigation, Pagination]}
-                  spaceBetween={12}
-                  slidesPerView={1.15}
-                  loop={galleryImages.length > 4}
-                  speed={700}
-                  autoplay={galleryImages.length > 1 ? swiperAutoplay : false}
-                  navigation
-                  pagination={{ clickable: true, dynamicBullets: true }}
-                  breakpoints={swiperBreakpoints}
-                  className="premium-gallery-swiper !pb-10"
-                >
-                  {galleryImages.map((image, index) => (
-                    <SwiperSlide key={`${image.url}-${index}`}>
-                      <button
-                        type="button"
-                        onClick={() => onGalleryClick(image)}
-                        className="group relative block aspect-[4/3] w-full overflow-hidden rounded-xl bg-[#EEF5F9]"
-                      >
-                        <img
-                          src={image.url}
-                          alt={image.alt || `Gallery ${index + 1}`}
-                          loading="lazy"
-                          className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
-                        />
-
-                        <span className="absolute bottom-2 left-2 rounded-full bg-[#082B5C]/80 px-2 py-1 text-[8px] font-bold text-white backdrop-blur">
-                          {String(index + 1).padStart(2, "0")}
-                        </span>
-
-                        <div className="absolute inset-0 flex items-center justify-center bg-[#082B5C]/35 opacity-0 transition group-hover:opacity-100">
-                          <ArrowUpRight size={22} className="text-white" />
-                        </div>
-                      </button>
-                    </SwiperSlide>
-                  ))}
-                </Swiper>
-              ) : (
-                <div className="rounded-xl border border-dashed border-[#D6E2EC] py-12 text-center">
-                  <ImageIcon size={35} className="mx-auto text-[#9CB1C5]" />
-                  <p className="mt-3 text-xs text-[#7B8DA0]">
-                    No gallery images added yet.
-                  </p>
+              {/* VERIFIED */}
+              {isVerified && (
+                <div className="absolute right-4 top-4 z-10">
+                  <div className="flex items-center gap-1 rounded-full bg-[#12BCEB] px-3 py-1.5 text-[8px] font-black text-white shadow-lg">
+                    <CheckCircle2 size={10} />
+                    VERIFIED
+                  </div>
                 </div>
               )}
-            </section>
 
-            {/* SOCIAL */}
-            {socialLinks.length > 0 && (
-              <section
-                id="premium-social"
-                className={`${cardClass} p-5 sm:p-7`}
-              >
-                <div className="mb-5">
-                  <p className={sectionLabel}>Stay connected</p>
-                  <h2 className={sectionTitle}>
-                    Social Media & Contact Buttons
-                  </h2>
-                  <p className="mt-1 text-xs text-[#71839A]">
-                    Connect with me on social media & get in touch
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
-                  {socialLinks.map((social, index) => {
-                    const Icon = getSocialIcon(social.platform);
-
-                    return (
-                      <a
-                        key={social._id || `${social.platform}-${index}`}
-                        href={normalizeUrl(social.url)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 rounded-xl border border-[#E0E9F2] bg-white px-3 py-3 transition hover:-translate-y-0.5 hover:border-[#12BCEB] hover:shadow-sm"
-                      >
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#E8F8FD] text-[#12BCEB]">
-                          <Icon size={17} />
-                        </span>
-
-                        <div className="min-w-0">
-                          <p className="truncate text-[10px] font-bold text-[#183250]">
-                            {social.platform}
-                          </p>
-                          <p className="text-[9px] text-[#8191A3]">Connect</p>
-                        </div>
-                      </a>
-                    );
-                  })}
-                </div>
-              </section>
-            )}
-
-            {/* CONTACT FORM */}
-            <section
-              id="premium-contact"
-              className={`${cardClass} overflow-hidden`}
-            >
-              <div className="grid lg:grid-cols-[0.8fr_1.2fr]">
-                <div className="bg-[#082B5C] p-6 text-white sm:p-8">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#12BCEB]">
-                    Let's connect
-                  </p>
-
-                  <h2 className="mt-3 text-2xl font-black leading-tight sm:text-3xl">
-                    Let's Create Something Great Together
-                  </h2>
-
-                  <p className="mt-4 text-sm leading-6 text-white/65">
-                    Have a project in mind? Share your ideas and let's make
-                    something meaningful together.
-                  </p>
-
-                  {email && (
-                    <div className="mt-6 flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-[#12BCEB]">
-                        <Mail size={17} />
-                      </div>
-
-                      <div>
-                        <p className="text-[9px] font-bold uppercase tracking-wider text-white/45">
-                          Email
-                        </p>
-                        <p className="mt-1 break-all text-xs font-semibold">
-                          {email}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-5 sm:p-8">
-                  {formSubmitted ? (
-                    <div className="flex min-h-[280px] flex-col items-center justify-center text-center">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#E8F8FD] text-[#12BCEB]">
-                        <CheckCircle2 size={30} />
-                      </div>
-
-                      <h3 className="mt-4 text-lg font-bold text-[#082B5C]">
-                        Inquiry Submitted Successfully!
-                      </h3>
-
-                      <p className="mt-2 max-w-sm text-xs leading-5 text-[#71839A]">
-                        Thank you for reaching out. I'll get back to you soon.
-                      </p>
-                    </div>
-                  ) : (
-                    <form onSubmit={onFormSubmit} className="space-y-4">
-                      {inquirySubmitError && (
-                        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-600">
-                          {inquirySubmitError}
-                        </div>
-                      )}
-
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                        <input
-                          type="text"
-                          required
-                          placeholder="Your Name"
-                          value={formData.name}
-                          disabled={inquirySubmitting}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              name: e.target.value,
-                            })
-                          }
-                          className={inputClass}
-                        />
-
-                        <input
-                          type="tel"
-                          required
-                          placeholder="Phone Number"
-                          value={formData.phone}
-                          disabled={inquirySubmitting}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              phone: e.target.value,
-                            })
-                          }
-                          className={inputClass}
-                        />
-                      </div>
-
-                      <input
-                        type="email"
-                        placeholder="Email Address (Optional)"
-                        value={formData.email}
-                        disabled={inquirySubmitting}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            email: e.target.value,
-                          })
-                        }
-                        className={inputClass}
-                      />
-
-                      <textarea
-                        rows={4}
-                        required
-                        placeholder="Tell me about your project..."
-                        value={formData.message}
-                        disabled={inquirySubmitting}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            message: e.target.value,
-                          })
-                        }
-                        className={`${inputClass} resize-none`}
-                      />
-
-                      <button
-                        type="submit"
-                        disabled={inquirySubmitting}
-                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#082B5C] py-3.5 text-sm font-bold text-white transition hover:bg-[#12BCEB] disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        {inquirySubmitting ? (
-                          "Submitting..."
-                        ) : (
-                          <>
-                            <Send size={16} />
-                            Send Inquiry
-                          </>
-                        )}
-                      </button>
-                    </form>
-                  )}
-                </div>
-              </div>
-            </section>
-
-            {/* BOTTOM CTA */}
-            <section className="relative overflow-hidden rounded-[18px] bg-[#082B5C] px-6 py-7 text-white shadow-[0_12px_35px_rgba(8,43,92,0.16)] sm:px-8">
-              <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-[#12BCEB]/25 blur-2xl" />
-
-              <div className="relative flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-center">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <Rocket size={20} className="text-[#12BCEB]" />
-                    <h3 className="text-lg font-black">
-                      Scan • Connect • Grow
-                    </h3>
-                  </div>
-
-                  <p className="mt-1 text-xs text-white/60">
-                    Your success is just a scan away!
-                  </p>
-                </div>
+              {/* COVER ACTIONS */}
+              <div className="absolute bottom-4 right-4 z-10 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={onShare}
+                  aria-label="Share profile"
+                  title="Share Profile"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/30 bg-black/25 text-white shadow-lg backdrop-blur-md transition active:scale-95"
+                >
+                  <Share2 size={16} />
+                </button>
 
                 <button
                   type="button"
                   onClick={onOpenQr}
-                  className="flex items-center gap-2 rounded-full bg-[#12BCEB] px-5 py-3 text-xs font-bold text-white transition hover:bg-white hover:text-[#082B5C]"
+                  aria-label="Scan profile QR"
+                  title="Scan Profile QR"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/30 bg-[#12BCEB] text-white shadow-lg transition active:scale-95"
                 >
-                  <ScanLine size={15} />
-                  Scan Profile
+                  <ScanLine size={17} />
                 </button>
               </div>
-            </section>
-          </div>
+            </div>
 
-          {/* RIGHT SIDEBAR */}
-          <aside className="order-last space-y-5 xl:sticky xl:top-5 xl:order-none xl:self-start">
-
-            {/* QR CARD */}
-            <section
-              id="premium-qr"
-              className={`${cardClass} p-5 text-center`}
-            >
-              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-[#E8F8FD] text-[#12BCEB]">
-                <ScanLine size={19} />
-              </div>
-
-              <h3 className="mt-3 text-sm font-extrabold text-[#082B5C]">
-                Scan to Connect
-              </h3>
-
-              <p className="mt-1 text-[10px] leading-5 text-[#71839A]">
-                Save my contact or visit my profile
-              </p>
-
-              <div className="mx-auto mt-4 flex w-fit items-center justify-center rounded-xl border border-[#E5EDF4] bg-white p-3">
-                {qrFetching ? (
-                  <div className="flex h-[150px] w-[150px] items-center justify-center text-[10px] text-[#71839A]">
-                    Loading QR...
+            {/* PROFILE */}
+            <div className="relative px-4 pb-4">
+              <div className="relative -mt-[4px]">
+                {/* AVATAR */}
+                <div className="relative h-[84px] w-[84px] rounded-[17px] border-[3px] border-white bg-white shadow-[0_8px_20px_rgba(8,43,92,0.18)]">
+                  <div className="h-full w-full overflow-hidden rounded-[13px] bg-[#E8F8FD]">
+                    {avatar ? (
+                      <img
+                        src={avatar}
+                        alt={name || "Profile"}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <UserRound
+                          size={38}
+                          className="text-[#8AA4BD]"
+                        />
+                      </div>
+                    )}
                   </div>
-                ) : qrTargetUrl ? (
-                  <QRCodeCanvas
-                    id="premium-profile-qr"
-                    value={qrTargetUrl}
-                    size={150}
-                    level="H"
-                    includeMargin
-                  />
-                ) : (
-                  <div className="flex h-[150px] w-[150px] items-center justify-center text-[10px] text-[#71839A]">
-                    QR unavailable
+
+                  {isVerified && (
+                    <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-[#12BCEB] text-white">
+                      <CheckCircle2 size={11} />
+                    </span>
+                  )}
+                </div>
+
+                {/* PROFILE INFO */}
+                {(name || role || location) && (
+                  <div className="absolute left-[96px] right-0 top-[12px]">
+                    {name && (
+                      <div className="flex items-center gap-1">
+                        <h1 className="truncate text-[15px] font-black tracking-[-0.02em] text-[#082B5C]">
+                          {name}
+                        </h1>
+
+                        {isVerified && (
+                          <CheckCircle2
+                            size={14}
+                            className="shrink-0 fill-[#12BCEB] text-white"
+                          />
+                        )}
+                      </div>
+                    )}
+
+                    {role && (
+                      <p className="mt-0.5 truncate text-[14px] font-semibold text-[#304D6C]">
+                        {role}
+                      </p>
+                    )}
+
+                    {location && (
+                      <div className="mt-1 flex items-center gap-1 text-[14px] font-medium text-[#71839A]">
+                        <MapPin
+                          size={10}
+                          className="shrink-0 text-[#12BCEB]"
+                        />
+                        <span className="truncate">{location}</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
 
-              {qrTargetUrl && !qrFetching && (
-                <a
-                  href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrTargetUrl)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-4 flex items-center justify-center gap-2 rounded-full bg-[#E8F8FD] py-2.5 text-[10px] font-bold text-[#087DA1] transition hover:bg-[#12BCEB] hover:text-white"
-                >
-                  <Download size={13} />
-                  Download QR
-                </a>
-              )}
-            </section>
+              {/* SOCIAL ICONS */}
+              {firstSocialLinks.length > 0 && (
+                <div className="mt-2 flex items-center gap-2 overflow-x-auto pb-1">
+                  {firstSocialLinks.map((social, index) => {
+                    const Icon = getSocialIcon(social);
+                    const platform = normalizePlatform(social);
+                    const brandColor =
+                      socialColors[platform] || "bg-[#64748B]";
 
-            {/* CONTACT INFORMATION */}
-            <section className={`${cardClass} p-5`}>
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E8F8FD] text-[#12BCEB]">
-                  <Phone size={17} />
+                    return (
+                      <a
+                        key={
+                          social._id ||
+                          `${platform}-${index}`
+                        }
+                        href={normalizeUrl(social.url)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={
+                          social.platform ||
+                          social.platformName ||
+                          "Social link"
+                        }
+                        className={`flex h-[31px] w-[31px] shrink-0 items-center justify-center rounded-full text-white transition active:scale-95 ${brandColor}`}
+                      >
+                        <Icon size={13} />
+                      </a>
+                    );
+                  })}
                 </div>
-                <h3 className="text-sm font-extrabold text-[#082B5C]">
-                  Contact Information
-                </h3>
+              )}
+
+              {/* QUICK ACTIONS */}
+              <div className="mt-3 rounded-[15px] border border-[#D8E5EE] bg-white p-2 shadow-[0_3px_12px_rgba(8,43,92,0.04)]">
+                <div className="grid grid-cols-4 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleMobileAction("save")}
+                    className="flex min-h-[58px] flex-col items-center justify-center gap-1.5 rounded-[11px] border border-[#12C5E8] bg-[#12C5E8] text-white shadow-sm transition active:scale-[0.98]"
+                  >
+                    <Bookmark size={17} />
+                    <span className="text-[11px] font-extrabold">
+                      Save
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleMobileAction("phone")}
+                    disabled={!phone}
+                    className="flex min-h-[58px] flex-col items-center justify-center gap-1.5 rounded-[11px] border border-[#D9E5EF] bg-white text-[#087DA1] transition hover:border-[#12C5E8] disabled:opacity-40"
+                  >
+                    <Phone size={17} />
+                    <span className="text-[11px] font-extrabold">
+                      Call
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleMobileAction("whatsapp")}
+                    disabled={!whatsapp}
+                    className="flex min-h-[58px] flex-col items-center justify-center gap-1.5 rounded-[11px] border border-[#D9E5EF] bg-white text-[#087DA1] transition hover:border-[#12C5E8] disabled:opacity-40"
+                  >
+                    <FaWhatsapp size={17} />
+                    <span className="text-[11px] font-extrabold">
+                      WhatsApp
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleMobileAction("address")}
+                    disabled={!address}
+                    className="flex min-h-[58px] flex-col items-center justify-center gap-1.5 rounded-[11px] border border-[#D9E5EF] bg-white text-[#087DA1] transition hover:border-[#12C5E8] disabled:opacity-40"
+                  >
+                    <Globe size={17} />
+                    <span className="text-[11px] font-extrabold">
+                      Map
+                    </span>
+                  </button>
+                </div>
+
+                {/* CONFIGURED ACTIONS */}
+                {contactButtons.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2 border-t border-[#E8EFF4] pt-2">
+                    {contactButtons.map((button, index) => (
+                      <button
+                        key={
+                          button._id ||
+                          button.id ||
+                          index
+                        }
+                        type="button"
+                        onClick={() => onConfiguredButton(button)}
+                        className="flex min-h-[38px] items-center gap-1.5 rounded-[10px] border border-[#D9E5EF] bg-white px-3 py-2 text-[11px] font-bold text-[#24415F] transition active:scale-[0.98]"
+                      >
+                        {button.actionType === "whatsapp" && (
+                          <FaWhatsapp size={13} />
+                        )}
+
+                        {button.actionType === "call" && (
+                          <Phone size={13} />
+                        )}
+
+                        {button.label}
+
+                        <ArrowUpRight size={12} />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* ABOUT */}
+          {about && (
+            <section className="mx-0 mt-3 rounded-[15px] border border-[#D6E4ED] bg-[#F4F8FB] px-3.5 py-3.5">
+              <p className="whitespace-pre-line text-[15px] leading-[1.7] text-[#526A82]">
+                {about}
+              </p>
+            </section>
+          )}
+
+          {/* BUSINESS DETAILS */}
+          {(hasBusinessName ||
+            industry ||
+            phone ||
+            email ||
+            hasWebsite ||
+            address) && (
+            <section className="mx-0 mt-3 rounded-[15px] border border-[#E0E9F1] bg-white p-3.5">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#12BCEB]">
+                    Business
+                  </p>
+
+                  {hasBusinessName && (
+                    <h2 className="mt-1 text-[16px] font-black text-[#082B5C]">
+                      {businessName || name}
+                    </h2>
+                  )}
+                </div>
+
+                {industry && (
+                  <span className="rounded-full bg-[#E8F8FD] px-2.5 py-1 text-[12px] font-bold text-[#087DA1]">
+                    {industry}
+                  </span>
+                )}
               </div>
 
-              <div className="mt-5 space-y-4">
+              <div className="mt-3 grid grid-cols-2 gap-2">
                 {phone && (
                   <button
                     type="button"
                     onClick={() => onContactClick("phone")}
-                    className="flex w-full items-center gap-3 text-left"
+                    className="flex min-w-0 items-center gap-2 rounded-[14px] bg-[#F6FAFC] p-2.5 text-left"
                   >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#E8F8FD] text-[#12BCEB]">
-                      <Phone size={15} />
-                    </div>
+                    <Phone
+                      size={13}
+                      className="shrink-0 text-[#12BCEB]"
+                    />
 
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-bold text-[#183250]">
-                        {phone}
-                      </p>
-                      <p className="mt-0.5 text-[9px] text-[#7D8EA1]">
-                        Call Anytime
-                      </p>
-                    </div>
+                    <span className="truncate text-[12px] font-bold text-[#405B75]">
+                      {phone}
+                    </span>
                   </button>
                 )}
 
@@ -899,62 +569,33 @@ const MinimalLuxury = ({
                   <button
                     type="button"
                     onClick={() => onContactClick("email")}
-                    className="flex w-full items-center gap-3 text-left"
+                    className="flex min-w-0 items-center gap-2 rounded-[14px] bg-[#F6FAFC] p-2.5 text-left"
                   >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#E8F8FD] text-[#12BCEB]">
-                      <Mail size={15} />
-                    </div>
+                    <Mail
+                      size={13}
+                      className="shrink-0 text-[#12BCEB]"
+                    />
 
-                    <div className="min-w-0">
-                      <p className="break-all text-[11px] font-bold text-[#183250]">
-                        {email}
-                      </p>
-                      <p className="mt-0.5 text-[9px] text-[#7D8EA1]">
-                        Drop me a mail
-                      </p>
-                    </div>
+                    <span className="truncate text-[12px] font-bold text-[#405B75]">
+                      {email}
+                    </span>
                   </button>
                 )}
 
-                {/* ADDED: WHATSAPP CONTACT */}
-                {whatsapp && (
-                  <button
-                    type="button"
-                    onClick={() => onContactClick("whatsapp")}
-                    className="flex w-full items-center gap-3 text-left"
-                  >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#E8F8FD] text-[#12BCEB]">
-                      <FaWhatsapp size={15} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-bold text-[#183250]">
-                        {whatsapp}
-                      </p>
-                      <p className="mt-0.5 text-[9px] text-[#7D8EA1]">
-                        Chat on WhatsApp
-                      </p>
-                    </div>
-                  </button>
-                )}
-
-                {(website || websiteUrl) && (
+                {hasWebsite && (
                   <button
                     type="button"
                     onClick={() => onContactClick("website")}
-                    className="flex w-full items-center gap-3 text-left"
+                    className="flex min-w-0 items-center gap-2 rounded-[14px] bg-[#F6FAFC] p-2.5 text-left"
                   >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#E8F8FD] text-[#12BCEB]">
-                      <Globe size={15} />
-                    </div>
+                    <Globe
+                      size={13}
+                      className="shrink-0 text-[#12BCEB]"
+                    />
 
-                    <div className="min-w-0">
-                      <p className="truncate text-[11px] font-bold text-[#183250]">
-                        {website || websiteUrl}
-                      </p>
-                      <p className="mt-0.5 text-[9px] text-[#7D8EA1]">
-                        Visit my website
-                      </p>
-                    </div>
+                    <span className="truncate text-[12px] font-bold text-[#405B75]">
+                      {website || websiteUrl}
+                    </span>
                   </button>
                 )}
 
@@ -962,236 +603,500 @@ const MinimalLuxury = ({
                   <button
                     type="button"
                     onClick={() => onContactClick("address")}
-                    className="flex w-full items-center gap-3 text-left"
+                    className="flex min-w-0 items-center gap-2 rounded-[14px] bg-[#F6FAFC] p-2.5 text-left"
                   >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#E8F8FD] text-[#12BCEB]">
-                      <MapPin size={15} />
-                    </div>
+                    <MapPin
+                      size={13}
+                      className="shrink-0 text-[#12BCEB]"
+                    />
 
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-bold leading-5 text-[#183250]">
-                        {address}
-                      </p>
-                      <p className="mt-0.5 text-[9px] text-[#7D8EA1]">
-                        Available for business
-                      </p>
-                    </div>
+                    <span className="truncate text-[12px] font-bold text-[#405B75]">
+                      {address}
+                    </span>
                   </button>
                 )}
               </div>
             </section>
+          )}
 
-            {/* BUSINESS HOURS */}
-            <section className={`${cardClass} p-5`}>
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E8F8FD] text-[#12BCEB]">
-                  <Clock size={17} />
+          {/* UPI */}
+          {upiId && (
+            <section className="mx-0 mt-3 rounded-[15px] border border-[#E0E9F1] bg-white p-4">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-[#E8F8FD] text-[#12BCEB]">
+                  <CreditCard size={15} />
                 </div>
 
-                <h3 className="text-sm font-extrabold text-[#082B5C]">
+                <h3 className="text-[15px] font-black text-[#082B5C]">
+                  UPI Payment
+                </h3>
+              </div>
+
+              <div className="mt-3">
+                <div className="text-xl font-black italic text-[#64748B]">
+                  UPI
+                </div>
+
+                <p className="mt-1 text-[8px] font-semibold text-[#71839A]">
+                  UPI ID
+                </p>
+
+                <p className="mt-2 break-all text-[12px] font-semibold text-[#3C5877]">
+                  {upiId}
+                </p>
+
+                <button
+                  type="button"
+                  onClick={handleCopyUpi}
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-[10px] bg-[#082B5C] py-2.5 text-[11px] font-bold text-white"
+                >
+                  <Copy size={13} />
+                  {copiedUpi ? "Copied!" : "Copy UPI ID"}
+                </button>
+              </div>
+            </section>
+          )}
+
+          {/* PRODUCTS */}
+          {products.length > 0 && (
+            <section className="mx-0 mt-3 rounded-[15px] border border-[#E0E9F1] bg-white p-3.5">
+              <div className="mb-3 flex items-end justify-between">
+                <div>
+                  <p className="text-[12px] font-black uppercase tracking-[0.16em] text-[#12BCEB]">
+                    Featured Product Collection
+                  </p>
+                </div>
+
+                <span className="text-[10px] font-bold text-[#7C8EA2]">
+                  Swipe →
+                </span>
+              </div>
+
+              <Swiper
+                modules={[Autoplay, Pagination]}
+                spaceBetween={9}
+                slidesPerView={1.2}
+                breakpoints={{
+                  640: {
+                    slidesPerView: 2,
+                    spaceBetween: 12,
+                  },
+                  1024: {
+                    slidesPerView: 3,
+                    spaceBetween: 14,
+                  },
+                }}
+                loop={products.length > 3}
+                speed={600}
+                autoplay={
+                  products.length > 1
+                    ? swiperAutoplay
+                    : false
+                }
+                pagination={{
+                  clickable: true,
+                  dynamicBullets: true,
+                }}
+                className="mobile-product-swiper !pb-7"
+              >
+                {products.map((product, index) => {
+                  const cover = product.images?.find(
+                    (item) => item?.url
+                  )?.url;
+
+                  return (
+                    <SwiperSlide
+                      key={product._id || index}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => onProductClick(product)}
+                        className="w-full overflow-hidden rounded-[12px] border border-[#E1EAF2] bg-white text-left"
+                      >
+                        <div className="relative h-[150px] overflow-hidden bg-[#EEF5F9]">
+                          {cover ? (
+                            <img
+                              src={cover}
+                              alt={product.name || "Product"}
+                              loading="lazy"
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center">
+                              <ImageIcon
+                                size={25}
+                                className="text-[#9CB1C5]"
+                              />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="p-2.5">
+                          {product.name && (
+                            <h3 className="truncate text-[14px] font-black text-[#183250]">
+                              {product.name}
+                            </h3>
+                          )}
+
+                          {product.description && (
+                            <p className="mt-1 line-clamp-2 text-[14px] leading-4 text-[#7C8EA2]">
+                              {product.description}
+                            </p>
+                          )}
+
+                          <div className="mt-2 flex items-center justify-between">
+                            {product.price !== undefined &&
+                              product.price !== null &&
+                              product.price !== "" && (
+                                <span className="text-[14px] font-black text-[#082B5C]">
+                                  ₹
+                                  {Number(
+                                    product.price
+                                  ).toLocaleString("en-IN")}
+                                </span>
+                              )}
+
+                            <span className="text-[12px] font-bold text-[#12BCEB]">
+                              View
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                    </SwiperSlide>
+                  );
+                })}
+              </Swiper>
+            </section>
+          )}
+
+          {/* GALLERY */}
+          {gallery.length > 0 && (
+            <section className="mx-0 mt-3 rounded-[15px] border border-[#E0E9F1] bg-white p-3.5">
+              <div className="mb-3 flex items-end justify-between">
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#12BCEB]">
+                    Gallery
+                  </p>
+
+                  <h2 className="mt-1 text-[14px] font-black text-[#082B5C]">
+                    Photos
+                  </h2>
+                </div>
+
+                <span className="text-[8px] font-bold text-[#7C8EA2]">
+                  Swipe →
+                </span>
+              </div>
+
+              <Swiper
+                modules={[Autoplay, Pagination]}
+                spaceBetween={9}
+                slidesPerView={1.35}
+                breakpoints={{
+                  640: {
+                    slidesPerView: 2,
+                    spaceBetween: 12,
+                  },
+                  1024: {
+                    slidesPerView: 3,
+                    spaceBetween: 14,
+                  },
+                }}
+                loop={gallery.length > 3}
+                speed={600}
+                autoplay={
+                  gallery.length > 1
+                    ? swiperAutoplay
+                    : false
+                }
+                pagination={{
+                  clickable: true,
+                  dynamicBullets: true,
+                }}
+                className="mobile-gallery-swiper !pb-6"
+              >
+                {gallery.map((image, index) => (
+                  <SwiperSlide
+                    key={image._id || `${image.url}-${index}`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => onGalleryClick(image)}
+                      className="relative block aspect-[4/3] w-full overflow-hidden rounded-[11px] bg-[#EEF5F9] lg:aspect-[16/10]"
+                    >
+                      <img
+                        src={image.url}
+                        alt={image.alt || image.title || "Gallery image"}
+                        loading="lazy"
+                        className="h-full w-full object-cover"
+                      />
+
+                      <span className="absolute bottom-2 left-2 rounded-full bg-[#082B5C]/80 px-2 py-1 text-[7px] font-bold text-white">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                    </button>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </section>
+          )}
+
+          {/* SOCIAL MEDIA */}
+          {socials.length > 0 && (
+            <section className="mx-0 mt-3 rounded-[15px] border border-[#E0E9F1] bg-white p-3.5">
+              <p className="text-[8px] font-black uppercase tracking-[0.16em] text-[#12BCEB]">
+                Stay Connected
+              </p>
+
+              <h2 className="mt-1 text-[14px] font-black text-[#082B5C]">
+                Social Media
+              </h2>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                {socials.map((social, index) => {
+                  const Icon = getSocialIcon(social);
+
+                  return (
+                    <a
+                      key={
+                        social._id ||
+                        `${normalizePlatform(social)}-${index}`
+                      }
+                      href={normalizeUrl(social.url)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={
+                        social.platform ||
+                        social.platformName ||
+                        "Social link"
+                      }
+                      className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E8F8FD] text-[#087DA1]"
+                    >
+                      <Icon size={15} />
+                    </a>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* BUSINESS HOURS */}
+          {businessHours && (
+            <section className="mx-0 mt-3 rounded-[15px] border border-[#E0E9F1] bg-white p-4">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-[#E8F8FD] text-[#12BCEB]">
+                  <Clock size={15} />
+                </div>
+
+                <h3 className="text-[18px] font-black text-[#082B5C]">
                   Business Hours
                 </h3>
               </div>
 
-              {/* ADDED: DYNAMIC BUSINESS TIMING */}
-              {businessHours && (
-                <div className="mb-4 mt-5 rounded-xl bg-[#E8F8FD] p-3">
-                  <p className="text-[9px] font-bold uppercase tracking-wider text-[#087DA1]">
-                    Business Timing
-                  </p>
-                  <p className="mt-1 text-xs font-semibold text-[#183250]">
-                    {businessHours}
-                  </p>
-                </div>
-              )}
-
-              <div className="mt-5 space-y-2.5">
-                {defaultHours.map(([day, hours]) => (
-                  <div
-                    key={day}
-                    className="flex items-center justify-between gap-3"
-                  >
-                    <span className="text-[10px] font-bold text-[#183250]">
-                      {day}
-                    </span>
-
-                    <span
-                      className={`text-right text-[9px] ${
-                        hours === "Closed"
-                          ? "font-bold text-[#D14D4D]"
-                          : "text-[#657991]"
-                      }`}
-                    >
-                      {hours}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-4 flex items-center gap-2 text-[9px] font-bold text-[#16A765]">
-                <span className="h-2 w-2 rounded-full bg-[#16A765]" />
-                Open Now
+              <div className="mt-3 rounded-[10px] bg-[#E8F8FD] p-3">
+                <p className="whitespace-pre-line text-[12px] font-semibold leading-6 text-[#183250]">
+                  {businessHours}
+                </p>
               </div>
             </section>
+          )}
 
-            {/* UPI */}
-            {upiId && (
-              <section className={`${cardClass} p-5`}>
-                <div className="flex items-center gap-2.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E8F8FD] text-[#12BCEB]">
-                    <CreditCard size={17} />
+          {/* CONTACT FORM */}
+          <section
+            id="premium-contact"
+            className="mx-0 mt-3 overflow-hidden rounded-[15px] border border-[#E0E9F1] bg-white"
+          >
+            <div className="bg-[#082B5C] p-4 text-white">
+              <p className="text-[8px] font-black uppercase tracking-[0.16em] text-[#12BCEB]">
+                Contact
+              </p>
+
+              <h2 className="mt-2 text-[17px] font-black leading-tight">
+                {businessName
+                  ? `Contact ${businessName}`
+                  : "Send an Inquiry"}
+              </h2>
+            </div>
+
+            <div className="p-3.5">
+              {formSubmitted ? (
+                <div className="flex min-h-[180px] flex-col items-center justify-center text-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#E8F8FD] text-[#12BCEB]">
+                    <CheckCircle2 size={25} />
                   </div>
 
-                  <h3 className="text-sm font-extrabold text-[#082B5C]">
-                    UPI Payment
+                  <h3 className="mt-3 text-sm font-bold text-[#082B5C]">
+                    Inquiry Submitted Successfully!
                   </h3>
                 </div>
+              ) : (
+                <form
+                  onSubmit={onFormSubmit}
+                  className="space-y-2.5"
+                >
+                  {inquirySubmitError && (
+                    <div className="rounded-[10px] border border-red-200 bg-red-50 p-2.5 text-[9px] text-red-600">
+                      {inquirySubmitError}
+                    </div>
+                  )}
 
-                <div className="mt-5">
-                  <div className="text-2xl font-black italic text-[#64748B]">
-                    UPI
-                  </div>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Your Name"
+                    value={formData.name || ""}
+                    disabled={inquirySubmitting}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        name: e.target.value,
+                      })
+                    }
+                    className={inputClass}
+                  />
 
-                  <p className="mt-1 text-[10px] font-semibold text-[#71839A]">
-                    Scan & Pay
-                  </p>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="Phone Number"
+                    value={formData.phone || ""}
+                    disabled={inquirySubmitting}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        phone: e.target.value,
+                      })
+                    }
+                    className={inputClass}
+                  />
 
-                  <p className="mt-3 break-all text-[10px] font-semibold text-[#3C5877]">
-                    {upiId}
-                  </p>
+                  <input
+                    type="email"
+                    placeholder="Email Address (Optional)"
+                    value={formData.email || ""}
+                    disabled={inquirySubmitting}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        email: e.target.value,
+                      })
+                    }
+                    className={inputClass}
+                  />
+
+                  <textarea
+                    rows={4}
+                    required
+                    placeholder="Message"
+                    value={formData.message || ""}
+                    disabled={inquirySubmitting}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        message: e.target.value,
+                      })
+                    }
+                    className={`${inputClass} resize-none`}
+                  />
 
                   <button
-                    type="button"
-                    onClick={handleCopyUpi}
-                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#082B5C] py-3 text-[10px] font-bold text-white transition hover:bg-[#12BCEB]"
+                    type="submit"
+                    disabled={inquirySubmitting}
+                    className="flex w-full items-center justify-center gap-2 rounded-[11px] bg-[#082B5C] py-3 text-[10px] font-bold text-white disabled:opacity-50"
                   >
-                    <Copy size={13} />
-                    {copiedUpi ? "Copied!" : "Copy UPI ID"}
+                    {inquirySubmitting ? (
+                      "Submitting..."
+                    ) : (
+                      <>
+                        <Send size={13} />
+                        Send Inquiry
+                      </>
+                    )}
                   </button>
+                </form>
+              )}
+            </div>
+          </section>
+
+          {/* QR CODE */}
+          <section
+            id="premium-qr"
+            className="mx-0 mt-3 rounded-[15px] border border-[#E0E9F1] bg-white p-4 text-center"
+          >
+            <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-[10px] bg-[#E8F8FD] text-[#12BCEB]">
+              <ScanLine size={17} />
+            </div>
+
+            <h3 className="mt-2 text-[13px] font-black text-[#082B5C]">
+              Scan to Connect
+            </h3>
+
+            <p className="mt-1 text-[8px] text-[#71839A]">
+              Scan the QR code to visit this profile
+            </p>
+
+            <div className="mx-auto mt-3 flex w-fit items-center justify-center rounded-[11px] border border-[#E5EDF4] bg-white p-2">
+              {qrFetching ? (
+                <div className="flex h-[130px] w-[130px] items-center justify-center text-[9px] text-[#71839A]">
+                  Loading QR...
                 </div>
-              </section>
+              ) : qrTargetUrl ? (
+                <QRCodeCanvas
+                  id="mobile-profile-qr"
+                  value={qrTargetUrl}
+                  size={130}
+                  level="H"
+                  includeMargin
+                />
+              ) : (
+                <div className="flex h-[130px] w-[130px] items-center justify-center text-[9px] text-[#71839A]">
+                  QR unavailable
+                </div>
+              )}
+            </div>
+
+            {qrTargetUrl && !qrFetching && (
+              <button
+                type="button"
+                onClick={handleDownloadQr}
+                className="mx-auto mt-3 flex w-full items-center justify-center gap-2 rounded-[10px] bg-[#E8F8FD] py-2.5 text-[11px] font-bold text-[#087DA1]"
+              >
+                <Download size={13} />
+                Download QR
+              </button>
             )}
+          </section>
+        </main>
+      </div>
 
-            {/* FOLLOW ME */}
-            {socialLinks.length > 0 && (
-              <section className={`${cardClass} p-5`}>
-                <div className="flex items-center gap-2.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E8F8FD] text-[#12BCEB]">
-                    <Share2 size={17} />
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-extrabold text-[#082B5C]">
-                      Follow Me
-                    </h3>
-                    <p className="mt-0.5 text-[9px] text-[#7D8EA1]">
-                      Stay connected on social media
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {socialLinks.map((social, index) => {
-                    const Icon = getSocialIcon(social.platform);
-
-                    return (
-                      <a
-                        key={social._id || `${social.platform}-${index}`}
-                        href={normalizeUrl(social.url)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title={social.platform}
-                        className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E1EAF3] bg-[#F8FBFD] text-[#082B5C] transition hover:-translate-y-0.5 hover:border-[#12BCEB] hover:bg-[#12BCEB] hover:text-white"
-                      >
-                        <Icon size={15} />
-                      </a>
-                    );
-                  })}
-                </div>
-              </section>
-            )}
-          </aside>
-        </div>
-      </main>
-
-      {/* ADDED: FOOTER */}
-      <footer className="border-t border-[#E1EAF3] bg-white px-5 py-7 text-center sm:px-8">
-        <div className="mx-auto flex max-w-[1450px] flex-col items-center justify-between gap-4 sm:flex-row">
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-black text-[#082B5C]">
-              Bio<span className="text-[#12BCEB]">.</span>
-            </span>
-            <span className="text-xs text-[#71839A]">
-              Professional Digital Identity
-            </span>
-          </div>
-          <p className="text-xs text-[#71839A]">
-            © {new Date().getFullYear()} {name || businessName}. All rights reserved.
-          </p>
-        </div>
-        <p className="mt-5 text-[11px] text-[#8191A3]">
-          Powered by{" "}
-          <span className="font-bold text-[#12BCEB]">BioWebsite</span>
-        </p>
-      </footer>
-
-      {/* SWIPER CUSTOM STYLING */}
+      {/* SWIPER STYLES */}
       <style>{`
-        .premium-product-swiper,
-        .premium-gallery-swiper {
+        .mobile-product-swiper,
+        .mobile-gallery-swiper {
           width: 100%;
           overflow: hidden;
         }
 
-        .premium-product-swiper .swiper-slide,
-        .premium-gallery-swiper .swiper-slide {
+        .mobile-product-swiper .swiper-slide,
+        .mobile-gallery-swiper .swiper-slide {
           height: auto;
         }
 
-        .premium-product-swiper .swiper-button-next,
-        .premium-product-swiper .swiper-button-prev,
-        .premium-gallery-swiper .swiper-button-next,
-        .premium-gallery-swiper .swiper-button-prev {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          background: #ffffff;
-          color: #082B5C;
-          box-shadow: 0 3px 12px rgba(8, 43, 92, 0.12);
-        }
-
-        .premium-product-swiper .swiper-button-next::after,
-        .premium-product-swiper .swiper-button-prev::after,
-        .premium-gallery-swiper .swiper-button-next::after,
-        .premium-gallery-swiper .swiper-button-prev::after {
-          font-size: 12px;
-          font-weight: 900;
-        }
-
-        .premium-product-swiper .swiper-pagination,
-        .premium-gallery-swiper .swiper-pagination {
+        .mobile-product-swiper .swiper-pagination,
+        .mobile-gallery-swiper .swiper-pagination {
           bottom: 0 !important;
         }
 
-        .premium-product-swiper .swiper-pagination-bullet,
-        .premium-gallery-swiper .swiper-pagination-bullet {
+        .mobile-product-swiper .swiper-pagination-bullet,
+        .mobile-gallery-swiper .swiper-pagination-bullet {
           background: #082B5C;
           opacity: 0.25;
         }
 
-        .premium-product-swiper .swiper-pagination-bullet-active,
-        .premium-gallery-swiper .swiper-pagination-bullet-active {
+        .mobile-product-swiper .swiper-pagination-bullet-active,
+        .mobile-gallery-swiper .swiper-pagination-bullet-active {
           background: #12BCEB;
           opacity: 1;
-        }
-
-        @media (max-width: 640px) {
-          .premium-product-swiper .swiper-button-next,
-          .premium-product-swiper .swiper-button-prev,
-          .premium-gallery-swiper .swiper-button-next,
-          .premium-gallery-swiper .swiper-button-prev {
-            display: none;
-          }
         }
       `}</style>
     </div>
