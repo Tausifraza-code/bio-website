@@ -676,7 +676,7 @@ const initialState = {
   profileImagesError: null,
 
   branding: {
-    websiteName: "BIO Website",
+    websiteName: "BIO SITE",
     websiteLogo: "",
     websiteUrl: "",
   },

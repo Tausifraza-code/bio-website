@@ -1,5 +1,4 @@
-﻿
-import {
+﻿import {
   ArrowRight,
   ArrowUpRight,
   BadgeCheck,
@@ -39,12 +38,11 @@ function Hero() {
 
         {/* Content-driven layout */}
         <div className="relative z-10 mx-auto grid w-full max-w-[1240px] grid-cols-1 items-center gap-8 px-4 pb-0  sm:px-6 sm:pb-0 sm:pt-10 md:gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-5 lg:px-2 lg:py-0 lg:pt-14 xl:gap-8 xl:px-4">
-
           {/* LEFT CONTENT */}
           {/* Mobile: text first | Desktop: left */}
           <div className="order-1 mx-auto w-full max-w-[650px] text-center lg:order-1 lg:mx-0 lg:text-left">
             <div className="mb-2 inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full border border-[#d7e3eb] bg-white px-3 py-2 text-[10px] font-bold text-cyan-700 shadow-sm dark:border-[#29435f] dark:bg-[#132942] dark:text-[#22d3ee] sm:mb-5 sm:px-3.5 sm:text-xs lg:justify-start">
-              <span>BIO WEBSITE</span>
+              <span>BIO SITE</span>
               <span className="h-1 w-1 rounded-full bg-[#0891b2] dark:bg-[#22d3ee]" />
               <span>YOUR DIGITAL BUSINESS IDENTITY</span>
             </div>
@@ -91,7 +89,7 @@ function Hero() {
                 href="/register"
                 className="group inline-flex items-center justify-center gap-3 rounded-full bg-cyan-400 px-7 py-4 text-[15px] font-bold text-[#f1f6f9] shadow-sm transition duration-300 hover:-translate-y-1 hover:bg-cyan-300 hover:text-[#0b1b30] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 sm:px-8"
               >
-                Create Your Mini Website
+                Create Your Bio Site
                 <ArrowRight
                   size={17}
                   className="transition-transform group-hover:translate-x-1"
@@ -388,8 +386,6 @@ function Hero() {
         {/* Bottom spacing stays inside rounded panel */}
         <div className="h-12 sm:h-12 lg:h-12" />
       </div>
-
-     
     </section>
   );
 }

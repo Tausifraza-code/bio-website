@@ -1,4 +1,3 @@
-
 import React from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -60,6 +59,7 @@ const MinimalLuxury = ({
   onShare = () => {},
   onOpenQr = () => {},
   onProductClick = () => {},
+  onProductWhatsAppInquiry = () => {},
   onGalleryClick = () => {},
   onContactClick = () => {},
 }) => {
@@ -98,8 +98,7 @@ const MinimalLuxury = ({
   };
 
   const socialColors = {
-    instagram:
-      "bg-gradient-to-tr from-[#FEDA75] via-[#FA7E1E] to-[#D62976]",
+    instagram: "bg-gradient-to-tr from-[#FEDA75] via-[#FA7E1E] to-[#D62976]",
     facebook: "bg-[#1877F2]",
     whatsapp: "bg-[#25D366]",
     youtube: "bg-[#FF0000]",
@@ -118,12 +117,7 @@ const MinimalLuxury = ({
   };
 
   const normalizePlatform = (social = {}) => {
-    return String(
-      social.platform ||
-        social.platformName ||
-        social.icon ||
-        ""
-    )
+    return String(social.platform || social.platformName || social.icon || "")
       .toLowerCase()
       .replace(/[^a-z0-9]/g, "");
   };
@@ -132,7 +126,7 @@ const MinimalLuxury = ({
     const platform = normalizePlatform(social);
 
     const found = Object.keys(socialIconMap).find((item) =>
-      platform.includes(item)
+      platform.includes(item),
     );
 
     return found ? socialIconMap[found] : FaLink;
@@ -161,13 +155,9 @@ const MinimalLuxury = ({
   const inputClass =
     "w-full rounded-xl border border-[#DFE8F1] bg-[#F8FBFD] px-4 py-3.5 text-sm text-[#10233F] placeholder:text-[#8B9AAF] outline-none transition focus:border-[#12BCEB] focus:ring-4 focus:ring-[#12BCEB]/10 disabled:opacity-50";
 
-  const configuredButtons = Array.isArray(visibleButtons)
-    ? visibleButtons
-    : [];
+  const configuredButtons = Array.isArray(visibleButtons) ? visibleButtons : [];
 
-  const products = Array.isArray(productList)
-    ? productList
-    : [];
+  const products = Array.isArray(productList) ? productList : [];
 
   const gallery = Array.isArray(galleryImages)
     ? galleryImages.filter((image) => image?.url)
@@ -182,14 +172,9 @@ const MinimalLuxury = ({
   const contactButtons = configuredButtons.filter((button) => {
     const action = String(button?.actionType || "").toLowerCase();
 
-    return ![
-      "call",
-      "phone",
-      "whatsapp",
-      "save",
-      "address",
-      "map",
-    ].includes(action);
+    return !["call", "phone", "whatsapp", "save", "address", "map"].includes(
+      action,
+    );
   });
 
   const hasBusinessName = Boolean(businessName || name);
@@ -250,7 +235,6 @@ const MinimalLuxury = ({
     >
       <div className="block">
         <main className="mx-auto w-full max-w-[430px] overflow-hidden bg-[#F5F9FD] pb-5 md:max-w-[560px] lg:max-w-[700px] lg:pt-2">
-
           {/* HERO */}
           <section
             id="premium-home"
@@ -280,10 +264,7 @@ const MinimalLuxury = ({
                       className="h-full w-full object-contain"
                     />
                   ) : (
-                    <UserRound
-                      size={15}
-                      className="text-[#082B5C]"
-                    />
+                    <UserRound size={15} className="text-[#082B5C]" />
                   )}
                 </div>
 
@@ -342,10 +323,7 @@ const MinimalLuxury = ({
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center">
-                        <UserRound
-                          size={38}
-                          className="text-[#8AA4BD]"
-                        />
+                        <UserRound size={38} className="text-[#8AA4BD]" />
                       </div>
                     )}
                   </div>
@@ -383,10 +361,7 @@ const MinimalLuxury = ({
 
                     {location && (
                       <div className="mt-1 flex items-center gap-1 text-[14px] font-medium text-[#71839A]">
-                        <MapPin
-                          size={10}
-                          className="shrink-0 text-[#12BCEB]"
-                        />
+                        <MapPin size={10} className="shrink-0 text-[#12BCEB]" />
                         <span className="truncate">{location}</span>
                       </div>
                     )}
@@ -400,15 +375,11 @@ const MinimalLuxury = ({
                   {firstSocialLinks.map((social, index) => {
                     const Icon = getSocialIcon(social);
                     const platform = normalizePlatform(social);
-                    const brandColor =
-                      socialColors[platform] || "bg-[#64748B]";
+                    const brandColor = socialColors[platform] || "bg-[#64748B]";
 
                     return (
                       <a
-                        key={
-                          social._id ||
-                          `${platform}-${index}`
-                        }
+                        key={social._id || `${platform}-${index}`}
                         href={normalizeUrl(social.url)}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -435,9 +406,7 @@ const MinimalLuxury = ({
                     className="flex min-h-[58px] flex-col items-center justify-center gap-1.5 rounded-[11px] border border-[#12C5E8] bg-[#12C5E8] text-white shadow-sm transition active:scale-[0.98]"
                   >
                     <Bookmark size={17} />
-                    <span className="text-[11px] font-extrabold">
-                      Save
-                    </span>
+                    <span className="text-[11px] font-extrabold">Save</span>
                   </button>
 
                   <button
@@ -447,9 +416,7 @@ const MinimalLuxury = ({
                     className="flex min-h-[58px] flex-col items-center justify-center gap-1.5 rounded-[11px] border border-[#D9E5EF] bg-white text-[#087DA1] transition hover:border-[#12C5E8] disabled:opacity-40"
                   >
                     <Phone size={17} />
-                    <span className="text-[11px] font-extrabold">
-                      Call
-                    </span>
+                    <span className="text-[11px] font-extrabold">Call</span>
                   </button>
 
                   <button
@@ -459,9 +426,7 @@ const MinimalLuxury = ({
                     className="flex min-h-[58px] flex-col items-center justify-center gap-1.5 rounded-[11px] border border-[#D9E5EF] bg-white text-[#087DA1] transition hover:border-[#12C5E8] disabled:opacity-40"
                   >
                     <FaWhatsapp size={17} />
-                    <span className="text-[11px] font-extrabold">
-                      WhatsApp
-                    </span>
+                    <span className="text-[11px] font-extrabold">WhatsApp</span>
                   </button>
 
                   <button
@@ -471,9 +436,7 @@ const MinimalLuxury = ({
                     className="flex min-h-[58px] flex-col items-center justify-center gap-1.5 rounded-[11px] border border-[#D9E5EF] bg-white text-[#087DA1] transition hover:border-[#12C5E8] disabled:opacity-40"
                   >
                     <Globe size={17} />
-                    <span className="text-[11px] font-extrabold">
-                      Map
-                    </span>
+                    <span className="text-[11px] font-extrabold">Map</span>
                   </button>
                 </div>
 
@@ -482,11 +445,7 @@ const MinimalLuxury = ({
                   <div className="mt-2 flex flex-wrap gap-2 border-t border-[#E8EFF4] pt-2">
                     {contactButtons.map((button, index) => (
                       <button
-                        key={
-                          button._id ||
-                          button.id ||
-                          index
-                        }
+                        key={button._id || button.id || index}
                         type="button"
                         onClick={() => onConfiguredButton(button)}
                         className="flex min-h-[38px] items-center gap-1.5 rounded-[10px] border border-[#D9E5EF] bg-white px-3 py-2 text-[11px] font-bold text-[#24415F] transition active:scale-[0.98]"
@@ -495,9 +454,7 @@ const MinimalLuxury = ({
                           <FaWhatsapp size={13} />
                         )}
 
-                        {button.actionType === "call" && (
-                          <Phone size={13} />
-                        )}
+                        {button.actionType === "call" && <Phone size={13} />}
 
                         {button.label}
 
@@ -554,10 +511,7 @@ const MinimalLuxury = ({
                     onClick={() => onContactClick("phone")}
                     className="flex min-w-0 items-center gap-2 rounded-[14px] bg-[#F6FAFC] p-2.5 text-left"
                   >
-                    <Phone
-                      size={13}
-                      className="shrink-0 text-[#12BCEB]"
-                    />
+                    <Phone size={13} className="shrink-0 text-[#12BCEB]" />
 
                     <span className="truncate text-[12px] font-bold text-[#405B75]">
                       {phone}
@@ -571,10 +525,7 @@ const MinimalLuxury = ({
                     onClick={() => onContactClick("email")}
                     className="flex min-w-0 items-center gap-2 rounded-[14px] bg-[#F6FAFC] p-2.5 text-left"
                   >
-                    <Mail
-                      size={13}
-                      className="shrink-0 text-[#12BCEB]"
-                    />
+                    <Mail size={13} className="shrink-0 text-[#12BCEB]" />
 
                     <span className="truncate text-[12px] font-bold text-[#405B75]">
                       {email}
@@ -588,10 +539,7 @@ const MinimalLuxury = ({
                     onClick={() => onContactClick("website")}
                     className="flex min-w-0 items-center gap-2 rounded-[14px] bg-[#F6FAFC] p-2.5 text-left"
                   >
-                    <Globe
-                      size={13}
-                      className="shrink-0 text-[#12BCEB]"
-                    />
+                    <Globe size={13} className="shrink-0 text-[#12BCEB]" />
 
                     <span className="truncate text-[12px] font-bold text-[#405B75]">
                       {website || websiteUrl}
@@ -605,10 +553,7 @@ const MinimalLuxury = ({
                     onClick={() => onContactClick("address")}
                     className="flex min-w-0 items-center gap-2 rounded-[14px] bg-[#F6FAFC] p-2.5 text-left"
                   >
-                    <MapPin
-                      size={13}
-                      className="shrink-0 text-[#12BCEB]"
-                    />
+                    <MapPin size={13} className="shrink-0 text-[#12BCEB]" />
 
                     <span className="truncate text-[12px] font-bold text-[#405B75]">
                       {address}
@@ -688,11 +633,7 @@ const MinimalLuxury = ({
                 }}
                 loop={products.length > 3}
                 speed={600}
-                autoplay={
-                  products.length > 1
-                    ? swiperAutoplay
-                    : false
-                }
+                autoplay={products.length > 1 ? swiperAutoplay : false}
                 pagination={{
                   clickable: true,
                   dynamicBullets: true,
@@ -700,68 +641,79 @@ const MinimalLuxury = ({
                 className="mobile-product-swiper !pb-7"
               >
                 {products.map((product, index) => {
-                  const cover = product.images?.find(
-                    (item) => item?.url
-                  )?.url;
+                  const cover = product.images?.find((item) => item?.url)?.url;
 
                   return (
-                    <SwiperSlide
-                      key={product._id || index}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => onProductClick(product)}
-                        className="w-full overflow-hidden rounded-[12px] border border-[#E1EAF2] bg-white text-left"
-                      >
-                        <div className="relative h-[150px] overflow-hidden bg-[#EEF5F9]">
-                          {cover ? (
-                            <img
-                              src={cover}
-                              alt={product.name || "Product"}
-                              loading="lazy"
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-full items-center justify-center">
-                              <ImageIcon
-                                size={25}
-                                className="text-[#9CB1C5]"
+                    <SwiperSlide key={product._id || index}>
+                      <div className="overflow-hidden rounded-[12px] border border-[#E1EAF2] bg-white">
+                        {/* Product Click Area */}
+                        <button
+                          type="button"
+                          onClick={() => onProductClick(product)}
+                          className="w-full text-left"
+                        >
+                          <div className="relative h-[150px] overflow-hidden bg-[#EEF5F9]">
+                            {cover ? (
+                              <img
+                                src={cover}
+                                alt={product.name || "Product"}
+                                loading="lazy"
+                                className="h-full w-full object-cover"
                               />
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="p-2.5">
-                          {product.name && (
-                            <h3 className="truncate text-[14px] font-black text-[#183250]">
-                              {product.name}
-                            </h3>
-                          )}
-
-                          {product.description && (
-                            <p className="mt-1 line-clamp-2 text-[14px] leading-4 text-[#7C8EA2]">
-                              {product.description}
-                            </p>
-                          )}
-
-                          <div className="mt-2 flex items-center justify-between">
-                            {product.price !== undefined &&
-                              product.price !== null &&
-                              product.price !== "" && (
-                                <span className="text-[14px] font-black text-[#082B5C]">
-                                  ₹
-                                  {Number(
-                                    product.price
-                                  ).toLocaleString("en-IN")}
-                                </span>
-                              )}
-
-                            <span className="text-[12px] font-bold text-[#12BCEB]">
-                              View
-                            </span>
+                            ) : (
+                              <div className="flex h-full items-center justify-center">
+                                <ImageIcon
+                                  size={25}
+                                  className="text-[#9CB1C5]"
+                                />
+                              </div>
+                            )}
                           </div>
+
+                          <div className="p-2.5">
+                            {product.name && (
+                              <h3 className="truncate text-[14px] font-black text-[#183250]">
+                                {product.name}
+                              </h3>
+                            )}
+
+                            {product.description && (
+                              <p className="mt-1 line-clamp-2 text-[14px] leading-4 text-[#7C8EA2]">
+                                {product.description}
+                              </p>
+                            )}
+
+                            <div className="mt-2 flex items-center justify-between">
+                              {product.price !== undefined &&
+                                product.price !== null &&
+                                product.price !== "" && (
+                                  <span className="text-[14px] font-black text-[#082B5C]">
+                                    ₹
+                                    {Number(product.price).toLocaleString(
+                                      "en-IN",
+                                    )}
+                                  </span>
+                                )}
+
+                              <span className="text-[12px] font-bold text-[#12BCEB]">
+                                View
+                              </span>
+                            </div>
+                          </div>
+                        </button>
+
+                        {/* WhatsApp Inquiry */}
+                        <div className="px-2.5 pb-2.5">
+                          <button
+                            type="button"
+                            onClick={() => onProductWhatsAppInquiry(product)}
+                            className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-[#25D366] py-2.5 text-[11px] font-bold text-white transition hover:bg-[#1DA851] active:scale-[0.98]"
+                          >
+                            <FaWhatsapp size={15} />
+                            WhatsApp Inquiry
+                          </button>
                         </div>
-                      </button>
+                      </div>
                     </SwiperSlide>
                   );
                 })}
@@ -804,11 +756,7 @@ const MinimalLuxury = ({
                 }}
                 loop={gallery.length > 3}
                 speed={600}
-                autoplay={
-                  gallery.length > 1
-                    ? swiperAutoplay
-                    : false
-                }
+                autoplay={gallery.length > 1 ? swiperAutoplay : false}
                 pagination={{
                   clickable: true,
                   dynamicBullets: true,
@@ -816,9 +764,7 @@ const MinimalLuxury = ({
                 className="mobile-gallery-swiper !pb-6"
               >
                 {gallery.map((image, index) => (
-                  <SwiperSlide
-                    key={image._id || `${image.url}-${index}`}
-                  >
+                  <SwiperSlide key={image._id || `${image.url}-${index}`}>
                     <button
                       type="button"
                       onClick={() => onGalleryClick(image)}
@@ -859,16 +805,13 @@ const MinimalLuxury = ({
                   return (
                     <a
                       key={
-                        social._id ||
-                        `${normalizePlatform(social)}-${index}`
+                        social._id || `${normalizePlatform(social)}-${index}`
                       }
                       href={normalizeUrl(social.url)}
                       target="_blank"
                       rel="noopener noreferrer"
                       title={
-                        social.platform ||
-                        social.platformName ||
-                        "Social link"
+                        social.platform || social.platformName || "Social link"
                       }
                       className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E8F8FD] text-[#087DA1]"
                     >
@@ -912,9 +855,7 @@ const MinimalLuxury = ({
               </p>
 
               <h2 className="mt-2 text-[17px] font-black leading-tight">
-                {businessName
-                  ? `Contact ${businessName}`
-                  : "Send an Inquiry"}
+                {businessName ? `Contact ${businessName}` : "Send an Inquiry"}
               </h2>
             </div>
 
@@ -930,10 +871,7 @@ const MinimalLuxury = ({
                   </h3>
                 </div>
               ) : (
-                <form
-                  onSubmit={onFormSubmit}
-                  className="space-y-2.5"
-                >
+                <form onSubmit={onFormSubmit} className="space-y-2.5">
                   {inquirySubmitError && (
                     <div className="rounded-[10px] border border-red-200 bg-red-50 p-2.5 text-[9px] text-red-600">
                       {inquirySubmitError}

@@ -22,7 +22,7 @@ const services = [
     description:
       "Create a professional digital identity with your profile, business details, contact information and social links.",
     image:
-      "https://i.pinimg.com/1200x/95/a8/db/95a8dbbdd019c31cc92b4a51d54456c9.jpg?auto=format&fit=crop&w=900&q=85",
+      "https://i.pinimg.com/1200x/9b/c6/d1/9bc6d17eb18b59ebc8a68bcca3459192.jpg?auto=format&fit=crop&w=900&q=85",
     icon: ContactRound,
     color: "bg-[#dceff4]",
   },
@@ -223,7 +223,7 @@ export default function BioServicesGallery() {
             to="/register"
             className="inline-flex items-center justify-center gap-2 rounded-full bg-cyan-400 px-7 py-3 text-sm font-bold text-white shadow-lg shadow-cyan-400/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-cyan-300 hover:text-[#0b1b30] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 dark:bg-[#22d3ee] dark:text-white dark:hover:bg-[#67e8f9] dark:hover:text-[#0b1b30]"
           >
-            <span>Create your Bio Website</span>
+            <span>Create your BIO SITE</span>
             <ArrowUpRight size={17} />
           </Link>
         </div>
@@ -245,7 +245,7 @@ function NextStepCard() {
       <span className="text-xl font-extrabold leading-tight tracking-tight sm:text-3xl">
         Create your
         <br />
-        BIO website.
+        BIO SITE.
       </span>
 
       <span className="flex h-7 w-7 items-center justify-center self-end rounded-full bg-[#0b1b30] text-white transition-transform duration-300 group-hover:translate-x-1 group-hover:scale-105 sm:h-12 sm:w-12">

@@ -332,7 +332,7 @@ const getPublicBranding = async (req, res) => {
     return res.status(200).json({
       success: true,
       settings: {
-        websiteName: settings.websiteName || "BIO Website",
+        websiteName: settings.websiteName || "BIO SITE",
         websiteLogo: settings.websiteLogo || "",
         websiteUrl: settings.websiteUrl || "",
       },

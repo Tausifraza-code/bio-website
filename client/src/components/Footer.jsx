@@ -24,7 +24,7 @@ const footerColumns = [
     links: [
       { label: "Contact Us", href: "mailto:support@visitingcard.pro" },
       { label: "Live Demo", href: "/preview" },
-      { label: "Create Your Card", href: "/register" },
+      { label: "Create Your Bio Site", href: "/register" },
       { label: "Privacy Policy", href: "/privacy" },
     ],
   },
@@ -82,7 +82,7 @@ function Footer() {
           <div>
             <a
               href="#home"
-              aria-label="BIO Website Home"
+              aria-label="BIO SITE Home"
               className="inline-flex items-center gap-3"
             >
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-400 text-[#0b1b30]">
@@ -178,7 +178,7 @@ function Footer() {
         {/* Bottom bar */}
         <div className="flex flex-col gap-4 border-t border-[#d7e3eb] py-5 text-xs text-[#64748b] dark:border-[#29435f] dark:text-[#94a3b8] sm:flex-row sm:items-center sm:justify-between">
           <p className="leading-5">
-            © {new Date().getFullYear()} BIO Website. All rights reserved.
+            © {new Date().getFullYear()} BIO SITE. All rights reserved.
           </p>
 
           <div className="flex flex-wrap items-center gap-x-5 gap-y-3">

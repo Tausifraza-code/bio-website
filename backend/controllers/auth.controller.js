@@ -378,7 +378,7 @@ const forgotPassword = async (req, res) => {
       await transporter.sendMail({
         from: process.env.EMAIL_FROM,
         to: user.email,
-        subject: "Reset your BIO Website password",
+        subject: "Reset your BIO SITE password",
         text: `Use this link to reset your password: ${resetUrl}\nThis link expires in 15 minutes. If you did not request this, ignore this email.`,
         html: `
           <h2>Reset your password</h2>

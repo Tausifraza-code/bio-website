@@ -254,7 +254,7 @@ const userSchema = new mongoose.Schema(
         type: String,
         trim: true,
         maxlength: 150,
-        default: "BIO Website",
+        default: "BIO SITE",
       },
       websiteLogo: {
         type: String,

@@ -83,19 +83,19 @@ const Navbar = ({ theme, onToggleTheme }) => {
         isDark
           ? "bg-[#0b1b30]"
           : isMenuOpen
-          ? "bg-[#f0fdf9] shadow-md"
-          : isScrolled
-          ? "bg-[#f0fdf9]/95 backdrop-blur-md shadow-sm"
-          : "bg-transparent"
+            ? "bg-[#f0fdf9] shadow-md"
+            : isScrolled
+              ? "bg-[#f0fdf9]/95 backdrop-blur-md shadow-sm"
+              : "bg-transparent"
       }`}
       style={{
         backgroundColor: isDark
           ? "#0b1b30"
           : isMenuOpen
-          ? "#f0fdf9"
-          : isScrolled
-          ? "rgba(240, 253, 249, 0.95)"
-          : "transparent",
+            ? "#f0fdf9"
+            : isScrolled
+              ? "rgba(240, 253, 249, 0.95)"
+              : "transparent",
         paddingTop: "0px",
         paddingLeft: "0px",
         paddingRight: "0px",
@@ -119,7 +119,7 @@ const Navbar = ({ theme, onToggleTheme }) => {
             {branding?.websiteLogo ? (
               <img
                 src={branding.websiteLogo}
-                alt={branding.websiteName || "BIO Website"}
+                alt={branding.websiteName || "BIO SITE"}
                 className="h-11 w-11 shrink-0 rounded-lg bg-white object-contain p-1"
               />
             ) : (
@@ -139,7 +139,7 @@ const Navbar = ({ theme, onToggleTheme }) => {
                 isDark ? "text-white" : "text-[#0b1b30]"
               }`}
             >
-              {branding?.websiteName || "BIO Website"}
+              BIO SITE
             </span>
           </Link>
 

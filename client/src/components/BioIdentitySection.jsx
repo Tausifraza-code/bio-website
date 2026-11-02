@@ -479,7 +479,7 @@ export default function BioIdentitySection() {
               to="/register"
               className="group inline-flex min-h-[52px] max-w-full items-center justify-center gap-2.5 whitespace-nowrap rounded-full bg-cyan-400 px-8 py-3.5 text-base font-bold text-white hover:text-[#0b1b30] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#0b1b30]"
             >
-              <span>Create Your Mini Website</span>
+              <span>Create Your Bio Site</span>
               <ArrowRight
                 size={18}
                 aria-hidden="true"

@@ -131,7 +131,7 @@ export default function Testimonials() {
             {/* CTA — visible only md+ */}
             <a
               href="/register"
-              className="group hidden shrink-0 items-center gap-2 rounded-full bg-[#0891b2] px-6 py-3 text-sm font-bold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#0e7490] dark:bg-[#22d3ee] dark:text-[#0b1b30] dark:hover:bg-[#67e8f9] sm:inline-flex"
+              className="group hidden shrink-0 items-center gap-2 rounded-full bg-cyan-400 px-6 py-3 text-sm font-bold text-white hover:text-[#0b1b30] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-cyan-300 dark:bg-[#22d3ee] dark:text-[#0b1b30] dark:hover:bg-[#67e8f9] sm:inline-flex"
             >
               Create your card
               <ArrowUpRight
@@ -379,9 +379,9 @@ export default function Testimonials() {
             </div>
             <a
               href="/register"
-              className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-[#0891b2] px-7 py-3.5 text-sm font-bold text-white shadow-sm shadow-[#0891b2]/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#0e7490] dark:bg-[#22d3ee] dark:text-[#0b1b30] dark:hover:bg-[#67e8f9]"
+              className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-cyan-400 px-7 py-3.5 text-sm font-bold text-white hover:text-[#0b1b30] shadow-sm shadow-[#0891b2]/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-cyan-300 dark:bg-[#22d3ee] dark:text-[#0b1b30] dark:hover:bg-[#67e8f9]"
             >
-              Create your card
+              Create your bio site
               <ArrowUpRight
                 size={15}
                 className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"

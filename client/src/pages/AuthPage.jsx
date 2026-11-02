@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
@@ -174,9 +173,7 @@ function AuthPage() {
 
       if (subdomain) {
         // Redirect to user's Preview Page
-        navigate(
-          `/card-preview/${encodeURIComponent(subdomain)}`,
-        );
+        navigate(`/card-preview/${encodeURIComponent(subdomain)}`);
       } else {
         toast.error(
           "Profile subdomain not found. Please complete your profile.",
@@ -271,7 +268,7 @@ function AuthPage() {
               </button>
 
               <span className="rounded-full border border-[#22d3ee]/25 bg-[#22d3ee]/10 px-3 py-1 text-xs font-bold text-[#0891b2] dark:text-[#22d3ee]">
-                BIO Website Hub
+                BIO SITE Hub
               </span>
             </div>
           </div>
@@ -695,7 +692,7 @@ function AuthPage() {
           </section>
 
           <p className="mt-5 text-center text-xs text-[var(--text-secondary)]">
-            © {new Date().getFullYear()} BIO Website · Smart Business Identity
+            © {new Date().getFullYear()} BIO SITE · Smart Business Identity
           </p>
         </div>
       </main>

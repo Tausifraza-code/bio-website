@@ -44,7 +44,7 @@
 //     title: "Contact sharing",
 //     oldTitle: "Paper card",
 //     oldText: "Customers may need to type your details manually.",
-//     newTitle: "BIO Website",
+//     newTitle: "BIO SITE",
 //     newText:
 //       "Customers can save your contact using a VCF file, when available.",
 //     icon: ContactRound,
@@ -53,7 +53,7 @@
 //     title: "Products & services",
 //     oldTitle: "Paper card",
 //     oldText: "A printed card has limited space for information.",
-//     newTitle: "BIO Website",
+//     newTitle: "BIO SITE",
 //     newText: "Present your services, product details and pricing on your page.",
 //     icon: Link2,
 //   },
@@ -61,7 +61,7 @@
 //     title: "Sharing your business",
 //     oldTitle: "Paper card",
 //     oldText: "Customers need to keep the card or type its details later.",
-//     newTitle: "BIO Website",
+//     newTitle: "BIO SITE",
 //     newText: "Share your page through a link or QR code.",
 //     icon: QrCode,
 //   },
@@ -69,7 +69,7 @@
 //     title: "Updating information",
 //     oldTitle: "Paper card",
 //     oldText: "Changes to printed details may require new cards.",
-//     newTitle: "BIO Website",
+//     newTitle: "BIO SITE",
 //     newText: "Update the details on your page without reprinting a card.",
 //     icon: Zap,
 //   },
@@ -137,7 +137,7 @@
 //       <div className="mx-auto max-w-[1330px] px-3 min-[380px]:px-4 sm:px-6 lg:px-10 xl:px-12">
 //         {/* 01 — Why BIO exists */}
 //         <div className="mx-auto max-w-[850px] text-center">
-//           <SectionLabel>Why BIO Website Exists</SectionLabel>
+//           <SectionLabel>Why BIO SITE Exists</SectionLabel>
 
 //           <h2
 //             className={`mt-4 text-[clamp(1.75rem,10vw,3.8rem)] font-black leading-[1.1] tracking-[-0.04em] sm:tracking-[-0.055em] ${primaryText}`}
@@ -151,7 +151,7 @@
 //           <p
 //             className={`mx-auto mt-4 max-w-[700px] text-sm leading-7 sm:text-base sm:leading-8 ${secondaryText}`}
 //           >
-//             Your business deserves more than a piece of paper. BIO Website
+//             Your business deserves more than a piece of paper. BIO SITE
 //             brings your business identity, contact details, products and
 //             customer connections together in one shareable mini website.
 //           </p>
@@ -284,7 +284,7 @@
 //               <h3
 //                 className={`mt-4 text-2xl font-black tracking-tight sm:text-3xl ${primaryText}`}
 //               >
-//                 Paper card vs. BIO Website
+//                 Paper card vs. BIO SITE
 //               </h3>
 
 //               <p
@@ -375,7 +375,7 @@
 //           </div>
 
 //           <p className={`relative mt-4 text-[10px] leading-5 ${secondaryText}`}>
-//             BIO Website complements traditional networking. Actual capabilities
+//             BIO SITE complements traditional networking. Actual capabilities
 //             depend on the features enabled on your page and the customer's
 //             device.
 //           </p>

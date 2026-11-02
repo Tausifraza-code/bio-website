@@ -141,7 +141,7 @@ app.use((err, req, res, next) => {
 const startServer = async () => {
   try {
     console.log("========================================");
-    console.log("Starting BIO Website Backend...");
+    console.log("Starting BIO SITE Backend...");
     console.log("Connecting to MongoDB...");
     console.log("========================================");
 

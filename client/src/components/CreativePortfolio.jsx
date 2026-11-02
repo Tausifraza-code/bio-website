@@ -58,6 +58,7 @@ const CreativePortfolio = ({
   onShare = () => {},
   onOpenQr = () => {},
   onProductClick = () => {},
+  onProductWhatsAppInquiry = () => {},
   onGalleryClick = () => {},
   onContactClick = () => {},
 }) => {
@@ -93,9 +94,7 @@ const CreativePortfolio = ({
 
   const getSocialIcon = (platform = "") => {
     const key = platform.toLowerCase();
-    const found = Object.keys(socialIconMap).find((item) =>
-      key.includes(item)
-    );
+    const found = Object.keys(socialIconMap).find((item) => key.includes(item));
     return found ? socialIconMap[found] : FaLink;
   };
 
@@ -186,7 +185,6 @@ const CreativePortfolio = ({
 
   return (
     <div className="creative-portfolio relative w-full min-w-0 overflow-hidden bg-[#FDF1E4] pb-24 font-sans text-[#3E240F]">
-
       {/* =====================================
           PROFILE / HERO SECTION
       ====================================== */}
@@ -195,7 +193,6 @@ const CreativePortfolio = ({
         className="w-full px-3 pb-4 pt-3 sm:px-6 sm:pb-12 sm:pt-5 lg:px-8 xl:px-10"
       >
         <div className="relative w-full overflow-hidden rounded-[22px] border border-[#EBC6A2]/60 bg-[#FCE9D6] shadow-sm sm:rounded-[28px]">
-
           {/* COVER BANNER */}
           <div className="relative h-44 overflow-hidden bg-gradient-to-r from-[#FEA142] via-[#FE932E] to-[#F1852B] sm:h-52 md:h-60">
             {banner && (
@@ -239,10 +236,8 @@ const CreativePortfolio = ({
 
           {/* PROFILE DETAILS */}
           <div className="relative px-4 pb-6 sm:px-6 sm:pb-8 lg:px-9">
-
             {/* AVATAR + NAME */}
             <div className="-mt-14 flex min-w-0 flex-col items-center gap-3 text-center sm:-mt-[72px] sm:flex-row sm:items-end sm:gap-6 sm:text-left">
-
               {/* PROFILE IMAGE + LOGO */}
               <div className="relative h-28 w-28 shrink-0 overflow-visible sm:h-36 sm:w-36">
                 <div className="h-full w-full overflow-hidden rounded-[25px] border-4 border-white bg-white shadow-lg sm:rounded-[30px]">
@@ -420,7 +415,6 @@ const CreativePortfolio = ({
           <div className="pointer-events-none absolute -bottom-24 -left-20 h-64 w-64 rounded-full bg-[#FEDCB8]/70 blur-3xl" />
 
           <div className="relative grid items-center gap-8 lg:grid-cols-12 lg:gap-12">
-
             {/* LEFT CONTENT */}
             <div className="lg:col-span-7">
               <div className="inline-flex items-center gap-2 rounded-full border border-[#EBC6A2] bg-white px-4 py-2 shadow-sm">
@@ -587,63 +581,72 @@ const CreativePortfolio = ({
               className="!overflow-visible !pb-6"
             >
               {productList.map((product, index) => {
-                const cover = product.images?.find(
-                  (item) => item?.url
-                )?.url;
+                const cover = product.images?.find((item) => item?.url)?.url;
 
                 return (
-                  <SwiperSlide
-                    key={product._id || index}
-                    className="!h-auto"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => onProductClick(product)}
-                      className="group flex h-full w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-[#EBC6A2]/70 bg-white text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-                    >
-                      <div className="relative m-2 h-32 overflow-hidden rounded-xl bg-[#FCE9D6] sm:h-44">
-                        {cover ? (
-                          <img
-                            src={cover}
-                            alt={product.name}
-                            loading="lazy"
-                            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                          />
-                        ) : (
-                          <div className="flex h-full items-center justify-center">
-                            <ImageIcon
-                              size={32}
-                              className="text-[#CA9959]"
+                  <SwiperSlide key={product._id || index} className="!h-auto">
+                    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#EBC6A2]/70 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                      {/* Product Click Area */}
+                      <button
+                        type="button"
+                        onClick={() => onProductClick(product)}
+                        className="group flex w-full min-w-0 flex-1 flex-col text-left"
+                      >
+                        <div className="relative m-2 h-32 overflow-hidden rounded-xl bg-[#FCE9D6] sm:h-44">
+                          {cover ? (
+                            <img
+                              src={cover}
+                              alt={product.name}
+                              loading="lazy"
+                              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                             />
-                          </div>
-                        )}
+                          ) : (
+                            <div className="flex h-full items-center justify-center">
+                              <ImageIcon size={32} className="text-[#CA9959]" />
+                            </div>
+                          )}
 
-                        <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#EB720E] shadow sm:h-8 sm:w-8">
-                          <ArrowUpRight size={15} />
-                        </span>
-                      </div>
-
-                      <div className="flex flex-1 flex-col p-3 pt-1 sm:p-4 sm:pt-2">
-                        <h3 className="truncate text-xs font-extrabold text-[#25180A] sm:text-sm">
-                          {product.name}
-                        </h3>
-
-                        <p className="mt-1 line-clamp-2 min-h-8 text-[10px] leading-4 text-[#907836] sm:text-xs sm:leading-5">
-                          {product.description}
-                        </p>
-
-                        <div className="mt-auto flex items-center justify-between gap-2 pt-3">
-                          <p className="truncate text-sm font-black text-[#25180A] sm:text-base">
-                            ₹
-                            {Number(product.price || 0).toLocaleString("en-IN")}
-                          </p>
-
-                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#EBC6A2] text-[#EB720E] transition group-hover:bg-[#FE932E] group-hover:text-white sm:h-8 sm:w-8">
-                            <ArrowRight size={14} />
+                          <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#EB720E] shadow sm:h-8 sm:w-8">
+                            <ArrowUpRight size={15} />
                           </span>
                         </div>
+
+                        <div className="flex flex-1 flex-col p-3 pt-1 sm:p-4 sm:pt-2">
+                          <h3 className="truncate text-xs font-extrabold text-[#25180A] sm:text-sm">
+                            {product.name}
+                          </h3>
+
+                          <p className="mt-1 line-clamp-2 min-h-8 text-[10px] leading-4 text-[#907836] sm:text-xs sm:leading-5">
+                            {product.description}
+                          </p>
+
+                          <div className="mt-auto flex items-center justify-between gap-2 pt-3">
+                            <p className="truncate text-sm font-black text-[#25180A] sm:text-base">
+                              ₹
+                              {Number(product.price || 0).toLocaleString(
+                                "en-IN",
+                              )}
+                            </p>
+
+                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#EBC6A2] text-[#EB720E] transition group-hover:bg-[#FE932E] group-hover:text-white sm:h-8 sm:w-8">
+                              <ArrowRight size={14} />
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+
+                      {/* WhatsApp Inquiry Button */}
+                      <div className="px-3 pb-3 sm:px-4 sm:pb-4">
+                        <button
+                          type="button"
+                          onClick={() => onProductWhatsAppInquiry(product)}
+                          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-3 py-2.5 text-[10px] font-bold text-white transition hover:bg-[#1DA851] sm:py-3 sm:text-xs"
+                        >
+                          <FaWhatsapp size={17} />
+                          WhatsApp Inquiry
+                        </button>
                       </div>
-                    </button>
+                    </div>
                   </SwiperSlide>
                 );
               })}
@@ -736,10 +739,7 @@ const CreativePortfolio = ({
               className="!overflow-visible !pb-12"
             >
               {galleryImages.map((image, index) => (
-                <SwiperSlide
-                  key={`${image.url}-${index}`}
-                  className="!h-auto"
-                >
+                <SwiperSlide key={`${image.url}-${index}`} className="!h-auto">
                   <button
                     type="button"
                     onClick={() => onGalleryClick(image)}
@@ -816,7 +816,6 @@ const CreativePortfolio = ({
         </div>
 
         <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-12">
-
           {/* CONTACT BANNER - DESKTOP ONLY */}
           <div className="relative hidden min-h-[260px] min-w-0 flex-col justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#FEA142] to-[#EB720E] p-6 text-white lg:col-span-4 lg:flex">
             {banner && (
@@ -992,9 +991,7 @@ const CreativePortfolio = ({
             {/* SOCIAL MEDIA */}
             {socialLinks.length > 0 && (
               <div className={`${cardClass} min-w-0 p-5`}>
-                <h3 className="text-sm font-black text-[#25180A]">
-                  Follow Me
-                </h3>
+                <h3 className="text-sm font-black text-[#25180A]">Follow Me</h3>
 
                 <p className="mt-1 text-[10px] text-[#907836]">
                   Stay connected on social media
@@ -1035,7 +1032,6 @@ const CreativePortfolio = ({
             <div className="pointer-events-none absolute -bottom-28 -left-20 h-72 w-72 rounded-full border-[35px] border-white/5" />
 
             <div className="relative grid items-center gap-9 lg:grid-cols-12 lg:gap-12">
-
               {/* SCANNER CONTENT */}
               <div className="lg:col-span-7">
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 backdrop-blur">
@@ -1072,7 +1068,7 @@ const CreativePortfolio = ({
                   {!qrFetching && (
                     <a
                       href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(
-                        qrTargetUrl
+                        qrTargetUrl,
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"

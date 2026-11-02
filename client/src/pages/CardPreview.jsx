@@ -327,12 +327,19 @@ function CardPreview() {
     };
   }, [subdomain]);
 
-  // SHOW LEAD POPUP ONLY WHEN PROFILE IS OPENED THROUGH QR
+  // SHOW LEAD POPUP ONLY IF CUSTOMER HAS NOT SUBMITTED BEFORE
   useEffect(() => {
-    if (isQRVisit && profile?.leadCapture?.enabled) {
+    if (!isQRVisit || !profile?.leadCapture?.enabled || !subdomain) {
+      return;
+    }
+
+    const leadKey = `bio_lead_submitted_${subdomain}`;
+    const alreadySubmitted = localStorage.getItem(leadKey) === "true";
+
+    if (!alreadySubmitted) {
       setShowQRLeadPopup(true);
     }
-  }, [isQRVisit, profile]);
+  }, [isQRVisit, profile, subdomain]);
 
   /* ============================================================
      CHECK PROFILE OWNER
@@ -484,6 +491,33 @@ function CardPreview() {
       "_blank",
       "noopener,noreferrer",
     );
+  };
+
+  const handleProductWhatsAppInquiry = (product) => {
+    const number = (businessInfo?.whatsapp || "").replace(/\D/g, "");
+
+    if (!number) {
+      return alert("WhatsApp number is not available in this profile.");
+    }
+
+    if (!product) {
+      return alert("Product details are not available.");
+    }
+
+    const message = [
+      "Hi, I'm interested in the following product/service:",
+      "",
+      `Name: ${product.name || "N/A"}`,
+      `Price: ₹${Number(product.price || 0).toLocaleString("en-IN")}`,
+      `Category: ${product.category || "General"}`,
+      `Type: ${product.type || "product"}`,
+      "",
+      "Please share more details.",
+    ].join("\n");
+
+    const whatsappUrl = `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleCall = () => {
@@ -818,6 +852,10 @@ function CardPreview() {
         }),
       ).unwrap();
 
+      // Remember successful lead submission in this browser
+      const leadKey = `bio_lead_submitted_${subdomain}`;
+      localStorage.setItem(leadKey, "true");
+
       setQRLeadSuccess(true);
       setQRLeadForm({ name: "", phone: "", email: "" });
     } catch (error) {
@@ -994,6 +1032,7 @@ function CardPreview() {
               setShowQrModal(true);
             }}
             onProductClick={(product) => setSelectedProduct(product)}
+            onProductWhatsAppInquiry={handleProductWhatsAppInquiry}
             onGalleryClick={(image) => setSelectedGalleryImage(image)}
             onContactClick={handleConfiguredButton}
           />
@@ -1566,8 +1605,9 @@ function CardPreview() {
                       <button
                         type="button"
                         onClick={() => {
+                          const product = selectedProduct;
+                          handleProductWhatsAppInquiry(product);
                           setSelectedProduct(null);
-                          openWhatsApp();
                         }}
                         className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold"
                         style={{

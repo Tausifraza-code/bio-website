@@ -442,7 +442,7 @@ const resolveQRCode = async (req, res, next) => {
 
     const profile = await MiniProfile.findOne({
       userId: qrCode.assignedUserId,
-    }).select("subdomain");
+    }).select("subdomain leadCapture");
 
     if (!profile?.subdomain) {
       return res.status(404).send("The linked public profile was not found.");
