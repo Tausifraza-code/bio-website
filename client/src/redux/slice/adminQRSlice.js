@@ -171,6 +171,73 @@ export const recordQRDownload = createAsyncThunk(
   },
 );
 
+// Fetch new physical QR inventory
+export const fetchPhysicalQRInventory = createAsyncThunk(
+  "adminQR/fetchPhysicalInventory",
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/admin/qr", { params });
+
+      if (!response.data?.success) {
+        return rejectWithValue(
+          response.data?.message || "Unable to load physical QR inventory.",
+        );
+      }
+
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+          "Unable to load physical QR inventory.",
+      );
+    }
+  },
+);
+
+// Deactivate physical QR
+export const deactivatePhysicalQR = createAsyncThunk(
+  "adminQR/deactivatePhysicalQR",
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await api.patch(`/admin/qr/${id}/deactivate`);
+
+      if (!response.data?.success) {
+        return rejectWithValue(
+          response.data?.message || "Unable to deactivate QR.",
+        );
+      }
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Unable to deactivate QR.",
+      );
+    }
+  },
+);
+
+// Activate physical QR
+export const activatePhysicalQR = createAsyncThunk(
+  "adminQR/activatePhysicalQR",
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await api.patch(`/admin/qr/${id}/activate`);
+
+      if (!response.data?.success) {
+        return rejectWithValue(
+          response.data?.message || "Unable to activate QR.",
+        );
+      }
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Unable to activate QR.",
+      );
+    }
+  },
+);
+
 const initialState = {
   sets: [],
   pagination: {
@@ -184,6 +251,22 @@ const initialState = {
   exporting: false,
   error: null,
   message: null,
+
+  physicalQRs: [],
+  physicalQRStatistics: {
+    total: 0,
+    available: 0,
+    assigned: 0,
+    disabled: 0,
+  },
+  physicalQRPagination: {
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0,
+  },
+  physicalQRLoading: false,
+  physicalQRActionLoading: false,
 };
 
 const adminQRSlice = createSlice({
@@ -251,6 +334,57 @@ const adminQRSlice = createSlice({
       })
       .addCase(recordQRDownload.rejected, (state, action) => {
         state.error = action.payload || "Unable to record QR download.";
+      })
+
+      // Physical QR inventory
+      .addCase(fetchPhysicalQRInventory.pending, (state) => {
+        state.physicalQRLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchPhysicalQRInventory.fulfilled, (state, action) => {
+        state.physicalQRLoading = false;
+
+        state.physicalQRs = action.payload?.qrCodes || [];
+
+        state.physicalQRStatistics = action.payload?.statistics || {
+          total: 0,
+          available: 0,
+          assigned: 0,
+          disabled: 0,
+        };
+
+        state.physicalQRPagination =
+          action.payload?.pagination || initialState.physicalQRPagination;
+      })
+      .addCase(fetchPhysicalQRInventory.rejected, (state, action) => {
+        state.physicalQRLoading = false;
+        state.error = action.payload || "Unable to load physical QR inventory.";
+      })
+
+      // Physical QR deactivate
+      .addCase(deactivatePhysicalQR.pending, (state) => {
+        state.physicalQRActionLoading = true;
+        state.error = null;
+      })
+      .addCase(deactivatePhysicalQR.fulfilled, (state) => {
+        state.physicalQRActionLoading = false;
+      })
+      .addCase(deactivatePhysicalQR.rejected, (state, action) => {
+        state.physicalQRActionLoading = false;
+        state.error = action.payload || "Unable to deactivate QR.";
+      })
+
+      // Physical QR activate
+      .addCase(activatePhysicalQR.pending, (state) => {
+        state.physicalQRActionLoading = true;
+        state.error = null;
+      })
+      .addCase(activatePhysicalQR.fulfilled, (state) => {
+        state.physicalQRActionLoading = false;
+      })
+      .addCase(activatePhysicalQR.rejected, (state, action) => {
+        state.physicalQRActionLoading = false;
+        state.error = action.payload || "Unable to activate QR.";
       });
   },
 });

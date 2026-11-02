@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { Link } from "react-router-dom";
@@ -95,18 +95,71 @@ const formatDate = (date) => {
 export default function AdminDashboard() {
   const dispatch = useDispatch();
 
-  const { stats, recentActivity, loading, error } = useSelector(
+  const { stats, recentActivity, dailyReport, loading, error } = useSelector(
     (state) => state.admin,
   );
 
+  const today = new Date();
+  const formatInputDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  };
+
+  const [fromDate, setFromDate] = useState(formatInputDate(today));
+  const [toDate, setToDate] = useState(formatInputDate(today));
+  const [appliedDates, setAppliedDates] = useState({
+    from: formatInputDate(today),
+    to: formatInputDate(today),
+  });
+
   useEffect(() => {
-    dispatch(fetchAdminDashboard());
-  }, [dispatch]);
+    dispatch(fetchAdminDashboard(appliedDates));
+  }, [dispatch, appliedDates]);
 
   const handleRefresh = () => {
     if (!loading) {
-      dispatch(fetchAdminDashboard());
+      dispatch(fetchAdminDashboard(appliedDates));
     }
+  };
+
+  const handleApplyFilter = () => {
+    if (!fromDate || !toDate) {
+      return;
+    }
+
+    if (fromDate > toDate) {
+      alert("From Date cannot be after To Date.");
+      return;
+    }
+
+    setAppliedDates({
+      from: fromDate,
+      to: toDate,
+    });
+  };
+
+  const handleQuickFilter = (days) => {
+    const end = new Date();
+    const start = new Date();
+
+    if (days === 0) {
+      // Today
+    } else if (days === 1) {
+      start.setDate(start.getDate() - 1);
+      end.setDate(end.getDate() - 1);
+    } else {
+      start.setDate(start.getDate() - (days - 1));
+    }
+
+    const from = formatInputDate(start);
+    const to = formatInputDate(end);
+
+    setFromDate(from);
+    setToDate(to);
+    setAppliedDates({ from, to });
   };
 
   return (
@@ -136,6 +189,77 @@ export default function AdminDashboard() {
           <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
           {loading ? "Refreshing..." : "Refresh Data"}
         </button>
+      </section>
+
+      {/* DATE FILTER */}
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+            Date-wise Report
+          </h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Select a date range to view dashboard statistics.
+          </p>
+        </div>
+
+        {/* Quick Filters */}
+        <div className="mb-5 flex flex-wrap gap-2">
+          {[
+            { label: "Today", days: 0 },
+            { label: "Yesterday", days: 1 },
+            { label: "Last 7 Days", days: 7 },
+            { label: "Last 30 Days", days: 30 },
+          ].map((filter) => (
+            <button
+              key={filter.label}
+              type="button"
+              onClick={() => handleQuickFilter(filter.days)}
+              className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-emerald-500 hover:bg-emerald-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Custom Date Range */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+          <div className="flex-1">
+            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              From Date
+            </label>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+            />
+          </div>
+
+          <div className="flex-1">
+            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              To Date
+            </label>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={handleApplyFilter}
+            disabled={loading || !fromDate || !toDate}
+            className="rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading ? "Loading..." : "Apply Filter"}
+          </button>
+        </div>
+
+        <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">
+          Report period: {appliedDates.from} to {appliedDates.to}
+        </p>
       </section>
 
       {/* Error */}
@@ -184,6 +308,78 @@ export default function AdminDashboard() {
               />
             );
           })}
+        </div>
+      </section>
+
+      {/* DAILY REPORT */}
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="border-b border-slate-200 p-5 dark:border-slate-800">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+            Daily Report Breakdown
+          </h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Day-wise users, referrals and successful orders.
+          </p>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[650px] text-left text-sm">
+            <thead className="bg-slate-50 text-xs uppercase text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+              <tr>
+                <th className="px-5 py-4">Date</th>
+                <th className="px-5 py-4">New Users</th>
+                <th className="px-5 py-4">Referrals</th>
+                <th className="px-5 py-4">Paid Orders</th>
+              </tr>
+            </thead>
+
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {dailyReport?.length > 0 ? (
+                dailyReport.map((item) => (
+                  <tr
+                    key={item.date}
+                    className="transition hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                  >
+                    <td className="whitespace-nowrap px-5 py-4 font-medium text-slate-800 dark:text-white">
+                      {new Date(`${item.date}T00:00:00`).toLocaleDateString(
+                        "en-IN",
+                        {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        },
+                      )}
+                    </td>
+
+                    <td className="px-5 py-4 font-semibold text-cyan-600 dark:text-cyan-400">
+                      {Number(item.newUsers || 0).toLocaleString("en-IN")}
+                    </td>
+
+                    <td className="px-5 py-4 font-semibold text-emerald-600 dark:text-emerald-400">
+                      {Number(item.referrals || 0).toLocaleString("en-IN")}
+                    </td>
+
+                    <td className="px-5 py-4 font-semibold text-violet-600 dark:text-violet-400">
+                      {Number(item.paidOrders || 0).toLocaleString("en-IN")}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="4"
+                    className="px-5 py-10 text-center text-slate-500 dark:text-slate-400"
+                  >
+                    No daily report data available for this date range.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="border-t border-slate-200 px-5 py-3 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
+          Showing {dailyReport?.length || 0} days in the selected date range.
         </div>
       </section>
 

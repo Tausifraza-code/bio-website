@@ -26,6 +26,9 @@ import {
   exportQRInventory,
   clearQRMessages,
   recordQRDownload,
+  deactivatePhysicalQR,
+  activatePhysicalQR,
+  fetchPhysicalQRInventory,
 } from "../../redux/slice/adminQRSlice";
 import api from "../../redux/api";
 import { getPublicQRUrl } from "../../utils/qrUrl";
@@ -300,33 +303,55 @@ const downloadQRDesign = async (
       standee: {
         width: 900,
         height: 1273,
-        qrSize: 500,
+        qrSize: 440,
+        qrY: 385,
         title: "SCAN TO CONNECT",
-        subtitle: "Your business, one scan away",
+        subtitle: "One scan. Instant connection.",
+        titleY: 285,
+        subtitleY: 325,
+        activationX: 735,
+        activationY: 620,
+        socialY: 1010,
+        socialSize: 29,
+        socialGap: 95,
+        footerY: 1160,
       },
       pocket: {
         width: 1011,
         height: 638,
-        qrSize: 250,
-        title: "MY DIGITAL BUSINESS CARD",
-        subtitle: "Scan to view our profile",
+        qrSize: 225,
+        qrY: 195,
+        title: "SCAN TO CONNECT",
+        subtitle: "One scan. Instant connection.",
+        titleY: 135,
+        subtitleY: 163,
+        activationX: 680,
+        activationY: 315,
+        socialY: 450,
+        socialSize: 16,
+        socialGap: 75,
+        footerY: 590,
       },
       keychain: {
         width: 600,
         height: 600,
-        qrSize: 250,
+        qrSize: 180,
+        qrY: 190,
         title: "SCAN ME",
-        subtitle: "Connect with us",
+        subtitle: "Connect instantly",
+        titleY: 115,
+        subtitleY: 140,
+        activationX: 550,
+        activationY: 285,
+        socialY: 435,
+        socialSize: 11,
+        socialGap: 42,
+        footerY: 555,
       },
     };
 
     const layout = layouts[format];
     if (!layout) throw new Error("Invalid QR design format.");
-
-    const businessName = String(item.businessName || "Your Business").replace(
-      /[<>&"']/g,
-      "",
-    );
 
     const activationCode = String(item.activationCode || "CODE UNAVAILABLE");
 
@@ -347,64 +372,292 @@ const downloadQRDesign = async (
     const H = layout.height;
     const qrSize = layout.qrSize;
     const qrX = (W - qrSize) / 2;
-    const qrY = {
-      standee: 410,
-      pocket: 230,
-      keychain: 190,
-    }[format];
+    const qrY = layout.qrY;
+
+    // Brand-style SVG icons with their labels.
+
+    const socialItems = [
+      {
+        name: "Save Contact",
+        color: "#0F766E",
+        path: `
+      <rect x="-12" y="-13" width="24" height="26" rx="3"
+        fill="none" stroke="#fff" stroke-width="2.5"/>
+      <circle cx="-3" cy="-5" r="4"
+        fill="none" stroke="#fff" stroke-width="2"/>
+      <path d="M-10 7 C-10 0 4 0 4 7"
+        fill="none" stroke="#fff" stroke-width="2"/>
+      <path d="M7 -5 V5 M2 0 H12"
+        fill="none" stroke="#fff" stroke-width="2.5"
+        stroke-linecap="round"/>
+    `,
+      },
+      {
+        name: "Instagram",
+        color: "#E4405F",
+        path: `
+      <rect x="-12" y="-12" width="24" height="24" rx="6"
+        fill="none" stroke="#fff" stroke-width="2.5"/>
+      <circle cx="0" cy="0" r="5.5"
+        fill="none" stroke="#fff" stroke-width="2.5"/>
+      <circle cx="7" cy="-7" r="1.8" fill="#fff"/>
+    `,
+      },
+      {
+        name: "LinkedIn",
+        color: "#0A66C2",
+        path: `
+      <path fill="#fff" d="
+        M-12 -7 H-7 V11 H-12 Z
+        M-12 -13 H-7 V-9 H-12 Z
+        M-3 -7 H2 V-4
+        C4 -9 13 -9 13 -1 V11 H8 V1
+        C8 -4 2 -4 2 1 V11 H-3 Z"/>
+    `,
+      },
+      {
+        name: "Facebook",
+        color: "#1877F2",
+        path: `
+      <path fill="#fff" d="
+        M3 -14 H9 V-9 H5
+        C3 -9 3 -7 3 -5 V-2 H9 L8 4 H3 V14 H-4 V4 H-8 V-2 H-4 V-6
+        C-4 -12 0 -14 3 -14 Z"/>
+    `,
+      },
+      {
+        name: "WhatsApp",
+        color: "#25D366",
+        path: `
+      <path d="M-12 12 L-9 5 A13 13 0 1 1 -4 10 Z"
+        fill="none" stroke="#fff" stroke-width="2.5"
+        stroke-linejoin="round"/>
+      <path d="M-6 -6 Q-9 -2 -3 4 Q2 9 7 5 L4 1
+        L1 3 Q-2 1 -3 -2 L-1 -4 Z"
+        fill="#fff"/>
+    `,
+      },
+      {
+        name: "YouTube",
+        color: "#FF0000",
+        path: `
+      <rect x="-14" y="-10" width="28" height="20" rx="6"
+        fill="#fff"/>
+      <path d="M-3 -6 L7 0 L-3 6 Z" fill="#FF0000"/>
+    `,
+      },
+      {
+        name: "X",
+        color: "#111827",
+        path: `
+      <path d="M-12 -13 L-2 0 L-12 13 H-7 L1 4 L8 13 H13
+        L3 -1 L12 -13 H7 L0 -4 L-7 -13 Z"
+        fill="#fff"/>
+    `,
+      },
+    ];
+
+    const socialStartX =
+      W / 2 - ((socialItems.length - 1) * layout.socialGap) / 2;
+
+    const socialIcons = socialItems
+      .map((social, index) => {
+        const x = socialStartX + index * layout.socialGap;
+        const y = layout.socialY;
+
+        return `
+          <g transform="translate(${x}, ${y})">
+            <circle r="${layout.socialSize}" fill="${social.color}"/>
+            ${social.path}
+
+            <text
+              x="0"
+              y="${layout.socialSize + (format === "standee" ? 24 : 17)}"
+              text-anchor="middle"
+              font-family="Arial,sans-serif"
+              font-size="${format === "standee" ? 14 : format === "pocket" ? 11 : 8}"
+              font-weight="700"
+              fill="#10243A"
+            >${social.name}</text>
+          </g>
+        `;
+      })
+      .join("");
+
+    const activationCodeText = `
+      <g transform="translate(${layout.activationX}, ${layout.activationY}) rotate(90)">
+        <text
+          x="${format === "standee" ? -72 : format === "pocket" ? -48 : -28}"
+          y="0"
+          text-anchor="middle"
+          font-family="Arial,sans-serif"
+          font-size="${format === "standee" ? 13 : format === "pocket" ? 10 : 7}"
+          font-weight="700"
+          fill="#1D4ED8"
+        >ACTIVATION CODE</text>
+
+        <text
+          x="${format === "standee" ? 72 : format === "pocket" ? 48 : 28}"
+          y="0"
+          text-anchor="middle"
+          font-family="Arial,sans-serif"
+          font-size="${format === "standee" ? 15 : format === "pocket" ? 11 : 8}"
+          font-weight="700"
+          fill="#10243A"
+        >${escapeXml(activationCode)}</text>
+      </g>
+    `;
+
+    const footerCurve = `
+      <path
+        d="M0 ${layout.footerY}
+           Q${W / 2} ${layout.footerY - 75} ${W} ${layout.footerY}
+           V${H} H0 Z"
+        fill="url(#footerGradient)"
+      />
+
+      <path
+        d="M0 ${layout.footerY}
+           Q${W / 2} ${layout.footerY - 75} ${W} ${layout.footerY}"
+        fill="none"
+        stroke="#67E8F9"
+        stroke-width="${format === "standee" ? 5 : 3}"
+      />
+    `;
 
     const svg = `
       <svg xmlns="http://www.w3.org/2000/svg"
         width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
-        <rect width="100%" height="100%" fill="#ffffff"/>
-        <path d="M0 0 H${W} V${Math.round(H * 0.12)}
-          Q${W / 2} ${Math.round(H * 0.2)} 0 ${Math.round(H * 0.12)} Z"
-          fill="#064e3b"/>
-        <text x="${W / 2}" y="${Math.round(H * 0.065)}"
-          text-anchor="middle" font-family="Arial,sans-serif"
-          font-size="${format === "standee" ? 46 : 30}"
-          font-weight="700" fill="#ffffff">BIO</text>
-        <text x="${W / 2}" y="${Math.round(H * 0.23)}"
-          text-anchor="middle" font-family="Arial,sans-serif"
-          font-size="${format === "standee" ? 44 : 30}"
-          font-weight="700" fill="#064e3b">${escapeXml(layout.title)}</text>
-        <text x="${W / 2}" y="${
-          format === "standee" ? 340 : format === "pocket" ? 185 : 160
-        }"
-          text-anchor="middle" font-family="Arial,sans-serif"
-          font-size="${format === "standee" ? 25 : 20}"
-          fill="#0e7490">${escapeXml(businessName)}</text>
-        <rect x="${qrX - 18}" y="${qrY - 18}"
-          width="${qrSize + 36}" height="${qrSize + 36}"
-          rx="20" fill="#ffffff" stroke="#a7f3d0" stroke-width="5"/>
-        <image href="${qrDataUrl}" x="${qrX}" y="${qrY}"
-          width="${qrSize}" height="${qrSize}"
-          preserveAspectRatio="xMidYMid meet"/>
-       <text
-  x="${W / 2}"
-  y="${Math.min(H - 115, qrY + qrSize + 65)}"
-  text-anchor="middle"
-  font-family="Arial,sans-serif"
-  font-size="${format === "standee" ? 25 : 20}"
-  font-weight="600"
-  fill="#102c35"
->
-  ${escapeXml(layout.subtitle)}
-</text>
 
-<text
-  x="${W / 2}"
-  y="${H - 65}"
-  text-anchor="middle"
-  font-family="Arial,sans-serif"
-  font-size="${format === "standee" ? 23 : 18}"
-  font-weight="700"
-  fill="#064e3b"
->
-  ${escapeXml(`ACTIVATION CODE: ${activationCode}`)}
-</text>
-        <rect x="${W * 0.18}" y="${H - 35}" width="${W * 0.64}"
-          height="8" rx="4" fill="#06b6d4"/>
+        <defs>
+          <linearGradient id="headerGradient" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#103E91"/>
+            <stop offset="100%" stop-color="#1765CF"/>
+          </linearGradient>
+
+          <linearGradient id="footerGradient" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#103E91"/>
+            <stop offset="100%" stop-color="#1765CF"/>
+          </linearGradient>
+
+          <filter id="qrShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="7" stdDeviation="9"
+              flood-color="#0F2945" flood-opacity=".12"/>
+          </filter>
+        </defs>
+
+        <rect width="${W}" height="${H}" fill="#F3F7FC"/>
+
+        <!-- Premium curved header -->
+        <path
+          d="M0 0 H${W} V${Math.round(H * 0.1)}
+          Q${W / 2} ${Math.round(H * 0.18)} 0 ${Math.round(H * 0.1)} Z"
+          fill="url(#headerGradient)"
+        />
+
+        <text
+          x="${W / 2}"
+          y="${format === "standee" ? 95 : format === "pocket" ? 55 : 48}"
+          text-anchor="middle"
+          font-family="Arial,sans-serif"
+          font-size="${format === "standee" ? 49 : 34}"
+          font-weight="700"
+          fill="#ffffff"
+        >BIO SITE</text>
+
+        <!-- Main heading -->
+        <text
+          x="${W / 2}"
+          y="${layout.titleY}"
+          text-anchor="middle"
+          font-family="Arial,sans-serif"
+          font-size="${format === "standee" ? 43 : format === "pocket" ? 29 : 26}"
+          font-weight="700"
+          fill="#123F91"
+        >${escapeXml(layout.title)}</text>
+
+        <text
+          x="${W / 2}"
+          y="${layout.subtitleY}"
+          text-anchor="middle"
+          font-family="Arial,sans-serif"
+          font-size="${format === "standee" ? 22 : 15}"
+          fill="#1765A8"
+        >${escapeXml(layout.subtitle)}</text>
+
+        <!-- QR card -->
+        <rect
+          x="${qrX - 25}"
+          y="${qrY - 25}"
+          width="${qrSize + 50}"
+          height="${qrSize + 50}"
+          rx="26"
+          fill="#ffffff"
+          stroke="#D5E7FC"
+          stroke-width="4"
+          filter="url(#qrShadow)"
+        />
+
+        <rect
+          x="${qrX - 12}"
+          y="${qrY - 12}"
+          width="${qrSize + 24}"
+          height="${qrSize + 24}"
+          rx="13"
+          fill="none"
+          stroke="#1765CF"
+          stroke-width="3"
+        />
+
+        <image
+          href="${qrDataUrl}"
+          x="${qrX}"
+          y="${qrY}"
+          width="${qrSize}"
+          height="${qrSize}"
+          preserveAspectRatio="xMidYMid meet"
+        />
+
+        <!-- QR caption -->
+        <text
+          x="${W / 2}"
+          y="${qrY + qrSize + 57}"
+          text-anchor="middle"
+          font-family="Arial,sans-serif"
+          font-size="${format === "standee" ? 24 : 16}"
+          font-weight="700"
+          fill="#10243A"
+        >Connect with us</text>
+
+        <!-- Vertical activation code, without a panel -->
+        ${activationCodeText}
+
+        <!-- Premium curved footer background -->
+        ${footerCurve}
+
+        <!-- Social media logos and labels -->
+        ${socialIcons}
+
+        <text
+          x="${W / 2}"
+          y="${format === "standee" ? 1210 : format === "pocket" ? 620 : 585}"
+          text-anchor="middle"
+          font-family="Arial,sans-serif"
+          font-size="${format === "standee" ? 34 : 20}"
+          font-style="italic"
+          font-weight="700"
+          fill="#ffffff"
+        >Scan &amp; Connect</text>
+
+        <!-- Footer curve accent -->
+        <path
+          d="M0 ${layout.footerY}
+             Q${W / 2} ${layout.footerY - 75} ${W} ${layout.footerY}"
+          fill="none"
+          stroke="#67E8F9"
+          stroke-width="${format === "standee" ? 5 : 3}"
+        />
+
       </svg>
     `;
 
@@ -516,6 +769,7 @@ export default function AdminQRManagement() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [formError, setFormError] = useState("");
+  const [actionLoadingId, setActionLoadingId] = useState("");
   const [copiedValue, setCopiedValue] = useState("");
   const [bulkDownloading, setBulkDownloading] = useState(false);
   const [bulkQuantity, setBulkQuantity] = useState("100");
@@ -538,7 +792,7 @@ export default function AdminQRManagement() {
   ]);
 
   const loadInventory = useCallback(() => {
-    dispatch(
+    return dispatch(
       fetchQRInventory({
         page,
         limit: 20,
@@ -566,6 +820,28 @@ export default function AdminQRManagement() {
       window.setTimeout(() => setCopiedValue(""), 1600);
     } catch {
       setFormError("Unable to copy. Please copy the value manually.");
+    }
+  };
+
+  const handlePhysicalQRStatusChange = async (item) => {
+    try {
+      setActionLoadingId(item._id);
+
+      if (item.status === "disabled") {
+        await dispatch(activatePhysicalQR(item._id)).unwrap();
+      } else {
+        await dispatch(deactivatePhysicalQR(item._id)).unwrap();
+      }
+
+      await loadInventory();
+    } catch (error) {
+      setFormError(
+        typeof error === "string"
+          ? error
+          : error?.message || "Unable to update QR status.",
+      );
+    } finally {
+      setActionLoadingId("");
     }
   };
 
@@ -1393,13 +1669,14 @@ export default function AdminQRManagement() {
                 <th className="px-3 py-3 font-semibold">Business / QR Path</th>
                 <th className="px-3 py-3 font-semibold">Status</th>
                 <th className="px-3 py-3 font-semibold">Assigned Date</th>
+                <th className="px-3 py-3">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {loading ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="px-5 py-14 text-center text-slate-500"
                   >
                     <RefreshCw size={17} className="mr-2 inline animate-spin" />
@@ -1409,7 +1686,7 @@ export default function AdminQRManagement() {
               ) : sets.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="px-5 py-14 text-center text-slate-500 dark:text-slate-400"
                   >
                     No QR sets found for these filters.
@@ -1481,6 +1758,24 @@ export default function AdminQRManagement() {
                     </td>
                     <td className="whitespace-nowrap px-3 py-3 text-xs text-slate-500 dark:text-slate-400">
                       {formatDate(item.assignedAt)}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-3">
+                      <button
+                        type="button"
+                        onClick={() => handlePhysicalQRStatusChange(item)}
+                        disabled={actionLoadingId === item._id}
+                        className={`rounded-lg px-3 py-2 text-xs font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                          item.status === "disabled"
+                            ? "bg-emerald-600 hover:bg-emerald-700"
+                            : "bg-red-600 hover:bg-red-700"
+                        }`}
+                      >
+                        {actionLoadingId === item._id
+                          ? "Please wait..."
+                          : item.status === "disabled"
+                            ? "Activate"
+                            : "Deactivate"}
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -1580,6 +1875,22 @@ export default function AdminQRManagement() {
                 <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">
                   Assigned: {formatDate(item.assignedAt)}
                 </div>
+                <button
+                  type="button"
+                  onClick={() => handlePhysicalQRStatusChange(item)}
+                  disabled={actionLoadingId === item._id}
+                  className={`mt-4 w-full rounded-lg px-3 py-2.5 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                    item.status === "disabled"
+                      ? "bg-emerald-600 hover:bg-emerald-700"
+                      : "bg-red-600 hover:bg-red-700"
+                  }`}
+                >
+                  {actionLoadingId === item._id
+                    ? "Please wait..."
+                    : item.status === "disabled"
+                      ? "Activate"
+                      : "Deactivate"}
+                </button>
               </article>
             ))
           )}

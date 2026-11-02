@@ -31,9 +31,14 @@ export const adminLogin = createAsyncThunk(
 // FETCH ADMIN DASHBOARD
 export const fetchAdminDashboard = createAsyncThunk(
   "admin/fetchDashboard",
-  async (_, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue }) => {
     try {
-      const response = await api.get("/admin/dashboard");
+      const response = await api.get("/admin/dashboard", {
+        params: {
+          from: params.from || "",
+          to: params.to || "",
+        },
+      });
 
       if (!response.data?.success) {
         return rejectWithValue(
@@ -676,6 +681,7 @@ const initialState = {
     websiteUrl: "",
   },
   brandingLoading: false,
+  dailyReport: [],
 };
 
 const adminSlice = createSlice({
@@ -745,6 +751,7 @@ const adminSlice = createSlice({
         state.loading = false;
         state.stats = action.payload.stats || initialState.stats;
         state.recentActivity = action.payload.recentActivity || [];
+        state.dailyReport = action.payload.dailyReport || [];
       })
       .addCase(fetchAdminDashboard.rejected, (state, action) => {
         state.loading = false;

@@ -66,7 +66,8 @@ const TAB_ORDER = [
   "Profile",
   "Professional",
   "Contact & Address",
-  "UI and Payment",
+  "UPI and Payment",
+  "Lead Capture",
 ];
 
 /* ==================== BUSINESS HOURS PRESETS ==================== */
@@ -386,6 +387,9 @@ const EditProfile = () => {
     mapLink: "",
     businessHours: "",
     upiId: "",
+    leadCapture: {
+      enabled: false,
+    },
   });
 
   useEffect(() => {
@@ -403,7 +407,7 @@ const EditProfile = () => {
     if (profile.selectedPlan) setSelectedPlan(profile.selectedPlan);
     if (profile.businessHours) {
       setCustomHoursSelected(
-        !businessHourPresets.includes(profile.businessHours)
+        !businessHourPresets.includes(profile.businessHours),
       );
     } else {
       setCustomHoursSelected(false);
@@ -444,7 +448,9 @@ const EditProfile = () => {
       console.log(`${type} uploaded successfully:`, imageUrl);
     } catch (error) {
       console.error("Image upload failed:", error.response?.data || error);
-      alert(error.response?.data?.message || error.message || "Image upload failed");
+      alert(
+        error.response?.data?.message || error.message || "Image upload failed",
+      );
     } finally {
       event.target.value = "";
     }
@@ -475,14 +481,19 @@ const EditProfile = () => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        handleChange("mapLink", `https://maps.google.com/?q=${latitude},${longitude}`);
+        handleChange(
+          "mapLink",
+          `https://maps.google.com/?q=${latitude},${longitude}`,
+        );
         setCapturingGPS(false);
       },
       () => {
         setCapturingGPS(false);
-        alert("Unable to access your location. Please allow location permission and try again.");
+        alert(
+          "Unable to access your location. Please allow location permission and try again.",
+        );
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 10000 },
     );
   };
 
@@ -503,7 +514,11 @@ const EditProfile = () => {
       navigate("/mini", { replace: true });
     } catch (error) {
       console.error("Profile save failed:", error);
-      alert(typeof error === "string" ? error : "Profile save nahi hua. Please try again.");
+      alert(
+        typeof error === "string"
+          ? error
+          : "Profile save nahi hua. Please try again.",
+      );
     }
   };
 
@@ -536,26 +551,71 @@ const EditProfile = () => {
 
   /* DATA */
   const themes = [
-    { id: "executive", name: "Executive Royal", category: "Corporate & Tech", description: "Prestigious sapphire and royal indigo frosted glass for corporate...", colors: ["#1e3a8a", "#7c3aed"] },
-    { id: "emerald", name: "Emerald Luxe", category: "Medical & Property", description: "Deep imperial emerald and luminous jade for health, clinics...", colors: ["#10b981", "#14b8a6"] },
-    { id: "rose", name: "Rose Gold & Champagne", category: "Fashion & Salon", description: "Shimmering blush champagne and rose gold for boutiques, fashion...", colors: ["#f43f5e", "#fb923c"] },
-    { id: "obsidian", name: "Obsidian Noir & Platinum", category: "Barber & Executive", description: "Smoked glass, titanium graphite and platinum chrome for...", colors: ["#334155", "#94a3b8"] },
-    { id: "sunset", name: "Sunset Amber & Coral", category: "Creative & Cafe", description: "Radiant golden tangerine and warm amber coral for creative...", colors: ["#f59e0b", "#f97316"] },
+    {
+      id: "executive",
+      name: "Executive Royal",
+      category: "Corporate & Tech",
+      description:
+        "Prestigious sapphire and royal indigo frosted glass for corporate...",
+      colors: ["#1e3a8a", "#7c3aed"],
+    },
+    {
+      id: "emerald",
+      name: "Emerald Luxe",
+      category: "Medical & Property",
+      description:
+        "Deep imperial emerald and luminous jade for health, clinics...",
+      colors: ["#10b981", "#14b8a6"],
+    },
+    {
+      id: "rose",
+      name: "Rose Gold & Champagne",
+      category: "Fashion & Salon",
+      description:
+        "Shimmering blush champagne and rose gold for boutiques, fashion...",
+      colors: ["#f43f5e", "#fb923c"],
+    },
+    {
+      id: "obsidian",
+      name: "Obsidian Noir & Platinum",
+      category: "Barber & Executive",
+      description: "Smoked glass, titanium graphite and platinum chrome for...",
+      colors: ["#334155", "#94a3b8"],
+    },
+    {
+      id: "sunset",
+      name: "Sunset Amber & Coral",
+      category: "Creative & Cafe",
+      description:
+        "Radiant golden tangerine and warm amber coral for creative...",
+      colors: ["#f59e0b", "#f97316"],
+    },
   ];
 
-  const quickHandles = ["@okaxis", "@okhdfcbank", "@oksbi", "@paytm", "@ybl", "@ibl"];
-  
+  const quickHandles = [
+    "@okaxis",
+    "@okhdfcbank",
+    "@oksbi",
+    "@paytm",
+    "@ybl",
+    "@ibl",
+  ];
+
   const activeThemeData = themes.find((theme) => theme.id === activeTheme);
 
   // Safe Dynamic Profile Completion
   const totalFields = Object.keys(formData).length + 4;
-  const filledFields = Object.values(formData).filter((val) => {
-    if (val === null || val === undefined) return false;
-    if (typeof val === "string") return val.trim() !== "";
-    return true;
-  }).length + [avatar, logo, banner, qrCode].filter(Boolean).length;
-  
-  const completionPercentage = Math.min(100, Math.round((filledFields / totalFields) * 100));
+  const filledFields =
+    Object.values(formData).filter((val) => {
+      if (val === null || val === undefined) return false;
+      if (typeof val === "string") return val.trim() !== "";
+      return true;
+    }).length + [avatar, logo, banner, qrCode].filter(Boolean).length;
+
+  const completionPercentage = Math.min(
+    100,
+    Math.round((filledFields / totalFields) * 100),
+  );
 
   const selectedAbout = aboutUs.find(
     (item) => item.category === formData.industry,
@@ -563,7 +623,6 @@ const EditProfile = () => {
 
   return (
     <div className="relative min-h-screen overflow-x-clip px-1 py-5 text-white sm:px-5 sm:py-7 lg:px-8 font-sans">
-      
       {/* HEADER */}
       <header className="relative mx-auto w-full max-w-[1350px] mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-[#29435f] pb-5">
         <div>
@@ -571,7 +630,8 @@ const EditProfile = () => {
             Edit Profile
           </h1>
           <p className="mt-1 text-sm text-slate-400">
-            Update your profile information and make your digital identity more attractive.
+            Update your profile information and make your digital identity more
+            attractive.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -602,13 +662,11 @@ const EditProfile = () => {
       </header>
 
       <div className="relative mx-auto w-full max-w-[1350px] grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
-        
         {/* LEFT COLUMN */}
         <div className="lg:col-span-2 space-y-6">
-          
           {/* PROFILE PREVIEW CARD */}
           <div className="overflow-hidden rounded-3xl border border-[#29435f] bg-[#132942]/80 shadow-2xl">
-            <div 
+            <div
               className="h-40 w-full bg-[#0b1b30] bg-cover bg-center relative"
               style={{ backgroundImage: banner ? `url(${banner})` : "none" }}
             >
@@ -617,7 +675,11 @@ const EditProfile = () => {
             <div className="relative px-6 pb-6 pt-0">
               <div className="absolute -top-12 left-6 h-24 w-24 overflow-hidden rounded-full border-4 border-[#132942] bg-[#0b1b30]">
                 {avatar ? (
-                  <img src={avatar} alt="Avatar" className="h-full w-full object-cover" />
+                  <img
+                    src={avatar}
+                    alt="Avatar"
+                    className="h-full w-full object-cover"
+                  />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-slate-500 bg-[#132942]">
                     <User size={40} />
@@ -628,15 +690,19 @@ const EditProfile = () => {
               <div className="flex flex-col gap-4 pt-14 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <h2 className="text-2xl font-bold text-white">
-                    {[formData.firstName, formData.lastName].filter(Boolean).join(" ") || "Your Name"}
+                    {[formData.firstName, formData.lastName]
+                      .filter(Boolean)
+                      .join(" ") || "Your Name"}
                   </h2>
                   <p className="text-sm font-medium text-cyan-400 mt-0.5">
                     {formData.jobTitle || "Your Designation"}
                   </p>
                   {(formData.city || formData.state) && (
                     <p className="mt-1 flex items-center gap-1 text-xs text-slate-400">
-                      <MapPin size={12} /> 
-                      {[formData.city, formData.state].filter(Boolean).join(", ")}
+                      <MapPin size={12} />
+                      {[formData.city, formData.state]
+                        .filter(Boolean)
+                        .join(", ")}
                     </p>
                   )}
                 </div>
@@ -666,12 +732,12 @@ const EditProfile = () => {
                 const isActive = activeTab === tab;
                 const isCompleted = index < currentTabIndex;
                 return (
-                  <button 
-                    key={tab} 
+                  <button
+                    key={tab}
                     onClick={() => setActiveTab(tab)}
                     className={`relative flex items-center gap-2 whitespace-nowrap px-4 py-4 text-sm font-semibold transition ${
-                      isActive 
-                        ? "border-b-2 border-cyan-400 text-cyan-400" 
+                      isActive
+                        ? "border-b-2 border-cyan-400 text-cyan-400"
                         : "text-slate-400 hover:text-slate-200"
                     }`}
                   >
@@ -684,7 +750,11 @@ const EditProfile = () => {
                             : "bg-[#0b1b30] text-slate-500"
                       }`}
                     >
-                      {isCompleted && !isActive ? <Check size={10} strokeWidth={4} /> : index + 1}
+                      {isCompleted && !isActive ? (
+                        <Check size={10} strokeWidth={4} />
+                      ) : (
+                        index + 1
+                      )}
                     </span>
                     {tab}
                   </button>
@@ -694,26 +764,79 @@ const EditProfile = () => {
           </div>
 
           <div className="rounded-b-3xl border-x border-b border-[#29435f] bg-[#10233b]/90 p-5 sm:p-7">
-            
             {/* TAB 1: PROFILE */}
             {activeTab === "Profile" && (
               <div className="space-y-8 animate-fadeIn">
-                <Section title="Profile Images" subtitle="Upload your profile photo, banner, logo and QR code." icon={Camera}>
+                <Section
+                  title="Profile Images"
+                  subtitle="Upload your profile photo, banner, logo and QR code."
+                  icon={Camera}
+                >
                   <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                    <ImageUploader title="Profile Photo" recommendation="400x400 px" image={avatar} onUpload={handleUpload("avatar")} onRemove={() => setAvatar(null)} />
-                    <ImageUploader title="Cover Banner" recommendation="1200x500 px" image={banner} onUpload={handleUpload("banner")} onRemove={() => setBanner(null)} />
-                    <ImageUploader title="Logo" recommendation="400x400 px" image={logo} onUpload={handleUpload("logo")} onRemove={() => setLogo(null)} />
-                    <ImageUploader title="QR Code" recommendation="Square" image={qrCode} onUpload={handleUpload("qrCode")} onRemove={() => setQrCode(null)} />
+                    <ImageUploader
+                      title="Profile Photo"
+                      recommendation="400x400 px"
+                      image={avatar}
+                      onUpload={handleUpload("avatar")}
+                      onRemove={() => setAvatar(null)}
+                    />
+                    <ImageUploader
+                      title="Cover Banner"
+                      recommendation="1200x500 px"
+                      image={banner}
+                      onUpload={handleUpload("banner")}
+                      onRemove={() => setBanner(null)}
+                    />
+                    <ImageUploader
+                      title="Logo"
+                      recommendation="400x400 px"
+                      image={logo}
+                      onUpload={handleUpload("logo")}
+                      onRemove={() => setLogo(null)}
+                    />
+                    <ImageUploader
+                      title="QR Code"
+                      recommendation="Square"
+                      image={qrCode}
+                      onUpload={handleUpload("qrCode")}
+                      onRemove={() => setQrCode(null)}
+                    />
                   </div>
                 </Section>
 
                 <Divider />
 
-                <Section title="Basic Information" subtitle="Enter your personal details and business category." icon={User}>
+                <Section
+                  title="Basic Information"
+                  subtitle="Enter your personal details and business category."
+                  icon={User}
+                >
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <Field label="First Name" value={formData.firstName} onChange={(e) => handleChange("firstName", e.target.value)} placeholder="First name" required />
-                    <Field label="Last Name" value={formData.lastName} onChange={(e) => handleChange("lastName", e.target.value)} placeholder="Last name" required />
-                    <Field label="Business Name" value={formData.businessName} onChange={(e) => handleChange("businessName", e.target.value)} placeholder="Business name" required />
+                    <Field
+                      label="First Name"
+                      value={formData.firstName}
+                      onChange={(e) =>
+                        handleChange("firstName", e.target.value)
+                      }
+                      placeholder="First name"
+                      required
+                    />
+                    <Field
+                      label="Last Name"
+                      value={formData.lastName}
+                      onChange={(e) => handleChange("lastName", e.target.value)}
+                      placeholder="Last name"
+                      required
+                    />
+                    <Field
+                      label="Business Name"
+                      value={formData.businessName}
+                      onChange={(e) =>
+                        handleChange("businessName", e.target.value)
+                      }
+                      placeholder="Business name"
+                      required
+                    />
 
                     <div className="min-w-0">
                       <label className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-200">
@@ -768,17 +891,40 @@ const EditProfile = () => {
                       </select>
                     </div>
 
-                    <Field label="Job Title / Role" icon={Briefcase} value={formData.jobTitle} onChange={(e) => handleChange("jobTitle", e.target.value)} placeholder="Business Owner / Professional" />
-                    <Field label="Short Headline / Slogan" value={formData.headline} onChange={(e) => handleChange("headline", e.target.value)} placeholder="Your short tagline" />
-                    
+                    <Field
+                      label="Job Title / Role"
+                      icon={Briefcase}
+                      value={formData.jobTitle}
+                      onChange={(e) => handleChange("jobTitle", e.target.value)}
+                      placeholder="Business Owner / Professional"
+                    />
+                    <Field
+                      label="Short Headline / Slogan"
+                      value={formData.headline}
+                      onChange={(e) => handleChange("headline", e.target.value)}
+                      placeholder="Your short tagline"
+                    />
+
                     <div className="sm:col-span-2">
                       <label className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-200">
-                        <User size={15} className="text-cyan-300" /> About / Business Bio
+                        <User size={15} className="text-cyan-300" /> About /
+                        Business Bio
                       </label>
-                      <textarea rows={4} maxLength={500} value={formData.bio} onChange={(e) => handleChange("bio", e.target.value)} placeholder="Tell customers about your business..." className={`${inputCls} resize-y`} />
+                      <textarea
+                        rows={4}
+                        maxLength={500}
+                        value={formData.bio}
+                        onChange={(e) => handleChange("bio", e.target.value)}
+                        placeholder="Tell customers about your business..."
+                        className={`${inputCls} resize-y`}
+                      />
                       <div className="mt-2 flex justify-between">
-                        <p className="text-xs text-slate-400">Keep your introduction clear and customer-friendly.</p>
-                        <p className="text-xs font-semibold text-cyan-200">{formData.bio.length} / 500 characters</p>
+                        <p className="text-xs text-slate-400">
+                          Keep your introduction clear and customer-friendly.
+                        </p>
+                        <p className="text-xs font-semibold text-cyan-200">
+                          {formData.bio.length} / 500 characters
+                        </p>
                       </div>
                       {selectedAbout && (
                         <div className="mt-4 rounded-2xl border border-[#29435f] bg-[#132942]/70 p-4 sm:p-5">
@@ -817,9 +963,12 @@ const EditProfile = () => {
             {/* TAB 2: PROFESSIONAL */}
             {activeTab === "Professional" && (
               <div className="space-y-8 animate-fadeIn">
-                <Section title="Business Details" subtitle="Manage your working hours and main website." icon={Briefcase}>
+                <Section
+                  title="Business Details"
+                  subtitle="Manage your working hours and main website."
+                  icon={Briefcase}
+                >
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-
                     <div className="min-w-0">
                       <label className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-200">
                         <Clock size={15} className="shrink-0 text-cyan-300" />
@@ -838,7 +987,11 @@ const EditProfile = () => {
                             const value = e.target.value;
                             if (value === "custom") {
                               setCustomHoursSelected(true);
-                              if (businessHourPresets.includes(formData.businessHours)) {
+                              if (
+                                businessHourPresets.includes(
+                                  formData.businessHours,
+                                )
+                              ) {
                                 handleChange("businessHours", "");
                               }
                             } else {
@@ -848,15 +1001,26 @@ const EditProfile = () => {
                           }}
                           className={`${inputCls} appearance-none pr-10`}
                         >
-                          <option value="" disabled className="bg-[#132942] text-slate-400">
+                          <option
+                            value=""
+                            disabled
+                            className="bg-[#132942] text-slate-400"
+                          >
                             Select business hours
                           </option>
                           {businessHourPresets.map((hours) => (
-                            <option key={hours} value={hours} className="bg-[#132942] text-white">
+                            <option
+                              key={hours}
+                              value={hours}
+                              className="bg-[#132942] text-white"
+                            >
                               {hours}
                             </option>
                           ))}
-                          <option value="custom" className="bg-[#132942] text-white">
+                          <option
+                            value="custom"
+                            className="bg-[#132942] text-white"
+                          >
                             + Custom Hours
                           </option>
                         </select>
@@ -869,33 +1033,57 @@ const EditProfile = () => {
                         <input
                           type="text"
                           value={formData.businessHours}
-                          onChange={(e) => handleChange("businessHours", e.target.value)}
+                          onChange={(e) =>
+                            handleChange("businessHours", e.target.value)
+                          }
                           placeholder="e.g. Mon - Wed: 10:00 AM - 5:00 PM, Thu - Sat: 9:00 AM - 8:00 PM"
                           className={`${inputCls} mt-2`}
                         />
                       )}
                     </div>
 
-                    <Field label="Website URL" icon={Globe} type="url" value={formData.websiteUrl} onChange={(e) => handleChange("websiteUrl", e.target.value)} placeholder="https://..." />
+                    <Field
+                      label="Website URL"
+                      icon={Globe}
+                      type="url"
+                      value={formData.websiteUrl}
+                      onChange={(e) =>
+                        handleChange("websiteUrl", e.target.value)
+                      }
+                      placeholder="https://..."
+                    />
                   </div>
                 </Section>
 
                 <Divider />
 
-                <Section title="Custom Shop Subdomain" subtitle="Manage the web handle associated with your digital visiting card." icon={Globe}>
+                <Section
+                  title="Custom Shop Subdomain"
+                  subtitle="Manage the web handle associated with your digital visiting card."
+                  icon={Globe}
+                >
                   <div className={cardCls}>
                     <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
                       <div className="flex min-w-0 flex-1 items-center rounded-xl border border-[#29435f] bg-[#0b1b30] px-3 focus-within:border-cyan-300">
-                        <span className="shrink-0 text-xs text-slate-400">https://</span>
+                        <span className="shrink-0 text-xs text-slate-400">
+                          https://
+                        </span>
                         <input
                           type="text"
                           value={formData.subdomain}
-                          onChange={(e) => handleChange("subdomain", e.target.value.toLowerCase().replace(/\s+/g, "-"))}
+                          onChange={(e) =>
+                            handleChange(
+                              "subdomain",
+                              e.target.value.toLowerCase().replace(/\s+/g, "-"),
+                            )
+                          }
                           className="min-w-0 flex-1 bg-transparent px-2 py-3 font-mono text-sm text-cyan-100 outline-none"
                           aria-label="Custom subdomain"
                         />
                       </div>
-                      <span className="rounded-xl border border-[#29435f] bg-[#0b1b30] px-3 py-3 text-xs text-slate-400">.yourdomain.com</span>
+                      <span className="rounded-xl border border-[#29435f] bg-[#0b1b30] px-3 py-3 text-xs text-slate-400">
+                        .yourdomain.com
+                      </span>
                     </div>
 
                     <div className="mt-5 rounded-xl border border-[#29435f] bg-[#0b1b30]/70 p-3.5">
@@ -903,7 +1091,12 @@ const EditProfile = () => {
                         <LinkIcon size={14} className="text-cyan-300" />
                         Current direct link
                       </div>
-                      <a href={formData.website} target="_blank" rel="noreferrer" className="block break-all text-sm font-medium leading-6 text-cyan-200 transition hover:text-cyan-100 hover:underline">
+                      <a
+                        href={formData.website}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="block break-all text-sm font-medium leading-6 text-cyan-200 transition hover:text-cyan-100 hover:underline"
+                      >
                         {formData.website || "No link added yet"}
                       </a>
                     </div>
@@ -915,42 +1108,137 @@ const EditProfile = () => {
             {/* TAB 3: CONTACT & ADDRESS */}
             {activeTab === "Contact & Address" && (
               <div className="space-y-8 animate-fadeIn">
-                <Section title="Contact Information" subtitle="Help customers reach you through their preferred contact method." icon={Phone}>
+                <Section
+                  title="Contact Information"
+                  subtitle="Help customers reach you through their preferred contact method."
+                  icon={Phone}
+                >
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    <Field label="Phone Number" icon={Phone} type="tel" value={formData.phone} onChange={(e) => handleChange("phone", e.target.value)} placeholder="8956235689" required />
-                    <Field label="WhatsApp Number" icon={MessageSquare} type="tel" value={formData.whatsapp} onChange={(e) => handleChange("whatsapp", e.target.value)} placeholder="918956235689" />
-                    <Field label="Email ID" icon={Mail} type="email" value={formData.email} onChange={(e) => handleChange("email", e.target.value)} placeholder="you@business.com" required />
-                    <Field label="Website / Card Link" icon={LinkIcon} type="url" value={formData.website} onChange={(e) => handleChange("website", e.target.value)} placeholder="https://..." />
+                    <Field
+                      label="Phone Number"
+                      icon={Phone}
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => handleChange("phone", e.target.value)}
+                      placeholder="8956235689"
+                      required
+                    />
+                    <Field
+                      label="WhatsApp Number"
+                      icon={MessageSquare}
+                      type="tel"
+                      value={formData.whatsapp}
+                      onChange={(e) => handleChange("whatsapp", e.target.value)}
+                      placeholder="918956235689"
+                    />
+                    <Field
+                      label="Email ID"
+                      icon={Mail}
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleChange("email", e.target.value)}
+                      placeholder="you@business.com"
+                      required
+                    />
+                    <Field
+                      label="Website / Card Link"
+                      icon={LinkIcon}
+                      type="url"
+                      value={formData.website}
+                      onChange={(e) => handleChange("website", e.target.value)}
+                      placeholder="https://..."
+                    />
                   </div>
                 </Section>
 
                 <Divider />
 
-                <Section title="Storefront Address" subtitle="Set your business location so customers can identify your shop." icon={Store}>
+                <Section
+                  title="Storefront Address"
+                  subtitle="Set your business location so customers can identify your shop."
+                  icon={Store}
+                >
                   <div className={cardCls}>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <Field label="Shop / Unit Number" value={formData.shopUnit} onChange={(e) => handleChange("shopUnit", e.target.value)} placeholder="E.g. Shop 12, Ground Floor" />
-                      <Field label="Area / Locality" value={formData.area} onChange={(e) => handleChange("area", e.target.value)} placeholder="E.g. Andheri West" />
+                      <Field
+                        label="Shop / Unit Number"
+                        value={formData.shopUnit}
+                        onChange={(e) =>
+                          handleChange("shopUnit", e.target.value)
+                        }
+                        placeholder="E.g. Shop 12, Ground Floor"
+                      />
+                      <Field
+                        label="Area / Locality"
+                        value={formData.area}
+                        onChange={(e) => handleChange("area", e.target.value)}
+                        placeholder="E.g. Andheri West"
+                      />
                     </div>
                     <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                      <Field label="City" value={formData.city} onChange={(e) => handleChange("city", e.target.value)} placeholder="Enter city" />
-                      <Field label="State" value={formData.state} onChange={(e) => handleChange("state", e.target.value)} placeholder="Enter state" />
-                      <Field label="Pincode" value={formData.pincode} onChange={(e) => handleChange("pincode", e.target.value)} placeholder="E.g. 400070" />
+                      <Field
+                        label="City"
+                        value={formData.city}
+                        onChange={(e) => handleChange("city", e.target.value)}
+                        placeholder="Enter city"
+                      />
+                      <Field
+                        label="State"
+                        value={formData.state}
+                        onChange={(e) => handleChange("state", e.target.value)}
+                        placeholder="Enter state"
+                      />
+                      <Field
+                        label="Pincode"
+                        value={formData.pincode}
+                        onChange={(e) =>
+                          handleChange("pincode", e.target.value)
+                        }
+                        placeholder="E.g. 400070"
+                      />
                     </div>
                     <div className="mt-4">
-                      <Field label="Landmark (Optional)" value={formData.landmark} onChange={(e) => handleChange("landmark", e.target.value)} placeholder="E.g. Opposite Phoenix Marketcity" />
+                      <Field
+                        label="Landmark (Optional)"
+                        value={formData.landmark}
+                        onChange={(e) =>
+                          handleChange("landmark", e.target.value)
+                        }
+                        placeholder="E.g. Opposite Phoenix Marketcity"
+                      />
                     </div>
 
                     <div className="mt-5 rounded-2xl border border-[#29435f] bg-[#0b1b30]/75 p-4">
                       <div className="mb-3 flex items-center gap-2">
                         <MapPin size={17} className="text-cyan-200" />
-                        <label className="text-sm font-bold text-white">Google Maps Shop Directions Link</label>
+                        <label className="text-sm font-bold text-white">
+                          Google Maps Shop Directions Link
+                        </label>
                       </div>
                       <div className="flex flex-col gap-3 lg:flex-row">
-                        <input type="url" value={formData.mapLink} onChange={(e) => handleChange("mapLink", e.target.value)} placeholder="https://maps.app.goo.gl/..." className={`${inputCls} min-w-0 flex-1`} />
-                        <button type="button" onClick={handleAutoCaptureGPS} disabled={capturingGPS} className={secondaryButtonCls}>
-                          {capturingGPS ? <Loader2 size={16} className="animate-spin" /> : <Navigation size={16} className="text-cyan-200" />}
-                          {capturingGPS ? "Capturing Location..." : "Capture My GPS"}
+                        <input
+                          type="url"
+                          value={formData.mapLink}
+                          onChange={(e) =>
+                            handleChange("mapLink", e.target.value)
+                          }
+                          placeholder="https://maps.app.goo.gl/..."
+                          className={`${inputCls} min-w-0 flex-1`}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAutoCaptureGPS}
+                          disabled={capturingGPS}
+                          className={secondaryButtonCls}
+                        >
+                          {capturingGPS ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : (
+                            <Navigation size={16} className="text-cyan-200" />
+                          )}
+                          {capturingGPS
+                            ? "Capturing Location..."
+                            : "Capture My GPS"}
                         </button>
                       </div>
                     </div>
@@ -960,73 +1248,81 @@ const EditProfile = () => {
             )}
 
             {/* TAB 4: GALLERY & QR */}
-          {activeTab === "UI and Payment" && (
-  <div className="space-y-8 animate-fadeIn">
-    <Section
-      title="Receive Payments & UPI"
-      subtitle="Add your merchant UPI ID and upload your payment QR code for customers."
-      icon={Wallet}
-    >
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <div className={cardCls}>
-          <div className="mb-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-300/10 text-cyan-200">
-              <Wallet size={19} />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-white">Merchant UPI ID</h3>
-              <p className="mt-1 text-xs text-slate-400">Your payment address</p>
-            </div>
-          </div>
+            {activeTab === "UPI and Payment" && (
+              <div className="space-y-8 animate-fadeIn">
+                <Section
+                  title="Receive Payments & UPI"
+                  subtitle="Add your merchant UPI ID and upload your payment QR code for customers."
+                  icon={Wallet}
+                >
+                  <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                    <div className={cardCls}>
+                      <div className="mb-4 flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-300/10 text-cyan-200">
+                          <Wallet size={19} />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-bold text-white">
+                            Merchant UPI ID
+                          </h3>
+                          <p className="mt-1 text-xs text-slate-400">
+                            Your payment address
+                          </p>
+                        </div>
+                      </div>
 
-          <Field
-            label="UPI ID (Unified Payments Interface)"
-            icon={AtSign}
-            value={formData.upiId}
-            onChange={(e) => handleChange("upiId", e.target.value)}
-            placeholder="yourbusiness@okaxis"
-          />
+                      <Field
+                        label="UPI ID (Unified Payments Interface)"
+                        icon={AtSign}
+                        value={formData.upiId}
+                        onChange={(e) => handleChange("upiId", e.target.value)}
+                        placeholder="yourbusiness@okaxis"
+                      />
 
-          <p className="mb-3 mt-5 text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
-            Quick UPI handles
-          </p>
+                      <p className="mb-3 mt-5 text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
+                        Quick UPI handles
+                      </p>
 
-          <div className="flex flex-wrap gap-2">
-            {quickHandles.map((handle) => (
-              <button
-                key={handle}
-                type="button"
-                onClick={() => {
-                  const base = formData.upiId.split("@")[0] || "yourbusiness";
-                  handleChange("upiId", `${base}${handle}`);
-                }}
-                className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${
-                  formData.upiId.endsWith(handle)
-                    ? "border-cyan-300/50 bg-cyan-300/10 text-cyan-100"
-                    : "border-[#38516e] bg-[#0b1b30] text-slate-300 hover:border-cyan-300/40 hover:text-cyan-200"
-                }`}
-              >
-                {handle}
-              </button>
-            ))}
-          </div>
-        </div>
+                      <div className="flex flex-wrap gap-2">
+                        {quickHandles.map((handle) => (
+                          <button
+                            key={handle}
+                            type="button"
+                            onClick={() => {
+                              const base =
+                                formData.upiId.split("@")[0] || "yourbusiness";
+                              handleChange("upiId", `${base}${handle}`);
+                            }}
+                            className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                              formData.upiId.endsWith(handle)
+                                ? "border-cyan-300/50 bg-cyan-300/10 text-cyan-100"
+                                : "border-[#38516e] bg-[#0b1b30] text-slate-300 hover:border-cyan-300/40 hover:text-cyan-200"
+                            }`}
+                          >
+                            {handle}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
 
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col justify-center rounded-2xl border border-cyan-300/20 bg-gradient-to-r from-cyan-300/[0.08] to-blue-400/[0.04] p-5 text-center">
-            <Zap size={32} className="mx-auto mb-3 text-cyan-300" />
-            <p className="text-sm font-bold text-cyan-100">UPI Payment Setup</p>
-            <p className="mt-2 text-xs leading-5 text-slate-300">
-              Your UPI ID and payment QR are collected here for your card.
-              The public card must implement the payment action.
-            </p>
-          </div>
-        </div>
-      </div>
-    </Section>
+                    <div className="flex flex-col gap-4">
+                      <div className="flex flex-col justify-center rounded-2xl border border-cyan-300/20 bg-gradient-to-r from-cyan-300/[0.08] to-blue-400/[0.04] p-5 text-center">
+                        <Zap size={32} className="mx-auto mb-3 text-cyan-300" />
+                        <p className="text-sm font-bold text-cyan-100">
+                          UPI Payment Setup
+                        </p>
+                        <p className="mt-2 text-xs leading-5 text-slate-300">
+                          Your UPI ID and payment QR are collected here for your
+                          card. The public card must implement the payment
+                          action.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </Section>
 
-    {/* SAVE CHANGES BUTTON */}
-    {/* <div className="flex justify-end border-t border-[#29435f] pt-6">
+                {/* SAVE CHANGES BUTTON */}
+                {/* <div className="flex justify-end border-t border-[#29435f] pt-6">
       <button
         type="button"
         onClick={handleSave}
@@ -1041,14 +1337,85 @@ const EditProfile = () => {
         {reduxSaving ? "Saving..." : "Save Changes"}
       </button>
     </div> */}
-  </div>
-)}
+              </div>
+            )}
+
+            {/* TAB: LEAD CAPTURE */}
+            {activeTab === "Lead Capture" && (
+              <div className="space-y-8 animate-fadeIn">
+                <Section
+                  title="QR Lead Capture"
+                  subtitle="Collect customer details when someone scans your physical business QR code."
+                  icon={User}
+                >
+                  <div className={cardCls}>
+                    <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex-1">
+                        <h3 className="text-base font-bold text-white">
+                          Enable Customer Lead Capture
+                        </h3>
+
+                        <p className="mt-2 text-sm leading-6 text-slate-400">
+                          When customers scan your physical QR code, a popup
+                          will ask for their name and phone number. Their
+                          details will be saved in your inquiries.
+                        </p>
+
+                        <p className="mt-3 text-xs font-semibold text-cyan-300">
+                          Status:{" "}
+                          {formData.leadCapture?.enabled
+                            ? "Enabled"
+                            : "Disabled"}
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-label="Enable customer lead capture"
+                        aria-checked={Boolean(formData.leadCapture?.enabled)}
+                        onClick={() => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            leadCapture: {
+                              ...prev.leadCapture,
+                              enabled: !prev.leadCapture?.enabled,
+                            },
+                          }));
+                          setSaved(false);
+                        }}
+                        className="flex h-11 w-16 shrink-0 self-end items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 sm:self-auto"
+                      >
+                        <span
+                          className={`relative h-7 w-12 rounded-full transition-colors ${
+                            formData.leadCapture?.enabled
+                              ? "bg-emerald-500"
+                              : "bg-slate-600"
+                          }`}
+                        >
+                          <span
+                            className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                              formData.leadCapture?.enabled
+                                ? "translate-x-5"
+                                : "translate-x-0"
+                            }`}
+                          />
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                </Section>
+              </div>
+            )}
 
             {/* TAB 5: APPEARANCE — PREMIUM REDESIGN */}
             {activeTab === "Appearance" && (
               <div className="space-y-8 animate-fadeIn">
-                <Section title="Mini Website Visual Themes" subtitle="Choose the appearance of your public visiting card." icon={Palette}>
-                  
+                <Section
+                  title="Mini Website Visual Themes"
+                  subtitle="Choose the appearance of your public visiting card."
+                  icon={Palette}
+                >
                   {/* Active Theme Header Bar */}
                   <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-cyan-400/20 bg-gradient-to-r from-cyan-400/[0.08] via-[#0b1b30]/60 to-blue-400/[0.05] p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
@@ -1056,13 +1423,24 @@ const EditProfile = () => {
                         <Sparkles size={18} />
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-white">Currently Active Theme</p>
-                        <p className="mt-0.5 text-xs text-slate-400">{themes.length} premium themes available</p>
+                        <p className="text-sm font-bold text-white">
+                          Currently Active Theme
+                        </p>
+                        <p className="mt-0.5 text-xs text-slate-400">
+                          {themes.length} premium themes available
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 rounded-xl border border-cyan-400/30 bg-[#0b1b30]/70 px-3 py-2 backdrop-blur-sm">
-                      <span className="h-4 w-4 shrink-0 rounded-full ring-2 ring-white/20 shadow" style={{ background: `linear-gradient(135deg, ${activeThemeData?.colors[0]}, ${activeThemeData?.colors[1]})` }} />
-                      <span className="text-xs font-bold text-cyan-200">{activeThemeData?.name}</span>
+                      <span
+                        className="h-4 w-4 shrink-0 rounded-full ring-2 ring-white/20 shadow"
+                        style={{
+                          background: `linear-gradient(135deg, ${activeThemeData?.colors[0]}, ${activeThemeData?.colors[1]})`,
+                        }}
+                      />
+                      <span className="text-xs font-bold text-cyan-200">
+                        {activeThemeData?.name}
+                      </span>
                     </div>
                   </div>
 
@@ -1074,10 +1452,13 @@ const EditProfile = () => {
                         <button
                           key={theme.id}
                           type="button"
-                          onClick={() => { setActiveTheme(theme.id); setSaved(false); }}
+                          onClick={() => {
+                            setActiveTheme(theme.id);
+                            setSaved(false);
+                          }}
                           className={`group relative overflow-hidden rounded-2xl border text-left transition-all duration-300 ${
-                            isActive 
-                              ? "border-cyan-400/60 bg-cyan-400/[0.05] shadow-xl shadow-cyan-400/15 ring-2 ring-cyan-400/40" 
+                            isActive
+                              ? "border-cyan-400/60 bg-cyan-400/[0.05] shadow-xl shadow-cyan-400/15 ring-2 ring-cyan-400/40"
                               : "border-[#29435f] bg-[#132942]/60 hover:-translate-y-1 hover:border-[#38516e] hover:shadow-xl hover:shadow-black/30"
                           }`}
                         >
@@ -1116,7 +1497,11 @@ const EditProfile = () => {
                             {/* Active badge */}
                             {isActive && (
                               <div className="absolute right-2.5 top-2.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-white shadow-lg ring-2 ring-cyan-400/60">
-                                <Check size={14} className="text-cyan-600" strokeWidth={3.5} />
+                                <Check
+                                  size={14}
+                                  className="text-cyan-600"
+                                  strokeWidth={3.5}
+                                />
                               </div>
                             )}
 
@@ -1131,7 +1516,9 @@ const EditProfile = () => {
                           {/* Info Section */}
                           <div className="p-3.5">
                             <div className="flex items-start justify-between gap-2">
-                              <h3 className="text-sm font-bold leading-tight text-white">{theme.name}</h3>
+                              <h3 className="text-sm font-bold leading-tight text-white">
+                                {theme.name}
+                              </h3>
                               {isActive && (
                                 <span className="shrink-0 rounded-md border border-cyan-400/40 bg-cyan-400/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-cyan-300">
                                   Active
@@ -1142,8 +1529,14 @@ const EditProfile = () => {
                               {theme.description}
                             </p>
                             <div className="mt-2.5 flex items-center gap-1.5">
-                              <span className="h-2 w-2 rounded-full ring-1 ring-white/20" style={{ background: theme.colors[0] }} />
-                              <span className="h-2 w-2 rounded-full ring-1 ring-white/20" style={{ background: theme.colors[1] }} />
+                              <span
+                                className="h-2 w-2 rounded-full ring-1 ring-white/20"
+                                style={{ background: theme.colors[0] }}
+                              />
+                              <span
+                                className="h-2 w-2 rounded-full ring-1 ring-white/20"
+                                style={{ background: theme.colors[1] }}
+                              />
                               <span className="ml-1 truncate text-[10px] font-semibold uppercase tracking-wide text-cyan-200/80">
                                 {theme.category}
                               </span>
@@ -1157,23 +1550,57 @@ const EditProfile = () => {
 
                 <Divider />
 
-                <Section title="Plan & Publish" subtitle="Select your plan and save the profile form." icon={Rocket}>
+                <Section
+                  title="Plan & Publish"
+                  subtitle="Select your plan and save the profile form."
+                  icon={Rocket}
+                >
                   <div className="flex flex-col gap-4 sm:flex-row">
-                    <button type="button" onClick={() => { setSelectedPlan("1year"); setSaved(false); }} className={`flex flex-1 items-center gap-3 rounded-2xl border p-4 text-left transition ${selectedPlan === "1year" ? "border-cyan-300/60 bg-cyan-300/[0.08]" : "border-[#38516e] bg-[#0b1b30]/70"}`}>
-                      <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${selectedPlan === "1year" ? "bg-cyan-300 text-[#0b1b30]" : "bg-[#132942] text-slate-300"}`}><Rocket size={19} /></div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedPlan("1year");
+                        setSaved(false);
+                      }}
+                      className={`flex flex-1 items-center gap-3 rounded-2xl border p-4 text-left transition ${selectedPlan === "1year" ? "border-cyan-300/60 bg-cyan-300/[0.08]" : "border-[#38516e] bg-[#0b1b30]/70"}`}
+                    >
+                      <div
+                        className={`flex h-10 w-10 items-center justify-center rounded-xl ${selectedPlan === "1year" ? "bg-cyan-300 text-[#0b1b30]" : "bg-[#132942] text-slate-300"}`}
+                      >
+                        <Rocket size={19} />
+                      </div>
                       <div className="flex-1">
                         <p className="text-sm font-bold text-white">1 Year</p>
-                        <p className="text-lg font-extrabold text-cyan-200">₹499</p>
+                        <p className="text-lg font-extrabold text-cyan-200">
+                          ₹499
+                        </p>
                       </div>
-                      {selectedPlan === "1year" && <Check size={18} className="text-cyan-200" />}
+                      {selectedPlan === "1year" && (
+                        <Check size={18} className="text-cyan-200" />
+                      )}
                     </button>
-                    <button type="button" onClick={() => { setSelectedPlan("3years"); setSaved(false); }} className={`flex flex-1 items-center gap-3 rounded-2xl border p-4 text-left transition ${selectedPlan === "3years" ? "border-cyan-300/60 bg-cyan-300/[0.08]" : "border-[#38516e] bg-[#0b1b30]/70"}`}>
-                      <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${selectedPlan === "3years" ? "bg-cyan-300 text-[#0b1b30]" : "bg-[#132942] text-slate-300"}`}><Rocket size={19} /></div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedPlan("3years");
+                        setSaved(false);
+                      }}
+                      className={`flex flex-1 items-center gap-3 rounded-2xl border p-4 text-left transition ${selectedPlan === "3years" ? "border-cyan-300/60 bg-cyan-300/[0.08]" : "border-[#38516e] bg-[#0b1b30]/70"}`}
+                    >
+                      <div
+                        className={`flex h-10 w-10 items-center justify-center rounded-xl ${selectedPlan === "3years" ? "bg-cyan-300 text-[#0b1b30]" : "bg-[#132942] text-slate-300"}`}
+                      >
+                        <Rocket size={19} />
+                      </div>
                       <div className="flex-1">
                         <p className="text-sm font-bold text-white">3 Years</p>
-                        <p className="text-lg font-extrabold text-cyan-200">₹799</p>
+                        <p className="text-lg font-extrabold text-cyan-200">
+                          ₹799
+                        </p>
                       </div>
-                      {selectedPlan === "3years" && <Check size={18} className="text-cyan-200" />}
+                      {selectedPlan === "3years" && (
+                        <Check size={18} className="text-cyan-200" />
+                      )}
                     </button>
                   </div>
                 </Section>
@@ -1190,7 +1617,9 @@ const EditProfile = () => {
               )}
 
               {/* Nav buttons */}
-              <div className={`flex w-full gap-3 sm:ml-auto sm:w-auto ${saved ? "" : "sm:ml-auto"}`}>
+              <div
+                className={`flex w-full gap-3 sm:ml-auto sm:w-auto ${saved ? "" : "sm:ml-auto"}`}
+              >
                 {/* Previous */}
                 {!isFirstTab && (
                   <button
@@ -1245,7 +1674,6 @@ const EditProfile = () => {
 
         {/* RIGHT COLUMN (SIDEBAR) — STICKY */}
         <div className="space-y-6 lg:sticky lg:top-6 lg:self-start">
-          
           {/* LIVE PREVIEW CARD */}
           <div className="overflow-hidden rounded-3xl border border-[#29435f] bg-[#132942]/80 shadow-xl">
             <div className="flex items-center justify-between border-b border-[#29435f] px-5 py-3.5">
@@ -1271,7 +1699,11 @@ const EditProfile = () => {
                 <div className="relative -mt-7 px-3 pb-3">
                   <div className="mb-2 h-14 w-14 overflow-hidden rounded-full border-2 border-[#0b1b30] bg-[#132942] shadow-lg">
                     {avatar ? (
-                      <img src={avatar} alt="preview" className="h-full w-full object-cover" />
+                      <img
+                        src={avatar}
+                        alt="preview"
+                        className="h-full w-full object-cover"
+                      />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-slate-500">
                         <User size={22} />
@@ -1279,7 +1711,9 @@ const EditProfile = () => {
                     )}
                   </div>
                   <p className="truncate text-sm font-bold text-white">
-                    {[formData.firstName, formData.lastName].filter(Boolean).join(" ") || "Your Name"}
+                    {[formData.firstName, formData.lastName]
+                      .filter(Boolean)
+                      .join(" ") || "Your Name"}
                   </p>
                   <p className="truncate text-[11px] font-semibold text-cyan-300">
                     {formData.jobTitle || "Your Designation"}
@@ -1289,7 +1723,9 @@ const EditProfile = () => {
                   </p>
                 </div>
                 <div className="flex items-center justify-between border-t border-[#29435f] bg-[#071326] px-3 py-2">
-                  <span className="text-[10px] font-semibold text-slate-400">Active Theme</span>
+                  <span className="text-[10px] font-semibold text-slate-400">
+                    Active Theme
+                  </span>
                   <div className="flex items-center gap-1.5">
                     <span
                       className="h-3 w-3 rounded-full ring-1 ring-white/20"
@@ -1297,12 +1733,15 @@ const EditProfile = () => {
                         background: `linear-gradient(135deg, ${activeThemeData?.colors[0]}, ${activeThemeData?.colors[1]})`,
                       }}
                     />
-                    <span className="text-[10px] font-bold text-cyan-200">{activeThemeData?.name}</span>
+                    <span className="text-[10px] font-bold text-cyan-200">
+                      {activeThemeData?.name}
+                    </span>
                   </div>
                 </div>
               </div>
               <p className="mt-3 text-[10px] leading-4 text-slate-500">
-                Your live mini page preview. Save to reflect changes on the public page.
+                Your live mini page preview. Save to reflect changes on the
+                public page.
               </p>
             </div>
           </div>
@@ -1314,17 +1753,42 @@ const EditProfile = () => {
             </h3>
             <div className="flex items-center gap-4 border-b border-[#29435f] pb-5">
               <div className="relative h-20 w-20 flex-shrink-0">
-                <svg className="h-full w-full -rotate-90 transform" viewBox="0 0 36 36">
-                  <path className="text-[#0b1b30]" strokeWidth="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                  <path className="text-cyan-400" strokeWidth="3" strokeDasharray={`${completionPercentage}, 100`} strokeLinecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <svg
+                  className="h-full w-full -rotate-90 transform"
+                  viewBox="0 0 36 36"
+                >
+                  <path
+                    className="text-[#0b1b30]"
+                    strokeWidth="3"
+                    stroke="currentColor"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                  <path
+                    className="text-cyan-400"
+                    strokeWidth="3"
+                    strokeDasharray={`${completionPercentage}, 100`}
+                    strokeLinecap="round"
+                    stroke="currentColor"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
                 </svg>
-                <div className="absolute inset-0 flex items-center justify-center text-base font-extrabold text-white">{completionPercentage}%</div>
+                <div className="absolute inset-0 flex items-center justify-center text-base font-extrabold text-white">
+                  {completionPercentage}%
+                </div>
               </div>
               <div>
                 <p className="text-sm font-bold text-white">
-                  {completionPercentage === 100 ? "Perfect!" : completionPercentage > 50 ? "Looking Good!" : "Needs Work"}
+                  {completionPercentage === 100
+                    ? "Perfect!"
+                    : completionPercentage > 50
+                      ? "Looking Good!"
+                      : "Needs Work"}
                 </p>
-                <p className="mt-1 text-xs leading-5 text-slate-400">Complete your profile to get more visibility and engagement.</p>
+                <p className="mt-1 text-xs leading-5 text-slate-400">
+                  Complete your profile to get more visibility and engagement.
+                </p>
               </div>
             </div>
             <div className="mt-5 space-y-3.5">
@@ -1338,10 +1802,24 @@ const EditProfile = () => {
                 { label: "Payment / UPI", key: "upiId" },
                 { label: "QR Code", key: "qrCode" },
               ].map((item, idx) => {
-                const isDone = item.key === "avatar" ? !!avatar : item.key === "banner" ? !!banner : item.key === "qrCode" ? !!qrCode : !!formData[item.key];
+                const isDone =
+                  item.key === "avatar"
+                    ? !!avatar
+                    : item.key === "banner"
+                      ? !!banner
+                      : item.key === "qrCode"
+                        ? !!qrCode
+                        : !!formData[item.key];
                 return (
-                  <div key={idx} className={`flex items-center gap-3 text-xs font-medium ${isDone ? "text-slate-300" : "text-slate-500"}`}>
-                    {isDone ? <CheckCircle2 size={16} className="text-cyan-400" /> : <Circle size={16} className="text-slate-600" />}
+                  <div
+                    key={idx}
+                    className={`flex items-center gap-3 text-xs font-medium ${isDone ? "text-slate-300" : "text-slate-500"}`}
+                  >
+                    {isDone ? (
+                      <CheckCircle2 size={16} className="text-cyan-400" />
+                    ) : (
+                      <Circle size={16} className="text-slate-600" />
+                    )}
                     {item.label}
                   </div>
                 );
@@ -1355,10 +1833,22 @@ const EditProfile = () => {
               <Zap size={16} className="text-cyan-400" /> Quick Tips
             </h3>
             <ul className="space-y-4 text-xs leading-5 text-slate-300">
-              <li className="flex items-start gap-3"><span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" /> Upload a professional profile photo</li>
-              <li className="flex items-start gap-3"><span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" /> Add a cover banner image</li>
-              <li className="flex items-start gap-3"><span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" /> Complete all fields for better visibility</li>
-              <li className="flex items-start gap-3"><span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" /> Keep your bio short and engaging</li>
+              <li className="flex items-start gap-3">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" />{" "}
+                Upload a professional profile photo
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" />{" "}
+                Add a cover banner image
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" />{" "}
+                Complete all fields for better visibility
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" />{" "}
+                Keep your bio short and engaging
+              </li>
             </ul>
           </div>
 
@@ -1367,13 +1857,17 @@ const EditProfile = () => {
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-400">
               <Rocket size={24} />
             </div>
-            <h3 className="text-sm font-bold text-white">Make Your Profile Stand Out</h3>
-            <p className="mt-2 text-xs leading-5 text-slate-400">Get more visitors, more views and more opportunities with a complete profile.</p>
+            <h3 className="text-sm font-bold text-white">
+              Make Your Profile Stand Out
+            </h3>
+            <p className="mt-2 text-xs leading-5 text-slate-400">
+              Get more visitors, more views and more opportunities with a
+              complete profile.
+            </p>
             <button className="mt-5 w-full rounded-xl bg-cyan-400/10 py-3 text-xs font-bold text-cyan-400 border border-cyan-400/20 hover:bg-cyan-400/20 transition">
               View Insights
             </button>
           </div>
-
         </div>
       </div>
     </div>

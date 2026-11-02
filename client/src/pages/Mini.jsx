@@ -306,6 +306,7 @@ const Mini = () => {
     message: "",
   });
 
+
   const [formSubmitted, setFormSubmitted] = useState(false);
 
   const [showQrModal, setShowQrModal] = useState(false);
@@ -1497,7 +1498,13 @@ const Mini = () => {
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-300">
               <IndianRupee size={27} />
             </div>
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-300">
+              <IndianRupee size={27} />
+            </div>
 
+            <p className="mt-5 text-sm font-medium text-slate-400">
+              Product Amount
+            </p>
             <p className="mt-5 text-sm font-medium text-slate-400">
               Product Amount
             </p>
