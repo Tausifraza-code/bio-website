@@ -616,20 +616,31 @@ const Mini = () => {
      WHATSAPP
   ========================================== */
 
-  const handleWhatsApp = () => {
-    const number = businessInfo.whatsapp || businessInfo.phone;
+  const handleProductWhatsAppInquiry = (product) => {
+    const number = (businessInfo?.whatsapp || "").replace(/\D/g, "");
 
     if (!number) {
-      return alert("WhatsApp number is not available.");
+      return alert("WhatsApp number is not available in this profile.");
     }
 
-    window.open(
-      `https://wa.me/${number.replace(/\D/g, "")}?text=${encodeURIComponent(
-        "Hi, I'm interested in your business.",
-      )}`,
-      "_blank",
-      "noopener,noreferrer",
-    );
+    if (!product) {
+      return alert("Product details are not available.");
+    }
+
+    const message = [
+      "Hi, I'm interested in the following product/service:",
+      "",
+      `Name: ${product.name || "N/A"}`,
+      `Price: ₹${Number(product.price || 0).toLocaleString("en-IN")}`,
+      `Category: ${product.category || "General"}`,
+      `Type: ${product.type || "product"}`,
+      "",
+      "Please share more details.",
+    ].join("\n");
+
+    const whatsappUrl = `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
 
   /* ==========================================
@@ -1110,6 +1121,7 @@ const Mini = () => {
                   setShowQrModal(true);
                 }}
                 onProductClick={(product) => setSelectedProduct(product)}
+                onProductWhatsAppInquiry={handleProductWhatsAppInquiry}
                 onGalleryClick={(image) => setSelectedGalleryImage(image)}
                 onContactClick={handleContactClick}
                 theme={theme}
