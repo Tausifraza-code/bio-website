@@ -17,6 +17,7 @@ import {
   ChevronRight,
   LayoutDashboard,
   LayoutTemplate,
+  Images,
 } from "lucide-react";
 
 const sidebarItems = [
@@ -42,14 +43,22 @@ const sidebarItems = [
   //   path: "/payment",
   //   badge: "Setup",
   // },
-  {
-    id: "themes",
-    label: "Website Themes",
-    description: "Customize your website",
-    icon: Palette,
-    path: "/theme",
-    badge: "5 Themes",
+  // {
+  //   id: "themes",
+  //   label: "Website Themes",
+  //   description: "Customize your website",
+  //   icon: Palette,
+  //   path: "/theme",
+  //   badge: "5 Themes",
+  // },
+    {
+    id: "Gallery",
+    label: "Gallery Section",
+    icon: Images,
+    path: "/gallery",
+    
   },
+  
   {
     id: "profilelayouts",
     label: "Profile Layouts",
@@ -82,6 +91,14 @@ const sidebarItems = [
     path: "/socialcard",
     badge: "Cards",
   },
+  //  {
+  //     id: "Review",
+  //     label: "Review",
+  //     description: "Manage mini website Review",
+  //     icon: Star,
+  //     path: "/review",
+     
+  //   },
   {
     id: "leads",
     label: "Leads & Inquiries",

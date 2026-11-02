@@ -19,13 +19,13 @@ const layouts = [
   { id: "modern-business", name: "Modern Business", description: "Professional business profile with a balanced layout.", style: "modern" },
   { id: "minimal-card", name: "Minimal Card", description: "Clean, compact design with focus on essential details.", style: "minimal" },
   { id: "creator-portfolio", name: "Creator Portfolio", description: "Showcase your work, social links and personal brand.", style: "creator" },
-  { id: "corporate-executive", name: "Corporate Executive", description: "Structured, polished design for professionals.", style: "corporate" },
-  { id: "storefront", name: "Storefront", description: "A product-first layout for shops and businesses.", style: "store" },
-  { id: "freelancer-pro", name: "Freelancer Pro", description: "Highlight your services and professional information.", style: "freelancer" },
-  { id: "elegant-profile", name: "Elegant Profile", description: "A refined profile presentation with generous spacing.", style: "elegant" },
-  { id: "agency-pro", name: "Agency Pro", description: "A bold presentation for agencies and service teams.", style: "agency" },
-  { id: "digital-card", name: "Digital Card", description: "A digital visiting card with quick contact actions.", style: "digital" },
-  { id: "service-pro", name: "Service Pro", description: "A service-focused layout for enquiries and bookings.", style: "service" },
+  // { id: "corporate-executive", name: "Corporate Executive", description: "Structured, polished design for professionals.", style: "corporate" },
+  // { id: "storefront", name: "Storefront", description: "A product-first layout for shops and businesses.", style: "store" },
+  // { id: "freelancer-pro", name: "Freelancer Pro", description: "Highlight your services and professional information.", style: "freelancer" },
+  // { id: "elegant-profile", name: "Elegant Profile", description: "A refined profile presentation with generous spacing.", style: "elegant" },
+  // { id: "agency-pro", name: "Agency Pro", description: "A bold presentation for agencies and service teams.", style: "agency" },
+  // { id: "digital-card", name: "Digital Card", description: "A digital visiting card with quick contact actions.", style: "digital" },
+  // { id: "service-pro", name: "Service Pro", description: "A service-focused layout for enquiries and bookings.", style: "service" },
 ];
 
 const PreviewLine = ({ className = "w-full", color = "bg-slate-300", height = "h-1" }) => (
