@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { QRCodeCanvas } from "qrcode.react";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -192,7 +192,10 @@ const normalizeGalleryImages = (raw) => {
 function CardPreview() {
   const { subdomain } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
+
+  const isQRVisit = new URLSearchParams(location.search).get("source") === "qr";
 
   // Logged-in user information
   const { user, isAuthenticated } = useSelector((state) => state.auth);
@@ -224,6 +227,19 @@ function CardPreview() {
 
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [showToast, setShowToast] = useState(false);
+
+  // QR Lead Capture Popup
+  const [showQRLeadPopup, setShowQRLeadPopup] = useState(false);
+
+  const [qrLeadForm, setQRLeadForm] = useState({
+    name: "",
+    phone: "",
+    email: "",
+  });
+
+  const [qrLeadSubmitting, setQRLeadSubmitting] = useState(false);
+  const [qrLeadError, setQRLeadError] = useState("");
+  const [qrLeadSuccess, setQRLeadSuccess] = useState(false);
 
   /* ============================================================
      FETCH PUBLIC PROFILE
@@ -310,6 +326,13 @@ function CardPreview() {
       cancelled = true;
     };
   }, [subdomain]);
+
+  // SHOW LEAD POPUP ONLY WHEN PROFILE IS OPENED THROUGH QR
+  useEffect(() => {
+    if (isQRVisit && profile?.leadCapture?.enabled) {
+      setShowQRLeadPopup(true);
+    }
+  }, [isQRVisit, profile]);
 
   /* ============================================================
      CHECK PROFILE OWNER
@@ -771,6 +794,42 @@ function CardPreview() {
     }
   };
 
+  // SUBMIT QR LEAD
+  const submitQRLead = async (event) => {
+    event.preventDefault();
+
+    if (!qrLeadForm.name.trim() || !qrLeadForm.phone.trim()) {
+      setQRLeadError("Please enter your name and mobile number.");
+      return;
+    }
+
+    setQRLeadSubmitting(true);
+    setQRLeadError("");
+
+    try {
+      await dispatch(
+        createInquiry({
+          name: qrLeadForm.name.trim(),
+          phone: qrLeadForm.phone.trim(),
+          email: qrLeadForm.email.trim(),
+          subdomain,
+          source: "qr",
+          subject: "QR Scan Lead",
+        }),
+      ).unwrap();
+
+      setQRLeadSuccess(true);
+      setQRLeadForm({ name: "", phone: "", email: "" });
+    } catch (error) {
+      setQRLeadError(
+        typeof error === "string"
+          ? error
+          : error?.message || "Unable to submit details. Please try again.",
+      );
+    } finally {
+      setQRLeadSubmitting(false);
+    }
+  };
   /* ============================================================
      LOADING
      ============================================================ */
@@ -940,6 +999,175 @@ function CardPreview() {
           />
         </article>
       </div>
+
+      {/* QR LEAD CAPTURE POPUP */}
+      {showQRLeadPopup && (
+        <div
+          className="fixed inset-0 z-[150] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setShowQRLeadPopup(false);
+            }
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-label="Customer details"
+            className="relative w-full max-w-md rounded-2xl border p-6 shadow-2xl sm:p-8"
+            style={{
+              background: theme.surface,
+              borderColor: theme.border,
+              color: theme.text,
+            }}
+          >
+            {/* CLOSE BUTTON */}
+            <button
+              type="button"
+              onClick={() => setShowQRLeadPopup(false)}
+              aria-label="Close popup"
+              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full transition hover:opacity-70"
+              style={{
+                background: theme.card,
+                color: theme.text,
+              }}
+            >
+              <X size={19} />
+            </button>
+
+            {qrLeadSuccess ? (
+              <div className="py-5 text-center">
+                <CheckCircle2
+                  size={48}
+                  className="mx-auto mb-4"
+                  style={{ color: theme.primary }}
+                />
+                <h2 className="text-xl font-bold">Thank You!</h2>
+                <p className="mt-2 text-sm" style={{ color: theme.muted }}>
+                  Your details have been submitted successfully.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowQRLeadPopup(false)}
+                  className="mt-6 w-full rounded-xl px-5 py-3 font-semibold text-white"
+                  style={{ background: accentGradient }}
+                >
+                  View Profile
+                </button>
+              </div>
+            ) : (
+              <>
+                <h2 className="pr-8 text-2xl font-bold">Get in Touch</h2>
+
+                <p className="mt-2 text-sm" style={{ color: theme.muted }}>
+                  Share your details and we will contact you.
+                </p>
+
+                <form onSubmit={submitQRLead} className="mt-6 space-y-4">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium">
+                      Your Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      maxLength={100}
+                      value={qrLeadForm.name}
+                      onChange={(event) =>
+                        setQRLeadForm((prev) => ({
+                          ...prev,
+                          name: event.target.value,
+                        }))
+                      }
+                      placeholder="Enter your name"
+                      className="w-full rounded-xl border px-4 py-3 outline-none"
+                      style={{
+                        background: theme.card,
+                        borderColor: theme.border,
+                        color: theme.text,
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium">
+                      Mobile Number *
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      maxLength={15}
+                      value={qrLeadForm.phone}
+                      onChange={(event) =>
+                        setQRLeadForm((prev) => ({
+                          ...prev,
+                          phone: event.target.value,
+                        }))
+                      }
+                      placeholder="Enter mobile number"
+                      className="w-full rounded-xl border px-4 py-3 outline-none"
+                      style={{
+                        background: theme.card,
+                        borderColor: theme.border,
+                        color: theme.text,
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium">
+                      Email Address (Optional)
+                    </label>
+
+                    <input
+                      type="email"
+                      value={qrLeadForm.email}
+                      onChange={(event) =>
+                        setQRLeadForm((prev) => ({
+                          ...prev,
+                          email: event.target.value,
+                        }))
+                      }
+                      placeholder="Enter your email address"
+                      className="w-full rounded-xl border px-4 py-3 outline-none"
+                      style={{
+                        background: theme.card,
+                        borderColor: theme.border,
+                        color: theme.text,
+                      }}
+                    />
+                  </div>
+
+                  {qrLeadError && (
+                    <p className="text-sm text-red-500">{qrLeadError}</p>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={qrLeadSubmitting}
+                    className="w-full rounded-xl px-5 py-3 font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                    style={{ background: accentGradient }}
+                  >
+                    {qrLeadSubmitting ? "Submitting..." : "Submit Details"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowQRLeadPopup(false)}
+                    className="w-full rounded-xl border px-5 py-3 text-sm font-medium transition hover:opacity-70"
+                    style={{
+                      borderColor: theme.border,
+                      color: theme.text,
+                    }}
+                  >
+                    Skip & View Profile
+                  </button>
+                </form>
+              </>
+            )}
+          </section>
+        </div>
+      )}
 
       {/* SHARE / MY QR / POSTER MODAL */}
 

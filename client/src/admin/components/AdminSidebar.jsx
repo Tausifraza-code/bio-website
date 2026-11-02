@@ -4,7 +4,6 @@ import {
   Users,
   GitBranch,
   CreditCard,
-  ShoppingBag,
   QrCode,
   Settings,
   LogOut,
@@ -38,11 +37,7 @@ const menuItems = [
     path: "/admin/plans",
     icon: CreditCard,
   },
-  {
-    label: "Orders",
-    path: "/admin/orders",
-    icon: ShoppingBag,
-  },
+
   {
     label: "Settings",
     path: "/admin/settings",

@@ -16,6 +16,11 @@ const {
 } = require("../controllers/admin.controller");
 
 const {
+  deactivateQRCode,
+  activateQRCode,
+  getAdminQRCodes,
+} = require("../controllers/qrCode.controller");
+const {
   getReferralReport,
   getReferredUsers,
 } = require("../controllers/referral.controller");
@@ -27,6 +32,7 @@ const {
   getAdminUserProfile,
   updateAdminUserProfile,
   uploadAdminUserProfileImages,
+  exportAdminUsers,
 } = require("../controllers/adminUsers.controller");
 
 const {
@@ -175,6 +181,16 @@ router.delete(
   deleteAdminUserProduct,
 );
 
+// ===============================
+// ADMIN: PHYSICAL QR MANAGEMENT
+// ===============================
+
+router.patch("/qr/:id/deactivate", protect, adminOnly, deactivateQRCode);
+
+router.patch("/qr/:id/activate", protect, adminOnly, activateQRCode);
+
+router.get("/qr", protect, adminOnly, getAdminQRCodes);
+
 // Change Password
 router.put(
   "/settings/change-password",
@@ -197,4 +213,5 @@ router.post(
 );
 //logo
 router.get("/settings/branding", getPublicBranding);
+router.get("/users/export", protect, adminOnly, exportAdminUsers);
 module.exports = router;

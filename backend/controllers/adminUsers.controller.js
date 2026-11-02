@@ -2,6 +2,8 @@ const User = require("../models/User");
 const mongoose = require("mongoose");
 const MiniProfile = require("../models/MiniProfile");
 const { uploadToGallery } = require("./gallery.controller");
+
+const PlanPurchase = require("../models/PlanPurchase");
 // GET /api/admin/users
 const getAdminUsers = async (req, res) => {
   try {
@@ -21,6 +23,7 @@ const getAdminUsers = async (req, res) => {
         { fullName: { $regex: escapedSearch, $options: "i" } },
         { email: { $regex: escapedSearch, $options: "i" } },
         { phone: { $regex: escapedSearch, $options: "i" } },
+        { referralCode: { $regex: escapedSearch, $options: "i" } },
       ];
     }
 
@@ -529,6 +532,139 @@ const uploadAdminUserProfileImages = async (req, res) => {
   }
 };
 
+// GET /api/admin/users/export
+const exportAdminUsers = async (req, res) => {
+  try {
+    // Fetch all registered users (excluding admins)
+    const users = await User.find({ role: "user" })
+      .select(
+        "fullName email phone referralCode referredBy role createdAt updatedAt",
+      )
+      .populate("referredBy", "fullName email referralCode")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const userIds = users.map((user) => user._id);
+
+    // Fetch all mini profiles belonging to these users
+    const profiles = await MiniProfile.find({
+      userId: { $in: userIds },
+    }).lean();
+
+    // Fetch all orders belonging to these users
+    const orders = await PlanPurchase.find({
+      userId: { $in: userIds },
+    })
+      .populate("userId", "fullName email phone referralCode")
+      .populate("planId", "name price")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Prepare user records
+    const userRows = users.map((user) => ({
+      userId: user._id?.toString() || "",
+      fullName: user.fullName || "",
+      email: user.email || "",
+      phone: user.phone || "",
+      referralCode: user.referralCode || "",
+      referredByName: user.referredBy?.fullName || "",
+      referredByEmail: user.referredBy?.email || "",
+      referredByCode: user.referredBy?.referralCode || "",
+      role: user.role || "",
+      registrationDate: user.createdAt || "",
+      lastUpdated: user.updatedAt || "",
+    }));
+
+    // Prepare mini profile records
+    const profileRows = profiles.map((profile) => ({
+      userId: profile.userId?.toString() || "",
+      firstName: profile.firstName || "",
+      lastName: profile.lastName || "",
+      businessName: profile.businessName || "",
+      industry: profile.industry || "",
+      subdomain: profile.subdomain || "",
+      jobTitle: profile.jobTitle || "",
+      headline: profile.headline || "",
+      bio: profile.bio || "",
+      businessPhone: profile.phone || "",
+      whatsapp: profile.whatsapp || "",
+      businessEmail: profile.email || "",
+      website: profile.website || "",
+      websiteUrl: profile.websiteUrl || "",
+      shopUnit: profile.shopUnit || "",
+      area: profile.area || "",
+      city: profile.city || "",
+      state: profile.state || "",
+      pincode: profile.pincode || "",
+      landmark: profile.landmark || "",
+      mapLink: profile.mapLink || "",
+      businessHours: profile.businessHours || "",
+      upiId: profile.upiId || "",
+      socialCards: JSON.stringify(profile.socialCards || []),
+      contactButtons: JSON.stringify(profile.contactButtons || []),
+      profileImage: profile.profileImage || "",
+      avatar: profile.avatar || "",
+      logo: profile.logo || "",
+      banner: profile.banner || "",
+      qrCode: profile.qrCode || "",
+      qrUrl: profile.qrUrl || "",
+      activeTheme: profile.activeTheme || "",
+      activeLayout: profile.activeLayout || "",
+      leadCaptureEnabled: profile.leadCapture?.enabled ?? false,
+      selectedPlan: profile.selectedPlan || "",
+      isActivated: profile.isActivated ?? false,
+      activatedAt: profile.activatedAt || "",
+      isVerified: profile.isVerified ?? false,
+      verifiedAt: profile.verifiedAt || "",
+      createdAt: profile.createdAt || "",
+      updatedAt: profile.updatedAt || "",
+    }));
+
+    // Prepare order records
+    const orderRows = orders.map((order) => ({
+      orderId: order._id?.toString() || "",
+      userId: order.userId?._id?.toString() || "",
+      customerName: order.userId?.fullName || "",
+      customerEmail: order.userId?.email || "",
+      customerPhone: order.userId?.phone || "",
+      referralCode: order.userId?.referralCode || "",
+      planName: order.planName || order.planId?.name || "",
+      amount: order.amount ?? 0,
+      durationValue: order.durationValue ?? "",
+      durationUnit: order.durationUnit || "",
+      status: order.status || "",
+      purchaseDate: order.purchaseDate || "",
+      expiryDate: order.expiryDate || "",
+      razorpayOrderId: order.razorpayOrderId || "",
+      razorpayPaymentId: order.razorpayPaymentId || "",
+      createdAt: order.createdAt || "",
+      updatedAt: order.updatedAt || "",
+    }));
+
+    return res.status(200).json({
+      success: true,
+      message: "User records exported successfully.",
+      counts: {
+        users: userRows.length,
+        profiles: profileRows.length,
+        orders: orderRows.length,
+      },
+      data: {
+        users: userRows,
+        profiles: profileRows,
+        orders: orderRows,
+      },
+    });
+  } catch (error) {
+    console.error("Admin user export error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to export user records.",
+    });
+  }
+};
+
 module.exports = {
   getAdminUsers,
   verifyUserProfile,
@@ -536,4 +672,5 @@ module.exports = {
   getAdminUserProfile,
   updateAdminUserProfile,
   uploadAdminUserProfileImages,
+  exportAdminUsers,
 };

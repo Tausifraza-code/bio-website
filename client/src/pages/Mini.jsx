@@ -244,6 +244,7 @@ const Mini = () => {
     email: "",
     message: "",
   });
+
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [qrModalTab, setQrModalTab] = useState("share");
@@ -1003,58 +1004,57 @@ const Mini = () => {
       )}
 
       {/* PRODUCT MODAL */}
-   
-{selectedProduct && (
-  <Overlay onClose={() => setSelectedProduct(null)}>
-    <div className="relative w-full max-w-sm rounded-[26px] border border-cyan-400/30 bg-[#0b1b30] p-6 text-center shadow-2xl">
-      <button
-        type="button"
-        onClick={() => setSelectedProduct(null)}
-        aria-label="Close product popup"
-        className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl border border-[#29435f] bg-[#132942] text-slate-300"
-      >
-        <X size={18} />
-      </button>
 
-      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-300">
-        <IndianRupee size={27} />
-      </div>
+      {selectedProduct && (
+        <Overlay onClose={() => setSelectedProduct(null)}>
+          <div className="relative w-full max-w-sm rounded-[26px] border border-cyan-400/30 bg-[#0b1b30] p-6 text-center shadow-2xl">
+            <button
+              type="button"
+              onClick={() => setSelectedProduct(null)}
+              aria-label="Close product popup"
+              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl border border-[#29435f] bg-[#132942] text-slate-300"
+            >
+              <X size={18} />
+            </button>
 
-      <p className="mt-5 text-sm font-medium text-slate-400">
-        Product Amount
-      </p>
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-300">
+              <IndianRupee size={27} />
+            </div>
 
-      <h3 className="mt-2 text-4xl font-extrabold text-white">
-        ₹{Number(selectedProduct.price || 0).toLocaleString("en-IN")}
-      </h3>
+            <p className="mt-5 text-sm font-medium text-slate-400">
+              Product Amount
+            </p>
 
-      <button
-        type="button"
-        disabled={
-          !businessInfo.upiId ||
-          Number(selectedProduct.price || 0) <= 0
-        }
-        onClick={() => {
-          setProductPayment({
-            amount: Number(selectedProduct.price),
-            name: selectedProduct.name || "Product",
-          });
-          setSelectedProduct(null);
-        }}
-        className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-300 to-blue-400 px-5 py-3.5 text-sm font-extrabold text-[#0b1b30] transition hover:from-cyan-200 hover:to-blue-300 disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        <IndianRupee size={17} />
-        Pay with App
-      </button>
+            <h3 className="mt-2 text-4xl font-extrabold text-white">
+              ₹{Number(selectedProduct.price || 0).toLocaleString("en-IN")}
+            </h3>
 
-      {!businessInfo.upiId && (
-        <p className="mt-3 text-xs text-red-300">
-          UPI ID is not available.
-        </p>
+            <button
+              type="button"
+              disabled={
+                !businessInfo.upiId || Number(selectedProduct.price || 0) <= 0
+              }
+              onClick={() => {
+                setProductPayment({
+                  amount: Number(selectedProduct.price),
+                  name: selectedProduct.name || "Product",
+                });
+                setSelectedProduct(null);
+              }}
+              className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-300 to-blue-400 px-5 py-3.5 text-sm font-extrabold text-[#0b1b30] transition hover:from-cyan-200 hover:to-blue-300 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <IndianRupee size={17} />
+              Pay with App
+            </button>
+
+            {!businessInfo.upiId && (
+              <p className="mt-3 text-xs text-red-300">
+                UPI ID is not available.
+              </p>
+            )}
+          </div>
+        </Overlay>
       )}
-    </div>
-  </Overlay>
-)}
 
       {/* GALLERY MODAL */}
       {selectedGalleryImage && (
@@ -1188,19 +1188,19 @@ const Mini = () => {
       />
 
       {/* ✅ FIX: sirf EK Payment component (duplicate hata diya) */}
-     {/* UPI PAYMENT */}
-<Payment
-  isOpen={showPayment || Boolean(productPayment)}
-  onClose={() => {
-    setShowPayment(false);
-    setProductPayment(null);
-  }}
-  upiId={profileData.upiId || ""}
-  businessName={profileData.businessName || "My Business"}
-  businessImage={profileData.logo || profileData.avatar || ""}
-  fixedAmount={productPayment?.amount ?? null}
-  productName={productPayment?.name || ""}
-/>
+      {/* UPI PAYMENT */}
+      <Payment
+        isOpen={showPayment || Boolean(productPayment)}
+        onClose={() => {
+          setShowPayment(false);
+          setProductPayment(null);
+        }}
+        upiId={profileData.upiId || ""}
+        businessName={profileData.businessName || "My Business"}
+        businessImage={profileData.logo || profileData.avatar || ""}
+        fixedAmount={productPayment?.amount ?? null}
+        productName={productPayment?.name || ""}
+      />
     </div>
   );
 };

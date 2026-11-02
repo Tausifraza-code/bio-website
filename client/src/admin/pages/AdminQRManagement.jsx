@@ -26,6 +26,9 @@ import {
   exportQRInventory,
   clearQRMessages,
   recordQRDownload,
+  deactivatePhysicalQR,
+  activatePhysicalQR,
+  fetchPhysicalQRInventory,
 } from "../../redux/slice/adminQRSlice";
 import api from "../../redux/api";
 import { getPublicQRUrl } from "../../utils/qrUrl";
@@ -516,6 +519,7 @@ export default function AdminQRManagement() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [formError, setFormError] = useState("");
+  const [actionLoadingId, setActionLoadingId] = useState("");
   const [copiedValue, setCopiedValue] = useState("");
   const [bulkDownloading, setBulkDownloading] = useState(false);
   const [bulkQuantity, setBulkQuantity] = useState("100");
@@ -538,7 +542,7 @@ export default function AdminQRManagement() {
   ]);
 
   const loadInventory = useCallback(() => {
-    dispatch(
+    return dispatch(
       fetchQRInventory({
         page,
         limit: 20,
@@ -566,6 +570,28 @@ export default function AdminQRManagement() {
       window.setTimeout(() => setCopiedValue(""), 1600);
     } catch {
       setFormError("Unable to copy. Please copy the value manually.");
+    }
+  };
+
+  const handlePhysicalQRStatusChange = async (item) => {
+    try {
+      setActionLoadingId(item._id);
+
+      if (item.status === "disabled") {
+        await dispatch(activatePhysicalQR(item._id)).unwrap();
+      } else {
+        await dispatch(deactivatePhysicalQR(item._id)).unwrap();
+      }
+
+      await loadInventory();
+    } catch (error) {
+      setFormError(
+        typeof error === "string"
+          ? error
+          : error?.message || "Unable to update QR status.",
+      );
+    } finally {
+      setActionLoadingId("");
     }
   };
 
@@ -1393,13 +1419,14 @@ export default function AdminQRManagement() {
                 <th className="px-3 py-3 font-semibold">Business / QR Path</th>
                 <th className="px-3 py-3 font-semibold">Status</th>
                 <th className="px-3 py-3 font-semibold">Assigned Date</th>
+                <th className="px-3 py-3">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {loading ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="px-5 py-14 text-center text-slate-500"
                   >
                     <RefreshCw size={17} className="mr-2 inline animate-spin" />
@@ -1409,7 +1436,7 @@ export default function AdminQRManagement() {
               ) : sets.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="px-5 py-14 text-center text-slate-500 dark:text-slate-400"
                   >
                     No QR sets found for these filters.
@@ -1481,6 +1508,24 @@ export default function AdminQRManagement() {
                     </td>
                     <td className="whitespace-nowrap px-3 py-3 text-xs text-slate-500 dark:text-slate-400">
                       {formatDate(item.assignedAt)}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-3">
+                      <button
+                        type="button"
+                        onClick={() => handlePhysicalQRStatusChange(item)}
+                        disabled={actionLoadingId === item._id}
+                        className={`rounded-lg px-3 py-2 text-xs font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                          item.status === "disabled"
+                            ? "bg-emerald-600 hover:bg-emerald-700"
+                            : "bg-red-600 hover:bg-red-700"
+                        }`}
+                      >
+                        {actionLoadingId === item._id
+                          ? "Please wait..."
+                          : item.status === "disabled"
+                            ? "Activate"
+                            : "Deactivate"}
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -1580,6 +1625,22 @@ export default function AdminQRManagement() {
                 <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">
                   Assigned: {formatDate(item.assignedAt)}
                 </div>
+                <button
+                  type="button"
+                  onClick={() => handlePhysicalQRStatusChange(item)}
+                  disabled={actionLoadingId === item._id}
+                  className={`mt-4 w-full rounded-lg px-3 py-2.5 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                    item.status === "disabled"
+                      ? "bg-emerald-600 hover:bg-emerald-700"
+                      : "bg-red-600 hover:bg-red-700"
+                  }`}
+                >
+                  {actionLoadingId === item._id
+                    ? "Please wait..."
+                    : item.status === "disabled"
+                      ? "Activate"
+                      : "Deactivate"}
+                </button>
               </article>
             ))
           )}
