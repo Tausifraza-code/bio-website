@@ -32,7 +32,6 @@ import {
   Copy,
   Download,
   IndianRupee,
-  QrCode,
   Share2,
   ShieldCheck,
   X,
@@ -191,6 +190,152 @@ const normalizeGalleryImages = (raw) => {
       };
     })
     .filter(Boolean);
+};
+
+const loadPosterImage = (src) =>
+  new Promise((resolve, reject) => {
+    if (!src) return resolve(null);
+
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
+
+const drawBusinessPoster = async ({ profile, qrCanvas, publicUrl }) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1050;
+  canvas.height = 600;
+
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#0b1b30";
+  ctx.fillRect(0, 0, 1050, 600);
+
+  ctx.fillStyle = "#22d3ee";
+  ctx.fillRect(0, 0, 18, 600);
+
+  const personalName = [profile.firstName, profile.lastName]
+    .filter(Boolean)
+    .join(" ");
+
+  const businessName = profile.businessName?.trim() || "";
+
+  const address = [
+    profile.shopUnit,
+    profile.area,
+    profile.landmark,
+    profile.city,
+    profile.state,
+    profile.pincode,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  const phone = profile.phone?.trim() || "";
+  const email = profile.email?.trim() || "";
+  const website = profile.website?.trim() || profile.websiteUrl?.trim() || "";
+  const about = profile.bio?.trim() || profile.headline?.trim() || "";
+
+  if (profile.logo) {
+    try {
+      const logo = await loadPosterImage(profile.logo);
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(65, 55, 145, 145, 20);
+      ctx.clip();
+      ctx.drawImage(logo, 65, 55, 145, 145);
+      ctx.restore();
+    } catch (error) {
+      console.warn("Poster logo could not be loaded:", error);
+    }
+  }
+
+  const textX = profile.logo ? 245 : 75;
+
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#22d3ee";
+  ctx.font = "bold 43px Arial";
+  ctx.fillText(
+    (businessName || personalName || "My Business").slice(0, 26),
+    textX,
+    105,
+  );
+
+  if (personalName && personalName !== businessName) {
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "27px Arial";
+    ctx.fillText(personalName.slice(0, 32), textX, 150);
+  }
+
+  if (about) {
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "19px Arial";
+
+    const tagline = about.length > 62 ? `${about.slice(0, 59)}...` : about;
+    ctx.fillText(tagline, textX, 185);
+  }
+
+  let y = 275;
+
+  const drawInfo = (label, value, maxLength = 60) => {
+    if (!value) return;
+
+    ctx.fillStyle = "#22d3ee";
+    ctx.font = "bold 17px Arial";
+    ctx.fillText(label.toUpperCase(), 75, y);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "19px Arial";
+
+    const displayValue =
+      value.length > maxLength ? `${value.slice(0, maxLength - 3)}...` : value;
+
+    ctx.fillText(displayValue, 75, y + 27);
+    y += 76;
+  };
+
+  drawInfo("Mobile", phone, 35);
+  drawInfo("Email", email, 43);
+  drawInfo("Address", address, 65);
+  drawInfo("Website", website, 55);
+
+  if (publicUrl) {
+    ctx.fillStyle = "#22d3ee";
+    ctx.font = "bold 17px Arial";
+    ctx.fillText("PUBLIC PROFILE", 75, 520);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "16px Arial";
+
+    const displayUrl =
+      publicUrl.length > 65 ? `${publicUrl.slice(0, 62)}...` : publicUrl;
+    ctx.fillText(displayUrl, 75, 545);
+  }
+
+  if (qrCanvas) {
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.roundRect(790, 100, 220, 220, 18);
+    ctx.fill();
+
+    ctx.drawImage(qrCanvas, 805, 115, 190, 190);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.textAlign = "center";
+    ctx.font = "bold 20px Arial";
+    ctx.fillText("SCAN TO VIEW PROFILE", 900, 365);
+  }
+
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#22d3ee";
+  ctx.font = "bold 18px Arial";
+  ctx.fillText("BIO SITE", 75, 590);
+
+  return canvas;
 };
 
 /* ============================================================
@@ -648,6 +793,69 @@ function CardPreview() {
     document.body.appendChild(link);
     link.click();
     link.remove();
+  };
+
+  const handleDownloadPosterPNG = async () => {
+    if (!qrValue) {
+      return alert("Profile QR code is not available.");
+    }
+
+    try {
+      const qrCanvas = document.getElementById("public-poster-export-qr");
+
+      if (!qrCanvas) {
+        return alert("Poster QR code is not ready.");
+      }
+
+      const canvas = await drawBusinessPoster({
+        profile,
+        qrCanvas,
+        publicUrl: qrValue,
+      });
+
+      const link = document.createElement("a");
+      link.download = "bio-business-poster.png";
+      link.href = canvas.toDataURL("image/png");
+
+      link.click();
+    } catch (error) {
+      console.error("Poster PNG download failed:", error);
+      alert("Poster PNG download nahi ho paaya.");
+    }
+  };
+
+  const handleDownloadPosterPDF = async () => {
+    if (!qrValue) {
+      return alert("Profile QR code is not available.");
+    }
+
+    try {
+      const qrCanvas = document.getElementById("public-poster-export-qr");
+
+      if (!qrCanvas) {
+        return alert("Poster QR code is not ready.");
+      }
+
+      const canvas = await drawBusinessPoster({
+        profile,
+        qrCanvas,
+        publicUrl: qrValue,
+      });
+
+      const { jsPDF } = await import("jspdf");
+
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "in",
+        format: [3.5, 2],
+      });
+
+      pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, 3.5, 2);
+      pdf.save("bio-business-poster.pdf");
+    } catch (error) {
+      console.error("Poster PDF download failed:", error);
+      alert("Poster PDF download nahi ho paaya.");
+    }
   };
 
   const handleDownloadStandee = async () => {
@@ -1830,88 +2038,205 @@ function CardPreview() {
             {/* POSTER TAB */}
 
             {qrModalTab === "poster" && (
-              <div
-                className="flex flex-col items-center rounded-xl border p-5 text-center"
-                style={{
-                  borderColor: theme.border,
-                  background: theme.card,
-                }}
-              >
-                <QrCode
-                  size={32}
-                  className="mb-3"
-                  style={{ color: theme.primary }}
-                />
+              <div className="space-y-4">
+                <div className="text-center">
+                  <h3
+                    className="text-lg font-bold"
+                    style={{ color: theme.text }}
+                  >
+                    Business Visiting Card
+                  </h3>
 
-                <h3
-                  className="mb-2 text-lg font-bold"
-                  style={{ color: theme.text }}
-                >
-                  Profile QR Poster
-                </h3>
+                  <p className="mt-1 text-sm" style={{ color: theme.muted }}>
+                    Professional business poster · 3.5 × 2 inches
+                  </p>
+                </div>
 
-                <p className="mb-4 text-sm" style={{ color: theme.muted }}>
-                  Scan this QR code to open this profile.
-                </p>
-
-                {qrValue ? (
+                {!qrValue ? (
+                  <p
+                    className="rounded-xl border p-6 text-center text-sm"
+                    style={{
+                      borderColor: theme.border,
+                      color: theme.muted,
+                    }}
+                  >
+                    QR code is not available for this profile.
+                  </p>
+                ) : (
                   <>
-                    <div className="rounded-xl bg-white p-3">
-                      {qrImage ? (
-                        <img
-                          src={qrImage}
-                          alt="Digital Profile QR Code"
-                          className="mx-auto h-[180px] w-[180px] object-contain"
-                        />
-                      ) : (
-                        <QRCodeCanvas
-                          value={qrValue}
-                          size={180}
-                          level="H"
-                          includeMargin
-                        />
-                      )}
+                    <div className="hidden">
+                      <QRCodeCanvas
+                        id="public-poster-export-qr"
+                        value={qrValue}
+                        size={500}
+                        level="H"
+                        includeMargin
+                      />
+                    </div>
 
-                      <div className="hidden">
-                        <QRCodeCanvas
-                          id="public-qr-poster-canvas"
-                          value={qrValue}
-                          size={180}
-                          level="H"
-                          includeMargin
-                        />
+                    <div className="w-full overflow-hidden rounded-xl border border-cyan-400/30 shadow-xl">
+                      <div
+                        className="relative flex aspect-[3.5/2] w-full items-center overflow-hidden"
+                        style={{
+                          background:
+                            "linear-gradient(110deg, #0b1b30 0%, #123450 100%)",
+                        }}
+                      >
+                        <div className="absolute left-0 top-0 h-full w-1.5 bg-cyan-400" />
+
+                        <div className="flex h-full w-[72%] flex-col justify-start overflow-hidden p-[5%]">
+                          {profile.logo && (
+                            <img
+                              src={profile.logo}
+                              alt="Business logo"
+                              className="mb-2 h-[20%] max-w-[35%] rounded-lg object-contain"
+                            />
+                          )}
+
+                          <h3 className="break-words text-[clamp(11px,2.5vw,24px)] font-extrabold leading-tight text-cyan-300">
+                            {profile.businessName ||
+                              businessInfo.name ||
+                              "My Business"}
+                          </h3>
+
+                          {businessInfo.name &&
+                            businessInfo.name !== profile.businessName && (
+                              <p className="mt-1 truncate text-[clamp(9px,1.7vw,16px)] font-semibold text-white">
+                                {businessInfo.name}
+                              </p>
+                            )}
+
+                          {(profile.bio || profile.headline) && (
+                            <p className="mt-1 line-clamp-2 text-[clamp(7px,1.3vw,12px)] text-slate-300">
+                              {profile.bio || profile.headline}
+                            </p>
+                          )}
+
+                          <div className="mt-3 space-y-1.5">
+                            {profile.phone && (
+                              <p className="break-words text-[clamp(7px,1.3vw,12px)] text-white">
+                                <span className="font-bold text-cyan-300">
+                                  MOBILE:
+                                </span>{" "}
+                                {profile.phone}
+                              </p>
+                            )}
+
+                            {profile.email && (
+                              <p className="break-words text-[clamp(7px,1.3vw,12px)] text-white">
+                                <span className="font-bold text-cyan-300">
+                                  EMAIL:
+                                </span>{" "}
+                                {profile.email}
+                              </p>
+                            )}
+
+                            {(profile.shopUnit ||
+                              profile.area ||
+                              profile.landmark ||
+                              profile.city ||
+                              profile.state ||
+                              profile.pincode) && (
+                              <p className="line-clamp-2 break-words text-[clamp(7px,1.3vw,12px)] text-white">
+                                <span className="font-bold text-cyan-300">
+                                  ADDRESS:
+                                </span>{" "}
+                                {[
+                                  profile.shopUnit,
+                                  profile.area,
+                                  profile.landmark,
+                                  profile.city,
+                                  profile.state,
+                                  profile.pincode,
+                                ]
+                                  .filter(Boolean)
+                                  .join(", ")}
+                              </p>
+                            )}
+
+                            {(profile.website || profile.websiteUrl) && (
+                              <p className="break-all text-[clamp(7px,1.2vw,11px)] text-white">
+                                <span className="font-bold text-cyan-300">
+                                  WEBSITE:
+                                </span>{" "}
+                                {profile.website || profile.websiteUrl}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="mt-auto min-w-0 pt-2">
+                            <p className="text-[clamp(6px,1vw,10px)] font-bold text-cyan-300">
+                              PUBLIC PROFILE
+                            </p>
+
+                            <p className="break-all text-[clamp(6px,1vw,10px)] text-white">
+                              {qrValue}
+                            </p>
+
+                            <p className="mt-1 text-[clamp(7px,1.1vw,10px)] font-extrabold tracking-wider text-cyan-300">
+                              BIO SITE
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex h-full w-[28%] flex-col items-center justify-center gap-2 bg-white/5 p-[3%]">
+                          <div className="w-full max-w-[150px] rounded-lg bg-white p-1.5">
+                            <QRCodeCanvas
+                              value={qrValue}
+                              size={180}
+                              level="H"
+                              includeMargin
+                              style={{
+                                display: "block",
+                                width: "100%",
+                                height: "auto",
+                              }}
+                            />
+                          </div>
+
+                          <span className="text-center text-[clamp(6px,1.1vw,10px)] font-bold text-white">
+                            SCAN TO VIEW PROFILE
+                          </span>
+                        </div>
                       </div>
                     </div>
 
                     <p
-                      className="mt-3 break-all text-xs"
+                      className="text-center text-xs"
                       style={{ color: theme.muted }}
                     >
-                      {businessInfo.businessName}
+                      Print-ready size: 3.5 × 2 inches
                     </p>
 
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleDownloadQR(
-                          "public-qr-poster-canvas",
-                          "bio-profile-qr-poster.png",
-                        )
-                      }
-                      className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold"
-                      style={{
-                        background: accentGradient,
-                        color: "#fff",
-                      }}
-                    >
-                      <Download size={16} />
-                      Download Poster QR
-                    </button>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={handleDownloadPosterPNG}
+                        className="flex items-center justify-center gap-2 rounded-xl px-3 py-3 text-sm font-bold"
+                        style={{
+                          background: accentGradient,
+                          color: "#ffffff",
+                        }}
+                      >
+                        <Download size={16} />
+                        Download PNG
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleDownloadPosterPDF}
+                        className="flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-bold"
+                        style={{
+                          borderColor: theme.primary,
+                          background: `${theme.primary}18`,
+                          color: theme.primary,
+                        }}
+                      >
+                        <FileImage size={16} />
+                        Download PDF
+                      </button>
+                    </div>
                   </>
-                ) : (
-                  <p className="py-8 text-sm" style={{ color: theme.muted }}>
-                    QR code is not available for this profile.
-                  </p>
                 )}
               </div>
             )}

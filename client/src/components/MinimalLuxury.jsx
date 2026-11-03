@@ -717,37 +717,22 @@ const MinimalLuxury = ({
               >
                 {gallery.map((image, index) => (
                   <SwiperSlide key={image._id || `${image.url}-${index}`}>
-                    <div className="overflow-hidden rounded-[11px] border border-[#E0E9F1] bg-white">
-                      {/* Gallery Image */}
-                      <button
-                        type="button"
-                        onClick={() => onGalleryClick(image)}
-                        className="relative block aspect-[4/3] w-full overflow-hidden bg-[#EEF5F9] lg:aspect-[16/10]"
-                      >
-                        <img
-                          src={image.url}
-                          alt={image.alt || image.title || "Gallery image"}
-                          loading="lazy"
-                          className="h-full w-full object-cover"
-                        />
+                    <button
+                      type="button"
+                      onClick={() => onGalleryClick(image)}
+                      className="relative block aspect-[4/3] w-full overflow-hidden rounded-[11px] bg-[#EEF5F9] lg:aspect-[16/10]"
+                    >
+                      <img
+                        src={image.url}
+                        alt={image.alt || image.title || "Gallery image"}
+                        loading="lazy"
+                        className="h-full w-full object-cover"
+                      />
 
-                        <span className="absolute bottom-2 left-2 rounded-full bg-[#082B5C]/80 px-2 py-1 text-[7px] font-bold text-white">
-                          {String(index + 1).padStart(2, "0")}
-                        </span>
-                      </button>
-
-                      {/* WhatsApp Inquiry */}
-                      <div className="p-2">
-                        <button
-                          type="button"
-                          onClick={() => onGalleryWhatsAppInquiry(image)}
-                          className="flex w-full min-w-0 items-center justify-center gap-1.5 rounded-[10px] bg-[#25D366] px-2 py-2.5 text-[10px] font-bold text-white transition hover:bg-[#1DA851] active:scale-[0.98] sm:text-[11px]"
-                        >
-                          <FaWhatsapp size={15} className="shrink-0" />
-                          <span>WhatsApp Inquiry</span>
-                        </button>
-                      </div>
-                    </div>
+                      <span className="absolute bottom-2 left-2 rounded-full bg-[#082B5C]/80 px-2 py-1 text-[7px] font-bold text-white">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                    </button>
                   </SwiperSlide>
                 ))}
               </Swiper>
@@ -768,21 +753,28 @@ const MinimalLuxury = ({
               <div className="mt-3 flex flex-wrap gap-2">
                 {socials.map((social, index) => {
                   const Icon = getSocialIcon(social);
+                  const platform = normalizePlatform(social);
 
                   return (
                     <a
-                      key={
-                        social._id || `${normalizePlatform(social)}-${index}`
-                      }
+                      key={social._id || `${platform}-${index}`}
                       href={normalizeUrl(social.url)}
                       target="_blank"
                       rel="noopener noreferrer"
                       title={
                         social.platform || social.platformName || "Social link"
                       }
-                      className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E8F8FD] text-[#087DA1]"
+                      className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#E8F8FD] text-[#087DA1]"
                     >
-                      <Icon size={15} />
+                      {social.profileImage ? (
+                        <img
+                          src={social.profileImage}
+                          alt={`${platform} profile`}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <Icon size={15} />
+                      )}
                     </a>
                   );
                 })}
