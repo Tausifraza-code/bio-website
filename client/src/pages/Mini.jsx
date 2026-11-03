@@ -612,6 +612,24 @@ const Mini = () => {
     });
   };
 
+  const handleWhatsApp = () => {
+    const number = (businessInfo?.whatsapp || "").replace(/\D/g, "");
+
+    if (!number) {
+      return alert("WhatsApp number is not available in this profile.");
+    }
+
+    const businessName =
+      businessInfo?.businessName || businessInfo?.name || "your business";
+
+    const message = `Hi, I viewed your ${businessName} profile and would like to know more about your products and services. Please share more details.`;
+
+    window.open(
+      `https://wa.me/${number}?text=${encodeURIComponent(message)}`,
+      "_blank",
+      "noopener,noreferrer",
+    );
+  };
   /* ==========================================
      WHATSAPP
   ========================================== */
@@ -872,6 +890,10 @@ const Mini = () => {
   const handleContactClick = (type) => {
     if (type === "phone") {
       return handleCall();
+    }
+
+    if (type === "whatsapp") {
+      return handleWhatsApp();
     }
 
     if (type === "email") {

@@ -202,7 +202,7 @@ const MinimalLuxury = ({
       return;
     }
 
-    onContactClick(type);
+    onContactClick({ actionType: type });
   };
 
   const handleDownloadQr = () => {
@@ -508,7 +508,7 @@ const MinimalLuxury = ({
                 {phone && (
                   <button
                     type="button"
-                    onClick={() => onContactClick("phone")}
+                    onClick={() => onContactClick({ actionType: "call" })}
                     className="flex min-w-0 items-center gap-2 rounded-[14px] bg-[#F6FAFC] p-2.5 text-left"
                   >
                     <Phone size={13} className="shrink-0 text-[#12BCEB]" />
@@ -522,7 +522,7 @@ const MinimalLuxury = ({
                 {email && (
                   <button
                     type="button"
-                    onClick={() => onContactClick("email")}
+                    onClick={() => onContactClick({ actionType: "email" })}
                     className="flex min-w-0 items-center gap-2 rounded-[14px] bg-[#F6FAFC] p-2.5 text-left"
                   >
                     <Mail size={13} className="shrink-0 text-[#12BCEB]" />
@@ -536,7 +536,7 @@ const MinimalLuxury = ({
                 {hasWebsite && (
                   <button
                     type="button"
-                    onClick={() => onContactClick("website")}
+                    onClick={() => onContactClick({ actionType: "website" })}
                     className="flex min-w-0 items-center gap-2 rounded-[14px] bg-[#F6FAFC] p-2.5 text-left"
                   >
                     <Globe size={13} className="shrink-0 text-[#12BCEB]" />
@@ -550,7 +550,7 @@ const MinimalLuxury = ({
                 {address && (
                   <button
                     type="button"
-                    onClick={() => onContactClick("address")}
+                    onClick={() => onContactClick({ actionType: "address" })}
                     className="flex min-w-0 items-center gap-2 rounded-[14px] bg-[#F6FAFC] p-2.5 text-left"
                   >
                     <MapPin size={13} className="shrink-0 text-[#12BCEB]" />

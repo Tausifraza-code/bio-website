@@ -199,8 +199,7 @@ function CardPreview() {
   const location = useLocation();
   const dispatch = useDispatch();
 
-  const isQRVisit =
-    new URLSearchParams(location.search).get("source") === "qr";
+  const isQRVisit = new URLSearchParams(location.search).get("source") === "qr";
 
   // Logged-in user information
   const { user, isAuthenticated } = useSelector((state) => state.auth);
@@ -386,9 +385,9 @@ function CardPreview() {
 
   const isProfileOwner = Boolean(
     isAuthenticated &&
-      loggedInUserId &&
-      profileOwnerId &&
-      String(loggedInUserId) === String(profileOwnerId),
+    loggedInUserId &&
+    profileOwnerId &&
+    String(loggedInUserId) === String(profileOwnerId),
   );
 
   const handleEditProfile = () => {
@@ -415,8 +414,7 @@ function CardPreview() {
       : "modern-business";
   }, [profile?.activeLayout]);
 
-  const ActiveLayoutComponent =
-    LAYOUT_COMPONENTS[activeLayout] || ExecutivePro;
+  const ActiveLayoutComponent = LAYOUT_COMPONENTS[activeLayout] || ExecutivePro;
 
   const activeLayoutData = PROFILE_LAYOUTS.find(
     (layout) => layout.id === activeLayout,
@@ -512,13 +510,16 @@ function CardPreview() {
     const number = (businessInfo?.whatsapp || "").replace(/\D/g, "");
 
     if (!number) {
-      return alert("WhatsApp number has not been added to this profile.");
+      return alert("WhatsApp number is not available in this profile.");
     }
 
+    const businessName =
+      businessInfo?.businessName || businessInfo?.name || "your business";
+
+    const message = `Hi, I viewed your ${businessName} profile and would like to know more about your products and services. Please share more details.`;
+
     window.open(
-      `https://wa.me/${number}?text=${encodeURIComponent(
-        `Hi, I'm interested in ${businessInfo.businessName}.`,
-      )}`,
+      `https://wa.me/${number}?text=${encodeURIComponent(message)}`,
       "_blank",
       "noopener,noreferrer",
     );
@@ -642,9 +643,7 @@ function CardPreview() {
         await navigator.share({
           title: businessInfo?.businessName || "Business Profile",
 
-          text: `Check out ${
-            businessInfo?.businessName || "this business"
-          }`,
+          text: `Check out ${businessInfo?.businessName || "this business"}`,
 
           url: window.location.href,
         });
@@ -1180,20 +1179,14 @@ function CardPreview() {
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <MessageSquareText
-                  size={21}
-                  style={{ color: theme.primary }}
-                />
+                <MessageSquareText size={21} style={{ color: theme.primary }} />
 
                 <h2 className="text-xl font-bold sm:text-2xl">
                   Reviews & Ratings
                 </h2>
               </div>
 
-              <p
-                className="mt-2 text-sm"
-                style={{ color: theme.muted }}
-              >
+              <p className="mt-2 text-sm" style={{ color: theme.muted }}>
                 Share your experience with this business.
               </p>
             </div>
@@ -1265,14 +1258,9 @@ function CardPreview() {
                   style={{ color: theme.primary }}
                 />
 
-                <h2 className="text-xl font-bold">
-                  Thank You!
-                </h2>
+                <h2 className="text-xl font-bold">Thank You!</h2>
 
-                <p
-                  className="mt-2 text-sm"
-                  style={{ color: theme.muted }}
-                >
+                <p className="mt-2 text-sm" style={{ color: theme.muted }}>
                   Your details have been submitted successfully.
                 </p>
 
@@ -1287,21 +1275,13 @@ function CardPreview() {
               </div>
             ) : (
               <>
-                <h2 className="pr-8 text-2xl font-bold">
-                  Get in Touch
-                </h2>
+                <h2 className="pr-8 text-2xl font-bold">Get in Touch</h2>
 
-                <p
-                  className="mt-2 text-sm"
-                  style={{ color: theme.muted }}
-                >
+                <p className="mt-2 text-sm" style={{ color: theme.muted }}>
                   Share your details and we will contact you.
                 </p>
 
-                <form
-                  onSubmit={submitQRLead}
-                  className="mt-6 space-y-4"
-                >
+                <form onSubmit={submitQRLead} className="mt-6 space-y-4">
                   <div>
                     <label className="mb-2 block text-sm font-medium">
                       Your Name *
@@ -1379,9 +1359,7 @@ function CardPreview() {
                   </div>
 
                   {qrLeadError && (
-                    <p className="text-sm text-red-500">
-                      {qrLeadError}
-                    </p>
+                    <p className="text-sm text-red-500">{qrLeadError}</p>
                   )}
 
                   <button
@@ -1390,9 +1368,7 @@ function CardPreview() {
                     className="w-full rounded-xl px-5 py-3 font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                     style={{ background: accentGradient }}
                   >
-                    {qrLeadSubmitting
-                      ? "Submitting..."
-                      : "Submit Details"}
+                    {qrLeadSubmitting ? "Submitting..." : "Submit Details"}
                   </button>
 
                   <button
@@ -1455,28 +1431,17 @@ function CardPreview() {
 
             <div className="pr-10">
               <div className="flex items-center gap-2">
-                <MessageSquareText
-                  size={22}
-                  style={{ color: theme.primary }}
-                />
+                <MessageSquareText size={22} style={{ color: theme.primary }} />
 
-                <h2 className="text-xl font-bold">
-                  Write a Review
-                </h2>
+                <h2 className="text-xl font-bold">Write a Review</h2>
               </div>
 
-              <p
-                className="mt-2 text-sm"
-                style={{ color: theme.muted }}
-              >
+              <p className="mt-2 text-sm" style={{ color: theme.muted }}>
                 Share your experience with this business.
               </p>
             </div>
 
-            <form
-              onSubmit={submitReview}
-              className="mt-6 space-y-4"
-            >
+            <form onSubmit={submitReview} className="mt-6 space-y-4">
               {/* NAME */}
 
               <div>
@@ -1552,23 +1517,15 @@ function CardPreview() {
                       key={star}
                       type="button"
                       onClick={() => setReviewRating(star)}
-                      aria-label={`Give ${star} star${
-                        star > 1 ? "s" : ""
-                      }`}
+                      aria-label={`Give ${star} star${star > 1 ? "s" : ""}`}
                       className="transition hover:scale-110"
                     >
                       <Star
                         size={30}
-                        fill={
-                          star <= reviewRating
-                            ? "currentColor"
-                            : "none"
-                        }
+                        fill={star <= reviewRating ? "currentColor" : "none"}
                         style={{
                           color:
-                            star <= reviewRating
-                              ? theme.primary
-                              : theme.muted,
+                            star <= reviewRating ? theme.primary : theme.muted,
                         }}
                       />
                     </button>
@@ -1615,9 +1572,7 @@ function CardPreview() {
               {/* ERROR */}
 
               {reviewError && (
-                <p className="text-sm text-red-400">
-                  {reviewError}
-                </p>
+                <p className="text-sm text-red-400">{reviewError}</p>
               )}
 
               {/* SUBMIT */}
@@ -1632,10 +1587,7 @@ function CardPreview() {
               >
                 {reviewLoading ? (
                   <>
-                    <LoaderCircle
-                      size={18}
-                      className="animate-spin"
-                    />
+                    <LoaderCircle size={18} className="animate-spin" />
                     Submitting...
                   </>
                 ) : (
@@ -1827,10 +1779,7 @@ function CardPreview() {
                     </button>
                   </>
                 ) : (
-                  <p
-                    className="py-8 text-sm"
-                    style={{ color: theme.muted }}
-                  >
+                  <p className="py-8 text-sm" style={{ color: theme.muted }}>
                     QR code is not available for this profile.
                   </p>
                 )}
@@ -1860,10 +1809,7 @@ function CardPreview() {
                   Profile QR Poster
                 </h3>
 
-                <p
-                  className="mb-4 text-sm"
-                  style={{ color: theme.muted }}
-                >
+                <p className="mb-4 text-sm" style={{ color: theme.muted }}>
                   Scan this QR code to open this profile.
                 </p>
 
@@ -1922,10 +1868,7 @@ function CardPreview() {
                     </button>
                   </>
                 ) : (
-                  <p
-                    className="py-8 text-sm"
-                    style={{ color: theme.muted }}
-                  >
+                  <p className="py-8 text-sm" style={{ color: theme.muted }}>
                     QR code is not available for this profile.
                   </p>
                 )}
@@ -2007,14 +1950,9 @@ function CardPreview() {
                     {selectedProduct.name}
                   </h3>
 
-                  <p
-                    className="mt-2"
-                    style={{ color: theme.primary }}
-                  >
+                  <p className="mt-2" style={{ color: theme.primary }}>
                     ₹
-                    {Number(selectedProduct.price || 0).toLocaleString(
-                      "en-IN",
-                    )}
+                    {Number(selectedProduct.price || 0).toLocaleString("en-IN")}
                   </p>
 
                   <p
