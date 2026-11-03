@@ -113,6 +113,70 @@ const aboutUs = [
       "Welcome to our cafe, a welcoming space to enjoy freshly brewed coffee, refreshing beverages, and delicious snacks. Whether you are meeting friends, working remotely, or simply taking a break, we aim to create a comfortable atmosphere with quality food and friendly service.",
     services: ["Hot Coffee", "Cold Coffee", "Tea", "Milkshakes", "Snacks", "Desserts"],
   },
+    {
+    category: "doctor",
+    title: "About Our Medical Practice",
+    shortDescription: "Professional healthcare with care and compassion.",
+    description:
+      "Welcome to our medical practice, where patient care, trust, and well-being come first. We focus on providing professional healthcare consultations, medical guidance, preventive care, and personalized attention. Our goal is to help patients maintain better health through compassionate service and quality medical support.",
+    services: ["General Consultation", "Health Checkups", "Medical Advice", "Preventive Healthcare", "Patient Care", "Follow-up Consultation"],
+  },
+  {
+    category: "engineer",
+    title: "About Our Engineering Services",
+    shortDescription: "Innovative engineering solutions for modern challenges.",
+    description:
+      "Welcome to our engineering services, where technical expertise meets innovation. We provide professional engineering solutions with a focus on quality, efficiency, safety, and reliability. Our aim is to deliver practical solutions that meet client requirements and industry standards.",
+    services: ["Project Planning", "Technical Consulting", "Design Solutions", "Quality Inspection", "Engineering Support", "Project Management"],
+  },
+  {
+    category: "developer",
+    title: "About Our Development Services",
+    shortDescription: "Building modern digital experiences through technology.",
+    description:
+      "Welcome to our development services, where creativity and technology come together. We specialize in building modern websites, web applications, software solutions, and digital products. Our focus is on clean code, responsive design, performance, and user-friendly experiences.",
+    services: ["Website Development", "Web Applications", "Frontend Development", "Backend Development", "E-commerce Solutions", "Website Maintenance"],
+  },
+  {
+    category: "lawyer",
+    title: "About Our Legal Services",
+    shortDescription: "Professional legal guidance you can trust.",
+    description:
+      "Welcome to our legal practice, committed to providing professional legal guidance and client-focused support. We assist individuals and businesses with legal consultations, documentation, dispute resolution, and legal representation while maintaining professionalism and confidentiality.",
+    services: ["Legal Consultation", "Documentation", "Civil Law", "Business Legal Advice", "Dispute Resolution", "Legal Representation"],
+  },
+  {
+    category: "photographer",
+    title: "About Our Photography Studio",
+    shortDescription: "Capturing beautiful moments and timeless memories.",
+    description:
+      "Welcome to our photography studio, where every moment tells a story. We specialize in capturing beautiful memories through creative photography, professional editing, and attention to detail. From personal portraits to special events, we aim to deliver photographs that last a lifetime.",
+    services: ["Wedding Photography", "Portrait Photography", "Event Photography", "Product Photography", "Photo Editing", "Pre-Wedding Shoots"],
+  },
+  {
+    category: "interior_designer",
+    title: "About Our Interior Design Studio",
+    shortDescription: "Creating beautiful and functional living spaces.",
+    description:
+      "Welcome to our interior design studio, where creativity, comfort, and functionality come together. We design stylish residential and commercial spaces according to client preferences, lifestyle, and budget. Our goal is to transform ordinary spaces into beautiful and practical environments.",
+    services: ["Home Interior Design", "Office Interior Design", "Space Planning", "Furniture Selection", "Lighting Design", "3D Interior Visualization"],
+  },
+  {
+    category: "real_estate",
+    title: "About Our Real Estate Services",
+    shortDescription: "Helping you find the right property and investment.",
+    description:
+      "Welcome to our real estate services, your trusted partner for buying, selling, and renting properties. We help clients explore suitable residential and commercial properties with professional guidance, transparent communication, and personalized assistance.",
+    services: ["Property Buying", "Property Selling", "Rental Services", "Residential Properties", "Commercial Properties", "Property Consultation"],
+  },
+  {
+    category: "fitness_trainer",
+    title: "About Our Fitness Training",
+    shortDescription: "Helping you build strength and achieve fitness goals.",
+    description:
+      "Welcome to our fitness training services, where your health and fitness goals matter. We provide personalized workout guidance, fitness planning, strength training, and lifestyle support. Our focus is to help clients build healthy habits and improve their overall fitness.",
+    services: ["Personal Training", "Strength Training", "Weight Management", "Workout Planning", "Fitness Assessment", "Online Training"],
+  },
 ];
 
 const industryOptions = [
@@ -124,6 +188,44 @@ const industryOptions = [
   { value: "restaurant", label: "Restaurant" },
   { value: "fast_food_shop", label: "Fast Food Shop" },
   { value: "cafe", label: "Cafe" },
+  { value: "doctor", label: "Doctor" },
+  { value: "engineer", label: "Engineer" },
+  { value: "developer", label: "Developer" },
+  { value: "lawyer", label: "Lawyer" },
+  { value: "photographer", label: "Photographer" },
+  { value: "interior_designer", label: "Interior Designer" },
+  { value: "real_estate", label: "Real Estate" },
+  { value: "fitness_trainer", label: "Fitness Trainer" },
+
+];
+
+const jobTitleOptions = [
+  { value: "business_owner", label: "Business Owner" },
+  { value: "founder", label: "Founder" },
+  { value: "ceo", label: "CEO" },
+  { value: "manager", label: "Manager" },
+  { value: "doctor", label: "Doctor" },
+  { value: "dentist", label: "Dentist" },
+  { value: "engineer", label: "Engineer" },
+  { value: "software_engineer", label: "Software Engineer" },
+  { value: "developer", label: "Software Developer" },
+  { value: "frontend_developer", label: "Frontend Developer" },
+  { value: "backend_developer", label: "Backend Developer" },
+  { value: "full_stack_developer", label: "Full Stack Developer" },
+  { value: "designer", label: "Designer" },
+  { value: "ui_ux_designer", label: "UI/UX Designer" },
+  { value: "graphic_designer", label: "Graphic Designer" },
+  { value: "teacher", label: "Teacher" },
+  { value: "professor", label: "Professor" },
+  { value: "lawyer", label: "Lawyer" },
+  { value: "architect", label: "Architect" },
+  { value: "photographer", label: "Photographer" },
+  { value: "interior_designer", label: "Interior Designer" },
+  { value: "real_estate_agent", label: "Real Estate Agent" },
+  { value: "fitness_trainer", label: "Fitness Trainer" },
+  { value: "consultant", label: "Consultant" },
+  { value: "freelancer", label: "Freelancer" },
+  { value: "student", label: "Student" },
 ];
 
 /* ==================== REUSABLE COMPONENTS ==================== */
@@ -758,31 +860,7 @@ const EditProfile = () => {
         </div>
       </div>
 
-      {/* QUICK TIPS */}
-      <div className="rounded-3xl border border-[#29435f] bg-[#132942]/80 p-6 shadow-xl">
-        <h3 className="mb-5 flex items-center gap-2 text-sm font-bold text-white">
-          <Zap size={16} className="text-cyan-400" /> Quick Tips
-        </h3>
-
-        <ul className="space-y-4 text-xs leading-5 text-slate-300">
-          <li className="flex items-start gap-3">
-            <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" />
-            Upload a professional profile photo
-          </li>
-          <li className="flex items-start gap-3">
-            <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" />
-            Add a cover banner image
-          </li>
-          <li className="flex items-start gap-3">
-            <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" />
-            Complete all fields for better visibility
-          </li>
-          <li className="flex items-start gap-3">
-            <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" />
-            Keep your bio short and engaging
-          </li>
-        </ul>
-      </div>
+     
 
       {/* CTA */}
       <div className="rounded-3xl border border-[#29435f] bg-gradient-to-br from-[#132942] to-[#0b1b30] p-6 text-center shadow-xl">
@@ -920,39 +998,138 @@ const EditProfile = () => {
               <Field label="Business Name" value={formData.businessName} onChange={(e) => handleChange("businessName", e.target.value)} placeholder="Business name" required />
 
               <div className="min-w-0">
-                <label className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-200">
-                  <Building2 size={15} className="text-cyan-300" />
-                  Your Industry / Category *
-                </label>
+  <label className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-200">
+    <Building2 size={15} className="text-cyan-300" />
+    Your Industry / Category *
+  </label>
 
-                <select
-                  value={formData.industry}
-                  onChange={(e) => {
-                    const category = e.target.value;
-                    handleChange("industry", category);
-                    const selectedCategory = aboutUs.find((item) => item.category === category);
-                    if (selectedCategory) handleChange("bio", selectedCategory.description);
-                  }}
-                  required
-                  className={`${inputCls} appearance-none`}
-                >
-                  <option value="" disabled>Select your industry</option>
+  <select
+    value={
+      industryOptions.some((item) => item.value === formData.industry)
+        ? formData.industry
+        : formData.industry
+          ? "custom"
+          : ""
+    }
+    onChange={(e) => {
+      const category = e.target.value;
 
-                  {formData.industry && !industryOptions.some((item) => item.value === formData.industry) && (
-                    <option value={formData.industry}>
-                      Saved category: {formData.industry}
-                    </option>
-                  )}
+      if (category === "custom") {
+        handleChange("industry", "");
+        return;
+      }
 
-                  {industryOptions.map((item) => (
-                    <option key={item.value} value={item.value} className="bg-[#132942] text-white">
-                      {item.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+      handleChange("industry", category);
 
-              <Field label="Job Title / Role" icon={Briefcase} value={formData.jobTitle} onChange={(e) => handleChange("jobTitle", e.target.value)} placeholder="Business Owner / Professional" />
+      const selectedCategory = aboutUs.find(
+        (item) => item.category === category
+      );
+
+      if (selectedCategory) {
+        handleChange("bio", selectedCategory.description);
+      }
+    }}
+    required
+    className={`${inputCls} appearance-none`}
+  >
+    <option value="" disabled>
+      Select your industry
+    </option>
+
+    {industryOptions.map((item) => (
+      <option
+        key={item.value}
+        value={item.value}
+        className="bg-[#132942] text-white"
+      >
+        {item.label}
+      </option>
+    ))}
+
+    <option value="custom" className="bg-[#132942] text-cyan-300">
+      + Add Custom Category
+    </option>
+  </select>
+
+  {formData.industry &&
+    !industryOptions.some((item) => item.value === formData.industry) && (
+      <p className="mt-2 text-xs text-cyan-300">
+        Custom category: {formData.industry}
+      </p>
+    )}
+
+  {(formData.industry === "" ||
+    !industryOptions.some((item) => item.value === formData.industry)) &&
+    (formData.industry === "" || !industryOptions.some((item) => item.value === formData.industry)) &&
+    (
+      <Field
+        label="Enter Custom Category"
+        value={formData.industry}
+        onChange={(e) => handleChange("industry", e.target.value)}
+        placeholder="e.g. Digital Marketing, Event Management"
+        required
+        className="mt-3"
+      />
+    )}
+</div>
+
+<div className="min-w-0">
+  <label className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-200">
+    <Briefcase size={15} className="text-cyan-300" />
+    Job Title / Role
+  </label>
+
+  <select
+    value={
+      jobTitleOptions.some((item) => item.value === formData.jobTitle)
+        ? formData.jobTitle
+        : formData.jobTitle
+          ? "custom"
+          : ""
+    }
+    onChange={(e) => {
+      const value = e.target.value;
+
+      if (value === "custom") {
+        handleChange("jobTitle", "");
+        return;
+      }
+
+      handleChange("jobTitle", value);
+    }}
+    className={`${inputCls} appearance-none`}
+  >
+    <option value="" disabled>
+      Select your job title
+    </option>
+
+    {jobTitleOptions.map((item) => (
+      <option
+        key={item.value}
+        value={item.value}
+        className="bg-[#132942] text-white"
+      >
+        {item.label}
+      </option>
+    ))}
+
+    <option value="custom" className="bg-[#132942] text-cyan-300">
+      + Add Custom Job Title
+    </option>
+  </select>
+
+  {(formData.jobTitle === "" ||
+    !jobTitleOptions.some((item) => item.value === formData.jobTitle)) && (
+    <Field
+      label="Enter Custom Job Title"
+      icon={Pencil}
+      value={formData.jobTitle}
+      onChange={(e) => handleChange("jobTitle", e.target.value)}
+      placeholder="e.g. Digital Marketing Specialist"
+      className="mt-3"
+    />
+  )}
+</div>
               <Field label="Short Headline / Slogan" value={formData.headline} onChange={(e) => handleChange("headline", e.target.value)} placeholder="Your short tagline" />
 
               <div className="sm:col-span-2">

@@ -588,7 +588,7 @@ const ExecutivePro = ({
           {/* QR CODE */}
 
           <section
-            className={`${panelClass} flex flex-col items-center text-center`}
+            className={`${panelClass} hidden flex flex-col items-center text-center lg:flex`}
           >
             <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-400">
               <ScanLine size={22} />
@@ -970,6 +970,50 @@ const ExecutivePro = ({
           </section>
         </div>
       </main>
+
+     {/* MOBILE QR CODE - BOTTOM POSITION */}
+<section
+  className={`${panelClass} mx-5 mb-8 flex flex-col items-center text-center sm:mx-8 lg:hidden`}
+>
+  <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-400">
+    <ScanLine size={22} />
+  </div>
+
+  <h2 className={headingClass}>Scan My QR</h2>
+
+  <p className="mt-1 text-xs text-slate-400">
+    Scan to visit my digital profile
+  </p>
+
+  <div className="mt-5 flex min-h-[190px] w-full items-center justify-center rounded-2xl border border-[#29435F] bg-[#0B1B30] p-4">
+    {qrFetching ? (
+      <p className="text-sm text-slate-400">Loading QR...</p>
+    ) : qrTargetUrl ? (
+      <div className="rounded-xl bg-white p-3">
+        <QRCodeCanvas
+          value={qrTargetUrl}
+          size={155}
+          level="H"
+          includeMargin
+        />
+      </div>
+    ) : (
+      <p className="text-xs text-slate-500">QR code not available</p>
+    )}
+  </div>
+
+  {qrTargetUrl && (
+    <a
+      href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrTargetUrl)}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-cyan-400/30 bg-cyan-400/10 py-2.5 text-sm font-bold text-cyan-300 transition hover:bg-cyan-400 hover:text-[#0B1B30]"
+    >
+      <Download size={16} />
+      Download QR
+    </a>
+  )}
+</section>
 
       {/* ================================== */}
       {/* FOOTER */}

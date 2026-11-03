@@ -190,7 +190,7 @@ const CreativePortfolio = ({
       ====================================== */}
       <section
         id="creative-home"
-        className="w-full px-3 pb-4 pt-3 sm:px-6 sm:pb-12 sm:pt-5 lg:px-8 xl:px-10"
+        className="w-full px-3 pb-4 pt-3 sm:px-6 sm:pb-2 sm:pt-5 lg:px-8 xl:px-10"
       >
         <div className="relative w-full overflow-hidden rounded-[22px] border border-[#EBC6A2]/60 bg-[#FCE9D6] shadow-sm sm:rounded-[28px]">
           {/* COVER BANNER */}
@@ -251,7 +251,7 @@ const CreativePortfolio = ({
                     <img
                       src={logo}
                       alt="Business logo"
-                      className="h-full w-full object-contain p-4"
+                      className="h-full w-full object-contain "
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center bg-[#FCE9D6]">
@@ -275,7 +275,7 @@ const CreativePortfolio = ({
               {/* PROFILE NAME AND DETAILS */}
               <div className="min-w-0 w-full flex-1 pb-1 sm:w-auto">
                 <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                  <h1 className="max-w-full break-words text-2xl font-black tracking-tight text-[#25180A] sm:text-3xl lg:text-4xl">
+                  <h1 className="max-w-full break-words text-2xl font-black tracking-tight text-black sm:text-3xl lg:text-4xl">
                     {name || businessName || "Your Name"}
                   </h1>
 
@@ -528,7 +528,7 @@ const CreativePortfolio = ({
       {productList.length > 0 && (
         <section
           id="creative-work"
-          className="w-full overflow-hidden px-4 py-9 sm:px-7 sm:py-12 lg:px-10"
+          className="w-full overflow-hidden px-4 py-4 sm:px-7 sm:py-4 lg:px-10"
         >
           <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
             <div>
@@ -808,7 +808,7 @@ const CreativePortfolio = ({
       ====================================== */}
       <section
         id="creative-contact"
-        className="w-full bg-[#FCEFE2] px-4 py-9 sm:px-7 sm:py-12 lg:px-10"
+        className="w-full bg-[#FCEFE2] px-4 py-4 sm:px-7 sm:py-4 lg:px-10"
       >
         <div className="mb-6">
           <p className={sectionLabel}>Get In Touch</p>
@@ -1027,7 +1027,7 @@ const CreativePortfolio = ({
       ====================================== */}
       {qrTargetUrl && (
         <section className="relative w-full overflow-hidden px-4 py-10 sm:px-7 sm:py-16 lg:px-10">
-          <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#25180A] via-[#3E240F] to-[#6E4E19] p-5 text-white shadow-[0_20px_60px_rgba(62,36,15,0.20)] sm:p-9 lg:p-12">
+          <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#25180A] via-[#3E240F] to-[#6E4E19] p-4 text-white shadow-[0_20px_60px_rgba(62,36,15,0.20)] sm:p-4 lg:p-10">
             <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full border-[35px] border-white/5" />
             <div className="pointer-events-none absolute -bottom-28 -left-20 h-72 w-72 rounded-full border-[35px] border-white/5" />
 
