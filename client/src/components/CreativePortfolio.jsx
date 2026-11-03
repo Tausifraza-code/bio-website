@@ -525,154 +525,170 @@ const CreativePortfolio = ({
       {/* =====================================
           PRODUCTS SECTION
       ====================================== */}
-      {productList.length > 0 && (
-        <section
-          id="creative-work"
-          className="w-full overflow-hidden px-4 py-4 sm:px-7 sm:py-4 lg:px-10"
-        >
-          <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className={sectionLabel}>Featured Products</p>
-              <h2 className={sectionHeading}>Our Products</h2>
-              <p className="mt-2 text-xs text-[#907836]">
-                Quality products built for your success. Explore our latest
-                collection.
-              </p>
-            </div>
+    
+{productList.length > 0 && (
+  <section
+    id="creative-work"
+    className="w-full overflow-hidden px-4 py-4 sm:px-7 sm:py-4 lg:px-10"
+  >
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <p className={sectionLabel}>Featured Products</p>
+        <h2 className={sectionHeading}>Our Products</h2>
+        <p className="mt-2 text-xs text-[#907836]">
+          Quality products built for your success. Explore our latest
+          collection.
+        </p>
+      </div>
 
-            <span className="inline-flex items-center gap-2 text-xs font-bold text-[#EB720E]">
-              Explore Collection
-              <ArrowRight size={15} />
-            </span>
-          </div>
+      <span className="inline-flex items-center gap-2 text-xs font-bold text-[#EB720E]">
+        Explore Collection
+        <ArrowRight size={15} />
+      </span>
+    </div>
 
-          <div className="product-swiper-wrap">
-            <Swiper
-              modules={[Pagination, A11y, Autoplay]}
-              spaceBetween={12}
-              slidesPerView={2}
-              loop={productList.length > 2}
-              grabCursor={true}
-              watchOverflow={true}
-              speed={700}
-              autoplay={
-                productList.length > 2
-                  ? {
-                      delay: 2500,
-                      disableOnInteraction: false,
-                      pauseOnMouseEnter: true,
-                    }
-                  : false
+    <div className="product-swiper-wrap">
+      <Swiper
+        modules={[Pagination, A11y, Autoplay]}
+        spaceBetween={12}
+        slidesPerView={2}
+        loop={productList.length > 2}
+        grabCursor={true}
+        watchOverflow={true}
+        speed={700}
+        autoplay={
+          productList.length > 2
+            ? {
+                delay: 2500,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true,
               }
-              pagination={{
-                clickable: true,
-                dynamicBullets: true,
-              }}
-              breakpoints={{
-                640: {
-                  slidesPerView: 2,
-                  spaceBetween: 16,
-                },
-                1024: {
-                  slidesPerView: 3,
-                  spaceBetween: 20,
-                },
-              }}
-              className="!overflow-visible !pb-6"
-            >
-              {productList.map((product, index) => {
-                const cover = product.images?.find((item) => item?.url)?.url;
+            : false
+        }
+        pagination={{
+          clickable: true,
+          dynamicBullets: true,
+        }}
+        breakpoints={{
+          640: {
+            slidesPerView: 2,
+            spaceBetween: 16,
+          },
+          1024: {
+            slidesPerView: 3,
+            spaceBetween: 20,
+          },
+        }}
+        className="!overflow-visible !pb-6"
+      >
+        {productList.map((product, index) => {
+          const cover = product.images?.find((item) => item?.url)?.url;
 
-                return (
-                  <SwiperSlide key={product._id || index} className="!h-auto">
-                    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#EBC6A2]/70 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
-                      {/* Product Click Area */}
-                      <button
-                        type="button"
-                        onClick={() => onProductClick(product)}
-                        className="group flex w-full min-w-0 flex-1 flex-col text-left"
-                      >
-                        <div className="relative m-2 h-32 overflow-hidden rounded-xl bg-[#FCE9D6] sm:h-44">
-                          {cover ? (
-                            <img
-                              src={cover}
-                              alt={product.name}
-                              loading="lazy"
-                              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                            />
-                          ) : (
-                            <div className="flex h-full items-center justify-center">
-                              <ImageIcon size={32} className="text-[#CA9959]" />
-                            </div>
-                          )}
-
-                          <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#EB720E] shadow sm:h-8 sm:w-8">
-                            <ArrowUpRight size={15} />
-                          </span>
-                        </div>
-
-                        <div className="flex flex-1 flex-col p-3 pt-1 sm:p-4 sm:pt-2">
-                          <h3 className="truncate text-xs font-extrabold text-[#25180A] sm:text-sm">
-                            {product.name}
-                          </h3>
-
-                          <p className="mt-1 line-clamp-2 min-h-8 text-[10px] leading-4 text-[#907836] sm:text-xs sm:leading-5">
-                            {product.description}
-                          </p>
-
-                          <div className="mt-auto flex items-center justify-between gap-2 pt-3">
-                            <p className="truncate text-sm font-black text-[#25180A] sm:text-base">
-                              ₹
-                              {Number(product.price || 0).toLocaleString(
-                                "en-IN",
-                              )}
-                            </p>
-
-                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#EBC6A2] text-[#EB720E] transition group-hover:bg-[#FE932E] group-hover:text-white sm:h-8 sm:w-8">
-                              <ArrowRight size={14} />
-                            </span>
-                          </div>
-                        </div>
-                      </button>
-
-                      {/* WhatsApp Inquiry Button */}
-                      <div className="px-3 pb-3 sm:px-4 sm:pb-4">
-                        <button
-                          type="button"
-                          onClick={() => onProductWhatsAppInquiry(product)}
-                          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-3 py-2.5 text-[10px] font-bold text-white transition hover:bg-[#1DA851] sm:py-3 sm:text-xs"
-                        >
-                          <FaWhatsapp size={17} />
-                          WhatsApp Inquiry
-                        </button>
+          return (
+            <SwiperSlide key={product._id || index} className="!h-auto">
+              <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#EBC6A2]/70 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                {/* Product Click Area */}
+                <button
+                  type="button"
+                  onClick={() => onProductClick(product)}
+                  className="group flex w-full min-w-0 flex-1 flex-col text-left"
+                >
+                  <div className="relative m-2 h-32 overflow-hidden rounded-xl bg-[#FCE9D6] sm:h-44">
+                    {cover ? (
+                      <img
+                        src={cover}
+                        alt={product.name}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center">
+                        <ImageIcon size={32} className="text-[#CA9959]" />
                       </div>
+                    )}
+
+                    <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#EB720E] shadow sm:h-8 sm:w-8">
+                      <ArrowUpRight size={15} />
+                    </span>
+                  </div>
+
+                  <div className="flex flex-1 flex-col p-3 pt-1 sm:p-4 sm:pt-2">
+                    <h3 className="truncate text-xs font-extrabold text-[#25180A] sm:text-sm">
+                      {product.name}
+                    </h3>
+
+                    <p className="mt-1 line-clamp-2 min-h-8 text-[10px] leading-4 text-[#907836] sm:text-xs sm:leading-5">
+                      {product.description}
+                    </p>
+
+                    <div className="mt-auto flex items-center justify-between gap-2 pt-3">
+                      <p className="truncate text-sm font-black text-[#25180A] sm:text-base">
+                        ₹
+                        {Number(product.price || 0).toLocaleString("en-IN")}
+                      </p>
+
+                      {/* WhatsApp Query Icon */}
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        aria-label="WhatsApp Query"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onProductWhatsAppInquiry(product);
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            onProductWhatsAppInquiry(product);
+                          }
+                        }}
+                        className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full border border-[#25D366] text-[#25D366] transition hover:bg-[#25D366] hover:text-white sm:h-8 sm:w-8"
+                      >
+                        <FaWhatsapp size={17} />
+                      </span>
                     </div>
-                  </SwiperSlide>
-                );
-              })}
-            </Swiper>
+                  </div>
+                </button>
 
-            <style>{`
-              .product-swiper-wrap .swiper-pagination {
-                bottom: 0 !important;
-              }
+                {/* Pay Now Button */}
+                <div className="px-3 pb-3 sm:px-4 sm:pb-4">
+                  <button
+                    type="button"
+                    onClick={() => onProductClick(product)}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-3 py-2.5 text-[10px] font-bold text-white transition hover:bg-[#1DA851] sm:py-3 sm:text-xs"
+                  >
+                    Pay Now
+                  </button>
+                </div>
+              </div>
+            </SwiperSlide>
+          );
+        })}
+      </Swiper>
 
-              .product-swiper-wrap .swiper-pagination-bullet {
-                width: 7px;
-                height: 7px;
-                background: #FE932E;
-                opacity: 0.3;
-              }
+      <style>{`
+        .product-swiper-wrap .swiper-pagination {
+          bottom: 0 !important;
+        }
 
-              .product-swiper-wrap .swiper-pagination-bullet-active {
-                width: 22px;
-                border-radius: 20px;
-                opacity: 1;
-              }
-            `}</style>
-          </div>
-        </section>
-      )}
+        .product-swiper-wrap .swiper-pagination-bullet {
+          width: 7px;
+          height: 7px;
+          background: #FE932E;
+          opacity: 0.3;
+        }
+
+        .product-swiper-wrap .swiper-pagination-bullet-active {
+          width: 22px;
+          border-radius: 20px;
+          opacity: 1;
+        }
+      `}</style>
+    </div>
+  </section>
+)}
+
 
       {/* =====================================
           GALLERY SECTION
