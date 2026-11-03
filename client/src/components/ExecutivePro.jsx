@@ -708,101 +708,116 @@ const ExecutivePro = ({
           {/* PRODUCTS — SINGLE LINE AUTO SLIDE   */}
           {/* ================================== */}
 
-          {productList.length > 0 && (
-            <section className={panelClass}>
-              <div className="mb-5 flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[2px] text-cyan-400">
-                    Explore collection
-                  </p>
+         {productList.length > 0 && (
+  <section className={panelClass}>
+    <div className="mb-5 flex items-center justify-between gap-3">
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-[2px] text-cyan-400">
+          Explore collection
+        </p>
 
-                  <h2 className="mt-1 text-xl font-black text-white">
-                    Featured Products
-                  </h2>
-                </div>
+        <h2 className="mt-1 text-xl font-black text-white">
+          Featured Products
+        </h2>
+      </div>
 
-                <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-bold text-cyan-300">
-                  {productList.length} Items
+      <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-bold text-cyan-300">
+        {productList.length} Items
+      </span>
+    </div>
+
+    <AutoRow
+      items={productList}
+      desktopVisible={3}
+      renderItem={(product) => {
+        const cover = product.images?.find((item) => item?.url)?.url;
+
+        return (
+          <div
+            key={product._id}
+            className="overflow-hidden rounded-xl border border-[#29435F] bg-[#0B1B30]"
+          >
+            {/* PRODUCT CARD */}
+            <button
+              type="button"
+              onClick={() => onProductClick(product)}
+              className="group block w-full overflow-hidden text-left"
+            >
+              <div className="relative h-44 overflow-hidden bg-[#132942]">
+                {cover ? (
+                  <img
+                    src={cover}
+                    alt={product.name}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <ImageIcon size={35} className="text-slate-500" />
+                  </div>
+                )}
+
+                <span className="absolute right-3 top-3 rounded-lg bg-[#071326]/80 p-2 text-cyan-300 backdrop-blur">
+                  <ArrowUpRight size={16} />
                 </span>
               </div>
 
-              <AutoRow
-                items={productList}
-                desktopVisible={3}
-                renderItem={(product) => {
-                  const cover = product.images?.find((item) => item?.url)?.url;
+              <div className="p-4">
+                <h3 className="truncate text-sm font-bold text-white">
+                  {product.name}
+                </h3>
 
-                  return (
-                    <div
-                      key={product._id}
-                      className="overflow-hidden rounded-xl border border-[#29435F] bg-[#0B1B30]"
-                    >
-                      {/* Existing Product Card */}
+                <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-400">
+                  {product.description}
+                </p>
 
-                      <button
-                        type="button"
-                        onClick={() => onProductClick(product)}
-                        className="group block w-full overflow-hidden text-left"
-                      >
-                        <div className="relative h-44 overflow-hidden bg-[#132942]">
-                          {cover ? (
-                            <img
-                              src={cover}
-                              alt={product.name}
-                              loading="lazy"
-                              className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
-                            />
-                          ) : (
-                            <div className="flex h-full items-center justify-center">
-                              <ImageIcon size={35} className="text-slate-500" />
-                            </div>
-                          )}
+                {/* PRICE + WHATSAPP ICON */}
+                <div className="mt-3 flex items-center justify-between gap-2">
+                  <p className="text-lg font-black text-cyan-400">
+                    ₹
+                    {Number(product.price || 0).toLocaleString("en-IN")}
+                  </p>
 
-                          <span className="absolute right-3 top-3 rounded-lg bg-[#071326]/80 p-2 text-cyan-300 backdrop-blur">
-                            <ArrowUpRight size={16} />
-                          </span>
-                        </div>
+                  <span
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onProductWhatsAppInquiry(product);
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        onProductWhatsAppInquiry(product);
+                      }
+                    }}
+                    aria-label={`WhatsApp inquiry for ${product.name}`}
+                    title="WhatsApp Inquiry"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white transition hover:bg-emerald-400"
+                  >
+                    <FaWhatsapp size={21} />
+                  </span>
+                </div>
+              </div>
+            </button>
 
-                        <div className="p-4">
-                          <h3 className="truncate text-sm font-bold text-white">
-                            {product.name}
-                          </h3>
-
-                          <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-400">
-                            {product.description}
-                          </p>
-
-                          {/* PRICE + WHATSAPP ICON */}
-
-                          <div className="mt-3 flex items-center justify-between gap-2">
-                            <p className="text-lg font-black text-cyan-400">
-                              ₹
-                              {Number(product.price || 0).toLocaleString(
-                                "en-IN",
-                              )}
-                            </p>
-
-                            <button
-                              type="button"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                onProductWhatsAppInquiry(product);
-                              }}
-                              aria-label={`WhatsApp inquiry for ${product.name}`}
-                              title="WhatsApp Inquiry"
-                              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white transition hover:bg-emerald-400"
-                            >
-                              <FaWhatsapp size={21} />
-                            </button>
-                          </div>
-                        </div>
-                      </button>
-                    </div>
-                  );
-                }}
-              />
-            </section>
-          )}
+            {/* PAY NOW BUTTON */}
+            <div className="px-4 pb-4">
+              <button
+                type="button"
+                onClick={() => onProductClick(product)}
+                className="flex w-full items-center justify-center rounded-xl bg-cyan-400 py-3 text-sm font-extrabold text-[#071326] transition hover:bg-cyan-300 active:scale-[0.98]"
+              >
+                Pay Now
+              </button>
+            </div>
+          </div>
+        );
+      }}
+    />
+  </section>
+)}
 
           {/* ================================== */}
           {/* GALLERY — SINGLE LINE AUTO SLIDE    */}

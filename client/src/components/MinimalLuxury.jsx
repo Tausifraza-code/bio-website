@@ -169,13 +169,7 @@ const MinimalLuxury = ({
 
   const firstSocialLinks = socials.slice(0, 7);
 
-  const contactButtons = configuredButtons.filter((button) => {
-    const action = String(button?.actionType || "").toLowerCase();
-
-    return !["call", "phone", "whatsapp", "save", "address", "map"].includes(
-      action,
-    );
-  });
+ const contactButtons = configuredButtons;
 
   const hasBusinessName = Boolean(businessName || name);
 
@@ -397,73 +391,27 @@ const MinimalLuxury = ({
                 </div>
               )}
 
-              {/* QUICK ACTIONS */}
-              <div className="mt-3 rounded-[15px] border border-[#D8E5EE] bg-white p-2 shadow-[0_3px_12px_rgba(8,43,92,0.04)]">
-                <div className="grid grid-cols-4 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleMobileAction("save")}
-                    className="flex min-h-[58px] flex-col items-center justify-center gap-1.5 rounded-[11px] border border-[#12C5E8] bg-[#12C5E8] text-white shadow-sm transition active:scale-[0.98]"
-                  >
-                    <Bookmark size={17} />
-                    <span className="text-[11px] font-extrabold">Save</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleMobileAction("phone")}
-                    disabled={!phone}
-                    className="flex min-h-[58px] flex-col items-center justify-center gap-1.5 rounded-[11px] border border-[#D9E5EF] bg-white text-[#087DA1] transition hover:border-[#12C5E8] disabled:opacity-40"
-                  >
-                    <Phone size={17} />
-                    <span className="text-[11px] font-extrabold">Call</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleMobileAction("whatsapp")}
-                    disabled={!whatsapp}
-                    className="flex min-h-[58px] flex-col items-center justify-center gap-1.5 rounded-[11px] border border-[#D9E5EF] bg-white text-[#087DA1] transition hover:border-[#12C5E8] disabled:opacity-40"
-                  >
-                    <FaWhatsapp size={17} />
-                    <span className="text-[11px] font-extrabold">WhatsApp</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleMobileAction("address")}
-                    disabled={!address}
-                    className="flex min-h-[58px] flex-col items-center justify-center gap-1.5 rounded-[11px] border border-[#D9E5EF] bg-white text-[#087DA1] transition hover:border-[#12C5E8] disabled:opacity-40"
-                  >
-                    <Globe size={17} />
-                    <span className="text-[11px] font-extrabold">Map</span>
-                  </button>
-                </div>
-
-                {/* CONFIGURED ACTIONS */}
-                {contactButtons.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2 border-t border-[#E8EFF4] pt-2">
-                    {contactButtons.map((button, index) => (
-                      <button
-                        key={button._id || button.id || index}
-                        type="button"
-                        onClick={() => onConfiguredButton(button)}
-                        className="flex min-h-[38px] items-center gap-1.5 rounded-[10px] border border-[#D9E5EF] bg-white px-3 py-2 text-[11px] font-bold text-[#24415F] transition active:scale-[0.98]"
-                      >
-                        {button.actionType === "whatsapp" && (
-                          <FaWhatsapp size={13} />
-                        )}
-
-                        {button.actionType === "call" && <Phone size={13} />}
-
-                        {button.label}
-
-                        <ArrowUpRight size={12} />
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+         
+             {/* QUICK ACTIONS */}
+<div className="mt-2 ">
+  {contactButtons.length > 0 && (
+    <div className=" flex flex-wrap gap-2  border-[#E8EFF4]">
+      {contactButtons.map((button, index) => (
+        <button
+          key={button._id || button.id || index}
+          type="button"
+          onClick={() => onConfiguredButton(button)}
+          className="flex min-h-[38px] items-center gap-1.5 rounded-[10px] border border-[#D9E5EF] bg-white px-3 py-2 text-[11px] font-bold text-[#24415F] transition active:scale-[0.98]"
+        >
+          {button.actionType === "whatsapp" && <FaWhatsapp size={13} />}
+          {button.actionType === "call" && <Phone size={13} />}
+          {button.label}
+          <ArrowUpRight size={12} />
+        </button>
+      ))}
+    </div>
+  )}
+</div>
             </div>
           </section>
 
@@ -603,123 +551,127 @@ const MinimalLuxury = ({
           )}
 
           {/* PRODUCTS */}
-          {products.length > 0 && (
-            <section className="mx-0 mt-3 rounded-[15px] border border-[#E0E9F1] bg-white p-3.5">
-              <div className="mb-3 flex items-end justify-between">
-                <div>
-                  <p className="text-[12px] font-black uppercase tracking-[0.16em] text-[#12BCEB]">
-                    Featured Product Collection
-                  </p>
+{products.length > 0 && (
+  <section className="mx-0 mt-3 rounded-[15px] border border-[#E0E9F1] bg-white p-3.5">
+    <div className="mb-3 flex items-end justify-between">
+      <div>
+        <p className="text-[12px] font-black uppercase tracking-[0.16em] text-[#12BCEB]">
+          Featured Product Collection
+        </p>
+      </div>
+
+      <span className="text-[10px] font-bold text-[#7C8EA2]">
+        Swipe →
+      </span>
+    </div>
+
+    <Swiper
+      modules={[Autoplay, Pagination]}
+      spaceBetween={9}
+      slidesPerView={1.2}
+      breakpoints={{
+        640: {
+          slidesPerView: 2,
+          spaceBetween: 12,
+        },
+        1024: {
+          slidesPerView: 3,
+          spaceBetween: 14,
+        },
+      }}
+      loop={products.length > 3}
+      speed={600}
+      autoplay={products.length > 1 ? swiperAutoplay : false}
+      pagination={{
+        clickable: true,
+        dynamicBullets: true,
+      }}
+      className="mobile-product-swiper !pb-7"
+    >
+      {products.map((product, index) => {
+        const cover = product.images?.find((item) => item?.url)?.url;
+
+        return (
+          <SwiperSlide key={product._id || index}>
+            <div className="overflow-hidden rounded-[12px] border border-[#E1EAF2] bg-white">
+
+              {/* Product Click Area */}
+              <button
+                type="button"
+                onClick={() => onProductClick(product)}
+                className="w-full text-left"
+              >
+                <div className="relative h-[150px] overflow-hidden bg-[#EEF5F9]">
+                  {cover ? (
+                    <img
+                      src={cover}
+                      alt={product.name || "Product"}
+                      loading="lazy"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center">
+                      <ImageIcon
+                        size={25}
+                        className="text-[#9CB1C5]"
+                      />
+                    </div>
+                  )}
                 </div>
 
-                <span className="text-[10px] font-bold text-[#7C8EA2]">
-                  Swipe →
-                </span>
+                <div className="p-2.5">
+                  {product.name && (
+                    <h3 className="truncate text-[14px] font-black text-[#183250]">
+                      {product.name}
+                    </h3>
+                  )}
+
+                  {product.description && (
+                    <p className="mt-1 line-clamp-2 text-[14px] leading-4 text-[#7C8EA2]">
+                      {product.description}
+                    </p>
+                  )}
+                </div>
+              </button>
+
+              {/* Price + WhatsApp Icon */}
+              <div className="flex items-center justify-between px-2.5 pb-2.5">
+                {product.price !== undefined &&
+                  product.price !== null &&
+                  product.price !== "" && (
+                    <span className="text-[14px] font-black text-[#082B5C]">
+                      ₹
+                      {Number(product.price).toLocaleString("en-IN")}
+                    </span>
+                  )}
+
+                <button
+                  type="button"
+                  onClick={() => onProductWhatsAppInquiry(product)}
+                  aria-label="WhatsApp Inquiry"
+                  className="flex items-center justify-center text-[#25D366] transition hover:scale-110 active:scale-[0.95]"
+                >
+                  <FaWhatsapp size={20} />
+                </button>
               </div>
 
-              <Swiper
-                modules={[Autoplay, Pagination]}
-                spaceBetween={9}
-                slidesPerView={1.2}
-                breakpoints={{
-                  640: {
-                    slidesPerView: 2,
-                    spaceBetween: 12,
-                  },
-                  1024: {
-                    slidesPerView: 3,
-                    spaceBetween: 14,
-                  },
-                }}
-                loop={products.length > 3}
-                speed={600}
-                autoplay={products.length > 1 ? swiperAutoplay : false}
-                pagination={{
-                  clickable: true,
-                  dynamicBullets: true,
-                }}
-                className="mobile-product-swiper !pb-7"
-              >
-                {products.map((product, index) => {
-                  const cover = product.images?.find((item) => item?.url)?.url;
-
-                  return (
-                    <SwiperSlide key={product._id || index}>
-                      <div className="overflow-hidden rounded-[12px] border border-[#E1EAF2] bg-white">
-                        {/* Product Click Area */}
-                        <button
-                          type="button"
-                          onClick={() => onProductClick(product)}
-                          className="w-full text-left"
-                        >
-                          <div className="relative h-[150px] overflow-hidden bg-[#EEF5F9]">
-                            {cover ? (
-                              <img
-                                src={cover}
-                                alt={product.name || "Product"}
-                                loading="lazy"
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-full items-center justify-center">
-                                <ImageIcon
-                                  size={25}
-                                  className="text-[#9CB1C5]"
-                                />
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="p-2.5">
-                            {product.name && (
-                              <h3 className="truncate text-[14px] font-black text-[#183250]">
-                                {product.name}
-                              </h3>
-                            )}
-
-                            {product.description && (
-                              <p className="mt-1 line-clamp-2 text-[14px] leading-4 text-[#7C8EA2]">
-                                {product.description}
-                              </p>
-                            )}
-
-                            <div className="mt-2 flex items-center justify-between">
-                              {product.price !== undefined &&
-                                product.price !== null &&
-                                product.price !== "" && (
-                                  <span className="text-[14px] font-black text-[#082B5C]">
-                                    ₹
-                                    {Number(product.price).toLocaleString(
-                                      "en-IN",
-                                    )}
-                                  </span>
-                                )}
-
-                              <span className="text-[12px] font-bold text-[#12BCEB]">
-                                View
-                              </span>
-                            </div>
-                          </div>
-                        </button>
-
-                        {/* WhatsApp Inquiry */}
-                        <div className="px-2.5 pb-2.5">
-                          <button
-                            type="button"
-                            onClick={() => onProductWhatsAppInquiry(product)}
-                            className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-[#25D366] py-2.5 text-[11px] font-bold text-white transition hover:bg-[#1DA851] active:scale-[0.98]"
-                          >
-                            <FaWhatsapp size={15} />
-                            WhatsApp Inquiry
-                          </button>
-                        </div>
-                      </div>
-                    </SwiperSlide>
-                  );
-                })}
-              </Swiper>
-            </section>
-          )}
+{/* PAY NOW BUTTON */}
+<div className="px-2.5 pb-2.5">
+  <button
+    type="button"
+    onClick={() => onProductClick(product)}
+    className="flex w-full items-center justify-center rounded-[10px] bg-[#082B5C] py-2.5 text-[12px] font-bold text-white transition hover:bg-[#123F78] active:scale-[0.98]"
+  >
+    Pay Now
+  </button>
+</div>
+            </div>
+          </SwiperSlide>
+        );
+      })}
+    </Swiper>
+  </section>
+)}
 
           {/* GALLERY */}
           {gallery.length > 0 && (

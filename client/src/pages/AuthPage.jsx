@@ -319,7 +319,7 @@ function AuthPage() {
                 }`}
               >
                 <LogIn size={14} />
-                <span>Returning Customer Login</span>
+                <span> Customer Login</span>
               </button>
             </div>
 

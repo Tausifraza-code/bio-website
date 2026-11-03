@@ -41,6 +41,7 @@ import {
   Star,
   MessageSquareText,
   LoaderCircle,
+
 } from "lucide-react";
 
 /* ============================================================
@@ -49,15 +50,16 @@ import {
 
 const themes = {
   executive: {
-    primary: "#1e3a8a",
-    accent: "#7c3aed",
-    background: "#0c1630",
-    surface: "#152447",
-    card: "#101c38",
-    text: "#f8fafc",
-    muted: "#a5b4cf",
-    border: "#33466c",
+    primary: "#1e3a8a",     // Premium Navy
+    accent: "#0ea5e9",      // Sky Blue
+    background: "#f4f8fc",  // Very Light Blue
+    surface: "#ffffff",     // White
+    card: "#f8fbff",        // Soft Blue White
+    text: "#0f172a",        // Deep Navy Text
+    muted: "#64748b",       // Slate
+    border: "#dbeafe",      // Light Blue Border
   },
+
   emerald: {
     primary: "#10b981",
     accent: "#14b8a6",
@@ -68,6 +70,7 @@ const themes = {
     muted: "#a7cfc3",
     border: "#216653",
   },
+
   rose: {
     primary: "#f43f5e",
     accent: "#fb923c",
@@ -78,6 +81,7 @@ const themes = {
     muted: "#e7bdc8",
     border: "#71404e",
   },
+
   obsidian: {
     primary: "#334155",
     accent: "#94a3b8",
@@ -88,6 +92,7 @@ const themes = {
     muted: "#a1a1aa",
     border: "#3f3f46",
   },
+
   sunset: {
     primary: "#f59e0b",
     accent: "#f97316",
@@ -763,62 +768,69 @@ function CardPreview() {
      CONFIGURED BUTTON HANDLER
   ============================================================ */
 
-  const handleConfiguredButton = (button) => {
-    if (!button) return;
+const handleConfiguredButton = (button) => {
+  if (!button) return;
 
-    switch (button.actionType) {
-      case "call":
-        return handleCall();
+  switch (button.actionType) {
+    case "call":
+      return handleCall();
 
-      case "whatsapp":
-        return openWhatsApp();
+    case "whatsapp":
+      return openWhatsApp();
 
-      case "email":
-        return handleEmail();
+    case "email":
+      return handleEmail();
 
-      case "directions":
-        return window.open(
-          profile?.mapLink ||
-            `https://maps.google.com/?q=${encodeURIComponent(
-              businessInfo?.address || "",
-            )}`,
-          "_blank",
-          "noopener,noreferrer",
-        );
+    case "directions":
+      return window.open(
+        profile?.mapLink ||
+          `https://maps.google.com/?q=${encodeURIComponent(
+            businessInfo?.address || "",
+          )}`,
+        "_blank",
+        "noopener,noreferrer",
+      );
 
-      case "share":
-        return shareProfile();
+    case "share":
+      return shareProfile();
 
-      case "website":
-      case "customLink":
-        if (!button.customUrl) {
-          return alert("This button has no link configured.");
-        }
+    case "website":
+    case "customLink":
+      if (!button.customUrl) {
+        return alert("This button has no link configured.");
+      }
 
-        return window.open(
-          /^https?:\/\//i.test(button.customUrl)
-            ? button.customUrl
-            : `https://${button.customUrl}`,
-          "_blank",
-          "noopener,noreferrer",
-        );
+      return window.open(
+        /^https?:\/\//i.test(button.customUrl)
+          ? button.customUrl
+          : `https://${button.customUrl}`,
+        "_blank",
+        "noopener,noreferrer",
+      );
 
-      case "saveContact":
-        return handleSaveContact();
+    case "saveContact":
+      return handleSaveContact();
 
-      case "upi":
-        if (!businessInfo?.upiId) {
-          return alert("UPI ID is not available.");
-        }
+    case "upi": {
+      if (!businessInfo?.upiId) {
+        return alert("UPI ID is not available.");
+      }
 
-        return (window.location.href = `upi://pay?pa=${encodeURIComponent(
-          businessInfo.upiId,
-        )}&pn=${encodeURIComponent(businessInfo.businessName)}`);
+      const params = new URLSearchParams({
+        pa: businessInfo.upiId,
+        pn: businessInfo.businessName || "Business",
+        cu: "INR",
+      });
 
-      default:
-        return;
+      window.location.href = `upi://pay?${params.toString()}`;
+
+      return;
     }
-  };
+
+    default:
+      return;
+  }
+};
 
   /* ============================================================
      INQUIRY SUBMIT
@@ -1977,28 +1989,39 @@ function CardPreview() {
                         ? "Available"
                         : "Unavailable"}
                     </span>
+{businessInfo.upiId && selectedProduct.status === "active" && (
+  <button
+    type="button"
+    onClick={() => {
+      const amount = Number(selectedProduct.price);
 
-                    {businessInfo.upiId && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedProduct(null);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        return alert("Valid product price is not available.");
+      }
 
-                          handleConfiguredButton({
-                            actionType: "upi",
-                          });
-                        }}
-                        className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold"
-                        style={{
-                          border: `1px solid ${theme.primary}`,
-                          background: theme.card,
-                          color: theme.primary,
-                        }}
-                      >
-                        <IndianRupee size={16} />
-                        Pay with UPI
-                      </button>
-                    )}
+      const params = new URLSearchParams({
+        pa: businessInfo.upiId,
+        pn: businessInfo.businessName || "Business",
+        am: amount.toFixed(2),
+        cu: "INR",
+        tn: `${selectedProduct.name} payment`,
+      });
+
+      const upiUrl = `upi://pay?${params.toString()}`;
+
+      window.location.href = upiUrl;
+    }}
+    className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold"
+    style={{
+      border: `1px solid ${theme.primary}`,
+      background: theme.card,
+      color: theme.primary,
+    }}
+  >
+    <IndianRupee size={16} />
+    Pay ₹{Number(selectedProduct.price).toLocaleString("en-IN")} with UPI
+  </button>
+)}
 
                     {(businessInfo.whatsapp || businessInfo.phone) && (
                       <button
