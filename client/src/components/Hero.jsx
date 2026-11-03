@@ -15,6 +15,7 @@
   UserRoundPlus,
   Zap,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const benefits = [
   "Save contacts in one tap",
@@ -270,7 +271,7 @@ function Hero() {
               {/* Salon banner */}
               <div className="relative h-[100px] overflow-hidden sm:h-[118px]">
                 <img
-                  src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=900&q=85"
+                  src="https://i.ibb.co/BKGjDf3x/yrcrc.jpg"
                   alt="Modern barbershop banner"
                   className="h-full w-full object-cover"
                 />
@@ -292,15 +293,15 @@ function Hero() {
               <div className="px-3 pb-3 sm:px-4 sm:pb-4">
                 <div className="flex items-center gap-3">
                   <img
-                    src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&h=200&q=85"
-                    alt="Rajesh Sharma"
+                    src="https://i.ibb.co/gbXq2Q8N/frederick-medina-PZym9-GEP5-I0-unsplash.jpg"
+                    alt="Dr Alex Jha"
                     className="relative z-10 h-14 w-14 shrink-0 rounded-xl border-[3px] border-white object-cover object-center shadow-md dark:border-[#0b1b30] sm:h-16 sm:w-16"
                   />
 
                   <div className="min-w-0 flex-1">
                     <div className="flex min-w-0 items-center gap-1">
                       <h3 className="truncate text-sm font-black sm:text-base">
-                        Rajesh Sharma
+                        Dr Alex Jha
                       </h3>
 
                       <BadgeCheck
@@ -310,7 +311,7 @@ function Hero() {
                     </div>
 
                     <p className="mt-1 truncate text-[10px] font-semibold text-cyan-700 dark:text-cyan-300 sm:text-xs">
-                      Grooming Specialist
+                      Dermatologist & Skin Specialist
                     </p>
 
                     <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-[#64748b] dark:text-[#94a3b8] sm:text-xs">
@@ -353,10 +354,12 @@ function Hero() {
                     </span>
                   </div>
 
-                  <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-cyan-400 px-2.5 py-2 text-[10px] font-bold text-[#0b1b30] sm:px-3">
-                    <Phone size={12} />
-                    Connect
+                 <Link to="/card-preview/doctor">
+                   <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-cyan-400 px-2.5 py-2 text-[10px] font-bold text-[#0b1b30] sm:px-3">
+                    {/* <Phone size={12} /> */}
+                    View Demo
                   </span>
+                 </Link>
                 </div>
               </div>
 
