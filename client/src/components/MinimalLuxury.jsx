@@ -753,28 +753,21 @@ const MinimalLuxury = ({
               <div className="mt-3 flex flex-wrap gap-2">
                 {socials.map((social, index) => {
                   const Icon = getSocialIcon(social);
-                  const platform = normalizePlatform(social);
 
                   return (
                     <a
-                      key={social._id || `${platform}-${index}`}
+                      key={
+                        social._id || `${normalizePlatform(social)}-${index}`
+                      }
                       href={normalizeUrl(social.url)}
                       target="_blank"
                       rel="noopener noreferrer"
                       title={
                         social.platform || social.platformName || "Social link"
                       }
-                      className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#E8F8FD] text-[#087DA1]"
+                      className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E8F8FD] text-[#087DA1]"
                     >
-                      {social.profileImage ? (
-                        <img
-                          src={social.profileImage}
-                          alt={`${platform} profile`}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <Icon size={15} />
-                      )}
+                      <Icon size={15} />
                     </a>
                   );
                 })}
