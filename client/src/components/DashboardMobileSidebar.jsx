@@ -18,6 +18,7 @@ import {
   LayoutDashboard,
   LayoutTemplate,
   Images,
+  Star,
 } from "lucide-react";
 
 const sidebarItems = [
@@ -91,14 +92,14 @@ const sidebarItems = [
     path: "/socialcard",
     badge: "Cards",
   },
-  //  {
-  //     id: "Review",
-  //     label: "Review",
-  //     description: "Manage mini website Review",
-  //     icon: Star,
-  //     path: "/review",
+   {
+      id: "Review",
+      label: "Review Section",
+      description: "Manage mini website Review",
+      icon: Star,
+      path: "/review",
      
-  //   },
+    },
   {
     id: "leads",
     label: "Leads & Inquiries",

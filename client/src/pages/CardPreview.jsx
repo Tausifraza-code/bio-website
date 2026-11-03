@@ -10,6 +10,7 @@ import "swiper/css/pagination";
 
 import api from "../redux/api";
 import { createInquiry } from "../redux/slice/inquirySlice";
+import { createReview } from "../redux/slice/reviewSlice";
 import { getPublicQRUrl } from "../utils/qrUrl";
 import { downloadStandeePNG } from "../utils/downloadStandeePNG";
 
@@ -37,6 +38,9 @@ import {
   X,
   Edit,
   FileImage,
+  Star,
+  MessageSquareText,
+  LoaderCircle,
 } from "lucide-react";
 
 /* ============================================================
@@ -195,7 +199,8 @@ function CardPreview() {
   const location = useLocation();
   const dispatch = useDispatch();
 
-  const isQRVisit = new URLSearchParams(location.search).get("source") === "qr";
+  const isQRVisit =
+    new URLSearchParams(location.search).get("source") === "qr";
 
   // Logged-in user information
   const { user, isAuthenticated } = useSelector((state) => state.auth);
@@ -242,8 +247,30 @@ function CardPreview() {
   const [qrLeadSuccess, setQRLeadSuccess] = useState(false);
 
   /* ============================================================
+     REVIEW FORM STATE
+  ============================================================ */
+
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+
+  const [reviewForm, setReviewForm] = useState({
+    reviewerName: "",
+    reviewerEmail: "",
+    comment: "",
+  });
+
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewError, setReviewError] = useState("");
+
+  const [reviewToast, setReviewToast] = useState({
+    show: false,
+    message: "",
+    type: "success",
+  });
+
+  /* ============================================================
      FETCH PUBLIC PROFILE
-     ============================================================ */
+  ============================================================ */
 
   useEffect(() => {
     let cancelled = false;
@@ -327,7 +354,10 @@ function CardPreview() {
     };
   }, [subdomain]);
 
-  // SHOW LEAD POPUP ONLY IF CUSTOMER HAS NOT SUBMITTED BEFORE
+  /* ============================================================
+     SHOW LEAD POPUP ONLY IF CUSTOMER HAS NOT SUBMITTED BEFORE
+  ============================================================ */
+
   useEffect(() => {
     if (!isQRVisit || !profile?.leadCapture?.enabled || !subdomain) {
       return;
@@ -343,7 +373,7 @@ function CardPreview() {
 
   /* ============================================================
      CHECK PROFILE OWNER
-     ============================================================ */
+  ============================================================ */
 
   const loggedInUserId = user?._id || user?.id;
 
@@ -356,9 +386,9 @@ function CardPreview() {
 
   const isProfileOwner = Boolean(
     isAuthenticated &&
-    loggedInUserId &&
-    profileOwnerId &&
-    String(loggedInUserId) === String(profileOwnerId),
+      loggedInUserId &&
+      profileOwnerId &&
+      String(loggedInUserId) === String(profileOwnerId),
   );
 
   const handleEditProfile = () => {
@@ -369,7 +399,7 @@ function CardPreview() {
 
   /* ============================================================
      THEME + ACTIVE LAYOUT
-     ============================================================ */
+  ============================================================ */
 
   const theme = themes[profile?.activeTheme] || themes.sunset;
 
@@ -385,7 +415,8 @@ function CardPreview() {
       : "modern-business";
   }, [profile?.activeLayout]);
 
-  const ActiveLayoutComponent = LAYOUT_COMPONENTS[activeLayout] || ExecutivePro;
+  const ActiveLayoutComponent =
+    LAYOUT_COMPONENTS[activeLayout] || ExecutivePro;
 
   const activeLayoutData = PROFILE_LAYOUTS.find(
     (layout) => layout.id === activeLayout,
@@ -393,7 +424,7 @@ function CardPreview() {
 
   /* ============================================================
      DERIVED DATA
-     ============================================================ */
+  ============================================================ */
 
   const businessInfo = useMemo(() => {
     if (!profile) return null;
@@ -475,7 +506,7 @@ function CardPreview() {
 
   /* ============================================================
      CONTACT HANDLERS
-     ============================================================ */
+  ============================================================ */
 
   const openWhatsApp = () => {
     const number = (businessInfo?.whatsapp || "").replace(/\D/g, "");
@@ -515,7 +546,9 @@ function CardPreview() {
       "Please share more details.",
     ].join("\n");
 
-    const whatsappUrl = `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/${number}?text=${encodeURIComponent(
+      message,
+    )}`;
 
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
@@ -540,7 +573,7 @@ function CardPreview() {
 
   /* ============================================================
      SHARE + QR HANDLERS
-     ============================================================ */
+  ============================================================ */
 
   const copyLink = async () => {
     try {
@@ -609,7 +642,9 @@ function CardPreview() {
         await navigator.share({
           title: businessInfo?.businessName || "Business Profile",
 
-          text: `Check out ${businessInfo?.businessName || "this business"}`,
+          text: `Check out ${
+            businessInfo?.businessName || "this business"
+          }`,
 
           url: window.location.href,
         });
@@ -623,7 +658,7 @@ function CardPreview() {
 
   /* ============================================================
      SAVE CONTACT
-     ============================================================ */
+  ============================================================ */
 
   const handleSaveContact = () => {
     if (!profile) return;
@@ -727,7 +762,7 @@ function CardPreview() {
 
   /* ============================================================
      CONFIGURED BUTTON HANDLER
-     ============================================================ */
+  ============================================================ */
 
   const handleConfiguredButton = (button) => {
     if (!button) return;
@@ -788,7 +823,7 @@ function CardPreview() {
 
   /* ============================================================
      INQUIRY SUBMIT
-     ============================================================ */
+  ============================================================ */
 
   const submitInquiry = async (event) => {
     event.preventDefault();
@@ -828,7 +863,10 @@ function CardPreview() {
     }
   };
 
-  // SUBMIT QR LEAD
+  /* ============================================================
+     SUBMIT QR LEAD
+  ============================================================ */
+
   const submitQRLead = async (event) => {
     event.preventDefault();
 
@@ -868,9 +906,74 @@ function CardPreview() {
       setQRLeadSubmitting(false);
     }
   };
+
+  /* ============================================================
+     SUBMIT REVIEW
+  ============================================================ */
+
+  const submitReview = async (event) => {
+    event.preventDefault();
+
+    if (!reviewForm.reviewerName.trim()) {
+      setReviewError("Please enter your name.");
+      return;
+    }
+
+    if (!reviewForm.comment.trim()) {
+      setReviewError("Please write your review.");
+      return;
+    }
+
+    try {
+      setReviewLoading(true);
+      setReviewError("");
+
+      await dispatch(
+        createReview({
+          subdomain,
+          reviewerName: reviewForm.reviewerName.trim(),
+          reviewerEmail: reviewForm.reviewerEmail.trim(),
+          rating: reviewRating,
+          comment: reviewForm.comment.trim(),
+        }),
+      ).unwrap();
+
+      setReviewForm({
+        reviewerName: "",
+        reviewerEmail: "",
+        comment: "",
+      });
+
+      setReviewRating(5);
+      setShowReviewModal(false);
+
+      setReviewToast({
+        show: true,
+        message: "Review submitted successfully!",
+        type: "success",
+      });
+
+      setTimeout(() => {
+        setReviewToast({
+          show: false,
+          message: "",
+          type: "success",
+        });
+      }, 3000);
+    } catch (error) {
+      setReviewError(
+        typeof error === "string"
+          ? error
+          : error?.message || "Unable to submit review.",
+      );
+    } finally {
+      setReviewLoading(false);
+    }
+  };
+
   /* ============================================================
      LOADING
-     ============================================================ */
+  ============================================================ */
 
   if (loading) {
     return (
@@ -882,7 +985,7 @@ function CardPreview() {
 
   /* ============================================================
      ERROR
-     ============================================================ */
+  ============================================================ */
 
   if (profileError || !profile || !businessInfo) {
     return (
@@ -900,13 +1003,13 @@ function CardPreview() {
 
   /* ============================================================
      ACCENT STYLE
-     ============================================================ */
+  ============================================================ */
 
   const accentGradient = `linear-gradient(100deg, ${theme.primary}, ${theme.accent})`;
 
   /* ============================================================
      RENDER
-     ============================================================ */
+  ============================================================ */
 
   return (
     <main
@@ -930,6 +1033,30 @@ function CardPreview() {
         >
           <CheckCircle2 size={18} style={{ color: theme.primary }} />
           Inquiry submitted successfully!
+        </div>
+      )}
+
+      {/* REVIEW SUCCESS TOAST */}
+
+      {reviewToast.show && (
+        <div
+          className="fixed left-1/2 top-20 z-[210] flex -translate-x-1/2 items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold shadow-2xl"
+          style={{
+            background: theme.surface,
+            border: `1px solid ${
+              reviewToast.type === "success" ? theme.primary : "#ef4444"
+            }`,
+            color: theme.text,
+            animation: "toastSlideIn 0.3s ease",
+          }}
+        >
+          {reviewToast.type === "success" ? (
+            <CheckCircle2 size={18} style={{ color: theme.primary }} />
+          ) : (
+            <X size={18} className="text-red-500" />
+          )}
+
+          {reviewToast.message}
         </div>
       )}
 
@@ -1037,9 +1164,64 @@ function CardPreview() {
             onContactClick={handleConfiguredButton}
           />
         </article>
+
+        {/* ============================================================
+            REVIEWS SECTION
+        ============================================================ */}
+
+        <section
+          className="mt-5 rounded-2xl border p-5 shadow-xl sm:p-7"
+          style={{
+            background: theme.surface,
+            borderColor: theme.border,
+            color: theme.text,
+          }}
+        >
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <MessageSquareText
+                  size={21}
+                  style={{ color: theme.primary }}
+                />
+
+                <h2 className="text-xl font-bold sm:text-2xl">
+                  Reviews & Ratings
+                </h2>
+              </div>
+
+              <p
+                className="mt-2 text-sm"
+                style={{ color: theme.muted }}
+              >
+                Share your experience with this business.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setReviewError("");
+                setReviewRating(5);
+                setShowReviewModal(true);
+              }}
+              className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition hover:opacity-90"
+              style={{
+                background: accentGradient,
+                color: "#ffffff",
+              }}
+            >
+              <Star size={17} />
+              Write a Review
+            </button>
+          </div>
+        </section>
       </div>
 
-      {/* QR LEAD CAPTURE POPUP */}
+      {/* ============================================================
+          QR LEAD CAPTURE POPUP
+      ============================================================ */}
+
       {showQRLeadPopup && (
         <div
           className="fixed inset-0 z-[150] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
@@ -1061,6 +1243,7 @@ function CardPreview() {
             }}
           >
             {/* CLOSE BUTTON */}
+
             <button
               type="button"
               onClick={() => setShowQRLeadPopup(false)}
@@ -1081,10 +1264,18 @@ function CardPreview() {
                   className="mx-auto mb-4"
                   style={{ color: theme.primary }}
                 />
-                <h2 className="text-xl font-bold">Thank You!</h2>
-                <p className="mt-2 text-sm" style={{ color: theme.muted }}>
+
+                <h2 className="text-xl font-bold">
+                  Thank You!
+                </h2>
+
+                <p
+                  className="mt-2 text-sm"
+                  style={{ color: theme.muted }}
+                >
                   Your details have been submitted successfully.
                 </p>
+
                 <button
                   type="button"
                   onClick={() => setShowQRLeadPopup(false)}
@@ -1096,17 +1287,26 @@ function CardPreview() {
               </div>
             ) : (
               <>
-                <h2 className="pr-8 text-2xl font-bold">Get in Touch</h2>
+                <h2 className="pr-8 text-2xl font-bold">
+                  Get in Touch
+                </h2>
 
-                <p className="mt-2 text-sm" style={{ color: theme.muted }}>
+                <p
+                  className="mt-2 text-sm"
+                  style={{ color: theme.muted }}
+                >
                   Share your details and we will contact you.
                 </p>
 
-                <form onSubmit={submitQRLead} className="mt-6 space-y-4">
+                <form
+                  onSubmit={submitQRLead}
+                  className="mt-6 space-y-4"
+                >
                   <div>
                     <label className="mb-2 block text-sm font-medium">
                       Your Name *
                     </label>
+
                     <input
                       type="text"
                       required
@@ -1132,6 +1332,7 @@ function CardPreview() {
                     <label className="mb-2 block text-sm font-medium">
                       Mobile Number *
                     </label>
+
                     <input
                       type="tel"
                       required
@@ -1178,7 +1379,9 @@ function CardPreview() {
                   </div>
 
                   {qrLeadError && (
-                    <p className="text-sm text-red-500">{qrLeadError}</p>
+                    <p className="text-sm text-red-500">
+                      {qrLeadError}
+                    </p>
                   )}
 
                   <button
@@ -1187,7 +1390,9 @@ function CardPreview() {
                     className="w-full rounded-xl px-5 py-3 font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                     style={{ background: accentGradient }}
                   >
-                    {qrLeadSubmitting ? "Submitting..." : "Submit Details"}
+                    {qrLeadSubmitting
+                      ? "Submitting..."
+                      : "Submit Details"}
                   </button>
 
                   <button
@@ -1208,7 +1413,246 @@ function CardPreview() {
         </div>
       )}
 
-      {/* SHARE / MY QR / POSTER MODAL */}
+      {/* ============================================================
+          REVIEW POPUP
+      ============================================================ */}
+
+      {showReviewModal && (
+        <div
+          className="fixed inset-0 z-[180] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          onClick={(event) => {
+            if (event.target === event.currentTarget && !reviewLoading) {
+              setShowReviewModal(false);
+            }
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-label="Write a review"
+            className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border p-5 shadow-2xl sm:p-7"
+            style={{
+              background: theme.surface,
+              borderColor: theme.border,
+              color: theme.text,
+            }}
+          >
+            {/* CLOSE */}
+
+            <button
+              type="button"
+              onClick={() => !reviewLoading && setShowReviewModal(false)}
+              aria-label="Close review popup"
+              disabled={reviewLoading}
+              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl disabled:opacity-50"
+              style={{
+                background: theme.card,
+                color: theme.text,
+              }}
+            >
+              <X size={18} />
+            </button>
+
+            <div className="pr-10">
+              <div className="flex items-center gap-2">
+                <MessageSquareText
+                  size={22}
+                  style={{ color: theme.primary }}
+                />
+
+                <h2 className="text-xl font-bold">
+                  Write a Review
+                </h2>
+              </div>
+
+              <p
+                className="mt-2 text-sm"
+                style={{ color: theme.muted }}
+              >
+                Share your experience with this business.
+              </p>
+            </div>
+
+            <form
+              onSubmit={submitReview}
+              className="mt-6 space-y-4"
+            >
+              {/* NAME */}
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold">
+                  Your Name *
+                </label>
+
+                <input
+                  type="text"
+                  required
+                  maxLength={100}
+                  value={reviewForm.reviewerName}
+                  onChange={(event) => {
+                    setReviewForm((prev) => ({
+                      ...prev,
+                      reviewerName: event.target.value,
+                    }));
+                    setReviewError("");
+                  }}
+                  placeholder="Enter your name"
+                  className="w-full rounded-xl border px-4 py-3 outline-none"
+                  style={{
+                    background: theme.card,
+                    borderColor: theme.border,
+                    color: theme.text,
+                  }}
+                />
+              </div>
+
+              {/* EMAIL */}
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold">
+                  Email Address
+                  <span
+                    className="ml-1 text-xs font-normal"
+                    style={{ color: theme.muted }}
+                  >
+                    (Optional)
+                  </span>
+                </label>
+
+                <input
+                  type="email"
+                  maxLength={254}
+                  value={reviewForm.reviewerEmail}
+                  onChange={(event) =>
+                    setReviewForm((prev) => ({
+                      ...prev,
+                      reviewerEmail: event.target.value,
+                    }))
+                  }
+                  placeholder="Enter your email"
+                  className="w-full rounded-xl border px-4 py-3 outline-none"
+                  style={{
+                    background: theme.card,
+                    borderColor: theme.border,
+                    color: theme.text,
+                  }}
+                />
+              </div>
+
+              {/* RATING */}
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold">
+                  Your Rating
+                </label>
+
+                <div className="flex items-center gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setReviewRating(star)}
+                      aria-label={`Give ${star} star${
+                        star > 1 ? "s" : ""
+                      }`}
+                      className="transition hover:scale-110"
+                    >
+                      <Star
+                        size={30}
+                        fill={
+                          star <= reviewRating
+                            ? "currentColor"
+                            : "none"
+                        }
+                        style={{
+                          color:
+                            star <= reviewRating
+                              ? theme.primary
+                              : theme.muted,
+                        }}
+                      />
+                    </button>
+                  ))}
+
+                  <span
+                    className="ml-2 text-sm font-semibold"
+                    style={{ color: theme.muted }}
+                  >
+                    {reviewRating}/5
+                  </span>
+                </div>
+              </div>
+
+              {/* COMMENT */}
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold">
+                  Your Review *
+                </label>
+
+                <textarea
+                  required
+                  maxLength={1000}
+                  rows={5}
+                  value={reviewForm.comment}
+                  onChange={(event) => {
+                    setReviewForm((prev) => ({
+                      ...prev,
+                      comment: event.target.value,
+                    }));
+                    setReviewError("");
+                  }}
+                  placeholder="Write your experience..."
+                  className="w-full resize-none rounded-xl border px-4 py-3 outline-none"
+                  style={{
+                    background: theme.card,
+                    borderColor: theme.border,
+                    color: theme.text,
+                  }}
+                />
+              </div>
+
+              {/* ERROR */}
+
+              {reviewError && (
+                <p className="text-sm text-red-400">
+                  {reviewError}
+                </p>
+              )}
+
+              {/* SUBMIT */}
+
+              <button
+                type="submit"
+                disabled={reviewLoading}
+                className="flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 font-bold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                style={{
+                  background: accentGradient,
+                }}
+              >
+                {reviewLoading ? (
+                  <>
+                    <LoaderCircle
+                      size={18}
+                      className="animate-spin"
+                    />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <Star size={18} />
+                    Submit Review
+                  </>
+                )}
+              </button>
+            </form>
+          </section>
+        </div>
+      )}
+
+      {/* ============================================================
+          SHARE / MY QR / POSTER MODAL
+      ============================================================ */}
 
       {showQrModal && (
         <div
@@ -1371,6 +1815,7 @@ function CardPreview() {
                       <Download size={16} />
                       Download QR Code
                     </button>
+
                     <button
                       type="button"
                       onClick={handleDownloadStandee}
@@ -1382,7 +1827,10 @@ function CardPreview() {
                     </button>
                   </>
                 ) : (
-                  <p className="py-8 text-sm" style={{ color: theme.muted }}>
+                  <p
+                    className="py-8 text-sm"
+                    style={{ color: theme.muted }}
+                  >
                     QR code is not available for this profile.
                   </p>
                 )}
@@ -1412,7 +1860,10 @@ function CardPreview() {
                   Profile QR Poster
                 </h3>
 
-                <p className="mb-4 text-sm" style={{ color: theme.muted }}>
+                <p
+                  className="mb-4 text-sm"
+                  style={{ color: theme.muted }}
+                >
                   Scan this QR code to open this profile.
                 </p>
 
@@ -1471,7 +1922,10 @@ function CardPreview() {
                     </button>
                   </>
                 ) : (
-                  <p className="py-8 text-sm" style={{ color: theme.muted }}>
+                  <p
+                    className="py-8 text-sm"
+                    style={{ color: theme.muted }}
+                  >
                     QR code is not available for this profile.
                   </p>
                 )}
@@ -1481,7 +1935,9 @@ function CardPreview() {
         </div>
       )}
 
-      {/* PRODUCT MODAL */}
+      {/* ============================================================
+          PRODUCT MODAL
+      ============================================================ */}
 
       {selectedProduct &&
         (() => {
@@ -1551,9 +2007,14 @@ function CardPreview() {
                     {selectedProduct.name}
                   </h3>
 
-                  <p className="mt-2" style={{ color: theme.primary }}>
+                  <p
+                    className="mt-2"
+                    style={{ color: theme.primary }}
+                  >
                     ₹
-                    {Number(selectedProduct.price || 0).toLocaleString("en-IN")}
+                    {Number(selectedProduct.price || 0).toLocaleString(
+                      "en-IN",
+                    )}
                   </p>
 
                   <p
@@ -1626,7 +2087,9 @@ function CardPreview() {
           );
         })()}
 
-      {/* GALLERY MODAL */}
+      {/* ============================================================
+          GALLERY MODAL
+      ============================================================ */}
 
       {selectedGalleryImage && (
         <div
