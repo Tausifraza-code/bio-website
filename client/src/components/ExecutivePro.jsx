@@ -243,6 +243,7 @@ const ExecutivePro = ({
   onOpenQr = () => {},
   onProductClick = () => {},
   onProductWhatsAppInquiry = () => {},
+  onGalleryWhatsAppInquiry = () => {},
   onGalleryClick = () => {},
   onContactClick = () => {},
 }) => {
@@ -280,9 +281,7 @@ const ExecutivePro = ({
   const getSocialIcon = (platform = "") => {
     const key = platform.toLowerCase();
 
-    const found = Object.keys(socialIconMap).find((item) =>
-      key.includes(item),
-    );
+    const found = Object.keys(socialIconMap).find((item) => key.includes(item));
 
     return found ? socialIconMap[found] : FaLink;
   };
@@ -466,40 +465,41 @@ const ExecutivePro = ({
         {/* SOCIAL ICONS */}
 
         {socialLinks.length > 0 && (
-     <div className="mt-5 flex flex-wrap justify-center gap-2 sm:justify-start">
-  {socialLinks.map((social, index) => {
-    const Icon = getSocialIcon(social.platform);
+          <div className="mt-5 flex flex-wrap justify-center gap-2 sm:justify-start">
+            {socialLinks.map((social, index) => {
+              const Icon = getSocialIcon(social.platform);
 
-    const brandColors = {
-      instagram: "text-[#E4405F] hover:border-[#E4405F]",
-      facebook: "text-[#1877F2] hover:border-[#1877F2]",
-      linkedin: "text-[#0A66C2] hover:border-[#0A66C2]",
-      whatsapp: "text-[#25D366] hover:border-[#25D366]",
-      youtube: "text-[#FF0000] hover:border-[#FF0000]",
-      twitter: "text-[#1DA1F2] hover:border-[#1DA1F2]",
-      x: "text-white hover:border-white",
-      telegram: "text-[#26A5E4] hover:border-[#26A5E4]",
-      github: "text-white hover:border-white",
-      pinterest: "text-[#E60023] hover:border-[#E60023]",
-    };
+              const brandColors = {
+                instagram: "text-[#E4405F] hover:border-[#E4405F]",
+                facebook: "text-[#1877F2] hover:border-[#1877F2]",
+                linkedin: "text-[#0A66C2] hover:border-[#0A66C2]",
+                whatsapp: "text-[#25D366] hover:border-[#25D366]",
+                youtube: "text-[#FF0000] hover:border-[#FF0000]",
+                twitter: "text-[#1DA1F2] hover:border-[#1DA1F2]",
+                x: "text-white hover:border-white",
+                telegram: "text-[#26A5E4] hover:border-[#26A5E4]",
+                github: "text-white hover:border-white",
+                pinterest: "text-[#E60023] hover:border-[#E60023]",
+              };
 
-    const platform = social.platform.toLowerCase();
-    const brandColor = brandColors[platform] || "text-slate-300 hover:border-cyan-400";
+              const platform = social.platform.toLowerCase();
+              const brandColor =
+                brandColors[platform] || "text-slate-300 hover:border-cyan-400";
 
-    return (
-      <a
-        key={social._id || `${social.platform}-${index}`}
-        href={normalizeUrl(social.url)}
-        target="_blank"
-        rel="noopener noreferrer"
-        title={social.platform}
-        className={`flex h-10 w-10 items-center justify-center rounded-xl border border-[#29435F] bg-[#132942] ${brandColor} transition hover:-translate-y-1`}
-      >
-        <Icon size={17} />
-      </a>
-    );
-  })}
-</div>
+              return (
+                <a
+                  key={social._id || `${social.platform}-${index}`}
+                  href={normalizeUrl(social.url)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={social.platform}
+                  className={`flex h-10 w-10 items-center justify-center rounded-xl border border-[#29435F] bg-[#132942] ${brandColor} transition hover:-translate-y-1`}
+                >
+                  <Icon size={17} />
+                </a>
+              );
+            })}
+          </div>
         )}
       </section>
 
@@ -708,116 +708,121 @@ const ExecutivePro = ({
           {/* PRODUCTS — SINGLE LINE AUTO SLIDE   */}
           {/* ================================== */}
 
-         {productList.length > 0 && (
-  <section className={panelClass}>
-    <div className="mb-5 flex items-center justify-between gap-3">
-      <div>
-        <p className="text-[10px] font-bold uppercase tracking-[2px] text-cyan-400">
-          Explore collection
-        </p>
+          {productList.length > 0 && (
+            <section className={panelClass}>
+              <div className="mb-5 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[2px] text-cyan-400">
+                    Explore collection
+                  </p>
 
-        <h2 className="mt-1 text-xl font-black text-white">
-          Featured Products
-        </h2>
-      </div>
+                  <h2 className="mt-1 text-xl font-black text-white">
+                    Featured Products
+                  </h2>
+                </div>
 
-      <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-bold text-cyan-300">
-        {productList.length} Items
-      </span>
-    </div>
-
-    <AutoRow
-      items={productList}
-      desktopVisible={3}
-      renderItem={(product) => {
-        const cover = product.images?.find((item) => item?.url)?.url;
-
-        return (
-          <div
-            key={product._id}
-            className="overflow-hidden rounded-xl border border-[#29435F] bg-[#0B1B30]"
-          >
-            {/* PRODUCT CARD */}
-            <button
-              type="button"
-              onClick={() => onProductClick(product)}
-              className="group block w-full overflow-hidden text-left"
-            >
-              <div className="relative h-44 overflow-hidden bg-[#132942]">
-                {cover ? (
-                  <img
-                    src={cover}
-                    alt={product.name}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center">
-                    <ImageIcon size={35} className="text-slate-500" />
-                  </div>
-                )}
-
-                <span className="absolute right-3 top-3 rounded-lg bg-[#071326]/80 p-2 text-cyan-300 backdrop-blur">
-                  <ArrowUpRight size={16} />
+                <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-bold text-cyan-300">
+                  {productList.length} Items
                 </span>
               </div>
 
-              <div className="p-4">
-                <h3 className="truncate text-sm font-bold text-white">
-                  {product.name}
-                </h3>
+              <AutoRow
+                items={productList}
+                desktopVisible={3}
+                renderItem={(product) => {
+                  const cover = product.images?.find((item) => item?.url)?.url;
 
-                <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-400">
-                  {product.description}
-                </p>
+                  return (
+                    <div
+                      key={product._id}
+                      className="overflow-hidden rounded-xl border border-[#29435F] bg-[#0B1B30]"
+                    >
+                      {/* PRODUCT CARD */}
+                      <button
+                        type="button"
+                        onClick={() => onProductClick(product)}
+                        className="group block w-full overflow-hidden text-left"
+                      >
+                        <div className="relative h-44 overflow-hidden bg-[#132942]">
+                          {cover ? (
+                            <img
+                              src={cover}
+                              alt={product.name}
+                              loading="lazy"
+                              className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center">
+                              <ImageIcon size={35} className="text-slate-500" />
+                            </div>
+                          )}
 
-                {/* PRICE + WHATSAPP ICON */}
-                <div className="mt-3 flex items-center justify-between gap-2">
-                  <p className="text-lg font-black text-cyan-400">
-                    ₹
-                    {Number(product.price || 0).toLocaleString("en-IN")}
-                  </p>
+                          <span className="absolute right-3 top-3 rounded-lg bg-[#071326]/80 p-2 text-cyan-300 backdrop-blur">
+                            <ArrowUpRight size={16} />
+                          </span>
+                        </div>
 
-                  <span
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onProductWhatsAppInquiry(product);
-                    }}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        onProductWhatsAppInquiry(product);
-                      }
-                    }}
-                    aria-label={`WhatsApp inquiry for ${product.name}`}
-                    title="WhatsApp Inquiry"
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white transition hover:bg-emerald-400"
-                  >
-                    <FaWhatsapp size={21} />
-                  </span>
-                </div>
-              </div>
-            </button>
+                        <div className="p-4">
+                          <h3 className="truncate text-sm font-bold text-white">
+                            {product.name}
+                          </h3>
 
-            {/* PAY NOW BUTTON */}
-            <div className="px-4 pb-4">
-              <button
-                type="button"
-                onClick={() => onProductClick(product)}
-                className="flex w-full items-center justify-center rounded-xl bg-cyan-400 py-3 text-sm font-extrabold text-[#071326] transition hover:bg-cyan-300 active:scale-[0.98]"
-              >
-                Pay Now
-              </button>
-            </div>
-          </div>
-        );
-      }}
-    />
-  </section>
-)}
+                          <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-400">
+                            {product.description}
+                          </p>
+
+                          {/* PRICE + WHATSAPP ICON */}
+                          <div className="mt-3 flex items-center justify-between gap-2">
+                            <p className="text-lg font-black text-cyan-400">
+                              ₹
+                              {Number(product.price || 0).toLocaleString(
+                                "en-IN",
+                              )}
+                            </p>
+
+                            <span
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                onProductWhatsAppInquiry(product);
+                              }}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(event) => {
+                                if (
+                                  event.key === "Enter" ||
+                                  event.key === " "
+                                ) {
+                                  event.preventDefault();
+                                  event.stopPropagation();
+                                  onProductWhatsAppInquiry(product);
+                                }
+                              }}
+                              aria-label={`WhatsApp inquiry for ${product.name}`}
+                              title="WhatsApp Inquiry"
+                              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white transition hover:bg-emerald-400"
+                            >
+                              <FaWhatsapp size={21} />
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+
+                      {/* PAY NOW BUTTON */}
+                      <div className="px-4 pb-4">
+                        <button
+                          type="button"
+                          onClick={() => onProductClick(product)}
+                          className="flex w-full items-center justify-center rounded-xl bg-cyan-400 py-3 text-sm font-extrabold text-[#071326] transition hover:bg-cyan-300 active:scale-[0.98]"
+                        >
+                          Pay Now
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }}
+              />
+            </section>
+          )}
 
           {/* ================================== */}
           {/* GALLERY — SINGLE LINE AUTO SLIDE    */}
@@ -843,22 +848,49 @@ const ExecutivePro = ({
                 items={galleryImages}
                 desktopVisible={4}
                 renderItem={(image, index) => (
-                  <button
-                    type="button"
-                    onClick={() => onGalleryClick(image)}
-                    className="group relative block aspect-[4/3] w-full overflow-hidden rounded-xl border border-[#29435F]"
-                  >
-                    <img
-                      src={image.url}
-                      alt={image.alt || `Gallery ${index + 1}`}
-                      loading="lazy"
-                      className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
-                    />
+                  <div className="overflow-hidden rounded-xl border border-[#29435F] bg-[#0B1B30]">
+                    {/* GALLERY IMAGE */}
+                    <button
+                      type="button"
+                      onClick={() => onGalleryClick(image)}
+                      className="group relative block aspect-[4/3] w-full overflow-hidden"
+                      aria-label={`View gallery image ${index + 1}`}
+                    >
+                      <img
+                        src={image.url}
+                        alt={image.alt || `Gallery ${index + 1}`}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                      />
 
-                    <div className="absolute inset-0 flex items-center justify-center bg-[#071326]/50 opacity-0 transition group-hover:opacity-100">
-                      <ArrowUpRight size={25} className="text-cyan-300" />
+                      <div className="absolute inset-0 flex items-center justify-center bg-[#071326]/50 opacity-0 transition group-hover:opacity-100">
+                        <ArrowUpRight size={25} className="text-cyan-300" />
+                      </div>
+                    </button>
+
+                    {/* WHATSAPP INQUIRY BUTTON */}
+                    <div className="p-3">
+                      <button
+                        type="button"
+                        onClick={() => onGalleryWhatsAppInquiry(image)}
+                        className="
+    flex w-full min-w-0 flex-col
+    items-center justify-center
+    gap-1 overflow-hidden
+    rounded-lg bg-emerald-500
+    px-2 py-2.5
+    text-[11px] font-bold text-white
+    transition hover:bg-emerald-400
+    active:scale-[0.98]
+    sm:flex-row sm:gap-2
+    sm:py-3 sm:text-xs
+  "
+                      >
+                        <FaWhatsapp size={17} className="shrink-0" />
+                        <span className="max-w-full truncate">WhatsApp</span>
+                      </button>
                     </div>
-                  </button>
+                  </div>
                 )}
               />
             ) : (
@@ -986,49 +1018,49 @@ const ExecutivePro = ({
         </div>
       </main>
 
-     {/* MOBILE QR CODE - BOTTOM POSITION */}
-<section
-  className={`${panelClass} mx-5 mb-8 flex flex-col items-center text-center sm:mx-8 lg:hidden`}
->
-  <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-400">
-    <ScanLine size={22} />
-  </div>
+      {/* MOBILE QR CODE - BOTTOM POSITION */}
+      <section
+        className={`${panelClass} mx-5 mb-8 flex flex-col items-center text-center sm:mx-8 lg:hidden`}
+      >
+        <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-400">
+          <ScanLine size={22} />
+        </div>
 
-  <h2 className={headingClass}>Scan My QR</h2>
+        <h2 className={headingClass}>Scan My QR</h2>
 
-  <p className="mt-1 text-xs text-slate-400">
-    Scan to visit my digital profile
-  </p>
+        <p className="mt-1 text-xs text-slate-400">
+          Scan to visit my digital profile
+        </p>
 
-  <div className="mt-5 flex min-h-[190px] w-full items-center justify-center rounded-2xl border border-[#29435F] bg-[#0B1B30] p-4">
-    {qrFetching ? (
-      <p className="text-sm text-slate-400">Loading QR...</p>
-    ) : qrTargetUrl ? (
-      <div className="rounded-xl bg-white p-3">
-        <QRCodeCanvas
-          value={qrTargetUrl}
-          size={155}
-          level="H"
-          includeMargin
-        />
-      </div>
-    ) : (
-      <p className="text-xs text-slate-500">QR code not available</p>
-    )}
-  </div>
+        <div className="mt-5 flex min-h-[190px] w-full items-center justify-center rounded-2xl border border-[#29435F] bg-[#0B1B30] p-4">
+          {qrFetching ? (
+            <p className="text-sm text-slate-400">Loading QR...</p>
+          ) : qrTargetUrl ? (
+            <div className="rounded-xl bg-white p-3">
+              <QRCodeCanvas
+                value={qrTargetUrl}
+                size={155}
+                level="H"
+                includeMargin
+              />
+            </div>
+          ) : (
+            <p className="text-xs text-slate-500">QR code not available</p>
+          )}
+        </div>
 
-  {qrTargetUrl && (
-    <a
-      href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrTargetUrl)}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-cyan-400/30 bg-cyan-400/10 py-2.5 text-sm font-bold text-cyan-300 transition hover:bg-cyan-400 hover:text-[#0B1B30]"
-    >
-      <Download size={16} />
-      Download QR
-    </a>
-  )}
-</section>
+        {qrTargetUrl && (
+          <a
+            href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrTargetUrl)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-cyan-400/30 bg-cyan-400/10 py-2.5 text-sm font-bold text-cyan-300 transition hover:bg-cyan-400 hover:text-[#0B1B30]"
+          >
+            <Download size={16} />
+            Download QR
+          </a>
+        )}
+      </section>
 
       {/* ================================== */}
       {/* FOOTER */}

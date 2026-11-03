@@ -60,6 +60,7 @@ const MinimalLuxury = ({
   onOpenQr = () => {},
   onProductClick = () => {},
   onProductWhatsAppInquiry = () => {},
+  onGalleryWhatsAppInquiry = () => {},
   onGalleryClick = () => {},
   onContactClick = () => {},
 }) => {
@@ -169,7 +170,7 @@ const MinimalLuxury = ({
 
   const firstSocialLinks = socials.slice(0, 7);
 
- const contactButtons = configuredButtons;
+  const contactButtons = configuredButtons;
 
   const hasBusinessName = Boolean(businessName || name);
 
@@ -391,27 +392,28 @@ const MinimalLuxury = ({
                 </div>
               )}
 
-         
-             {/* QUICK ACTIONS */}
-<div className="mt-2 ">
-  {contactButtons.length > 0 && (
-    <div className=" flex flex-wrap gap-2  border-[#E8EFF4]">
-      {contactButtons.map((button, index) => (
-        <button
-          key={button._id || button.id || index}
-          type="button"
-          onClick={() => onConfiguredButton(button)}
-          className="flex min-h-[38px] items-center gap-1.5 rounded-[10px] border border-[#D9E5EF] bg-white px-3 py-2 text-[11px] font-bold text-[#24415F] transition active:scale-[0.98]"
-        >
-          {button.actionType === "whatsapp" && <FaWhatsapp size={13} />}
-          {button.actionType === "call" && <Phone size={13} />}
-          {button.label}
-          <ArrowUpRight size={12} />
-        </button>
-      ))}
-    </div>
-  )}
-</div>
+              {/* QUICK ACTIONS */}
+              <div className="mt-2 ">
+                {contactButtons.length > 0 && (
+                  <div className=" flex flex-wrap gap-2  border-[#E8EFF4]">
+                    {contactButtons.map((button, index) => (
+                      <button
+                        key={button._id || button.id || index}
+                        type="button"
+                        onClick={() => onConfiguredButton(button)}
+                        className="flex min-h-[38px] items-center gap-1.5 rounded-[10px] border border-[#D9E5EF] bg-white px-3 py-2 text-[11px] font-bold text-[#24415F] transition active:scale-[0.98]"
+                      >
+                        {button.actionType === "whatsapp" && (
+                          <FaWhatsapp size={13} />
+                        )}
+                        {button.actionType === "call" && <Phone size={13} />}
+                        {button.label}
+                        <ArrowUpRight size={12} />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </section>
 
@@ -551,127 +553,125 @@ const MinimalLuxury = ({
           )}
 
           {/* PRODUCTS */}
-{products.length > 0 && (
-  <section className="mx-0 mt-3 rounded-[15px] border border-[#E0E9F1] bg-white p-3.5">
-    <div className="mb-3 flex items-end justify-between">
-      <div>
-        <p className="text-[12px] font-black uppercase tracking-[0.16em] text-[#12BCEB]">
-          Featured Product Collection
-        </p>
-      </div>
-
-      <span className="text-[10px] font-bold text-[#7C8EA2]">
-        Swipe →
-      </span>
-    </div>
-
-    <Swiper
-      modules={[Autoplay, Pagination]}
-      spaceBetween={9}
-      slidesPerView={1.2}
-      breakpoints={{
-        640: {
-          slidesPerView: 2,
-          spaceBetween: 12,
-        },
-        1024: {
-          slidesPerView: 3,
-          spaceBetween: 14,
-        },
-      }}
-      loop={products.length > 3}
-      speed={600}
-      autoplay={products.length > 1 ? swiperAutoplay : false}
-      pagination={{
-        clickable: true,
-        dynamicBullets: true,
-      }}
-      className="mobile-product-swiper !pb-7"
-    >
-      {products.map((product, index) => {
-        const cover = product.images?.find((item) => item?.url)?.url;
-
-        return (
-          <SwiperSlide key={product._id || index}>
-            <div className="overflow-hidden rounded-[12px] border border-[#E1EAF2] bg-white">
-
-              {/* Product Click Area */}
-              <button
-                type="button"
-                onClick={() => onProductClick(product)}
-                className="w-full text-left"
-              >
-                <div className="relative h-[150px] overflow-hidden bg-[#EEF5F9]">
-                  {cover ? (
-                    <img
-                      src={cover}
-                      alt={product.name || "Product"}
-                      loading="lazy"
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center">
-                      <ImageIcon
-                        size={25}
-                        className="text-[#9CB1C5]"
-                      />
-                    </div>
-                  )}
+          {products.length > 0 && (
+            <section className="mx-0 mt-3 rounded-[15px] border border-[#E0E9F1] bg-white p-3.5">
+              <div className="mb-3 flex items-end justify-between">
+                <div>
+                  <p className="text-[12px] font-black uppercase tracking-[0.16em] text-[#12BCEB]">
+                    Featured Product Collection
+                  </p>
                 </div>
 
-                <div className="p-2.5">
-                  {product.name && (
-                    <h3 className="truncate text-[14px] font-black text-[#183250]">
-                      {product.name}
-                    </h3>
-                  )}
-
-                  {product.description && (
-                    <p className="mt-1 line-clamp-2 text-[14px] leading-4 text-[#7C8EA2]">
-                      {product.description}
-                    </p>
-                  )}
-                </div>
-              </button>
-
-              {/* Price + WhatsApp Icon */}
-              <div className="flex items-center justify-between px-2.5 pb-2.5">
-                {product.price !== undefined &&
-                  product.price !== null &&
-                  product.price !== "" && (
-                    <span className="text-[14px] font-black text-[#082B5C]">
-                      ₹
-                      {Number(product.price).toLocaleString("en-IN")}
-                    </span>
-                  )}
-
-                <button
-                  type="button"
-                  onClick={() => onProductWhatsAppInquiry(product)}
-                  aria-label="WhatsApp Inquiry"
-                  className="flex items-center justify-center text-[#25D366] transition hover:scale-110 active:scale-[0.95]"
-                >
-                  <FaWhatsapp size={20} />
-                </button>
+                <span className="text-[10px] font-bold text-[#7C8EA2]">
+                  Swipe →
+                </span>
               </div>
 
-{/* PAY NOW BUTTON */}
-<div className="px-2.5 pb-2.5">
-  <button
-    type="button"
-    onClick={() => onProductClick(product)}
-    className="flex w-full items-center justify-center rounded-[10px] bg-[#082B5C] py-2.5 text-[12px] font-bold text-white transition hover:bg-[#123F78] active:scale-[0.98]"
-  >
-    Pay Now
-  </button>
-</div>
-            </div>
-          </SwiperSlide>
-        );
-      })}
-    </Swiper>
-  </section>
-)}
+              <Swiper
+                modules={[Autoplay, Pagination]}
+                spaceBetween={9}
+                slidesPerView={1.2}
+                breakpoints={{
+                  640: {
+                    slidesPerView: 2,
+                    spaceBetween: 12,
+                  },
+                  1024: {
+                    slidesPerView: 3,
+                    spaceBetween: 14,
+                  },
+                }}
+                loop={products.length > 3}
+                speed={600}
+                autoplay={products.length > 1 ? swiperAutoplay : false}
+                pagination={{
+                  clickable: true,
+                  dynamicBullets: true,
+                }}
+                className="mobile-product-swiper !pb-7"
+              >
+                {products.map((product, index) => {
+                  const cover = product.images?.find((item) => item?.url)?.url;
+
+                  return (
+                    <SwiperSlide key={product._id || index}>
+                      <div className="overflow-hidden rounded-[12px] border border-[#E1EAF2] bg-white">
+                        {/* Product Click Area */}
+                        <button
+                          type="button"
+                          onClick={() => onProductClick(product)}
+                          className="w-full text-left"
+                        >
+                          <div className="relative h-[150px] overflow-hidden bg-[#EEF5F9]">
+                            {cover ? (
+                              <img
+                                src={cover}
+                                alt={product.name || "Product"}
+                                loading="lazy"
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-full items-center justify-center">
+                                <ImageIcon
+                                  size={25}
+                                  className="text-[#9CB1C5]"
+                                />
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="p-2.5">
+                            {product.name && (
+                              <h3 className="truncate text-[14px] font-black text-[#183250]">
+                                {product.name}
+                              </h3>
+                            )}
+
+                            {product.description && (
+                              <p className="mt-1 line-clamp-2 text-[14px] leading-4 text-[#7C8EA2]">
+                                {product.description}
+                              </p>
+                            )}
+                          </div>
+                        </button>
+
+                        {/* Price + WhatsApp Icon */}
+                        <div className="flex items-center justify-between px-2.5 pb-2.5">
+                          {product.price !== undefined &&
+                            product.price !== null &&
+                            product.price !== "" && (
+                              <span className="text-[14px] font-black text-[#082B5C]">
+                                ₹{Number(product.price).toLocaleString("en-IN")}
+                              </span>
+                            )}
+
+                          <button
+                            type="button"
+                            onClick={() => onProductWhatsAppInquiry(product)}
+                            aria-label="WhatsApp Inquiry"
+                            className="flex items-center justify-center text-[#25D366] transition hover:scale-110 active:scale-[0.95]"
+                          >
+                            <FaWhatsapp size={20} />
+                          </button>
+                        </div>
+
+                        {/* PAY NOW BUTTON */}
+                        <div className="px-2.5 pb-2.5">
+                          <button
+                            type="button"
+                            onClick={() => onProductClick(product)}
+                            className="flex w-full items-center justify-center rounded-[10px] bg-[#082B5C] py-2.5 text-[12px] font-bold text-white transition hover:bg-[#123F78] active:scale-[0.98]"
+                          >
+                            Pay Now
+                          </button>
+                        </div>
+                      </div>
+                    </SwiperSlide>
+                  );
+                })}
+              </Swiper>
+            </section>
+          )}
 
           {/* GALLERY */}
           {gallery.length > 0 && (
@@ -717,22 +717,37 @@ const MinimalLuxury = ({
               >
                 {gallery.map((image, index) => (
                   <SwiperSlide key={image._id || `${image.url}-${index}`}>
-                    <button
-                      type="button"
-                      onClick={() => onGalleryClick(image)}
-                      className="relative block aspect-[4/3] w-full overflow-hidden rounded-[11px] bg-[#EEF5F9] lg:aspect-[16/10]"
-                    >
-                      <img
-                        src={image.url}
-                        alt={image.alt || image.title || "Gallery image"}
-                        loading="lazy"
-                        className="h-full w-full object-cover"
-                      />
+                    <div className="overflow-hidden rounded-[11px] border border-[#E0E9F1] bg-white">
+                      {/* Gallery Image */}
+                      <button
+                        type="button"
+                        onClick={() => onGalleryClick(image)}
+                        className="relative block aspect-[4/3] w-full overflow-hidden bg-[#EEF5F9] lg:aspect-[16/10]"
+                      >
+                        <img
+                          src={image.url}
+                          alt={image.alt || image.title || "Gallery image"}
+                          loading="lazy"
+                          className="h-full w-full object-cover"
+                        />
 
-                      <span className="absolute bottom-2 left-2 rounded-full bg-[#082B5C]/80 px-2 py-1 text-[7px] font-bold text-white">
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                    </button>
+                        <span className="absolute bottom-2 left-2 rounded-full bg-[#082B5C]/80 px-2 py-1 text-[7px] font-bold text-white">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                      </button>
+
+                      {/* WhatsApp Inquiry */}
+                      <div className="p-2">
+                        <button
+                          type="button"
+                          onClick={() => onGalleryWhatsAppInquiry(image)}
+                          className="flex w-full min-w-0 items-center justify-center gap-1.5 rounded-[10px] bg-[#25D366] px-2 py-2.5 text-[10px] font-bold text-white transition hover:bg-[#1DA851] active:scale-[0.98] sm:text-[11px]"
+                        >
+                          <FaWhatsapp size={15} className="shrink-0" />
+                          <span>WhatsApp Inquiry</span>
+                        </button>
+                      </div>
+                    </div>
                   </SwiperSlide>
                 ))}
               </Swiper>

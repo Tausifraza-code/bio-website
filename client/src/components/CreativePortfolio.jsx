@@ -60,6 +60,7 @@ const CreativePortfolio = ({
   onProductClick = () => {},
   onProductWhatsAppInquiry = () => {},
   onGalleryClick = () => {},
+  onGalleryWhatsAppInquiry = () => {},
   onContactClick = () => {},
 }) => {
   const {
@@ -525,149 +526,154 @@ const CreativePortfolio = ({
       {/* =====================================
           PRODUCTS SECTION
       ====================================== */}
-    
-{productList.length > 0 && (
-  <section
-    id="creative-work"
-    className="w-full overflow-hidden px-4 py-4 sm:px-7 sm:py-4 lg:px-10"
-  >
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <p className={sectionLabel}>Featured Products</p>
-        <h2 className={sectionHeading}>Our Products</h2>
-        <p className="mt-2 text-xs text-[#907836]">
-          Quality products built for your success. Explore our latest
-          collection.
-        </p>
-      </div>
 
-      <span className="inline-flex items-center gap-2 text-xs font-bold text-[#EB720E]">
-        Explore Collection
-        <ArrowRight size={15} />
-      </span>
-    </div>
+      {productList.length > 0 && (
+        <section
+          id="creative-work"
+          className="w-full overflow-hidden px-4 py-4 sm:px-7 sm:py-4 lg:px-10"
+        >
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className={sectionLabel}>Featured Products</p>
+              <h2 className={sectionHeading}>Our Products</h2>
+              <p className="mt-2 text-xs text-[#907836]">
+                Quality products built for your success. Explore our latest
+                collection.
+              </p>
+            </div>
 
-    <div className="product-swiper-wrap">
-      <Swiper
-        modules={[Pagination, A11y, Autoplay]}
-        spaceBetween={12}
-        slidesPerView={2}
-        loop={productList.length > 2}
-        grabCursor={true}
-        watchOverflow={true}
-        speed={700}
-        autoplay={
-          productList.length > 2
-            ? {
-                delay: 2500,
-                disableOnInteraction: false,
-                pauseOnMouseEnter: true,
+            <span className="inline-flex items-center gap-2 text-xs font-bold text-[#EB720E]">
+              Explore Collection
+              <ArrowRight size={15} />
+            </span>
+          </div>
+
+          <div className="product-swiper-wrap">
+            <Swiper
+              modules={[Pagination, A11y, Autoplay]}
+              spaceBetween={12}
+              slidesPerView={2}
+              loop={productList.length > 2}
+              grabCursor={true}
+              watchOverflow={true}
+              speed={700}
+              autoplay={
+                productList.length > 2
+                  ? {
+                      delay: 2500,
+                      disableOnInteraction: false,
+                      pauseOnMouseEnter: true,
+                    }
+                  : false
               }
-            : false
-        }
-        pagination={{
-          clickable: true,
-          dynamicBullets: true,
-        }}
-        breakpoints={{
-          640: {
-            slidesPerView: 2,
-            spaceBetween: 16,
-          },
-          1024: {
-            slidesPerView: 3,
-            spaceBetween: 20,
-          },
-        }}
-        className="!overflow-visible !pb-6"
-      >
-        {productList.map((product, index) => {
-          const cover = product.images?.find((item) => item?.url)?.url;
+              pagination={{
+                clickable: true,
+                dynamicBullets: true,
+              }}
+              breakpoints={{
+                640: {
+                  slidesPerView: 2,
+                  spaceBetween: 16,
+                },
+                1024: {
+                  slidesPerView: 3,
+                  spaceBetween: 20,
+                },
+              }}
+              className="!overflow-visible !pb-6"
+            >
+              {productList.map((product, index) => {
+                const cover = product.images?.find((item) => item?.url)?.url;
 
-          return (
-            <SwiperSlide key={product._id || index} className="!h-auto">
-              <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#EBC6A2]/70 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
-                {/* Product Click Area */}
-                <button
-                  type="button"
-                  onClick={() => onProductClick(product)}
-                  className="group flex w-full min-w-0 flex-1 flex-col text-left"
-                >
-                  <div className="relative m-2 h-32 overflow-hidden rounded-xl bg-[#FCE9D6] sm:h-44">
-                    {cover ? (
-                      <img
-                        src={cover}
-                        alt={product.name}
-                        loading="lazy"
-                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center">
-                        <ImageIcon size={32} className="text-[#CA9959]" />
-                      </div>
-                    )}
-
-                    <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#EB720E] shadow sm:h-8 sm:w-8">
-                      <ArrowUpRight size={15} />
-                    </span>
-                  </div>
-
-                  <div className="flex flex-1 flex-col p-3 pt-1 sm:p-4 sm:pt-2">
-                    <h3 className="truncate text-xs font-extrabold text-[#25180A] sm:text-sm">
-                      {product.name}
-                    </h3>
-
-                    <p className="mt-1 line-clamp-2 min-h-8 text-[10px] leading-4 text-[#907836] sm:text-xs sm:leading-5">
-                      {product.description}
-                    </p>
-
-                    <div className="mt-auto flex items-center justify-between gap-2 pt-3">
-                      <p className="truncate text-sm font-black text-[#25180A] sm:text-base">
-                        ₹
-                        {Number(product.price || 0).toLocaleString("en-IN")}
-                      </p>
-
-                      {/* WhatsApp Query Icon */}
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        aria-label="WhatsApp Query"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          onProductWhatsAppInquiry(product);
-                        }}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            event.stopPropagation();
-                            onProductWhatsAppInquiry(product);
-                          }
-                        }}
-                        className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full border border-[#25D366] text-[#25D366] transition hover:bg-[#25D366] hover:text-white sm:h-8 sm:w-8"
+                return (
+                  <SwiperSlide key={product._id || index} className="!h-auto">
+                    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#EBC6A2]/70 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                      {/* Product Click Area */}
+                      <button
+                        type="button"
+                        onClick={() => onProductClick(product)}
+                        className="group flex w-full min-w-0 flex-1 flex-col text-left"
                       >
-                        <FaWhatsapp size={17} />
-                      </span>
+                        <div className="relative m-2 h-32 overflow-hidden rounded-xl bg-[#FCE9D6] sm:h-44">
+                          {cover ? (
+                            <img
+                              src={cover}
+                              alt={product.name}
+                              loading="lazy"
+                              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center">
+                              <ImageIcon size={32} className="text-[#CA9959]" />
+                            </div>
+                          )}
+
+                          <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#EB720E] shadow sm:h-8 sm:w-8">
+                            <ArrowUpRight size={15} />
+                          </span>
+                        </div>
+
+                        <div className="flex flex-1 flex-col p-3 pt-1 sm:p-4 sm:pt-2">
+                          <h3 className="truncate text-xs font-extrabold text-[#25180A] sm:text-sm">
+                            {product.name}
+                          </h3>
+
+                          <p className="mt-1 line-clamp-2 min-h-8 text-[10px] leading-4 text-[#907836] sm:text-xs sm:leading-5">
+                            {product.description}
+                          </p>
+
+                          <div className="mt-auto flex items-center justify-between gap-2 pt-3">
+                            <p className="truncate text-sm font-black text-[#25180A] sm:text-base">
+                              ₹
+                              {Number(product.price || 0).toLocaleString(
+                                "en-IN",
+                              )}
+                            </p>
+
+                            {/* WhatsApp Query Icon */}
+                            <span
+                              role="button"
+                              tabIndex={0}
+                              aria-label="WhatsApp Query"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                onProductWhatsAppInquiry(product);
+                              }}
+                              onKeyDown={(event) => {
+                                if (
+                                  event.key === "Enter" ||
+                                  event.key === " "
+                                ) {
+                                  event.preventDefault();
+                                  event.stopPropagation();
+                                  onProductWhatsAppInquiry(product);
+                                }
+                              }}
+                              className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full border border-[#25D366] text-[#25D366] transition hover:bg-[#25D366] hover:text-white sm:h-8 sm:w-8"
+                            >
+                              <FaWhatsapp size={17} />
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+
+                      {/* Pay Now Button */}
+                      <div className="px-3 pb-3 sm:px-4 sm:pb-4">
+                        <button
+                          type="button"
+                          onClick={() => onProductClick(product)}
+                          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-3 py-2.5 text-[10px] font-bold text-white transition hover:bg-[#1DA851] sm:py-3 sm:text-xs"
+                        >
+                          Pay Now
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                </button>
+                  </SwiperSlide>
+                );
+              })}
+            </Swiper>
 
-                {/* Pay Now Button */}
-                <div className="px-3 pb-3 sm:px-4 sm:pb-4">
-                  <button
-                    type="button"
-                    onClick={() => onProductClick(product)}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-3 py-2.5 text-[10px] font-bold text-white transition hover:bg-[#1DA851] sm:py-3 sm:text-xs"
-                  >
-                    Pay Now
-                  </button>
-                </div>
-              </div>
-            </SwiperSlide>
-          );
-        })}
-      </Swiper>
-
-      <style>{`
+            <style>{`
         .product-swiper-wrap .swiper-pagination {
           bottom: 0 !important;
         }
@@ -685,10 +691,9 @@ const CreativePortfolio = ({
           opacity: 1;
         }
       `}</style>
-    </div>
-  </section>
-)}
-
+          </div>
+        </section>
+      )}
 
       {/* =====================================
           GALLERY SECTION
@@ -756,36 +761,51 @@ const CreativePortfolio = ({
             >
               {galleryImages.map((image, index) => (
                 <SwiperSlide key={`${image.url}-${index}`} className="!h-auto">
-                  <button
-                    type="button"
-                    onClick={() => onGalleryClick(image)}
-                    className="group relative block aspect-[4/3] w-full overflow-hidden rounded-[22px] bg-[#FDE1C1] text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
-                  >
-                    <img
-                      src={image.url}
-                      alt={image.alt || `Gallery ${index + 1}`}
-                      loading="lazy"
-                      className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
-                    />
+                  <div className="flex h-full flex-col overflow-hidden rounded-[22px] border border-[#EBC6A2]/70 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+                    {/* Gallery Image Preview */}
+                    <button
+                      type="button"
+                      onClick={() => onGalleryClick(image)}
+                      className="group relative block aspect-[4/3] w-full overflow-hidden bg-[#FDE1C1] text-left"
+                    >
+                      <img
+                        src={image.url}
+                        alt={image.alt || `Gallery ${index + 1}`}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
+                      />
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#190F05]/75 via-transparent to-transparent opacity-80 transition group-hover:opacity-100" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#190F05]/75 via-transparent to-transparent opacity-80 transition group-hover:opacity-100" />
 
-                    <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between gap-2 p-3 sm:p-4">
-                      <div className="min-w-0">
-                        <span className="text-[9px] font-bold uppercase tracking-[2px] text-[#FEDCB8]">
-                          Our Work
+                      <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between gap-2 p-3 sm:p-4">
+                        <div className="min-w-0">
+                          <span className="text-[9px] font-bold uppercase tracking-[2px] text-[#FEDCB8]">
+                            Our Work
+                          </span>
+
+                          <p className="mt-1 truncate text-xs font-extrabold text-white sm:text-sm">
+                            {image.alt || `Gallery ${index + 1}`}
+                          </p>
+                        </div>
+
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-[#EB720E] shadow-lg transition group-hover:bg-[#FE932E] group-hover:text-white sm:h-9 sm:w-9">
+                          <ArrowUpRight size={17} />
                         </span>
-
-                        <p className="mt-1 truncate text-xs font-extrabold text-white sm:text-sm">
-                          {image.alt || `Gallery ${index + 1}`}
-                        </p>
                       </div>
+                    </button>
 
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-[#EB720E] shadow-lg transition group-hover:bg-[#FE932E] group-hover:text-white sm:h-9 sm:w-9">
-                        <ArrowUpRight size={17} />
-                      </span>
+                    {/* WhatsApp Inquiry */}
+                    <div className="p-3 sm:p-4">
+                      <button
+                        type="button"
+                        onClick={() => onGalleryWhatsAppInquiry(image)}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-3 py-2.5 text-[10px] font-bold text-white transition hover:bg-[#1DA851] active:scale-[0.98] sm:text-xs"
+                      >
+                        <FaWhatsapp size={16} />
+                        WhatsApp Inquiry
+                      </button>
                     </div>
-                  </button>
+                  </div>
                 </SwiperSlide>
               ))}
             </Swiper>

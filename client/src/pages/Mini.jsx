@@ -661,6 +661,33 @@ const Mini = () => {
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
 
+  const handleGalleryWhatsAppInquiry = (image) => {
+    const number = (businessInfo?.whatsapp || "").replace(/\D/g, "");
+
+    if (!number) {
+      return alert("WhatsApp number is not available in this profile.");
+    }
+
+    if (!image?.url) {
+      return alert("Gallery image is not available.");
+    }
+
+    const businessName =
+      businessInfo?.businessName || businessInfo?.name || "your business";
+
+    const message = [
+      `Hi, I'm interested in this gallery image from ${businessName}.`,
+      "",
+      `Image: ${image.caption || image.alt || "Gallery Image"}`,
+      `Image URL: ${image.url}`,
+      "",
+      "Please share more details.",
+    ].join("\n");
+
+    const whatsappUrl = `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+  };
   /* ==========================================
      CALL
   ========================================== */
@@ -1144,6 +1171,7 @@ const Mini = () => {
                 }}
                 onProductClick={(product) => setSelectedProduct(product)}
                 onProductWhatsAppInquiry={handleProductWhatsAppInquiry}
+                onGalleryWhatsAppInquiry={handleGalleryWhatsAppInquiry}
                 onGalleryClick={(image) => setSelectedGalleryImage(image)}
                 onContactClick={handleContactClick}
                 theme={theme}
