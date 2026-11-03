@@ -167,10 +167,6 @@ export default function AdminDashboard() {
       {/* Welcome */}
       <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <p className="text-sm font-medium text-cyan-600 dark:text-cyan-400">
-            ADMIN OVERVIEW
-          </p>
-
           <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
             Dashboard Overview
           </h1>
@@ -251,7 +247,7 @@ export default function AdminDashboard() {
             type="button"
             onClick={handleApplyFilter}
             disabled={loading || !fromDate || !toDate}
-            className="rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg bg-cyan-400 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? "Loading..." : "Apply Filter"}
           </button>
