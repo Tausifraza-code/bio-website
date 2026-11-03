@@ -1,4 +1,19 @@
-import { Menu, Search, Bell, Sun, Moon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Menu, Bell, Sun, Moon } from "lucide-react";
+
+const getGreeting = () => {
+  const hour = new Date().getHours();
+
+  if (hour >= 5 && hour < 12) {
+    return "Good Morning";
+  }
+
+  if (hour >= 12 && hour < 17) {
+    return "Good Afternoon";
+  }
+
+  return "Good Evening";
+};
 
 export default function AdminHeader({
   onMenuClick,
@@ -8,9 +23,20 @@ export default function AdminHeader({
 }) {
   const isDark = theme === "dark";
 
+  const [greeting, setGreeting] = useState(getGreeting);
+
+  // Update greeting automatically when the time changes.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setGreeting(getGreeting());
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-slate-200 bg-white/95 px-4 backdrop-blur-sm dark:border-slate-800 dark:bg-[#0b1728]/95 sm:px-6">
-      {/* Left: Menu and Search */}
+    <header className="sticky top-0 z-30 flex h-20 items-center justify-between gap-3 border-b border-slate-200 bg-white/95 px-4 backdrop-blur-sm dark:border-slate-800 dark:bg-[#0b1728]/95 sm:px-6">
+      {/* Left: Menu and Greeting */}
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <button
           type="button"
@@ -21,18 +47,15 @@ export default function AdminHeader({
           <Menu size={21} />
         </button>
 
-        <div className="relative hidden w-full max-w-sm sm:block">
-          <Search
-            size={18}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-          />
+        <div className="min-w-0">
+          <h2 className="truncate text-lg font-bold tracking-tight text-slate-900 dark:text-white sm:text-xl">
+            {greeting}!
+          </h2>
 
-          <input
-            type="search"
-            placeholder="Search..."
-            aria-label="Search admin panel"
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-10 pr-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-          />
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
+            Welcome back to your {branding?.websiteName || "BIO SITE"}{" "}
+            dashboard.
+          </p>
         </div>
       </div>
 
@@ -63,6 +86,7 @@ export default function AdminHeader({
             <p className="max-w-[150px] truncate text-sm font-semibold text-slate-800 dark:text-white">
               {branding?.websiteName || "BIO SITE"}
             </p>
+
             <p className="text-xs text-slate-500 dark:text-slate-400">
               Admin Panel
             </p>

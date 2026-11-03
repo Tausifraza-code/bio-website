@@ -13,6 +13,7 @@ export default function AdminLayout() {
   const adminToken = useSelector((state) => state.admin.token);
   const branding = useSelector((state) => state.admin.branding);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const [theme, setTheme] = useState(() => {
     try {
@@ -65,9 +66,15 @@ export default function AdminLayout() {
         onClose={handleSidebarClose}
         onLogout={handleLogout}
         branding={branding}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed((previous) => !previous)}
       />
 
-      <div className="min-h-screen lg:pl-64">
+      <div
+        className={`min-h-screen transition-all duration-300 ${
+          sidebarCollapsed ? "lg:pl-24" : "lg:pl-64"
+        }`}
+      >
         <AdminHeader
           onMenuClick={handleMenuClick}
           theme={theme}

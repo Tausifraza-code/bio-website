@@ -9,6 +9,8 @@ import {
   LogOut,
   ShieldCheck,
   X,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 
 const menuItems = [
@@ -50,6 +52,8 @@ export default function AdminSidebar({
   onClose,
   onLogout,
   branding,
+  collapsed = false,
+  onToggleCollapse,
 }) {
   return (
     <>
@@ -63,33 +67,52 @@ export default function AdminSidebar({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-200 bg-white text-slate-900 transition-transform duration-300 dark:border-slate-800 dark:bg-[#0b1728] dark:text-white lg:translate-x-0 ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col border-r border-slate-200 bg-white text-slate-900 transition-all duration-300 dark:border-slate-800 dark:bg-[#0b1728] dark:text-white lg:translate-x-0 ${
+          collapsed ? "w-64 lg:w-[120px]" : "w-64"
+        } ${open ? "translate-x-0" : "-translate-x-full"}`}
       >
-        <div className="flex h-20 items-center justify-between border-b border-slate-200 px-5 dark:border-slate-800">
+        <div
+          className={`relative flex h-20 shrink-0 items-center border-b border-slate-200 dark:border-slate-800 ${
+            collapsed ? "justify-center px-2" : "justify-between px-4"
+          }`}
+        >
+          {/* Logo */}
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
-              {branding?.websiteLogo ? (
-                <img
-                  src={branding.websiteLogo}
-                  alt={branding.websiteName || "Website Logo"}
-                  className="h-full w-full object-contain p-1"
-                />
-              ) : (
+            {branding?.websiteLogo ? (
+              <img
+                src={branding.websiteLogo}
+                alt="Logo"
+                className="h-11 w-11 shrink-0 rounded-lg object-contain"
+              />
+            ) : (
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
                 <ShieldCheck size={23} className="text-cyan-500" />
-              )}
-            </div>
+              </div>
+            )}
 
-            <div className="min-w-0">
-              <h2 className="truncate text-lg font-extrabold tracking-tight">
+            <div className={collapsed ? "lg:hidden" : ""}>
+              <h2 className="truncate font-bold">
                 {branding?.websiteName || "BIO Admin"}
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Management Panel
-              </p>
             </div>
           </div>
+
+          {/* Minimize / Expand Button */}
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            aria-label={collapsed ? "Expand sidebar" : "Minimize sidebar"}
+            title={collapsed ? "Expand sidebar" : "Minimize sidebar"}
+            className={`hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 lg:flex ${
+              collapsed ? "absolute right-1 top-1/2 -translate-y-1/2" : ""
+            }`}
+          >
+            {collapsed ? (
+              <PanelLeftOpen size={18} />
+            ) : (
+              <PanelLeftClose size={18} />
+            )}
+          </button>
 
           <button
             type="button"
@@ -101,7 +124,7 @@ export default function AdminSidebar({
           </button>
         </div>
 
-        <div className="px-4 pb-2 pt-6">
+        <div className={`px-4 pb-2 pt-6 ${collapsed ? "lg:hidden" : ""}`}>
           <p className="px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
             Workspace
           </p>
@@ -117,8 +140,11 @@ export default function AdminSidebar({
                 to={item.path}
                 end={item.path === "/admin"}
                 onClick={onClose}
+                title={collapsed ? item.label : undefined}
                 className={({ isActive }) =>
                   `group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all ${
+                    collapsed ? "lg:justify-center lg:px-0" : ""
+                  } ${
                     isActive
                       ? "bg-cyan-500/10 text-cyan-700 ring-1 ring-cyan-500/20 dark:text-cyan-300"
                       : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-white"
@@ -126,14 +152,20 @@ export default function AdminSidebar({
                 }
               >
                 <Icon size={19} strokeWidth={1.8} />
-                <span>{item.label}</span>
+                <span className={collapsed ? "lg:hidden" : ""}>
+                  {item.label}
+                </span>
               </NavLink>
             );
           })}
         </nav>
 
         <div className="border-t border-slate-200 p-4 dark:border-slate-800">
-          <div className="mb-3 rounded-xl bg-slate-50 p-3 dark:bg-slate-800/60">
+          <div
+            className={`mb-3 rounded-xl bg-slate-50 p-3 dark:bg-slate-800/60 ${
+              collapsed ? "lg:hidden" : ""
+            }`}
+          >
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
                 <ShieldCheck size={19} />
@@ -151,10 +183,13 @@ export default function AdminSidebar({
           <button
             type="button"
             onClick={onLogout}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"
+            title={collapsed ? "Logout" : undefined}
+            className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 ${
+              collapsed ? "lg:justify-center lg:px-0" : ""
+            }`}
           >
             <LogOut size={19} />
-            Logout
+            <span className={collapsed ? "lg:hidden" : ""}>Logout</span>
           </button>
         </div>
       </aside>
