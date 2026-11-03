@@ -19,7 +19,7 @@ import {
   LogOut,
   ExternalLink,
   Images,
-
+  Star,
 } from "lucide-react";
 
 import { logoutUser, logout } from "../redux/slice/authSlice";
@@ -86,6 +86,13 @@ const sidebarItems = [
     label: "Social Media Cards",
     icon: Share2,
     path: "/socialcard",
+    // badge: { text: "Thumbnails", color: "rose" },
+  },
+  {
+    id: "Review",
+    label: "Review Section",
+    icon: Star,
+    path: "/review",
     // badge: { text: "Thumbnails", color: "rose" },
   },
   {

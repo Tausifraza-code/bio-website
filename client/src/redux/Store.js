@@ -10,8 +10,9 @@ import paymentSettingsReducer from "./slice/paymentSettingsSlice";
 import qrReducer from "./slice/qrSlice";
 import adminQRReducer from "./slice/adminQRSlice";
 import adminPlansReducer from "./slice/adminPlansSlice";
-import referralReducer from "./slice/referSlice"
-import inquiryReducer from "./slice/inquirySlice"
+import referralReducer from "./slice/referSlice";
+import inquiryReducer from "./slice/inquirySlice";
+import reviewReducer from "./slice/reviewSlice";
 const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -27,6 +28,7 @@ const store = configureStore({
     adminPlans: adminPlansReducer,
     referral: referralReducer,
     inquiry: inquiryReducer,
+    review: reviewReducer,
   },
 });
 

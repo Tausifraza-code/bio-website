@@ -24,6 +24,7 @@ import TestQRGenerator from "./pages/TestQRGenerator";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Gallery from "./pages/Gallery";
+import Review from "./pages/Review";
 
 // admin imports
 
@@ -97,7 +98,7 @@ function App() {
           <Route path="theme" element={<WebsiteTheme />} />
           <Route path="qrcode" element={<QrCode />} />
           <Route path="refer" element={<Refer />} />
-          {/* <Route path="review" element={<Review />} /> */}
+          <Route path="review" element={<Review />} />
           <Route path="contact-buttons" element={<ContactButtons />} />
           <Route path="socialcard" element={<SocialCard />} />
           <Route path="/upi-payments" element={<UpiPaymentSettings />} />

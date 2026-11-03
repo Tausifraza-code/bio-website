@@ -39,20 +39,28 @@ import {
 /* ============================================================
    Responsive visible count hook
    ============================================================ */
+
 function useVisibleCount(desktop = 3) {
   const getCount = () => {
     if (typeof window === "undefined") return desktop;
+
     const w = window.innerWidth;
-    if (w < 640) return 1;
+
+    if (w < 640) return 2;
     if (w < 1024) return 2;
+
     return desktop;
   };
+
   const [count, setCount] = useState(getCount);
 
   useEffect(() => {
     const onResize = () => setCount(getCount());
+
     window.addEventListener("resize", onResize);
+
     return () => window.removeEventListener("resize", onResize);
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -62,6 +70,7 @@ function useVisibleCount(desktop = 3) {
 /* ============================================================
    Infinite Auto-Slide Carousel (responsive)
    ============================================================ */
+
 function AutoRow({ items, renderItem, desktopVisible = 3, interval = 3000 }) {
   const visible = useVisibleCount(desktopVisible);
   const total = items.length;
@@ -72,29 +81,36 @@ function AutoRow({ items, renderItem, desktopVisible = 3, interval = 3000 }) {
 
   const [index, setIndex] = useState(startIndex);
   const [animate, setAnimate] = useState(true);
+
   const paused = useRef(false);
 
   // Reset position when visible count changes (breakpoint switch)
   useEffect(() => {
     if (total <= 1) return;
+
     setAnimate(false);
     setIndex(total);
+
     const raf = requestAnimationFrame(() => setAnimate(true));
+
     return () => cancelAnimationFrame(raf);
   }, [visible, total]);
 
   // Auto-advance
   useEffect(() => {
     if (total <= 1) return;
+
     const id = setInterval(() => {
       if (!paused.current) setIndex((i) => i + 1);
     }, interval);
+
     return () => clearInterval(id);
   }, [total, interval]);
 
   // Snap back when entering clone zone
   useEffect(() => {
     if (total <= 1) return;
+
     const id = setTimeout(() => {
       if (index >= total * 2) {
         setAnimate(false);
@@ -104,6 +120,7 @@ function AutoRow({ items, renderItem, desktopVisible = 3, interval = 3000 }) {
         setIndex(index + total);
       }
     }, 720);
+
     return () => clearTimeout(id);
   }, [index, total]);
 
@@ -111,21 +128,28 @@ function AutoRow({ items, renderItem, desktopVisible = 3, interval = 3000 }) {
   useEffect(() => {
     if (!animate) {
       const raf = requestAnimationFrame(() => setAnimate(true));
+
       return () => cancelAnimationFrame(raf);
     }
   }, [animate]);
 
   const next = useCallback(() => {
     if (total <= 1) return;
+
     paused.current = true;
+
     setIndex((i) => i + 1);
+
     setTimeout(() => (paused.current = false), 400);
   }, [total]);
 
   const prev = useCallback(() => {
     if (total <= 1) return;
+
     paused.current = true;
+
     setIndex((i) => i - 1);
+
     setTimeout(() => (paused.current = false), 400);
   }, [total]);
 
@@ -170,6 +194,7 @@ function AutoRow({ items, renderItem, desktopVisible = 3, interval = 3000 }) {
           >
             <ArrowUpRight size={16} className="-rotate-135" />
           </button>
+
           <button
             onClick={next}
             className="absolute -right-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-[#29435F] bg-[#0B1B30]/90 text-cyan-300 shadow-lg transition hover:border-cyan-400 hover:bg-[#132942] sm:-right-3 sm:h-10 sm:w-10"
@@ -255,7 +280,9 @@ const ExecutivePro = ({
   const getSocialIcon = (platform = "") => {
     const key = platform.toLowerCase();
 
-    const found = Object.keys(socialIconMap).find((item) => key.includes(item));
+    const found = Object.keys(socialIconMap).find((item) =>
+      key.includes(item),
+    );
 
     return found ? socialIconMap[found] : FaLink;
   };
@@ -439,24 +466,40 @@ const ExecutivePro = ({
         {/* SOCIAL ICONS */}
 
         {socialLinks.length > 0 && (
-          <div className="mt-5 flex flex-wrap justify-center gap-2 sm:justify-start">
-            {socialLinks.map((social, index) => {
-              const Icon = getSocialIcon(social.platform);
+     <div className="mt-5 flex flex-wrap justify-center gap-2 sm:justify-start">
+  {socialLinks.map((social, index) => {
+    const Icon = getSocialIcon(social.platform);
 
-              return (
-                <a
-                  key={social._id || `${social.platform}-${index}`}
-                  href={normalizeUrl(social.url)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title={social.platform}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#29435F] bg-[#132942] text-slate-300 transition hover:-translate-y-1 hover:border-cyan-400 hover:text-cyan-300"
-                >
-                  <Icon size={17} />
-                </a>
-              );
-            })}
-          </div>
+    const brandColors = {
+      instagram: "text-[#E4405F] hover:border-[#E4405F]",
+      facebook: "text-[#1877F2] hover:border-[#1877F2]",
+      linkedin: "text-[#0A66C2] hover:border-[#0A66C2]",
+      whatsapp: "text-[#25D366] hover:border-[#25D366]",
+      youtube: "text-[#FF0000] hover:border-[#FF0000]",
+      twitter: "text-[#1DA1F2] hover:border-[#1DA1F2]",
+      x: "text-white hover:border-white",
+      telegram: "text-[#26A5E4] hover:border-[#26A5E4]",
+      github: "text-white hover:border-white",
+      pinterest: "text-[#E60023] hover:border-[#E60023]",
+    };
+
+    const platform = social.platform.toLowerCase();
+    const brandColor = brandColors[platform] || "text-slate-300 hover:border-cyan-400";
+
+    return (
+      <a
+        key={social._id || `${social.platform}-${index}`}
+        href={normalizeUrl(social.url)}
+        target="_blank"
+        rel="noopener noreferrer"
+        title={social.platform}
+        className={`flex h-10 w-10 items-center justify-center rounded-xl border border-[#29435F] bg-[#132942] ${brandColor} transition hover:-translate-y-1`}
+      >
+        <Icon size={17} />
+      </a>
+    );
+  })}
+</div>
         )}
       </section>
 
@@ -695,6 +738,7 @@ const ExecutivePro = ({
                       className="overflow-hidden rounded-xl border border-[#29435F] bg-[#0B1B30]"
                     >
                       {/* Existing Product Card */}
+
                       <button
                         type="button"
                         onClick={() => onProductClick(product)}
@@ -728,24 +772,31 @@ const ExecutivePro = ({
                             {product.description}
                           </p>
 
-                          <p className="mt-3 text-lg font-black text-cyan-400">
-                            ₹
-                            {Number(product.price || 0).toLocaleString("en-IN")}
-                          </p>
+                          {/* PRICE + WHATSAPP ICON */}
+
+                          <div className="mt-3 flex items-center justify-between gap-2">
+                            <p className="text-lg font-black text-cyan-400">
+                              ₹
+                              {Number(product.price || 0).toLocaleString(
+                                "en-IN",
+                              )}
+                            </p>
+
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                onProductWhatsAppInquiry(product);
+                              }}
+                              aria-label={`WhatsApp inquiry for ${product.name}`}
+                              title="WhatsApp Inquiry"
+                              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white transition hover:bg-emerald-400"
+                            >
+                              <FaWhatsapp size={21} />
+                            </button>
+                          </div>
                         </div>
                       </button>
-
-                      {/* WhatsApp Inquiry Button */}
-                      <div className="px-4 pb-4">
-                        <button
-                          type="button"
-                          onClick={() => onProductWhatsAppInquiry(product)}
-                          className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-400"
-                        >
-                          <FaWhatsapp size={19} />
-                          WhatsApp Inquiry
-                        </button>
-                      </div>
                     </div>
                   );
                 }}
