@@ -283,7 +283,7 @@ function AuthPage() {
 
               <h1 className="mt-2.5 text-xl font-extrabold tracking-tight text-[var(--text-primary)] sm:text-2xl">
                 {mode === "signup"
-                  ? "Create Your Mini Website"
+                  ? "Create Your Bio Site Account"
                   : "Customer Account Login"}
               </h1>
 
@@ -669,7 +669,7 @@ function AuthPage() {
                   "Please wait..."
                 ) : mode === "signup" ? (
                   <>
-                    <span>Create My Mini Website</span>
+                    <span>Create My Bio Site Account</span>
                     <ArrowRight
                       size={16}
                       className="shrink-0 transition-transform group-hover:translate-x-1"
@@ -678,7 +678,7 @@ function AuthPage() {
                 ) : (
                   <>
                     <LogIn size={16} />
-                    <span>Sign In to My Mini Website</span>
+                    <span>Sign In to My Bio Site Account</span>
                   </>
                 )}
               </button>
