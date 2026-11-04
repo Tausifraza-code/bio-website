@@ -733,6 +733,16 @@ const MinimalLuxury = ({
                         {String(index + 1).padStart(2, "0")}
                       </span>
                     </button>
+
+                    {/* WhatsApp Gallery Inquiry */}
+                    <button
+                      type="button"
+                      onClick={() => onGalleryWhatsAppInquiry(image)}
+                      className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-3 py-2.5 text-[11px] font-bold text-white transition hover:bg-[#1DA851] active:scale-[0.98]"
+                    >
+                      <FaWhatsapp size={16} />
+                      WhatsApp Inquiry
+                    </button>
                   </SwiperSlide>
                 ))}
               </Swiper>

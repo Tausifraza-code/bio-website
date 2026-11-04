@@ -69,7 +69,7 @@ app.use(express.urlencoded({ extended: true }));
 // API ROUTES
 // ======================================================
 app.use("/api/admin/plans", planRoutes);
-app.use("/api/auth", authLimiter, authRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/contact-buttons", contactButtonsRoutes);
