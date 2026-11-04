@@ -230,7 +230,7 @@ const DashboardMobileSidebar = ({
 
               <div className="min-w-0">
                 <h2 className="truncate text-base font-extrabold tracking-tight text-white">
-                  BioWebsite
+                  Bio Site
                 </h2>
                 <p className="mt-0.5 text-[11px] font-medium tracking-wide text-slate-400">
                   BUSINESS WORKSPACE

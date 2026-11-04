@@ -200,13 +200,13 @@ function AuthPage() {
       setFormData((prev) => ({
         ...prev,
         loginId:
-          registeredUser.email || registeredUser.phone || "test@biowebsite.com",
+          registeredUser.email || registeredUser.phone || "test@Bio Site.com",
         password: registeredUser.password || "123456",
       }));
     } else {
       setFormData((prev) => ({
         ...prev,
-        loginId: "test@biowebsite.com",
+        loginId: "test@Bio Site.com",
         password: "123456",
       }));
     }

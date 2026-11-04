@@ -1266,8 +1266,67 @@ const EditProfile = () => {
         <div className="animate-fadeIn space-y-8">
           <Section title="Contact Information" subtitle="Help customers reach you through their preferred contact method." icon={Phone}>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <Field label="Phone Number" icon={Phone} type="tel" value={formData.phone} onChange={(e) => handleChange("phone", e.target.value)} placeholder="8956235689" required />
-              <Field label="WhatsApp Number" icon={MessageSquare} type="tel" value={formData.whatsapp} onChange={(e) => handleChange("whatsapp", e.target.value)} placeholder="918956235689" />
+              {/* PHONE NUMBER */}
+<div className="min-w-0">
+  <label className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-200">
+    <Phone size={15} className="text-cyan-300" />
+    Phone Number
+    <span className="text-cyan-200">*</span>
+  </label>
+
+  <div className="flex overflow-hidden rounded-xl border border-[#29435f] bg-[#0b1b30] transition focus-within:border-cyan-300 focus-within:ring-4 focus-within:ring-cyan-300/10">
+   <span className="flex shrink-0 items-center whitespace-nowrap border-r border-[#29435f] bg-[#132942] px-3 text-sm font-semibold text-cyan-300">
+  +91
+</span>
+
+    <input
+      type="tel"
+      inputMode="numeric"
+      maxLength={10}
+      value={(formData.phone || "").replace(/^\+91/, "")}
+      onChange={(e) => {
+        const number = e.target.value.replace(/\D/g, "").slice(0, 10);
+        handleChange("phone", number ? `+91${number}` : "");
+      }}
+      placeholder="8956235689"
+      required
+      className="w-full min-w-0 bg-transparent px-3.5 py-3 text-sm font-medium text-white placeholder:text-slate-500 outline-none"
+    />
+  </div>
+  <p className="mt-1.5 text-xs text-slate-400">
+    Enter your 10-digit Indian mobile number.
+  </p>
+</div>
+
+{/* WHATSAPP NUMBER */}
+<div className="min-w-0">
+  <label className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-200">
+    <MessageSquare size={15} className="text-cyan-300" />
+    WhatsApp Number
+  </label>
+
+  <div className="flex overflow-hidden rounded-xl border border-[#29435f] bg-[#0b1b30] transition focus-within:border-cyan-300 focus-within:ring-4 focus-within:ring-cyan-300/10">
+   <span className="flex shrink-0 items-center whitespace-nowrap border-r border-[#29435f] bg-[#132942] px-3 text-sm font-semibold text-cyan-300">
+  +91
+</span>
+
+    <input
+      type="tel"
+      inputMode="numeric"
+      maxLength={10}
+      value={(formData.whatsapp || "").replace(/^\+91/, "")}
+      onChange={(e) => {
+        const number = e.target.value.replace(/\D/g, "").slice(0, 10);
+        handleChange("whatsapp", number ? `+91${number}` : "");
+      }}
+      placeholder="8956235689"
+      className="w-full min-w-0 bg-transparent px-3.5 py-3 text-sm font-medium text-white placeholder:text-slate-500 outline-none"
+    />
+  </div>
+  <p className="mt-1.5 text-xs text-slate-400">
+    Enter your 10-digit WhatsApp number.
+  </p>
+</div>
               <Field label="Email ID" icon={Mail} type="email" value={formData.email} onChange={(e) => handleChange("email", e.target.value)} placeholder="you@business.com" required />
               <Field label="Website / Card Link" icon={LinkIcon} type="url" value={formData.website} onChange={(e) => handleChange("website", e.target.value)} placeholder="https://..." />
             </div>

@@ -12,7 +12,7 @@ import {
   Zap,
 } from "lucide-react";
 
-import { getMe, logoutUser, logout } from "../redux/slice/authSlice";
+import {  logoutUser, logout } from "../redux/slice/authSlice";
 
 const DashboardNavbar = ({
   subdomain = "",
@@ -37,14 +37,7 @@ const DashboardNavbar = ({
   const [copied, setCopied] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
-  // ==========================================
-  // GET CURRENT USER FROM BACKEND
-  // ==========================================
-  useEffect(() => {
-    if (token || localStorage.getItem("bioToken")) {
-      dispatch(getMe());
-    }
-  }, [dispatch, token]);
+
 
   // ==========================================
   // LOGGED-IN USER NAME
@@ -280,7 +273,7 @@ const handlePreview = () => {
 
             <div className="min-w-0">
               <p className="truncate text-[15px] font-bold leading-none tracking-[-0.02em] text-white sm:text-base">
-                BioWebsite
+                Bio Site
               </p>
 
               <p className="mt-1 text-[9px] font-medium tracking-[0.04em] text-cyan-300/80 sm:text-[10px]">

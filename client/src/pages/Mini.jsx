@@ -714,7 +714,7 @@ const Mini = () => {
 
         currency: orderData.orderCurrency || "INR",
 
-        name: "BioWebsite",
+        name: "Bio Site",
 
         description: `${orderData.planName || selectedPlan.name} Plan`,
 

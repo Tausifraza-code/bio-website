@@ -187,7 +187,7 @@ const DashboardSidebar = ({
               {/* Brand */}
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold leading-none text-white">
-                  BioWebsite
+                  Bio Site
                 </p>
 
                 <p className="mt-1 text-[9px] font-medium text-cyan-300/70">
@@ -341,7 +341,7 @@ const DashboardSidebar = ({
 
                 <div className="min-w-0">
                   <p className="truncate text-[10px] font-bold text-white">
-                    BioWebsite Workspace
+                    Bio Site Workspace
                   </p>
 
                   <p className="mt-0.5 truncate text-[8px] text-slate-500">

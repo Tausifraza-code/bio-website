@@ -203,7 +203,7 @@ const DashboardLayout = () => {
       <DashboardNavbar
         subdomain={subdomain}
         ownerName="Your Business"
-        businessName="BioWebsite"
+        businessName="Bio Site"
         role="Business Owner / Professional"
         onMenuClick={() => setSidebarOpen(true)}
         onPreview={handlePreview}

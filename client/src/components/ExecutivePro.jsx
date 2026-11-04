@@ -1082,7 +1082,7 @@ const ExecutivePro = ({
         </div>
 
         <p className="mt-5 text-[11px] text-slate-600">
-          Powered by <span className="font-bold text-cyan-400">BioWebsite</span>
+          Powered by <span className="font-bold text-cyan-400">Bio Site</span>
         </p>
       </footer>
     </div>
