@@ -200,13 +200,13 @@ function AuthPage() {
       setFormData((prev) => ({
         ...prev,
         loginId:
-          registeredUser.email || registeredUser.phone || "test@Bio Site.com",
+          registeredUser.email || registeredUser.phone || "test@BIO SITES.com",
         password: registeredUser.password || "123456",
       }));
     } else {
       setFormData((prev) => ({
         ...prev,
-        loginId: "test@Bio Site.com",
+        loginId: "test@BIO SITES.com",
         password: "123456",
       }));
     }
@@ -268,7 +268,7 @@ function AuthPage() {
               </button>
 
               <span className="rounded-full border border-[#22d3ee]/25 bg-[#22d3ee]/10 px-3 py-1 text-xs font-bold text-[#0891b2] dark:text-[#22d3ee]">
-                BIO SITE Hub
+                BIO SITES Hub
               </span>
             </div>
           </div>
@@ -283,14 +283,14 @@ function AuthPage() {
 
               <h1 className="mt-2.5 text-xl font-extrabold tracking-tight text-[var(--text-primary)] sm:text-2xl">
                 {mode === "signup"
-                  ? "Create Your Bio Site Account"
+                  ? "Create Your BIO SITES Account"
                   : "Customer Account Login"}
               </h1>
 
               <p className="mt-1 text-xs leading-5 text-[var(--text-secondary)]">
                 {mode === "signup"
                   ? "Launch your digital visiting card with product portfolios, vCard instant download, and WhatsApp integration in 2 minutes."
-                  : "Access your personalized mini website dashboard, edit your contact details, and view customer inquiries."}
+                  : "Access your personalized BIO SITES dashboard, edit your contact details, and view customer inquiries."}
               </p>
             </div>
 
@@ -669,7 +669,7 @@ function AuthPage() {
                   "Please wait..."
                 ) : mode === "signup" ? (
                   <>
-                    <span>Create My Bio Site Account</span>
+                    <span>Create My BIO SITES Account</span>
                     <ArrowRight
                       size={16}
                       className="shrink-0 transition-transform group-hover:translate-x-1"
@@ -678,7 +678,7 @@ function AuthPage() {
                 ) : (
                   <>
                     <LogIn size={16} />
-                    <span>Sign In to My Bio Site Account</span>
+                    <span>Sign In to My BIO SITES Account</span>
                   </>
                 )}
               </button>
@@ -692,7 +692,7 @@ function AuthPage() {
           </section>
 
           <p className="mt-5 text-center text-xs text-[var(--text-secondary)]">
-            © {new Date().getFullYear()} BIO SITE · Smart Business Identity
+            © {new Date().getFullYear()} BIO SITES · Smart Business Identity
           </p>
         </div>
       </main>

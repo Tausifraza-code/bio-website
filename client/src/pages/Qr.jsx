@@ -71,7 +71,7 @@ const Qr = () => {
     boundQR?.subdomain ||
     "Your Business";
   const whatsappMessage =
-    `Check out my ${businessName} Mini Website Card! ` + `${qrPublicUrl}`;
+    `Check out my ${businessName} BIO SITES Card! ` + `${qrPublicUrl}`;
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
     whatsappMessage,
   )}`;
@@ -429,7 +429,7 @@ const Qr = () => {
               </div>
 
               <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-                Share Your Mini Website
+                Share Your Business Card Online
               </h1>
 
               <p className="mt-2 max-w-xl text-xs leading-6 text-slate-400 sm:text-sm">

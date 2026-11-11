@@ -3,7 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-const { generalLimiter, authLimiter } = require("./middleware/rateLimiter");
+// const { generalLimiter, authLimiter } = require("./middleware/rateLimiter");
 const authRoutes = require("./routes/auth.routes");
 const adminRoutes = require("./routes/admin.routes");
 const profileRoutes = require("./routes/profile.routes");
@@ -141,7 +141,7 @@ app.use((err, req, res, next) => {
 const startServer = async () => {
   try {
     console.log("========================================");
-    console.log("Starting BIO SITE Backend...");
+    console.log("Starting BIO SITES Backend...");
     console.log("Connecting to MongoDB...");
     console.log("========================================");
 

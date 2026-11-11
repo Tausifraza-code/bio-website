@@ -295,7 +295,7 @@ const AdminSettings = () => {
                 name="websiteName"
                 value={settings.websiteName}
                 onChange={handleSettingsChange}
-                placeholder="BIO SITE"
+                placeholder="BIO SITES"
                 maxLength={150}
                 className={inputClass}
               />

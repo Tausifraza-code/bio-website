@@ -1,7 +1,7 @@
 const Inquiry = require("../models/Inquiry");
 const MiniProfile = require("../models/MiniProfile");
 
-// POST: Submit inquiry from a public mini website
+// POST: Submit inquiry from a public BIO SITES
 
 const createInquiry = async (req, res) => {
   try {
@@ -29,7 +29,7 @@ const createInquiry = async (req, res) => {
     if (!profile) {
       return res.status(404).json({
         success: false,
-        message: "Mini website not found.",
+        message: "BIO SITES not found.",
       });
     }
 

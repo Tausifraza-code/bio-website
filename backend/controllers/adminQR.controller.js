@@ -345,7 +345,7 @@ const recordQRDownload = async (req, res) => {
         },
       },
       {
-        new: true,
+        returnDocument: "after",
         runValidators: true,
       },
     ).select("serialNumber format formats downloadHistory");

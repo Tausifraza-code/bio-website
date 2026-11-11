@@ -10,9 +10,10 @@ import "swiper/css/pagination";
 
 import api from "../redux/api";
 import { createInquiry } from "../redux/slice/inquirySlice";
-import { createReview } from "../redux/slice/reviewSlice";
+import { createReview, fetchPublicReviews } from "../redux/slice/reviewSlice";
 import { getPublicQRUrl } from "../utils/qrUrl";
 import { downloadStandeePNG } from "../utils/downloadStandeePNG";
+import { downloadVCardContact } from "../utils/vcard";
 
 import ExecutivePro from "../components/ExecutivePro";
 import MinimalLuxury from "../components/MinimalLuxury";
@@ -33,7 +34,6 @@ import {
   Download,
   IndianRupee,
   Share2,
-  ShieldCheck,
   X,
   Edit,
   FileImage,
@@ -48,14 +48,14 @@ import {
 
 const themes = {
   executive: {
-    primary: "#1e3a8a", // Premium Navy
-    accent: "#0ea5e9", // Sky Blue
-    background: "#f4f8fc", // Very Light Blue
-    surface: "#ffffff", // White
-    card: "#f8fbff", // Soft Blue White
-    text: "#0f172a", // Deep Navy Text
-    muted: "#64748b", // Slate
-    border: "#dbeafe", // Light Blue Border
+    primary: "#1e3a8a",
+    accent: "#0ea5e9",
+    background: "#f4f8fc",
+    surface: "#ffffff",
+    card: "#f8fbff",
+    text: "#0f172a",
+    muted: "#64748b",
+    border: "#dbeafe",
   },
 
   emerald: {
@@ -132,19 +132,6 @@ const LAYOUT_ID_ALIASES = {
   servicePro: "service-pro",
 };
 
-const PROFILE_LAYOUTS = [
-  { id: "modern-business", name: "Modern Business" },
-  { id: "minimal-card", name: "Minimal Card" },
-  { id: "creator-portfolio", name: "Creator Portfolio" },
-  { id: "corporate-executive", name: "Corporate Executive" },
-  { id: "storefront", name: "Storefront" },
-  { id: "freelancer-pro", name: "Freelancer Pro" },
-  { id: "elegant-profile", name: "Elegant Profile" },
-  { id: "agency-pro", name: "Agency Pro" },
-  { id: "digital-card", name: "Digital Card" },
-  { id: "service-pro", name: "Service Pro" },
-];
-
 const defaultBanner =
   "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1600";
 
@@ -217,12 +204,8 @@ const drawBusinessPoster = async ({ profile, qrCanvas, publicUrl }) => {
   ctx.fillStyle = "#22d3ee";
   ctx.fillRect(0, 0, 18, 600);
 
-  const personalName = [profile.firstName, profile.lastName]
-    .filter(Boolean)
-    .join(" ");
-
-  const businessName = profile.businessName?.trim() || "";
-
+  const phone = profile.phone?.trim() || "";
+  const email = profile.email?.trim() || "";
   const address = [
     profile.shopUnit,
     profile.area,
@@ -233,11 +216,14 @@ const drawBusinessPoster = async ({ profile, qrCanvas, publicUrl }) => {
   ]
     .filter(Boolean)
     .join(", ");
-
-  const phone = profile.phone?.trim() || "";
-  const email = profile.email?.trim() || "";
   const website = profile.website?.trim() || profile.websiteUrl?.trim() || "";
   const about = profile.bio?.trim() || profile.headline?.trim() || "";
+
+  const personalName = [profile.firstName, profile.lastName]
+    .filter(Boolean)
+    .join(" ");
+
+  const businessName = profile.businessName?.trim() || "";
 
   if (profile.logo) {
     try {
@@ -279,23 +265,23 @@ const drawBusinessPoster = async ({ profile, qrCanvas, publicUrl }) => {
     ctx.fillText(tagline, textX, 185);
   }
 
-  let y = 275;
+  let y = 260;
 
   const drawInfo = (label, value, maxLength = 60) => {
     if (!value) return;
 
     ctx.fillStyle = "#22d3ee";
-    ctx.font = "bold 17px Arial";
+    ctx.font = "bold 15px Arial";
     ctx.fillText(label.toUpperCase(), 75, y);
 
     ctx.fillStyle = "#ffffff";
-    ctx.font = "19px Arial";
+    ctx.font = "17px Arial";
 
     const displayValue =
       value.length > maxLength ? `${value.slice(0, maxLength - 3)}...` : value;
 
-    ctx.fillText(displayValue, 75, y + 27);
-    y += 76;
+    ctx.fillText(displayValue, 75, y + 22);
+    y += 52;
   };
 
   drawInfo("Mobile", phone, 35);
@@ -305,15 +291,17 @@ const drawBusinessPoster = async ({ profile, qrCanvas, publicUrl }) => {
 
   if (publicUrl) {
     ctx.fillStyle = "#22d3ee";
-    ctx.font = "bold 17px Arial";
-    ctx.fillText("PUBLIC PROFILE", 75, 520);
+    ctx.font = "bold 15px Arial";
+    ctx.fillText("PUBLIC PROFILE", 75, y);
 
     ctx.fillStyle = "#ffffff";
     ctx.font = "16px Arial";
 
     const displayUrl =
       publicUrl.length > 65 ? `${publicUrl.slice(0, 62)}...` : publicUrl;
-    ctx.fillText(displayUrl, 75, 545);
+    ctx.fillText(displayUrl, 75, y + 22);
+
+    y += 52;
   }
 
   if (qrCanvas) {
@@ -332,8 +320,8 @@ const drawBusinessPoster = async ({ profile, qrCanvas, publicUrl }) => {
 
   ctx.textAlign = "left";
   ctx.fillStyle = "#22d3ee";
-  ctx.font = "bold 18px Arial";
-  ctx.fillText("BIO SITE", 75, 590);
+  ctx.font = "bold 16px Arial";
+  ctx.fillText("BIO SITES", 75, 585);
 
   return canvas;
 };
@@ -415,6 +403,18 @@ function CardPreview() {
     message: "",
     type: "success",
   });
+
+  const {
+    reviews = [],
+    totalReviews = 0,
+    averageRating = 0,
+  } = useSelector((state) => state.review || {});
+
+  useEffect(() => {
+    if (subdomain) {
+      dispatch(fetchPublicReviews(subdomain));
+    }
+  }, [dispatch, subdomain]);
 
   /* ============================================================
      FETCH PUBLIC PROFILE
@@ -564,10 +564,6 @@ function CardPreview() {
   }, [profile?.activeLayout]);
 
   const ActiveLayoutComponent = LAYOUT_COMPONENTS[activeLayout] || ExecutivePro;
-
-  const activeLayoutData = PROFILE_LAYOUTS.find(
-    (layout) => layout.id === activeLayout,
-  );
 
   /* ============================================================
      DERIVED DATA
@@ -732,6 +728,7 @@ function CardPreview() {
 
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
+
   const handleCall = () => {
     const phone = (businessInfo?.phone || "").replace(/\s/g, "");
 
@@ -883,9 +880,7 @@ function CardPreview() {
       try {
         await navigator.share({
           title: businessInfo?.businessName || "Business Profile",
-
           text: `Check out ${businessInfo?.businessName || "this business"}`,
-
           url: window.location.href,
         });
       } catch {
@@ -900,104 +895,22 @@ function CardPreview() {
      SAVE CONTACT
   ============================================================ */
 
-  const handleSaveContact = () => {
+  const handleSaveContact = async () => {
     if (!profile) return;
 
-    const esc = (value = "") =>
-      String(value)
-        .trim()
-        .replace(/\\/g, "\\\\")
-        .replace(/\n/g, "\\n")
-        .replace(/,/g, "\\,")
-        .replace(/;/g, "\\;");
+    try {
+      await downloadVCardContact({
+        profile,
+        businessInfo,
+        publicProfileUrl: qrValue,
+      });
 
-    const lines = ["BEGIN:VCARD", "VERSION:3.0"];
-
-    const fullName = [profile.firstName, profile.lastName]
-      .filter((value) => value?.trim())
-      .join(" ")
-      .trim();
-
-    const displayName = fullName || profile.businessName?.trim() || "";
-
-    if (displayName) {
-      lines.push(`FN:${esc(displayName)}`);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (error) {
+      console.error("Save contact failed:", error);
+      alert("Contact download nahi ho paaya. Please try again.");
     }
-
-    if (profile.businessName?.trim()) {
-      lines.push(`ORG:${esc(profile.businessName)}`);
-    }
-
-    if (profile.jobTitle?.trim()) {
-      lines.push(`TITLE:${esc(profile.jobTitle)}`);
-    }
-
-    if (profile.phone?.trim()) {
-      lines.push(`TEL;TYPE=CELL:${esc(profile.phone)}`);
-    }
-
-    if (profile.email?.trim()) {
-      lines.push(`EMAIL:${esc(profile.email)}`);
-    }
-
-    const website = profile.website?.trim() || profile.websiteUrl?.trim();
-
-    if (website) {
-      lines.push(
-        `URL:${esc(
-          /^https?:\/\//i.test(website) ? website : `https://${website}`,
-        )}`,
-      );
-    }
-
-    const address = [
-      profile.shopUnit,
-      profile.area,
-      profile.city,
-      profile.state,
-      profile.pincode,
-    ]
-      .filter((value) => value?.trim())
-      .join(", ");
-
-    if (address) {
-      lines.push(`ADR;TYPE=WORK:;;${esc(address)};;;;`);
-    }
-
-    const note = profile.bio?.trim() || profile.headline?.trim();
-
-    if (note) {
-      lines.push(`NOTE:${esc(note)}`);
-    }
-
-    lines.push("END:VCARD");
-
-    const blob = new Blob([`${lines.join("\r\n")}\r\n`], {
-      type: "text/vcard;charset=utf-8",
-    });
-
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-
-    a.href = url;
-
-    a.download = `${
-      (displayName || "contact")
-        .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-")
-        .trim() || "contact"
-    }.vcf`;
-
-    document.body.appendChild(a);
-
-    a.click();
-    a.remove();
-
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-    setSaved(true);
-
-    setTimeout(() => setSaved(false), 2000);
   };
 
   /* ============================================================
@@ -1007,8 +920,15 @@ function CardPreview() {
   const handleConfiguredButton = (button) => {
     if (!button) return;
 
-    switch (button.actionType) {
+    const action =
+      typeof button === "string"
+        ? button
+        : button.actionType ||
+          (button.buttonId === "save-contact" ? "saveContact" : "");
+
+    switch (action) {
       case "call":
+      case "phone":
         return handleCall();
 
       case "whatsapp":
@@ -1018,10 +938,12 @@ function CardPreview() {
         return handleEmail();
 
       case "directions":
+      case "address":
+      case "location":
         return window.open(
           profile?.mapLink ||
             `https://maps.google.com/?q=${encodeURIComponent(
-              businessInfo?.address || "",
+              businessInfo?.address || profile?.address || "",
             )}`,
           "_blank",
           "noopener,noreferrer",
@@ -1032,17 +954,24 @@ function CardPreview() {
 
       case "website":
       case "customLink":
-        if (!button.customUrl) {
+      case "googleBusiness": {
+        const rawUrl =
+          (typeof button === "object" && button.customUrl) ||
+          profile?.website ||
+          profile?.websiteUrl ||
+          businessInfo?.website ||
+          businessInfo?.websiteUrl;
+
+        if (!rawUrl) {
           return alert("This button has no link configured.");
         }
 
         return window.open(
-          /^https?:\/\//i.test(button.customUrl)
-            ? button.customUrl
-            : `https://${button.customUrl}`,
+          /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`,
           "_blank",
           "noopener,noreferrer",
         );
+      }
 
       case "saveContact":
         return handleSaveContact();
@@ -1137,7 +1066,6 @@ function CardPreview() {
         }),
       ).unwrap();
 
-      // Remember successful lead submission in this browser
       const leadKey = `bio_lead_submitted_${subdomain}`;
       localStorage.setItem(leadKey, "true");
 
@@ -1199,6 +1127,10 @@ function CardPreview() {
         message: "Review submitted successfully!",
         type: "success",
       });
+
+      if (subdomain) {
+        dispatch(fetchPublicReviews(subdomain));
+      }
 
       setTimeout(() => {
         setReviewToast({
@@ -1322,69 +1254,32 @@ function CardPreview() {
       `}</style>
 
       <div className="mx-auto w-full max-w-[1120px]">
-        {/* TOP BAR */}
-
-        <div
-          className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl px-4 py-3"
-          style={{
-            background: theme.surface,
-            border: `1px solid ${theme.border}`,
-          }}
-        >
-          <div className="flex items-center gap-3">
-            <ShieldCheck size={20} style={{ color: theme.primary }} />
-
-            <span
-              className="text-sm font-semibold"
-              style={{ color: theme.muted }}
-            >
-              {activeLayoutData?.name || "Modern Business"} layout
-            </span>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            {/* EDIT PROFILE — ONLY PROFILE OWNER */}
-
-            {isProfileOwner && (
-              <button
-                type="button"
-                onClick={handleEditProfile}
-                className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition hover:opacity-90"
-                style={{
-                  background: theme.card,
-                  border: `1px solid ${theme.primary}`,
-                  color: theme.text,
-                }}
-              >
-                <Edit size={16} />
-                Edit Profile
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={copyLink}
-              className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold"
-              style={{
-                background: accentGradient,
-                color: "#ffffff",
-              }}
-            >
-              <Copy size={16} />
-
-              {copied ? "Copied!" : "Copy Card Link"}
-            </button>
-          </div>
-        </div>
-
-        {/* ACTUAL MINI.JSX LAYOUT COMPONENT */}
+        {/* ACTUAL LAYOUT COMPONENT */}
 
         <article
-          className="overflow-hidden rounded-2xl border shadow-2xl"
+          className="relative overflow-hidden rounded-2xl border shadow-2xl"
           style={{
             borderColor: theme.border,
           }}
         >
+          {/* EDIT PROFILE — ONLY PROFILE OWNER */}
+
+          {isProfileOwner && (
+            <button
+              type="button"
+              onClick={handleEditProfile}
+              className="absolute left-4 top-4 z-[999] inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold shadow-lg transition hover:opacity-90 sm:left-6 sm:top-6 sm:px-4 sm:py-2.5 sm:text-sm"
+              style={{
+                background: theme.card,
+                border: `1px solid ${theme.primary}`,
+                color: theme.text,
+              }}
+            >
+              <Edit size={15} />
+              Edit Profile
+            </button>
+          )}
+
           <ActiveLayoutComponent
             businessInfo={businessInfo}
             visibleButtons={contactButtons}
@@ -1410,54 +1305,69 @@ function CardPreview() {
             onGalleryWhatsAppInquiry={handleGalleryWhatsAppInquiry}
             onGalleryClick={(image) => setSelectedGalleryImage(image)}
             onContactClick={handleConfiguredButton}
+            reviews={reviews}
+            totalReviews={totalReviews}
+            averageRating={averageRating}
+            onWriteReview={() => {
+              setReviewError("");
+              setReviewRating(5);
+              setShowReviewModal(true);
+            }}
           />
         </article>
 
         {/* ============================================================
-            REVIEWS SECTION
+            FALLBACK REVIEWS SECTION (Only for layouts without built-in reviews)
         ============================================================ */}
 
-        <section
-          className="mt-5 rounded-2xl border p-5 shadow-xl sm:p-7"
-          style={{
-            background: theme.surface,
-            borderColor: theme.border,
-            color: theme.text,
-          }}
-        >
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <MessageSquareText size={21} style={{ color: theme.primary }} />
+        {!["modern-business", "minimal-card", "creator-portfolio"].includes(
+          activeLayout,
+        ) && (
+          <section
+            className="mt-5 rounded-2xl border p-5 shadow-xl sm:p-7"
+            style={{
+              background: theme.surface,
+              borderColor: theme.border,
+              color: theme.text,
+            }}
+          >
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <MessageSquareText
+                    size={21}
+                    style={{ color: theme.primary }}
+                  />
 
-                <h2 className="text-xl font-bold sm:text-2xl">
-                  Reviews & Ratings
-                </h2>
+                  <h2 className="text-xl font-bold sm:text-2xl">
+                    Reviews & Ratings
+                  </h2>
+                </div>
+
+                <p className="mt-2 text-sm" style={{ color: theme.muted }}>
+                  Share your experience with this business.
+                </p>
               </div>
 
-              <p className="mt-2 text-sm" style={{ color: theme.muted }}>
-                Share your experience with this business.
-              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setReviewError("");
+                  setReviewRating(5);
+                  setShowReviewModal(true);
+                }}
+                className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition hover:opacity-90"
+                style={{
+                  background: accentGradient,
+                  color: "#ffffff",
+                }}
+              >
+                <Star size={17} />
+                Write a Review
+              </button>
             </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                setReviewError("");
-                setReviewRating(5);
-                setShowReviewModal(true);
-              }}
-              className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition hover:opacity-90"
-              style={{
-                background: accentGradient,
-                color: "#ffffff",
-              }}
-            >
-              <Star size={17} />
-              Write a Review
-            </button>
-          </div>
-        </section>
+          </section>
+        )}
       </div>
 
       {/* ============================================================
@@ -1484,8 +1394,6 @@ function CardPreview() {
               color: theme.text,
             }}
           >
-            {/* CLOSE BUTTON */}
-
             <button
               type="button"
               onClick={() => setShowQRLeadPopup(false)}
@@ -1662,8 +1570,6 @@ function CardPreview() {
               color: theme.text,
             }}
           >
-            {/* CLOSE */}
-
             <button
               type="button"
               onClick={() => !reviewLoading && setShowReviewModal(false)}
@@ -1691,8 +1597,6 @@ function CardPreview() {
             </div>
 
             <form onSubmit={submitReview} className="mt-6 space-y-4">
-              {/* NAME */}
-
               <div>
                 <label className="mb-2 block text-sm font-semibold">
                   Your Name *
@@ -1719,8 +1623,6 @@ function CardPreview() {
                   }}
                 />
               </div>
-
-              {/* EMAIL */}
 
               <div>
                 <label className="mb-2 block text-sm font-semibold">
@@ -1752,8 +1654,6 @@ function CardPreview() {
                   }}
                 />
               </div>
-
-              {/* RATING */}
 
               <div>
                 <label className="mb-2 block text-sm font-semibold">
@@ -1789,8 +1689,6 @@ function CardPreview() {
                 </div>
               </div>
 
-              {/* COMMENT */}
-
               <div>
                 <label className="mb-2 block text-sm font-semibold">
                   Your Review *
@@ -1818,13 +1716,9 @@ function CardPreview() {
                 />
               </div>
 
-              {/* ERROR */}
-
               {reviewError && (
                 <p className="text-sm text-red-400">{reviewError}</p>
               )}
-
-              {/* SUBMIT */}
 
               <button
                 type="submit"
@@ -2174,7 +2068,7 @@ function CardPreview() {
                             </p>
 
                             <p className="mt-1 text-[clamp(7px,1.1vw,10px)] font-extrabold tracking-wider text-cyan-300">
-                              BIO SITE
+                              BIO SITES
                             </p>
                           </div>
                         </div>
@@ -2343,6 +2237,7 @@ function CardPreview() {
                         ? "Available"
                         : "Unavailable"}
                     </span>
+
                     {businessInfo.upiId &&
                       selectedProduct.status === "active" && (
                         <button

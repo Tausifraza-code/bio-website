@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-// Structured schema for the user's mini website profile
+// Structured schema for the user's BIO SITE profile
 const miniProfileSchema = new mongoose.Schema(
   {
     firstName: {

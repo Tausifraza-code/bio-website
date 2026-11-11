@@ -431,7 +431,7 @@ export default function UpiPaymentSettings() {
             <footer className="mt-7 flex flex-col gap-4 border-t border-[#29435f] pt-6 sm:flex-row sm:items-center sm:justify-between">
               <p className="max-w-md text-[11px] leading-5 text-slate-400">
                 Changes will require admin review before payment functionality
-                can be enabled on your public mini website.
+                can be enabled on your public BIO SITES.
               </p>
 
               <button

@@ -28,6 +28,8 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
+import GoogleBusinessIcon from "../components/icons/GoogleBusinessIcon";
+
 import {
   fetchContactButtons,
   saveContactButtons,
@@ -42,6 +44,11 @@ const ACTION_TYPES = [
   { value: "share", label: "Share Profile", icon: Share2 },
   { value: "website", label: "Website", icon: Globe },
   { value: "saveContact", label: "Save Contact", icon: UserRoundPlus },
+  {
+    value: "googleBusiness",
+    label: "Google My Business",
+    icon: GoogleBusinessIcon,
+  },
   { value: "upi", label: "UPI Payment", icon: Wallet },
   { value: "customLink", label: "Custom Link", icon: Link2 },
 ];
@@ -56,6 +63,7 @@ const ICON_OPTIONS = [
   { value: "website", label: "Website", icon: Globe },
   { value: "contact", label: "Contact", icon: UserRoundPlus },
   { value: "upi", label: "UPI", icon: Wallet },
+  { value: "google", label: "Google / GMB", icon: GoogleBusinessIcon },
 ];
 
 const ICON_MAP = {
@@ -68,6 +76,7 @@ const ICON_MAP = {
   website: Globe,
   contact: UserRoundPlus,
   upi: Wallet,
+  google: GoogleBusinessIcon,
 };
 
 const EMPTY_FORM = {
@@ -98,7 +107,10 @@ function normalizeButton(button) {
   };
 }
 
-function getButtonIcon(icon) {
+function getButtonIcon(icon, actionType) {
+  if (actionType === "googleBusiness" || icon === "google") {
+    return GoogleBusinessIcon;
+  }
   return ICON_MAP[icon] || Link2;
 }
 
@@ -118,7 +130,7 @@ export default function ContactButtons() {
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [formError, setFormError] = useState("");
   const [localButtons, setLocalButtons] = useState([]);
-  
+
   // Custom Delete Modal State
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
 
@@ -166,10 +178,24 @@ export default function ContactButtons() {
   };
 
   const updateField = (field, value) => {
-    setFormData((previous) => ({
-      ...previous,
-      [field]: value,
-    }));
+    setFormData((previous) => {
+      const next = {
+        ...previous,
+        [field]: value,
+      };
+
+      if (field === "actionType" && value === "googleBusiness") {
+        if (
+          !previous.label ||
+          ACTION_TYPES.some((a) => a.label === previous.label)
+        ) {
+          next.label = "Google My Business";
+        }
+        next.icon = "google";
+      }
+
+      return next;
+    });
     setFormError("");
   };
 
@@ -204,15 +230,23 @@ export default function ContactButtons() {
     }
 
     if (
-      ["website", "customLink"].includes(formData.actionType) &&
+      ["website", "customLink", "googleBusiness"].includes(
+        formData.actionType,
+      ) &&
       !formData.customUrl.trim()
     ) {
-      setFormError("Please enter a URL for this button.");
+      setFormError(
+        formData.actionType === "googleBusiness"
+          ? "Please enter your Google Business profile URL."
+          : "Please enter a URL for this button.",
+      );
       return;
     }
 
     if (
-      ["website", "customLink"].includes(formData.actionType) &&
+      ["website", "customLink", "googleBusiness"].includes(
+        formData.actionType,
+      ) &&
       !/^https?:\/\/\S+/i.test(formData.customUrl.trim())
     ) {
       setFormError("Enter a valid URL starting with https:// or http://.");
@@ -264,7 +298,9 @@ export default function ContactButtons() {
   const handleConfirmDelete = async () => {
     if (!deleteConfirmId) return;
 
-    const nextButtons = localButtons.filter((item) => item.id !== deleteConfirmId);
+    const nextButtons = localButtons.filter(
+      (item) => item.id !== deleteConfirmId,
+    );
     await persistButtons(nextButtons);
     setDeleteConfirmId(null);
   };
@@ -300,7 +336,7 @@ export default function ContactButtons() {
   };
 
   const renderButtonCard = (button, index) => {
-    const Icon = getButtonIcon(button.icon);
+    const Icon = getButtonIcon(button.icon, button.actionType);
 
     return (
       <article
@@ -308,7 +344,6 @@ export default function ContactButtons() {
         className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[#29435f] bg-[#0b1b30] p-4 transition duration-300 hover:-translate-y-0.5 hover:border-cyan-400/30 hover:shadow-xl hover:shadow-black/20 sm:p-5"
       >
         <div className="flex items-start gap-3">
-          
           {/* Reorder Buttons */}
           <div className="flex flex-col gap-1">
             <button
@@ -422,18 +457,24 @@ export default function ContactButtons() {
 
   return (
     <main className="relative min-h-screen bg-transparent text-slate-200">
-      
       {/* Custom Delete Modal */}
       {deleteConfirmId && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#020817]/80 p-4 backdrop-blur-md" onClick={() => setDeleteConfirmId(null)}>
-          <div className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-[#29435f] bg-[#0b1b30] p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#020817]/80 p-4 backdrop-blur-md"
+          onClick={() => setDeleteConfirmId(null)}
+        >
+          <div
+            className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-[#29435f] bg-[#0b1b30] p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-red-400/20 bg-red-400/10">
               <AlertTriangle size={24} className="text-red-400" />
             </div>
-            
+
             <h3 className="text-lg font-bold text-white">Delete Button?</h3>
             <p className="mt-2 text-sm leading-6 text-slate-400">
-              Are you sure you want to delete this contact button? This action cannot be undone.
+              Are you sure you want to delete this contact button? This action
+              cannot be undone.
             </p>
 
             <div className="mt-6 flex gap-3">
@@ -450,7 +491,11 @@ export default function ContactButtons() {
                 disabled={saving}
                 className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-red-500 py-2.5 text-xs font-bold text-white transition hover:bg-red-400 disabled:opacity-50"
               >
-                {saving ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
+                {saving ? (
+                  <Loader2 size={15} className="animate-spin" />
+                ) : (
+                  <Trash2 size={15} />
+                )}
                 {saving ? "Deleting..." : "Delete"}
               </button>
             </div>
@@ -472,7 +517,7 @@ export default function ContactButtons() {
               <div>
                 <div className="mb-2 flex flex-wrap items-center gap-2">
                   <span className="rounded-full border border-cyan-400/20 bg-cyan-400/[0.07] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-cyan-300">
-                    Mini Website
+                    BIO SITES Actions
                   </span>
                   <span className="text-xs font-medium text-slate-400">
                     Button Management
@@ -502,43 +547,52 @@ export default function ContactButtons() {
         </section>
 
         {/* Stats */}
-        <section className="mt-5 grid grid-cols-3 gap-3 sm:grid-cols-3">
-          <div className="rounded-2xl border border-[#29435f] bg-[#0b1b30] p-4 transition hover:border-[#38516e]">
-            <div className="flex items-center gap-3">
-              <div className="rounded-xl border border-cyan-400/20 bg-[#132942] p-3 text-cyan-400">
-                <Settings2 size={21} />
+        <section className="mt-5 grid grid-cols-3 gap-2 sm:gap-3">
+          <div className="rounded-2xl border border-[#29435f] bg-[#0b1b30] p-2.5 sm:p-4 transition hover:border-[#38516e]">
+            <div className="flex flex-col items-center gap-1.5 text-center sm:flex-row sm:items-center sm:gap-3 sm:text-left">
+              <div className="flex shrink-0 items-center justify-center rounded-xl border border-cyan-400/20 bg-[#132942] p-2 sm:p-3 text-cyan-400">
+                <Settings2 size={16} className="sm:hidden" />
+                <Settings2 size={21} className="hidden sm:block" />
               </div>
-              <div>
-                <p className="text-xs font-medium text-slate-400">Total Buttons</p>
-                <p className="mt-1 text-2xl font-bold text-white">
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-xs font-medium text-slate-400 leading-tight whitespace-nowrap">
+                  Total Buttons
+                </p>
+                <p className="mt-0.5 sm:mt-1 text-lg sm:text-2xl font-bold text-white">
                   {localButtons.length}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[#29435f] bg-[#0b1b30] p-4 transition hover:border-[#38516e]">
-            <div className="flex items-center gap-3">
-              <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 p-3 text-emerald-400">
-                <Check size={21} />
+          <div className="rounded-2xl border border-[#29435f] bg-[#0b1b30] p-2.5 sm:p-4 transition hover:border-[#38516e]">
+            <div className="flex flex-col items-center gap-1.5 text-center sm:flex-row sm:items-center sm:gap-3 sm:text-left">
+              <div className="flex shrink-0 items-center justify-center rounded-xl border border-emerald-400/20 bg-emerald-400/10 p-2 sm:p-3 text-emerald-400">
+                <Check size={16} className="sm:hidden" />
+                <Check size={21} className="hidden sm:block" />
               </div>
-              <div>
-                <p className="text-xs font-medium text-slate-400">Enabled Buttons</p>
-                <p className="mt-1 text-2xl font-bold text-white">
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-xs font-medium text-slate-400 leading-tight whitespace-nowrap">
+                  Enabled Buttons
+                </p>
+                <p className="mt-0.5 sm:mt-1 text-lg sm:text-2xl font-bold text-white">
                   {enabledCount}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[#29435f] bg-[#0b1b30] p-4 transition hover:border-[#38516e]">
-            <div className="flex items-center gap-3">
-              <div className="rounded-xl border border-slate-500/20 bg-slate-500/10 p-3 text-slate-400">
-                <ToggleLeft size={21} />
+          <div className="rounded-2xl border border-[#29435f] bg-[#0b1b30] p-2.5 sm:p-4 transition hover:border-[#38516e]">
+            <div className="flex flex-col items-center gap-1.5 text-center sm:flex-row sm:items-center sm:gap-3 sm:text-left">
+              <div className="flex shrink-0 items-center justify-center rounded-xl border border-slate-500/20 bg-slate-500/10 p-2 sm:p-3 text-slate-400">
+                <ToggleLeft size={16} className="sm:hidden" />
+                <ToggleLeft size={21} className="hidden sm:block" />
               </div>
-              <div>
-                <p className="text-xs font-medium text-slate-400">Disabled Buttons</p>
-                <p className="mt-1 text-2xl font-bold text-white">
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-xs font-medium text-slate-400 leading-tight whitespace-nowrap">
+                  Disabled Buttons
+                </p>
+                <p className="mt-0.5 sm:mt-1 text-lg sm:text-2xl font-bold text-white">
                   {localButtons.length - enabledCount}
                 </p>
               </div>
@@ -620,7 +674,7 @@ export default function ContactButtons() {
 
         <p className="mt-6 text-center text-xs leading-5 text-slate-500">
           Changes are saved to your account. Only enabled buttons will be
-          displayed on your public mini website.
+          displayed on your public BIO SITES.
         </p>
       </div>
 
@@ -691,7 +745,11 @@ export default function ContactButtons() {
                   className={inputClass}
                 >
                   {ACTION_TYPES.map((action) => (
-                    <option key={action.value} value={action.value} className="bg-[#132942]">
+                    <option
+                      key={action.value}
+                      value={action.value}
+                      className="bg-[#132942]"
+                    >
                       {action.label}
                     </option>
                   ))}
@@ -713,7 +771,11 @@ export default function ContactButtons() {
                   className={inputClass}
                 >
                   {ICON_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value} className="bg-[#132942]">
+                    <option
+                      key={option.value}
+                      value={option.value}
+                      className="bg-[#132942]"
+                    >
                       {option.label}
                     </option>
                   ))}
@@ -722,7 +784,10 @@ export default function ContactButtons() {
                 <div className="mt-3 flex items-center gap-3 rounded-xl border border-[#29435f] bg-[#132942] p-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-400/20 bg-[#0b1b30] text-cyan-400">
                     {(() => {
-                      const Icon = getButtonIcon(formData.icon);
+                      const Icon = getButtonIcon(
+                        formData.icon,
+                        formData.actionType,
+                      );
                       return <Icon size={21} />;
                     })()}
                   </div>
@@ -738,10 +803,15 @@ export default function ContactButtons() {
                 </div>
               </div>
 
-              {["website", "customLink"].includes(formData.actionType) && (
+              {["website", "customLink", "googleBusiness"].includes(
+                formData.actionType,
+              ) && (
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-300">
-                    Destination URL <span className="text-cyan-400">*</span>
+                    {formData.actionType === "googleBusiness"
+                      ? "Google Business Profile URL"
+                      : "Destination URL"}{" "}
+                    <span className="text-cyan-400">*</span>
                   </label>
 
                   <input
@@ -750,10 +820,21 @@ export default function ContactButtons() {
                     onChange={(event) =>
                       updateField("customUrl", event.target.value)
                     }
-                    placeholder="https://example.com"
+                    placeholder={
+                      formData.actionType === "googleBusiness"
+                        ? "https://g.page/r/... or https://maps.google.com/..."
+                        : "https://example.com"
+                    }
                     required
                     className={inputClass}
                   />
+
+                  {formData.actionType === "googleBusiness" && (
+                    <p className="mt-1.5 text-xs text-slate-400">
+                      Attach your Google Business Profile, Google Reviews, or
+                      Google Maps link.
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -763,7 +844,7 @@ export default function ContactButtons() {
                     Enable this button
                   </p>
                   <p className="mt-1 text-xs text-slate-400">
-                    Disabled buttons will be hidden on your mini website.
+                    Disabled buttons will be hidden on your BIO SITES.
                   </p>
                 </div>
 

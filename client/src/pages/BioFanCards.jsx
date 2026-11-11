@@ -416,7 +416,7 @@ export default function BioFanCards() {
   const isExpanded = forceSpread || isDeckHovered || Boolean(hoveredCardId);
 
   return (
-    <section className="relative overflow-hidden bg-[radial-gradient(ellipse_at_top,_#e0f7f3_0%,_#ebf8f5_50%,_#f8fcfa_100%)] px-4 py-16 text-[#0b1b30] transition-colors duration-500 dark:bg-[radial-gradient(ellipse_at_top,_#102844_0%,_#0b1b30_60%,_#071220_100%)] dark:text-white sm:px-6 sm:py-6 lg:py-6">
+    <section id="showcase" className="relative overflow-hidden bg-[radial-gradient(ellipse_at_top,_#e0f7f3_0%,_#ebf8f5_50%,_#f8fcfa_100%)] px-4 py-16 text-[#0b1b30] transition-colors duration-500 dark:bg-[radial-gradient(ellipse_at_top,_#102844_0%,_#0b1b30_60%,_#071220_100%)] dark:text-white sm:px-6 sm:py-6 lg:py-6">
       {/* Ambient background glow & atmospheric mesh */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute left-1/2 top-10 -translate-x-1/2 h-[350px] w-[600px] rounded-full bg-cyan-400/15 blur-[100px] dark:bg-cyan-500/10" />

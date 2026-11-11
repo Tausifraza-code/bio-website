@@ -1,6 +1,7 @@
-
 import React, { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchPublicBranding } from "../redux/slice/adminSlice";
 import {
   MonitorSmartphone,
   UserRoundPen,
@@ -15,7 +16,6 @@ import {
   LogOut,
   ExternalLink,
   ChevronRight,
-  LayoutDashboard,
   LayoutTemplate,
   Images,
   Star,
@@ -24,7 +24,7 @@ import {
 const sidebarItems = [
   {
     id: "mini",
-    label: "Live Mini Website",
+    label: "View BIO SITES",
     description: "View your business website",
     icon: MonitorSmartphone,
     path: "/mini",
@@ -52,21 +52,19 @@ const sidebarItems = [
   //   path: "/theme",
   //   badge: "5 Themes",
   // },
-    {
+  {
     id: "Gallery",
     label: "Gallery Section",
     icon: Images,
     path: "/gallery",
-    
   },
-  
+
   {
     id: "profilelayouts",
     label: "Profile Layouts",
     description: "Choose your profile design",
     icon: LayoutTemplate,
     path: "/profile-layouts",
-    badge: "10 Layouts",
   },
   {
     id: "manageproducts",
@@ -74,15 +72,13 @@ const sidebarItems = [
     description: "Add and manage products",
     icon: Package,
     path: "/manageproducts",
-    badge: "1",
   },
   {
     id: "contactbuttons",
     label: "Contact Buttons",
-    description: "Manage mini website actions",
+    description: "Manage contact actions",
     icon: MessagesSquare,
     path: "/contact-buttons",
-    badge: "Manage",
   },
   {
     id: "socialcard",
@@ -90,16 +86,14 @@ const sidebarItems = [
     description: "Create promotional cards",
     icon: Share2,
     path: "/socialcard",
-    badge: "Cards",
   },
-   {
-      id: "Review",
-      label: "Review Section",
-      description: "Manage mini website Review",
-      icon: Star,
-      path: "/review",
-     
-    },
+  {
+    id: "Review",
+    label: "Review Section",
+    description: "Manage customer reviews",
+    icon: Star,
+    path: "/review",
+  },
   {
     id: "leads",
     label: "Leads & Inquiries",
@@ -113,7 +107,6 @@ const sidebarItems = [
     description: "Invite and earn rewards",
     icon: Gift,
     path: "/refer",
-    badge: "New",
   },
   {
     id: "qrcode",
@@ -134,6 +127,12 @@ const DashboardMobileSidebar = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
+  const branding = useSelector((state) => state.admin?.branding);
+
+  useEffect(() => {
+    dispatch(fetchPublicBranding());
+  }, [dispatch]);
 
   // Close the sidebar when the Escape key is pressed.
   useEffect(() => {
@@ -204,10 +203,11 @@ const DashboardMobileSidebar = ({
         aria-label="Close navigation menu"
         tabIndex={open ? 0 : -1}
         onClick={onClose}
-        className={`fixed inset-0 z-[90] bg-[#020817]/75 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${open
+        className={`fixed inset-0 z-[90] bg-[#020817]/75 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
+          open
             ? "pointer-events-auto opacity-100"
             : "pointer-events-none opacity-0"
-          }`}
+        }`}
       />
 
       {/* Mobile Sidebar */}
@@ -215,8 +215,9 @@ const DashboardMobileSidebar = ({
         id="dashboard-mobile-sidebar"
         aria-label="Dashboard navigation"
         aria-hidden={!open}
-        className={`fixed inset-y-0 left-0 z-[100] flex h-[100dvh] w-[min(88vw,360px)] flex-col overflow-hidden border-r border-cyan-400/15 bg-[#06162B] text-white shadow-[20px_0_70px_rgba(0,0,0,0.4)] transition-transform duration-300 ease-in-out lg:hidden ${open ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`fixed inset-y-0 left-0 z-[100] flex h-[100dvh] w-[min(88vw,360px)] flex-col overflow-hidden border-r border-cyan-400/15 bg-[#06162B] text-white shadow-[20px_0_70px_rgba(0,0,0,0.4)] transition-transform duration-300 ease-in-out lg:hidden ${
+          open ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         {/* Top Branding */}
         <div className="relative shrink-0 overflow-hidden border-b border-white/[0.07] px-5 pb-5 pt-[max(1.25rem,env(safe-area-inset-top))]">
@@ -224,13 +225,21 @@ const DashboardMobileSidebar = ({
 
           <div className="relative flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/25 bg-gradient-to-br from-cyan-300 to-cyan-500 text-[#042039] shadow-lg shadow-cyan-500/15">
-                <LayoutDashboard size={22} strokeWidth={2.4} />
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-cyan-300/25 bg-white shadow-lg shadow-cyan-500/15">
+                {branding?.websiteLogo ? (
+                  <img
+                    src={branding.websiteLogo}
+                    alt={branding.websiteName || "Website Logo"}
+                    className="h-full w-full object-contain p-1"
+                  />
+                ) : (
+                  <span className="text-xl font-black text-cyan-500">B</span>
+                )}
               </div>
 
               <div className="min-w-0">
                 <h2 className="truncate text-base font-extrabold tracking-tight text-white">
-                  Bio Site
+                  {branding?.websiteName || "BIO SITES"}
                 </h2>
                 <p className="mt-0.5 text-[11px] font-medium tracking-wide text-slate-400">
                   BUSINESS WORKSPACE
@@ -269,19 +278,6 @@ const DashboardMobileSidebar = ({
           </div>
         </div>
 
-        {/* Navigation */}
-        <div className="shrink-0 px-5 pb-3 pt-5">
-          <div className="flex items-center justify-between">
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-500">
-              Main Navigation
-            </p>
-
-            <span className="rounded-lg border border-white/[0.07] bg-white/[0.04] px-2 py-1 text-[10px] font-bold tabular-nums text-slate-400">
-              {sidebarItems.length} ITEMS
-            </span>
-          </div>
-        </div>
-
         {/* Scrollable Navigation Items */}
         <nav className="min-h-0 flex-1 space-y-1.5 overflow-y-auto overscroll-contain px-3 pb-5 [scrollbar-color:#1e425d_transparent] [scrollbar-width:thin]">
           {sidebarItems.map((item) => {
@@ -294,17 +290,19 @@ const DashboardMobileSidebar = ({
                 type="button"
                 onClick={() => handleNavigation(item)}
                 aria-current={active ? "page" : undefined}
-                className={`group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl border px-3 py-3 text-left transition-all duration-200 active:scale-[0.99] ${active
+                className={`group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl border px-3 py-3 text-left transition-all duration-200 active:scale-[0.99] ${
+                  active
                     ? "border-cyan-300/25 bg-gradient-to-r from-cyan-400/[0.15] to-cyan-400/[0.04] shadow-[inset_3px_0_0_#22d3ee]"
                     : "border-transparent bg-transparent hover:border-white/[0.06] hover:bg-white/[0.04]"
-                  }`}
+                }`}
               >
                 {/* Icon */}
                 <div
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 ${active
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 ${
+                    active
                       ? "border-cyan-300/20 bg-cyan-300/15 text-cyan-300"
                       : "border-white/[0.06] bg-[#0C2037] text-slate-400 group-hover:border-cyan-300/15 group-hover:text-cyan-300"
-                    }`}
+                  }`}
                 >
                   <Icon size={19} strokeWidth={active ? 2.2 : 1.8} />
                 </div>
@@ -313,10 +311,11 @@ const DashboardMobileSidebar = ({
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span
-                      className={`truncate text-[13px] font-bold ${active
+                      className={`truncate text-[13px] font-bold ${
+                        active
                           ? "text-cyan-200"
                           : "text-slate-200 group-hover:text-white"
-                        }`}
+                      }`}
                     >
                       {item.label}
                     </span>
@@ -334,12 +333,13 @@ const DashboardMobileSidebar = ({
                 {/* Optional Badge */}
                 {item.badge && (
                   <span
-                    className={`shrink-0 rounded-lg border px-2 py-1 text-[9px] font-bold ${active
+                    className={`shrink-0 rounded-lg border px-2 py-1 text-[9px] font-bold ${
+                      active
                         ? "border-cyan-300/20 bg-cyan-300/10 text-cyan-200"
                         : item.badge === "New"
                           ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
                           : "border-white/[0.07] bg-white/[0.04] text-slate-400"
-                      }`}
+                    }`}
                   >
                     {item.badge}
                   </span>
@@ -347,10 +347,11 @@ const DashboardMobileSidebar = ({
 
                 <ChevronRight
                   size={15}
-                  className={`shrink-0 transition-all duration-200 ${active
+                  className={`shrink-0 transition-all duration-200 ${
+                    active
                       ? "translate-x-0 text-cyan-300"
                       : "-translate-x-1 text-slate-600 opacity-0 group-hover:translate-x-0 group-hover:text-slate-300 group-hover:opacity-100"
-                    }`}
+                  }`}
                 />
               </button>
             );

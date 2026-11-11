@@ -79,7 +79,7 @@ function PaymentModal({ onClose }) {
             </span>
 
             <h2 className="text-xl font-extrabold tracking-tight text-[#0b1b30] dark:text-white sm:text-[22px]">
-              Activate Your Mini Website
+              Activate Your BIO SITES
             </h2>
 
             <p className="mt-1 max-w-[320px] text-xs leading-5 text-[#64748b] dark:text-[#94a3b8]">

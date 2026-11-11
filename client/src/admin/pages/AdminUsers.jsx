@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import AdminOrders from "./AdminOrders";
 import {
   Users,
@@ -17,6 +18,7 @@ import {
   ShoppingBag,
   Download,
   Eye,
+  Trash2,
 } from "lucide-react";
 
 import * as XLSX from "xlsx";
@@ -26,6 +28,7 @@ import {
   verifyUserProfile,
   unverifyUserProfile,
   clearAdminError,
+  deleteAdminUser,
 } from "../../redux/slice/adminSlice";
 
 const formatDate = (date) => {
@@ -63,6 +66,8 @@ export default function AdminUsers() {
   const [isExporting, setIsExporting] = useState(false);
   const [page, setPage] = useState(1);
   const [activeTab, setActiveTab] = useState("users");
+  const [selectedUserToDelete, setSelectedUserToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const currentPage = page;
   const totalPages = usersPagination.totalPages || 0;
   const totalUsers = usersPagination.totalUsers || 0;
@@ -105,28 +110,15 @@ export default function AdminUsers() {
         );
       }
 
-      const {
-        users = [],
-        profiles = [],
-        orders = [],
-      } = response.data.data || {};
+      const { users = [], profiles = [] } = response.data.data || {};
 
       const workbook = XLSX.utils.book_new();
 
       // Users Sheet
       const usersSheet = XLSX.utils.json_to_sheet(users);
-      usersSheet["!cols"] = [
-        { wch: 26 },
-        { wch: 30 },
-        { wch: 18 },
-        { wch: 20 },
-        { wch: 20 },
-        { wch: 25 },
-        { wch: 30 },
-        { wch: 22 },
-        { wch: 22 },
-        { wch: 22 },
-      ];
+      usersSheet["!cols"] = Array.from({ length: 24 }, () => ({
+        wch: 24,
+      }));
 
       XLSX.utils.book_append_sheet(workbook, usersSheet, "Users");
 
@@ -137,14 +129,6 @@ export default function AdminUsers() {
       }));
 
       XLSX.utils.book_append_sheet(workbook, profilesSheet, "Mini Profiles");
-
-      // Orders Sheet
-      const ordersSheet = XLSX.utils.json_to_sheet(orders);
-      ordersSheet["!cols"] = Array.from({ length: 20 }, () => ({
-        wch: 24,
-      }));
-
-      XLSX.utils.book_append_sheet(workbook, ordersSheet, "Orders");
 
       const date = new Date().toISOString().slice(0, 10);
 
@@ -190,6 +174,32 @@ export default function AdminUsers() {
     }
   };
 
+  const handleDeleteUser = (user) => {
+    setSelectedUserToDelete(user);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!selectedUserToDelete || isDeleting) return;
+
+    try {
+      setIsDeleting(true);
+
+      await dispatch(deleteAdminUser(selectedUserToDelete._id)).unwrap();
+
+      setSelectedUserToDelete(null);
+      toast.success("User successfully deleted.");
+
+      if (users.length === 1 && page > 1) {
+        setPage((prev) => prev - 1);
+      } else {
+        dispatch(fetchAdminUsers({ page, limit, search }));
+      }
+    } catch (error) {
+      window.alert(error || "Unable to delete user.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
   return (
     <div className="min-w-0 space-y-4 sm:space-y-6">
       {/* Page heading */}
@@ -506,7 +516,7 @@ export default function AdminUsers() {
                           )}
                         </dl>
 
-                        <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
+                        <div className="grid grid-cols-3 gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
                           <button
                             type="button"
                             disabled={isUpdating}
@@ -539,27 +549,55 @@ export default function AdminUsers() {
                             <Eye size={14} className="shrink-0" />
                             View Profile
                           </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteUser(user)}
+                            className="inline-flex min-h-11 items-center justify-center gap-1 rounded-lg bg-rose-600 px-2 text-xs font-semibold text-white transition hover:bg-rose-700"
+                          >
+                            <Trash2 size={14} />
+                            Delete
+                          </button>
                         </div>
                       </article>
                     );
                   })}
                 </div>
 
-                <div className="hidden overflow-x-auto 2xl:block">
-                  <table className="w-full min-w-[1150px] text-left text-sm">
+                <div className="hidden w-full min-w-0 overflow-x-auto 2xl:block">
+                  <table className="w-full min-w-[1450px] table-fixed text-left text-sm">
+                    <colgroup>
+                      <col style={{ width: "220px" }} />
+                      <col style={{ width: "145px" }} />
+                      <col style={{ width: "155px" }} />
+                      <col style={{ width: "150px" }} />
+                      <col style={{ width: "210px" }} />
+                      <col style={{ width: "190px" }} />
+                      <col style={{ width: "380px" }} />
+                    </colgroup>
                     <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900/70 dark:text-slate-400">
                       <tr>
-                        <th className="px-5 py-4 font-semibold">User</th>
-                        <th className="px-5 py-4 font-semibold">Phone</th>
-                        <th className="px-5 py-4 font-semibold">
+                        <th className="whitespace-nowrap px-4 py-4 font-semibold">
+                          User
+                        </th>
+                        <th className="whitespace-nowrap px-4 py-4 font-semibold">
+                          Phone
+                        </th>
+                        <th className="whitespace-nowrap px-4 py-4 font-semibold">
                           Referral Code
                         </th>
-                        <th className="px-5 py-4 font-semibold">Referred By</th>
-                        <th className="px-5 py-4 font-semibold">Registered</th>
-                        <th className="px-5 py-4 font-semibold">
+                        <th className="whitespace-nowrap px-4 py-4 font-semibold">
+                          Referred By
+                        </th>
+                        <th className="whitespace-nowrap px-4 py-4 font-semibold">
+                          Registered
+                        </th>
+                        <th className="whitespace-nowrap px-4 py-4 font-semibold">
                           Verification
                         </th>
-                        <th className="px-5 py-4 font-semibold">Action</th>
+                        <th className="whitespace-nowrap px-20 py-4 font-semibold">
+                          Action
+                        </th>
                       </tr>
                     </thead>
 
@@ -575,7 +613,7 @@ export default function AdminUsers() {
                             key={user._id}
                             className="transition hover:bg-slate-50/80 dark:hover:bg-slate-800/40"
                           >
-                            <td className="px-5 py-4">
+                            <td className="whitespace-nowrap px-4 py-4">
                               <div className="font-medium text-slate-900 dark:text-white">
                                 {user.fullName || "—"}
                               </div>
@@ -584,17 +622,17 @@ export default function AdminUsers() {
                               </div>
                             </td>
 
-                            <td className="px-5 py-4 text-slate-600 dark:text-slate-300">
+                            <td className="whitespace-nowrap px-4 py-4 text-slate-600 dark:text-slate-300">
                               {user.phone || "—"}
                             </td>
 
-                            <td className="px-5 py-4">
-                              <span className="rounded-lg bg-cyan-50 px-2.5 py-1.5 text-xs font-medium text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-400">
+                            <td className="whitespace-nowrap px-4 py-4">
+                              <span className="inline-block rounded-lg bg-cyan-50 px-2.5 py-1.5 text-xs font-medium text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-400">
                                 {user.referralCode || "—"}
                               </span>
                             </td>
 
-                            <td className="px-5 py-4">
+                            <td className="whitespace-nowrap px-4 py-4">
                               {user.referredBy ? (
                                 <div>
                                   <div className="flex items-center gap-1.5 font-medium text-slate-800 dark:text-slate-200">
@@ -615,7 +653,7 @@ export default function AdminUsers() {
                               )}
                             </td>
 
-                            <td className="px-5 py-4">
+                            <td className="whitespace-nowrap px-4 py-4">
                               <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
                                 <CalendarDays
                                   size={15}
@@ -625,7 +663,7 @@ export default function AdminUsers() {
                               </div>
                             </td>
 
-                            <td className="px-5 py-4">
+                            <td className="whitespace-nowrap px-4 py-4">
                               {isVerified ? (
                                 <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
                                   <ShieldCheck size={14} />
@@ -645,41 +683,56 @@ export default function AdminUsers() {
                               )}
                             </td>
 
-                            <td className="px-5 py-4">
-                              <button
-                                type="button"
-                                disabled={isUpdating}
-                                onClick={() => handleVerification(user)}
-                                className={`inline-flex min-w-[105px] items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                                  isVerified
-                                    ? "bg-rose-600 hover:bg-rose-700"
-                                    : "bg-emerald-600 hover:bg-emerald-700"
-                                }`}
-                              >
-                                {isUpdating ? (
-                                  <>
-                                    <RefreshCw
-                                      size={13}
-                                      className="animate-spin"
-                                    />
-                                    Updating...
-                                  </>
-                                ) : isVerified ? (
-                                  "Unverify"
-                                ) : (
-                                  "Verify"
-                                )}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  navigate(`/admin/users/${user._id}`)
-                                }
-                                className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg   px-1 py-2 text-xs font-semibold text-cyan-600 transition hover:bg-cyan-50 dark:text-cyan-400 dark:hover:bg-cyan-500/10"
-                              >
-                                <Eye size={14} />
-                                View Profile
-                              </button>
+                            <td className="whitespace-nowrap px-4 py-4">
+                              <div className="flex items-center gap-2">
+                                {/* Verify / Unverify */}
+                                <button
+                                  type="button"
+                                  disabled={isUpdating}
+                                  onClick={() => handleVerification(user)}
+                                  className={`inline-flex min-w-[105px] items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-xs font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                                    isVerified
+                                      ? "bg-rose-600 hover:bg-rose-700"
+                                      : "bg-emerald-600 hover:bg-emerald-700"
+                                  }`}
+                                >
+                                  {isUpdating ? (
+                                    <>
+                                      <RefreshCw
+                                        size={13}
+                                        className="animate-spin"
+                                      />
+                                      Updating...
+                                    </>
+                                  ) : isVerified ? (
+                                    "Unverify"
+                                  ) : (
+                                    "Verify"
+                                  )}
+                                </button>
+
+                                {/* View Profile */}
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    navigate(`/admin/users/${user._id}`)
+                                  }
+                                  className="inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-2.5 text-xs font-semibold text-cyan-600 transition hover:bg-cyan-50 dark:text-cyan-400 dark:hover:bg-cyan-500/10"
+                                >
+                                  <Eye size={15} />
+                                  View Profile
+                                </button>
+
+                                {/* Delete User */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteUser(user)}
+                                  className="inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-2.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
+                                >
+                                  <Trash2 size={15} />
+                                  Delete User
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         );
@@ -748,6 +801,96 @@ export default function AdminUsers() {
         </>
       ) : (
         <AdminOrders />
+      )}
+
+      {/* DELETE USER CONFIRMATION MODAL */}
+      {selectedUserToDelete && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
+          onClick={() => {
+            if (!isDeleting) setSelectedUserToDelete(null);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-user-title"
+            className="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-[#0b1728]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-start gap-4 p-5 sm:p-6">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400">
+                <Trash2 size={23} />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <h2
+                  id="delete-user-title"
+                  className="text-lg font-bold text-slate-900 dark:text-white"
+                >
+                  Delete User?
+                </h2>
+
+                <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                  Are you sure you want to permanently delete this user?
+                </p>
+              </div>
+            </div>
+
+            {/* User Details */}
+            <div className="mx-5 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:mx-6 dark:border-slate-700 dark:bg-slate-800/50">
+              <p className="font-semibold text-slate-900 dark:text-white">
+                {selectedUserToDelete.fullName || "Unnamed User"}
+              </p>
+
+              <p className="mt-1 break-all text-sm text-slate-500 dark:text-slate-400">
+                {selectedUserToDelete.email || "No email available"}
+              </p>
+            </div>
+
+            {/* Warning */}
+            <div className="mx-5 mt-4 flex gap-2 rounded-xl bg-rose-50 p-3 text-sm text-rose-700 sm:mx-6 dark:bg-rose-500/10 dark:text-rose-300">
+              <AlertCircle size={18} className="mt-0.5 shrink-0" />
+
+              <p className="leading-5">
+                This action cannot be undone. The user's account, mini profile
+                and plan purchase records will be deleted.
+              </p>
+            </div>
+
+            {/* Footer */}
+            <div className="mt-5 flex flex-col-reverse gap-2 border-t border-slate-200 p-5 sm:flex-row sm:justify-end sm:px-6 dark:border-slate-700">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setSelectedUserToDelete(null)}
+                className="min-h-11 rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus-visible:ring-offset-slate-900"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={confirmDeleteUser}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:focus-visible:ring-offset-slate-900"
+              >
+                {isDeleting ? (
+                  <>
+                    <RefreshCw size={16} className="animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={16} />
+                    Delete User
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

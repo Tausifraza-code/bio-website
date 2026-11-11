@@ -1,7 +1,6 @@
-
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import {
   MonitorSmartphone,
@@ -23,11 +22,12 @@ import {
 } from "lucide-react";
 
 import { logoutUser, logout } from "../redux/slice/authSlice";
+import { fetchPublicBranding } from "../redux/slice/adminSlice";
 
 const sidebarItems = [
   {
     id: "mini",
-    label: "Live Mini Website View",
+    label: "View BIO SITES",
     icon: MonitorSmartphone,
     path: "/mini",
   },
@@ -75,12 +75,12 @@ const sidebarItems = [
   {
     id: "contactbuttons",
     label: "Contact Buttons",
-    description: "Manage mini website actions",
+    description: "Manage contact actions",
     icon: MessagesSquare,
     path: "/contact-buttons",
     // badge: "Manage",
   },
- 
+
   {
     id: "socialcard",
     label: "Social Media Cards",
@@ -135,6 +135,11 @@ const DashboardSidebar = ({
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
+  const branding = useSelector((state) => state.admin?.branding);
+
+  React.useEffect(() => {
+    dispatch(fetchPublicBranding());
+  }, [dispatch]);
 
   const handleNavigation = (item) => {
     onNavClick?.(item.id);
@@ -176,18 +181,22 @@ const DashboardSidebar = ({
           {!collapsed && (
             <div className="flex min-w-0 items-center gap-2.5 px-1.5">
               {/* Logo */}
-              <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-cyan-300 to-blue-600 shadow-[0_0_16px_rgba(34,211,238,0.12)]">
-                <div className="absolute inset-[2px] rounded-[10px] bg-[#041D38]" />
-
-                <span className="relative z-10 text-base font-black italic text-cyan-300">
-                  B
-                </span>
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-[0_0_16px_rgba(34,211,238,0.12)]">
+                {branding?.websiteLogo ? (
+                  <img
+                    src={branding.websiteLogo}
+                    alt={branding.websiteName || "Website Logo"}
+                    className="h-full w-full object-contain p-1"
+                  />
+                ) : (
+                  <span className="text-base font-black text-cyan-500">B</span>
+                )}
               </div>
 
               {/* Brand */}
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold leading-none text-white">
-                  Bio Site
+                  {branding?.websiteName || "BIO SITES"}
                 </p>
 
                 <p className="mt-1 text-[9px] font-medium text-cyan-300/70">
@@ -243,9 +252,7 @@ const DashboardSidebar = ({
                 title={collapsed ? item.label : undefined}
                 aria-current={active ? "page" : undefined}
                 className={`group relative flex w-full items-center rounded-xl border text-left transition-all duration-200 ${
-                  collapsed
-                    ? "justify-center px-0 py-2.5"
-                    : "gap-2.5 px-2 py-2"
+                  collapsed ? "justify-center px-0 py-2.5" : "gap-2.5 px-2 py-2"
                 } ${
                   active
                     ? "border-cyan-400/20 bg-gradient-to-r from-cyan-400/[0.13] via-blue-400/[0.06] to-transparent text-white shadow-[0_5px_18px_rgba(0,0,0,0.15)]"
@@ -341,7 +348,7 @@ const DashboardSidebar = ({
 
                 <div className="min-w-0">
                   <p className="truncate text-[10px] font-bold text-white">
-                    Bio Site Workspace
+                    BIO SITES Workspace
                   </p>
 
                   <p className="mt-0.5 truncate text-[8px] text-slate-500">

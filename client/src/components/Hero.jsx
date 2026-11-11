@@ -43,7 +43,7 @@ function Hero() {
           {/* Mobile: text first | Desktop: left */}
           <div className="order-1 mx-auto w-full max-w-[650px] text-center lg:order-1 lg:mx-0 lg:text-left">
             <div className="mb-2 inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full border border-[#d7e3eb] bg-white px-3 py-2 text-[10px] font-bold text-cyan-700 shadow-sm dark:border-[#29435f] dark:bg-[#132942] dark:text-[#22d3ee] sm:mb-5 sm:px-3.5 sm:text-xs lg:justify-start">
-              <span>BIO SITE</span>
+              <span>BIO SITES</span>
               <span className="h-1 w-1 rounded-full bg-[#0891b2] dark:bg-[#22d3ee]" />
               <span>YOUR DIGITAL BUSINESS IDENTITY</span>
             </div>
@@ -90,7 +90,7 @@ function Hero() {
                 href="/register"
                 className="group inline-flex items-center justify-center gap-3 rounded-full bg-cyan-400 px-7 py-4 text-[15px] font-bold text-[#f1f6f9] shadow-sm transition duration-300 hover:-translate-y-1 hover:bg-cyan-300 hover:text-[#0b1b30] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 sm:px-8"
               >
-                Create Your Bio Site
+                Create Your BIO SITES
                 <ArrowRight
                   size={17}
                   className="transition-transform group-hover:translate-x-1"
@@ -279,12 +279,12 @@ function Hero() {
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0b1b30]/85 via-[#0b1b30]/10 to-transparent" />
 
                 <span className="absolute left-3 top-3 rounded-full border border-white/25 bg-[#0b1b30]/75 px-2.5 py-1 text-[9px] font-bold text-white backdrop-blur">
-                  GROOMING &amp; SALON
+                  Dermatologist & Skin Specialist
                 </span>
 
                 <div className="absolute bottom-2.5 left-3 right-3">
                   <p className="text-[9px] font-bold uppercase tracking-widest text-cyan-300">
-                    YOUR STYLE. YOUR IDENTITY.
+                    Your Skin. Our Priority.
                   </p>
                 </div>
               </div>
@@ -354,12 +354,12 @@ function Hero() {
                     </span>
                   </div>
 
-                 <Link to="/card-preview/doctor">
-                   <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-cyan-400 px-2.5 py-2 text-[10px] font-bold text-[#0b1b30] sm:px-3">
-                    {/* <Phone size={12} /> */}
-                    View Demo
-                  </span>
-                 </Link>
+                  <Link to="/card-preview/doctor">
+                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-cyan-400 px-2.5 py-2 text-[10px] font-bold text-[#0b1b30] sm:px-3">
+                      {/* <Phone size={12} /> */}
+                      View Demo
+                    </span>
+                  </Link>
                 </div>
               </div>
 

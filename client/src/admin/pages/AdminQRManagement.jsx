@@ -311,8 +311,6 @@ const downloadQRDesign = async (
         width: 900,
         height: 1273,
         qrSize: 440,
-        activationX: 735,
-        activationY: 620,
         socialY: 1010,
         socialSize: 29,
         socialGap: 95,
@@ -322,8 +320,6 @@ const downloadQRDesign = async (
         width: 1011,
         height: 638,
         qrSize: 200,
-        activationX: 850,
-        activationY: 320,
         activationWidth: 175,
         socialY: 500,
         socialSize: 20,
@@ -334,8 +330,6 @@ const downloadQRDesign = async (
         width: 600,
         height: 600,
         qrSize: 190,
-        activationX: 510,
-        activationY: 300,
         activationWidth: 110,
         socialY: 465,
         socialSize: 17,
@@ -491,30 +485,30 @@ const downloadQRDesign = async (
         `;
       })
       .join("");
+    const activationFontSize =
+      format === "standee" ? 15 : format === "pocket" ? 11 : 8;
+
+    // Same spacing as the "Connect with us" caption
+    const activationGap = connectTextY - (qrBottom + 35);
+
+    // QR card ke right side activation code
+    const activationX = qrX + qrSize + 25 + activationGap;
+    const activationY = qrY + qrSize / 2;
 
     const activationCodeText = `
-      <g transform="translate(${layout.activationX}, ${layout.activationY}) rotate(90)">
-        <text
-        x="${format === "standee" ? -72 : format === "pocket" ? -75 : -55}"
-          y="0"
-          text-anchor="middle"
-          font-family="Arial,sans-serif"
-          font-size="${format === "standee" ? 13 : format === "pocket" ? 10 : 7}"
-          font-weight="700"
-          fill="#1D4ED8"
-        >ACTIVATION CODE</text>
-
-        <text
-          x="${format === "standee" ? 72 : format === "pocket" ? 75 : 55}"
-          y="0"
-          text-anchor="middle"
-          font-family="Arial,sans-serif"
-          font-size="${format === "standee" ? 15 : format === "pocket" ? 11 : 8}"
-          font-weight="700"
-          fill="#10243A"
-        >${escapeXml(activationCode)}</text>
-      </g>
-    `;
+  <g transform="translate(${activationX}, ${activationY}) rotate(90)">
+    <text
+      x="0"
+      y="0"
+      text-anchor="middle"
+      dominant-baseline="middle"
+      font-family="Arial,sans-serif"
+      font-size="${activationFontSize}"
+      font-weight="700"
+      fill="#10243A"
+    >${escapeXml(activationCode)}</text>
+  </g>
+`;
 
     const footerCurve = `
       <path
@@ -581,7 +575,7 @@ const downloadQRDesign = async (
           font-size="${format === "standee" ? 49 : 34}"
           font-weight="700"
           fill="#ffffff"
-        >BIO SITE</text>
+        >BIO SITES</text>
 
         <!-- Main heading -->
         <text

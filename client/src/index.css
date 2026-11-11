@@ -445,8 +445,15 @@ aside.bg-\[\#0d1426\] {
   background-color: var(--dash-bg);
 }
 
-.app-shell.theme-dark main.home-main {
-  background-color: #0b1b30;
+.app-shell.theme-dark main,
+.app-shell.theme-dark main.home-main,
+[data-theme="dark"] .app-shell main {
+  background-color: #0b1b30 !important;
+}
+
+.app-shell.theme-light main,
+[data-theme="light"] .app-shell main {
+  background-color: #f1f6f9 !important;
 }
 
 .app-shell main section {

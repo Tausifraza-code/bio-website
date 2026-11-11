@@ -33,6 +33,7 @@ const {
   updateAdminUserProfile,
   uploadAdminUserProfileImages,
   exportAdminUsers,
+  deleteAdminUser,
 } = require("../controllers/adminUsers.controller");
 
 const {
@@ -214,4 +215,6 @@ router.post(
 //logo
 router.get("/settings/branding", getPublicBranding);
 router.get("/users/export", protect, adminOnly, exportAdminUsers);
+
+router.delete("/users/:userId", protect, adminOnly, deleteAdminUser);
 module.exports = router;

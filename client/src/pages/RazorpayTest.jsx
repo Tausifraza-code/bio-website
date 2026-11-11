@@ -45,7 +45,7 @@ export default function RazorpayTest() {
         key: order.razorpayKeyId,
         amount: order.orderAmount,
         currency: order.orderCurrency,
-        name: "BIO SITE",
+        name: "BIO SITES",
         description: order.planName,
         order_id: order.orderId,
 

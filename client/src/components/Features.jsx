@@ -62,7 +62,7 @@ function BenefitCard({ item }) {
 export default function Features() {
   return (
     <section
-      id="services"
+      id="features"
       aria-labelledby="features-heading"
       className="features-section relative isolate w-full overflow-hidden bg-[#eaf8f4] py-6 text-[#0b1b30] dark:bg-[#0b1b30] dark:text-white sm:py-6 lg:py-6"
     >

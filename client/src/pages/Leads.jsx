@@ -1,4 +1,3 @@
-
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -53,8 +52,7 @@ const Leads = () => {
   const selectedLead = useMemo(
     () =>
       leads.find(
-        (lead) =>
-          String(lead.id ?? lead._id) === String(deleteConfirmId),
+        (lead) => String(lead.id ?? lead._id) === String(deleteConfirmId),
       ),
     [leads, deleteConfirmId],
   );
@@ -74,7 +72,9 @@ const Leads = () => {
         lead.message,
         lead.status,
       ].some((value) =>
-        String(value ?? "").toLowerCase().includes(query),
+        String(value ?? "")
+          .toLowerCase()
+          .includes(query),
       ),
     );
   }, [leads, searchQuery]);
@@ -143,9 +143,7 @@ const Leads = () => {
               <AlertTriangle size={24} className="text-red-400" />
             </div>
 
-            <h3 className="text-lg font-bold text-white">
-              Delete Inquiry?
-            </h3>
+            <h3 className="text-lg font-bold text-white">Delete Inquiry?</h3>
 
             <p className="mt-2 break-words text-sm leading-6 text-slate-400">
               Are you sure you want to delete the inquiry from{" "}
@@ -212,8 +210,7 @@ const Leads = () => {
                 </span>
 
                 <span className="rounded-full border border-[#29435f] bg-[#132942] px-2 py-0.5 text-[10px] font-semibold text-slate-400">
-                  {totalInquiries}{" "}
-                  {totalInquiries === 1 ? "Lead" : "Leads"}
+                  {totalInquiries} {totalInquiries === 1 ? "Lead" : "Leads"}
                 </span>
               </div>
 
@@ -223,7 +220,7 @@ const Leads = () => {
 
               <p className="mt-1.5 max-w-xl text-xs leading-6 text-slate-400 sm:text-sm">
                 Manage customer messages and keep track of potential business
-                opportunities from your mini website.
+                opportunities from your BIO SITES.
               </p>
             </div>
           </div>
@@ -236,10 +233,7 @@ const Leads = () => {
               title="Refresh inquiries"
               className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#29435f] bg-[#0b1b30] text-slate-300 transition hover:border-cyan-400/40 hover:text-cyan-400 disabled:opacity-50"
             >
-              <RefreshCw
-                size={16}
-                className={loading ? "animate-spin" : ""}
-              />
+              <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
             </button>
 
             <div className="flex items-center gap-2 rounded-xl border border-[#29435f] bg-[#0b1b30] px-3.5 py-2.5">
@@ -258,9 +252,7 @@ const Leads = () => {
         {/* Overview */}
         <section className="mb-8 overflow-hidden rounded-2xl border border-[#29435f] bg-[#0b1b30] shadow-lg shadow-black/10">
           <div className="border-b border-[#29435f] px-5 py-4">
-            <h2 className="text-sm font-bold text-white">
-              Inquiry Overview
-            </h2>
+            <h2 className="text-sm font-bold text-white">Inquiry Overview</h2>
             <p className="mt-1 text-xs text-slate-400">
               A quick snapshot of your customer activity.
             </p>
@@ -272,9 +264,7 @@ const Leads = () => {
                 <MessageSquare size={17} className="text-cyan-400" />
               </div>
 
-              <p className="text-2xl font-bold text-white">
-                {totalInquiries}
-              </p>
+              <p className="text-2xl font-bold text-white">{totalInquiries}</p>
               <p className="mt-1 text-[11px] font-medium text-slate-400">
                 Total inquiries
               </p>
@@ -285,9 +275,7 @@ const Leads = () => {
                 <User size={17} className="text-blue-400" />
               </div>
 
-              <p className="text-2xl font-bold text-white">
-                {newInquiries}
-              </p>
+              <p className="text-2xl font-bold text-white">{newInquiries}</p>
               <p className="mt-1 text-[11px] font-medium text-slate-400">
                 New inquiries
               </p>
@@ -297,12 +285,10 @@ const Leads = () => {
 
         {/* Information Card */}
         <section className="mb-8 relative overflow-hidden rounded-2xl border border-cyan-400/20 bg-gradient-to-br from-[#132942] to-[#0b1b30] p-5 shadow-lg shadow-black/10">
-          <h3 className="text-sm font-bold text-white">
-            Grow your inquiries
-          </h3>
+          <h3 className="text-sm font-bold text-white">Grow your inquiries</h3>
           <p className="mt-2 text-xs leading-6 text-slate-400">
-            Share your mini website link or business QR code to make it easier
-            for potential customers to contact you.
+            Share your BIO SITES link or business QR code to make it easier for
+            potential customers to contact you.
           </p>
           <div className="mt-4 flex items-center gap-2 text-[11px] font-bold text-cyan-400">
             <span className="h-px w-6 bg-cyan-400/50" />
@@ -404,8 +390,8 @@ const Leads = () => {
 
               <p className="mx-auto mt-2 max-w-md text-xs leading-6 text-slate-400 sm:text-sm">
                 Customer messages will appear here when inquiries are submitted.
-                Share your mini website or QR code to encourage customers to get
-                in touch.
+                Share your BIO SITES or QR code to encourage customers to get in
+                touch.
               </p>
 
               <div className="mx-auto mt-5 flex w-fit items-center gap-2 rounded-lg border border-[#29435f] bg-[#132942] px-3 py-2 text-[11px] font-medium text-slate-300">

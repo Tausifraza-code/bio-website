@@ -53,7 +53,7 @@ export default function AdminHeader({
           </h2>
 
           <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
-            Welcome back to your {branding?.websiteName || "BIO SITE"}{" "}
+            Welcome back to your {branding?.websiteName || "BIO SITES"}{" "}
             dashboard.
           </p>
         </div>
@@ -84,7 +84,7 @@ export default function AdminHeader({
         <div className="ml-1 hidden items-center gap-2 border-l border-slate-200 pl-3 dark:border-slate-700 sm:flex">
           <div>
             <p className="max-w-[150px] truncate text-sm font-semibold text-slate-800 dark:text-white">
-              {branding?.websiteName || "BIO SITE"}
+              {branding?.websiteName || "BIO SITES"}
             </p>
 
             <p className="text-xs text-slate-500 dark:text-slate-400">

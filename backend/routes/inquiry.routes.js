@@ -9,7 +9,7 @@ const {
 
 const { protect } = require("../middleware/auth.middleware");
 
-// Public mini website contact form
+// Public BIO SITES contact form
 router.post("/", createInquiry);
 
 // Logged-in user dashboard

@@ -577,6 +577,28 @@ export const fetchPublicBranding = createAsyncThunk(
   },
 );
 
+// DELETE ADMIN USER
+export const deleteAdminUser = createAsyncThunk(
+  "admin/deleteUser",
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await api.delete(`/admin/users/${userId}`);
+
+      if (!response.data?.success) {
+        return rejectWithValue(
+          response.data?.message || "Unable to delete user.",
+        );
+      }
+
+      return { userId, message: response.data.message };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Unable to delete user.",
+      );
+    }
+  },
+);
+
 const initialState = {
   admin: null,
   token: localStorage.getItem("adminToken") || null,
@@ -676,7 +698,7 @@ const initialState = {
   profileImagesError: null,
 
   branding: {
-    websiteName: "BIO SITE",
+    websiteName: "BIO SITES",
     websiteLogo: "",
     websiteUrl: "",
   },
@@ -1157,6 +1179,29 @@ const adminSlice = createSlice({
 
       .addCase(fetchPublicBranding.rejected, (state) => {
         state.brandingLoading = false;
+      })
+
+      // DELETE ADMIN USER
+      .addCase(deleteAdminUser.pending, (state) => {
+        state.usersError = null;
+      })
+      .addCase(deleteAdminUser.fulfilled, (state, action) => {
+        const deletedUserId = action.payload.userId;
+
+        state.users = state.users.filter((user) => user._id !== deletedUserId);
+
+        state.usersPagination.totalUsers = Math.max(
+          0,
+          state.usersPagination.totalUsers - 1,
+        );
+
+        state.usersPagination.totalPages = Math.ceil(
+          state.usersPagination.totalUsers /
+            (state.usersPagination.limit || 10),
+        );
+      })
+      .addCase(deleteAdminUser.rejected, (state, action) => {
+        state.usersError = action.payload || "Unable to delete user.";
       });
   },
 });

@@ -110,6 +110,7 @@ export default function BioSharingSection() {
       aria-labelledby="bio-sharing-heading"
       className="relative isolate w-full overflow-hidden bg-[#eaf8f4] py-6 dark:bg-[#0b1b30] sm:py-6 lg:py-6"
     >
+      <span id="sharing" className="sr-only" />
       {/* Shared container matching Hero and Features width exactly */}
       <div className="relative z-10 mx-auto w-full max-w-[1240px] px-4 sm:px-6 lg:px-2 xl:px-4">
         {/* Unified Banner Card */}
@@ -192,7 +193,7 @@ export default function BioSharingSection() {
                     to="/register"
                     className="group inline-flex min-h-[46px] items-center justify-center gap-2.5 rounded-full bg-[#c8f7ec] px-6 py-2.5 text-xs font-bold text-[#07453e] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 sm:min-h-[50px] sm:px-7 sm:text-sm"
                   >
-                    <span>Create Your Mini Website</span>
+                    <span>Create Your BIO SITES</span>
                     <ArrowRight
                       size={16}
                       className="shrink-0 transition-transform duration-200 group-hover:translate-x-1"

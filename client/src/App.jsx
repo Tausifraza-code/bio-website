@@ -1,16 +1,19 @@
-
 import { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
 import Home from "./pages/Home";
 import AuthPage from "./pages/AuthPage";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import CardPreview from "./pages/CardPreview";
 import Dashboard from "./pages/Dashboard";
 import RazorpayTest from "./pages/RazorpayTest";
 import ProfileLayouts from "./pages/ProfileLayouts";
 
 import DashboardLayout from "./layout/DashboardLayout";
+import PublicPageLayout from "./layout/PublicPageLayout";
 import PrivateRoute from "./components/PrivateRoute";
 
 import EditProfile from "./pages/EditProfile";
@@ -77,6 +80,30 @@ function App() {
         {/* ================================== */}
 
         <Route path="/" element={<Home />} />
+        <Route
+          path="/about"
+          element={
+            <PublicPageLayout>
+              <About />
+            </PublicPageLayout>
+          }
+        />
+        <Route
+          path="/contact"
+          element={
+            <PublicPageLayout>
+              <Contact />
+            </PublicPageLayout>
+          }
+        />
+        <Route
+          path="/privacy-policy"
+          element={
+            <PublicPageLayout>
+              <PrivacyPolicy />
+            </PublicPageLayout>
+          }
+        />
 
         {/* Authentication */}
         <Route path="/login" element={<AuthPage />} />
@@ -116,10 +143,7 @@ function App() {
 
             <Route path="/mini" element={<Mini />} />
 
-            <Route
-              path="/payment"
-              element={<Navigate to="/mini" replace />}
-            />
+            <Route path="/payment" element={<Navigate to="/mini" replace />} />
 
             <Route path="/theme" element={<WebsiteTheme />} />
 
@@ -129,17 +153,11 @@ function App() {
 
             <Route path="/review" element={<Review />} />
 
-            <Route
-              path="/contact-buttons"
-              element={<ContactButtons />}
-            />
+            <Route path="/contact-buttons" element={<ContactButtons />} />
 
             <Route path="/socialcard" element={<SocialCard />} />
 
-            <Route
-              path="/upi-payments"
-              element={<UpiPaymentSettings />}
-            />
+            <Route path="/upi-payments" element={<UpiPaymentSettings />} />
           </Route>
         </Route>
 
@@ -158,19 +176,13 @@ function App() {
 
           <Route path="/admin/referrals" element={<AdminReferrals />} />
 
-          <Route
-            path="/admin/qr-management"
-            element={<AdminQRManagement />}
-          />
+          <Route path="/admin/qr-management" element={<AdminQRManagement />} />
 
           <Route path="/admin/plans" element={<AdminPlans />} />
 
           <Route path="/admin/orders" element={<AdminOrders />} />
 
-          <Route
-            path="/admin/users/:userId"
-            element={<AdminUserProfile />}
-          />
+          <Route path="/admin/users/:userId" element={<AdminUserProfile />} />
 
           <Route path="/admin/settings" element={<AdminSettings />} />
         </Route>

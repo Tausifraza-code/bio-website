@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -10,16 +9,33 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import {
-  fetchMyProfile,
-  saveMyProfile,
-} from "../redux/slice/profileSlice";
+import { fetchMyProfile, saveMyProfile } from "../redux/slice/profileSlice";
 
 const layouts = [
-  { id: "modern-business", name: "Modern Business", description: "Professional business profile with a balanced layout.", style: "modern" },
-  { id: "minimal-card", name: "Minimal Card", description: "Clean, compact design with focus on essential details.", style: "minimal" },
-  { id: "creator-portfolio", name: "Creator Portfolio", description: "Showcase your work, social links and personal brand.", style: "creator" },
-  // { id: "corporate-executive", name: "Corporate Executive", description: "Structured, polished design for professionals.", style: "corporate" },
+  {
+    id: "modern-business",
+    name: "Modern Business",
+    description: "Professional business profile with a balanced layout.",
+    style: "modern",
+  },
+  {
+    id: "minimal-card",
+    name: "Minimal Card",
+    description: "Clean, compact design with focus on essential details.",
+    style: "minimal",
+  },
+  {
+    id: "creator-portfolio",
+    name: "Creator Portfolio",
+    description: "Showcase your work, social links and personal brand.",
+    style: "creator",
+  },
+  {
+    id: "corporate-executive",
+    name: "Corporate Executive",
+    description: "Structured, polished design for professionals.",
+    style: "corporate",
+  },
   // { id: "storefront", name: "Storefront", description: "A product-first layout for shops and businesses.", style: "store" },
   // { id: "freelancer-pro", name: "Freelancer Pro", description: "Highlight your services and professional information.", style: "freelancer" },
   // { id: "elegant-profile", name: "Elegant Profile", description: "A refined profile presentation with generous spacing.", style: "elegant" },
@@ -28,12 +44,16 @@ const layouts = [
   // { id: "service-pro", name: "Service Pro", description: "A service-focused layout for enquiries and bookings.", style: "service" },
 ];
 
-const PreviewLine = ({ className = "w-full", color = "bg-slate-300", height = "h-1" }) => (
-  <div className={`${className} ${height} rounded-full ${color}`} />
-);
+const PreviewLine = ({
+  className = "w-full",
+  color = "bg-slate-300",
+  height = "h-1",
+}) => <div className={`${className} ${height} rounded-full ${color}`} />;
 
 const PreviewImage = ({ className = "" }) => (
-  <div className={`overflow-hidden bg-gradient-to-br from-slate-200 via-slate-300 to-slate-400 ${className}`}>
+  <div
+    className={`overflow-hidden bg-gradient-to-br from-slate-200 via-slate-300 to-slate-400 ${className}`}
+  >
     <div className="flex h-full items-center justify-center">
       <div className="h-1/2 aspect-square rounded-full border-4 border-white/50 bg-slate-400/60" />
     </div>
@@ -77,7 +97,9 @@ const LayoutPreview = ({ style }) => {
             {[1, 2, 3].map((item) => (
               <div key={item} className="rounded-md bg-[#F0F8FA] p-2">
                 {line("w-5", "bg-cyan-500", "h-1.5")}
-                <div className="mt-1">{line("w-full", "bg-slate-300", "h-1")}</div>
+                <div className="mt-1">
+                  {line("w-full", "bg-slate-300", "h-1")}
+                </div>
               </div>
             ))}
           </div>
@@ -92,7 +114,9 @@ const LayoutPreview = ({ style }) => {
           </div>
           <div className="mx-auto mt-2 w-24 space-y-1.5">
             {line("w-full", "bg-[#292929]", "h-1.5")}
-            <div className="mx-auto">{line("w-3/4", "bg-[#A59B8D]", "h-1")}</div>
+            <div className="mx-auto">
+              {line("w-3/4", "bg-[#A59B8D]", "h-1")}
+            </div>
           </div>
           <div className="mx-auto mt-3 h-5 w-24 rounded-full bg-[#252525]" />
           <div className="mx-auto mt-3 max-w-[170px] space-y-1.5 rounded-lg border border-[#E9E3DA] bg-white p-2">
@@ -102,7 +126,10 @@ const LayoutPreview = ({ style }) => {
           </div>
           <div className="mt-3 flex justify-center gap-2">
             {[1, 2, 3].map((item) => (
-              <div key={item} className="h-5 w-5 rounded-full border border-[#DED7CC] bg-white" />
+              <div
+                key={item}
+                className="h-5 w-5 rounded-full border border-[#DED7CC] bg-white"
+              />
             ))}
           </div>
         </div>
@@ -135,7 +162,10 @@ const LayoutPreview = ({ style }) => {
           </div>
           <div className="grid grid-cols-3 gap-1.5 p-2">
             {[1, 2, 3, 4, 5, 6].map((item) => (
-              <div key={item} className={`aspect-square rounded-md ${item % 2 ? "bg-gradient-to-br from-cyan-100 to-blue-200" : "bg-gradient-to-br from-slate-200 to-slate-300"}`} />
+              <div
+                key={item}
+                className={`aspect-square rounded-md ${item % 2 ? "bg-gradient-to-br from-cyan-100 to-blue-200" : "bg-gradient-to-br from-slate-200 to-slate-300"}`}
+              />
             ))}
           </div>
           <div className="flex justify-center gap-2 border-t border-slate-100 py-2">
@@ -179,7 +209,9 @@ const LayoutPreview = ({ style }) => {
             {[1, 2, 3].map((item) => (
               <div key={item} className="rounded bg-[#EAF1F5] p-2">
                 {line("w-3/4", "bg-[#315F7A]")}
-                <div className="mt-1">{line("w-full", "bg-slate-300", "h-0.5")}</div>
+                <div className="mt-1">
+                  {line("w-full", "bg-slate-300", "h-0.5")}
+                </div>
               </div>
             ))}
           </div>
@@ -215,7 +247,10 @@ const LayoutPreview = ({ style }) => {
             {line("w-20", "bg-slate-800", "h-1.5")}
             <div className="mt-2 grid grid-cols-4 gap-1.5">
               {[1, 2, 3, 4].map((item) => (
-                <div key={item} className="overflow-hidden rounded-md border border-slate-100 bg-slate-50">
+                <div
+                  key={item}
+                  className="overflow-hidden rounded-md border border-slate-100 bg-slate-50"
+                >
                   <div className="aspect-square bg-gradient-to-br from-slate-200 to-slate-300" />
                   <div className="space-y-1 p-1">
                     {line("w-full", "bg-slate-400", "h-0.5")}
@@ -245,7 +280,10 @@ const LayoutPreview = ({ style }) => {
             {line("w-20", "bg-slate-800", "h-1.5")}
             <div className="mt-2 space-y-1.5">
               {[1, 2, 3].map((item) => (
-                <div key={item} className="flex items-center gap-2 rounded-md border border-slate-200 bg-white p-2">
+                <div
+                  key={item}
+                  className="flex items-center gap-2 rounded-md border border-slate-200 bg-white p-2"
+                >
                   <div className="h-5 w-5 rounded bg-[#E0F5F1]" />
                   <div className="flex-1 space-y-1">
                     {line("w-3/4", "bg-slate-600")}
@@ -321,10 +359,15 @@ const LayoutPreview = ({ style }) => {
           </div>
           <div className="grid grid-cols-3 gap-1.5 p-2">
             {[1, 2, 3].map((item) => (
-              <div key={item} className="rounded-md border border-[#D3E0E6] bg-white p-2">
+              <div
+                key={item}
+                className="rounded-md border border-[#D3E0E6] bg-white p-2"
+              >
                 <div className="mb-2 h-4 w-4 rounded bg-[#DDF5F0]" />
                 {line("w-full", "bg-slate-600")}
-                <div className="mt-1">{line("w-3/4", "bg-slate-300", "h-0.5")}</div>
+                <div className="mt-1">
+                  {line("w-3/4", "bg-slate-300", "h-0.5")}
+                </div>
               </div>
             ))}
           </div>
@@ -349,7 +392,10 @@ const LayoutPreview = ({ style }) => {
           <div className="p-3">
             <div className="mx-auto grid aspect-square w-14 grid-cols-5 gap-0.5 rounded border border-slate-200 bg-white p-1">
               {Array.from({ length: 25 }).map((_, index) => (
-                <div key={index} className={`rounded-[1px] ${[0, 1, 4, 5, 8, 10, 12, 14, 16, 18, 20, 23, 24].includes(index) ? "bg-[#102B43]" : "bg-slate-200"}`} />
+                <div
+                  key={index}
+                  className={`rounded-[1px] ${[0, 1, 4, 5, 8, 10, 12, 14, 16, 18, 20, 23, 24].includes(index) ? "bg-[#102B43]" : "bg-slate-200"}`}
+                />
               ))}
             </div>
             <div className="mt-3 grid grid-cols-2 gap-1.5">
@@ -381,10 +427,15 @@ const LayoutPreview = ({ style }) => {
             {line("w-20", "bg-slate-800", "h-1.5")}
             <div className="mt-2 grid grid-cols-2 gap-1.5">
               {[1, 2, 3, 4].map((item) => (
-                <div key={item} className="rounded-md border border-slate-200 bg-white p-2">
+                <div
+                  key={item}
+                  className="rounded-md border border-slate-200 bg-white p-2"
+                >
                   <div className="mb-2 h-5 w-5 rounded bg-[#DDF5F0]" />
                   {line("w-full", "bg-slate-700")}
-                  <div className="mt-1">{line("w-3/4", "bg-slate-300", "h-0.5")}</div>
+                  <div className="mt-1">
+                    {line("w-3/4", "bg-slate-300", "h-0.5")}
+                  </div>
                 </div>
               ))}
             </div>
@@ -426,7 +477,9 @@ const ProfileLayouts = () => {
 
   useEffect(() => {
     if (profile?.activeLayout) {
-      const valid = layouts.some((layout) => layout.id === profile.activeLayout);
+      const valid = layouts.some(
+        (layout) => layout.id === profile.activeLayout,
+      );
       if (valid) setSelectedLayout(profile.activeLayout);
     }
   }, [profile?.activeLayout]);
@@ -504,7 +557,7 @@ const ProfileLayouts = () => {
             className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-cyan-300/20 bg-cyan-300/10 px-4 py-3 text-sm font-bold text-cyan-200 transition hover:bg-cyan-300/15"
           >
             <Eye size={17} />
-            View Mini Website
+            View BIO SITES
           </button>
         </div>
       </header>
@@ -518,14 +571,18 @@ const ProfileLayouts = () => {
         <>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="text-lg font-bold text-white">Choose your layout</h2>
+              <h2 className="text-lg font-bold text-white">
+                Choose your layout
+              </h2>
               <p className="mt-1 text-sm text-slate-400">
                 {layouts.length} layout options available
               </p>
             </div>
             <p className="text-xs text-slate-500">
               Selected:{" "}
-              <span className="font-semibold text-cyan-300">{selected?.name}</span>
+              <span className="font-semibold text-cyan-300">
+                {selected?.name}
+              </span>
             </p>
           </div>
 

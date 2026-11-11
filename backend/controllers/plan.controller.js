@@ -212,7 +212,7 @@ const updatePlan = async (req, res) => {
     const plan = await Plan.findByIdAndUpdate(
       req.params.id,
       { $set: updates },
-      { new: true, runValidators: true },
+      { returnDocument: "after", runValidators: true },
     );
 
     if (!plan) {

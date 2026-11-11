@@ -19,10 +19,18 @@ import {
   Image as ImageIcon,
   ArrowUpRight,
   ScanLine,
+  QrCode,
   Send,
   Copy,
   CreditCard,
   Bookmark,
+  Star,
+  MessageSquare,
+  ExternalLink,
+  UserRoundPlus,
+  Wallet,
+  IndianRupee,
+  Link2,
 } from "lucide-react";
 
 import {
@@ -33,8 +41,19 @@ import {
   FaWhatsapp,
   FaTelegram,
   FaXTwitter,
+  FaGithub,
+  FaPinterest,
+  FaDiscord,
+  FaSnapchat,
+  FaTiktok,
+  FaReddit,
+  FaThreads,
+  FaTwitch,
+  FaSpotify,
+  FaMedium,
   FaLink,
 } from "react-icons/fa6";
+import GoogleBusinessIcon from "./icons/GoogleBusinessIcon";
 
 const MinimalLuxury = ({
   businessInfo = {},
@@ -63,7 +82,58 @@ const MinimalLuxury = ({
   onGalleryWhatsAppInquiry = () => {},
   onGalleryClick = () => {},
   onContactClick = () => {},
+  reviews = [],
+  totalReviews = 0,
+  averageRating = 0,
+  onWriteReview = () => {},
 }) => {
+  const demoReviews = [
+    {
+      _id: "demo-rev-1",
+      reviewerName: "Rahul Verma",
+      rating: 5,
+      comment:
+        "Outstanding service! Highly professional, great communication and exceeded all expectations. Will definitely work together again.",
+      createdAt: "2026-10-28T10:00:00.000Z",
+    },
+    {
+      _id: "demo-rev-2",
+      reviewerName: "Priya Sharma",
+      rating: 5,
+      comment:
+        "Truly top-notch experience! Very responsive, prompt delivery, and superb quality of work. Highly recommended!",
+      createdAt: "2026-10-31T14:30:00.000Z",
+    },
+    {
+      _id: "demo-rev-3",
+      reviewerName: "Ankit Patel",
+      rating: 5,
+      comment:
+        "Extremely satisfied with the service. Reliable, punctual and very polite staff. 5 stars all the way!",
+      createdAt: "2026-11-02T09:15:00.000Z",
+    },
+  ];
+
+  const displayReviews =
+    Array.isArray(reviews) && reviews.length > 0 ? reviews : demoReviews;
+
+  const displayRating =
+    averageRating > 0
+      ? Number(averageRating).toFixed(1)
+      : Array.isArray(reviews) && reviews.length > 0
+        ? (
+            reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) /
+            reviews.length
+          ).toFixed(1)
+        : "5.0";
+
+  const reviewsCount =
+    totalReviews > 0
+      ? totalReviews
+      : Array.isArray(reviews) && reviews.length > 0
+        ? reviews.length
+        : 2;
+
   const {
     name = "",
     role = "",
@@ -96,6 +166,16 @@ const MinimalLuxury = ({
     telegram: FaTelegram,
     twitter: FaXTwitter,
     x: FaXTwitter,
+    github: FaGithub,
+    pinterest: FaPinterest,
+    discord: FaDiscord,
+    snapchat: FaSnapchat,
+    tiktok: FaTiktok,
+    reddit: FaReddit,
+    threads: FaThreads,
+    twitch: FaTwitch,
+    spotify: FaSpotify,
+    medium: FaMedium,
   };
 
   const socialColors = {
@@ -114,13 +194,100 @@ const MinimalLuxury = ({
     threads: "bg-[#000000]",
     discord: "bg-[#5865F2]",
     reddit: "bg-[#FF4500]",
+    twitch: "bg-[#9146FF]",
+    spotify: "bg-[#1DB954]",
+    medium: "bg-[#000000]",
     website: "bg-[#4285F4]",
   };
 
   const normalizePlatform = (social = {}) => {
-    return String(social.platform || social.platformName || social.icon || "")
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "");
+    if (!social) return "link";
+    if (typeof social === "string") {
+      const s = social.trim().toLowerCase();
+      if (s && s !== "custom") {
+        if (/pinter|pintr|pin\.it/.test(s)) return "pinterest";
+        if (/telegr|t\.me|tg\b/.test(s)) return "telegram";
+        if (/snapchat|snap\b/.test(s)) return "snapchat";
+        if (/threads?|threads\.net/.test(s)) return "threads";
+        if (/tiktok|tik\s*tok/.test(s)) return "tiktok";
+        return s;
+      }
+      return s || "link";
+    }
+
+    const platform = String(social.platform || "")
+      .trim()
+      .toLowerCase();
+    const platformName = String(social.platformName || "")
+      .trim()
+      .toLowerCase();
+    const url = String(social.url || "")
+      .trim()
+      .toLowerCase();
+    const icon = String(social.icon || "")
+      .trim()
+      .toLowerCase();
+
+    // Check specific known platform first if not "custom"
+    const knownKeys = [
+      "instagram",
+      "facebook",
+      "youtube",
+      "whatsapp",
+      "linkedin",
+      "twitter",
+      "x",
+      "telegram",
+      "snapchat",
+      "threads",
+      "tiktok",
+      "pinterest",
+      "github",
+      "discord",
+      "reddit",
+      "twitch",
+      "spotify",
+      "medium",
+      "behance",
+      "dribbble",
+      "quora",
+      "tumblr",
+      "slack",
+      "skype",
+    ];
+    if (platform && platform !== "custom" && knownKeys.includes(platform)) {
+      return platform;
+    }
+
+    const combined = `${platformName} ${url} ${icon} ${platform}`.toLowerCase();
+
+    if (/pinter|pintr|pin\.it/.test(combined)) return "pinterest";
+    if (/telegr|t\.me|tg\b/.test(combined)) return "telegram";
+    if (/snapchat|snap\b/.test(combined)) return "snapchat";
+    if (/threads?|threads\.net/.test(combined)) return "threads";
+    if (/tiktok|tik\s*tok/.test(combined)) return "tiktok";
+    if (/insta|ig\b/.test(combined)) return "instagram";
+    if (/faceb|fb\.com|fb\.me|messenger/.test(combined)) return "facebook";
+    if (/youtu|yt\b/.test(combined)) return "youtube";
+    if (/whats?app|wa\.me/.test(combined)) return "whatsapp";
+    if (/linkedi?n/.test(combined)) return "linkedin";
+    if (/twitt|x\.com|\btweet\b/.test(combined)) return "twitter";
+    if (/githu?b/.test(combined)) return "github";
+    if (/discord/.test(combined)) return "discord";
+    if (/reddit/.test(combined)) return "reddit";
+    if (/twitch/.test(combined)) return "twitch";
+    if (/spotify/.test(combined)) return "spotify";
+    if (/medium/.test(combined)) return "medium";
+    if (/behance/.test(combined)) return "behance";
+    if (/dribb?le/.test(combined)) return "dribbble";
+    if (/quora/.test(combined)) return "quora";
+    if (/tumblr/.test(combined)) return "tumblr";
+    if (/vimeo/.test(combined)) return "vimeo";
+    if (/soundcloud/.test(combined)) return "soundcloud";
+    if (/slack/.test(combined)) return "slack";
+    if (/skype/.test(combined)) return "skype";
+
+    return platformName.replace(/[^a-z0-9]/g, "") || platform || "link";
   };
 
   const getSocialIcon = (social = {}) => {
@@ -147,6 +314,110 @@ const MinimalLuxury = ({
     return `https://${value}`;
   };
 
+  const renderContactButtonIcon = (button = {}, isPrimary = false) => {
+    const type = (
+      button.actionType ||
+      button.value ||
+      button.type ||
+      ""
+    ).toLowerCase();
+    const label = (button.label || "").toLowerCase();
+    const icon = (button.icon || "").toLowerCase();
+
+    const iconSize = 19;
+    const iconClass = isPrimary
+      ? "shrink-0 text-white"
+      : "shrink-0 text-[#24415F] group-hover:text-[#12BCEB] transition-colors";
+
+    if (
+      type === "googlebusiness" ||
+      icon === "google" ||
+      label.includes("google")
+    ) {
+      return <GoogleBusinessIcon size={iconSize} className="shrink-0" />;
+    }
+    if (
+      type === "whatsapp" ||
+      icon === "whatsapp" ||
+      label.includes("whatsapp")
+    ) {
+      return <FaWhatsapp size={iconSize} className={iconClass} />;
+    }
+    if (
+      type === "call" ||
+      type === "phone" ||
+      icon === "phone" ||
+      label.includes("call") ||
+      label === "phone"
+    ) {
+      return <Phone size={iconSize} className={iconClass} />;
+    }
+    if (
+      type === "email" ||
+      type === "mail" ||
+      icon === "mail" ||
+      label.includes("email") ||
+      label.includes("mail")
+    ) {
+      return <Mail size={iconSize} className={iconClass} />;
+    }
+    if (
+      type === "savecontact" ||
+      type === "save" ||
+      type === "contact" ||
+      label.includes("save")
+    ) {
+      return (
+        <UserRoundPlus
+          size={iconSize}
+          className={
+            isPrimary
+              ? "shrink-0 text-white"
+              : "shrink-0 text-[#24415F] group-hover:text-[#12BCEB] transition-colors"
+          }
+        />
+      );
+    }
+    if (
+      type === "upi" ||
+      icon === "upi" ||
+      icon === "wallet" ||
+      icon === "rupee" ||
+      label.includes("upi") ||
+      label.includes("rupee") ||
+      label.includes("payment")
+    ) {
+      return <IndianRupee size={iconSize} className={iconClass} />;
+    }
+    if (
+      type === "directions" ||
+      type === "location" ||
+      type === "map" ||
+      icon === "location" ||
+      icon === "mappin" ||
+      label.includes("location") ||
+      label.includes("direction")
+    ) {
+      return <MapPin size={iconSize} className={iconClass} />;
+    }
+    if (type === "share" || icon === "share" || label.includes("share")) {
+      return <Share2 size={iconSize} className={iconClass} />;
+    }
+    if (
+      type === "website" ||
+      type === "web" ||
+      icon === "globe" ||
+      label.includes("website") ||
+      label.includes("web")
+    ) {
+      return <Globe size={iconSize} className={iconClass} />;
+    }
+    if (type === "customlink" || type === "link" || icon === "link") {
+      return <Link2 size={iconSize} className={iconClass} />;
+    }
+    return <ExternalLink size={iconSize} className={iconClass} />;
+  };
+
   const swiperAutoplay = {
     delay: 2500,
     disableOnInteraction: false,
@@ -168,7 +439,7 @@ const MinimalLuxury = ({
     ? socialLinks.filter((social) => social?.url)
     : [];
 
-  const firstSocialLinks = socials.slice(0, 7);
+  const firstSocialLinks = socials;
 
   const contactButtons = configuredButtons;
 
@@ -192,6 +463,11 @@ const MinimalLuxury = ({
   };
 
   const handleMobileAction = (type) => {
+    if (type === "saveContact") {
+      onConfiguredButton({ actionType: "saveContact" });
+      return;
+    }
+
     if (type === "save") {
       onOpenQr();
       return;
@@ -222,21 +498,21 @@ const MinimalLuxury = ({
 
   return (
     <div
-      className="min-h-screen w-full overflow-x-hidden bg-[#F5F9FD] text-[#10233F]"
+      className="min-h-screen w-full overflow-x-hidden bg-[#F3F6FA] text-[#0A2540]"
       style={{
         fontFamily:
           "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       }}
     >
       <div className="block">
-        <main className="mx-auto w-full max-w-[430px] overflow-hidden bg-[#F5F9FD] pb-5 md:max-w-[560px] lg:max-w-[700px] lg:pt-2">
+        <main className="mx-auto w-full max-w-[430px] overflow-hidden px-2 pb-6 pt-1 md:max-w-[560px] lg:max-w-[680px] lg:pt-3">
           {/* HERO */}
           <section
             id="premium-home"
-            className="relative overflow-hidden rounded-[26px] bg-white shadow-[0_5px_22px_rgba(8,43,92,0.08)]"
+            className="relative overflow-hidden rounded-[28px] border border-[#E2EAF1] bg-white shadow-[0_10px_35px_-10px_rgba(8,43,92,0.10)]"
           >
             {/* COVER */}
-            <div className="relative h-[178px] overflow-hidden bg-[#082B5C]">
+            <div className="relative h-[190px] overflow-hidden bg-[#082B5C] sm:h-[210px]">
               {banner ? (
                 <img
                   src={banner}
@@ -244,13 +520,13 @@ const MinimalLuxury = ({
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <div className="h-full w-full bg-gradient-to-br from-[#061F43] via-[#082B5C] to-[#12BCEB]" />
+                <div className="h-full w-full bg-gradient-to-br from-[#061833] via-[#082B5C] to-[#12BCEB]" />
               )}
 
-              <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/10 to-[#061F43]/35" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/15 to-black/25" />
 
               {/* LOGO AND PROFILE LABEL */}
-              <div className="absolute left-4 top-4 z-10 flex items-center gap-2">
+              <div className="absolute left-3.5 top-3.5 z-10 flex items-center gap-2 sm:left-4 sm:top-4">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/50 bg-white p-1 shadow-lg">
                   {logo ? (
                     <img
@@ -264,7 +540,7 @@ const MinimalLuxury = ({
                 </div>
 
                 {hasBusinessName && (
-                  <div className="max-w-[210px] truncate rounded-full border border-white/20 bg-black/35 px-3 py-1.5 text-[11px] font-bold text-white backdrop-blur-md md:text-[12px]">
+                  <div className="max-w-[210px] truncate rounded-full border border-white/25 bg-black/40 px-3 py-1 text-[11px] font-bold text-white shadow-sm backdrop-blur-md md:text-[12px]">
                     {businessName || name}
                   </div>
                 )}
@@ -272,24 +548,24 @@ const MinimalLuxury = ({
 
               {/* VERIFIED */}
               {isVerified && (
-                <div className="absolute right-4 top-4 z-10">
-                  <div className="flex items-center gap-1 rounded-full bg-[#12BCEB] px-3 py-1.5 text-[8px] font-black text-white shadow-lg">
-                    <CheckCircle2 size={10} />
+                <div className="absolute right-3.5 top-3.5 z-10 sm:right-4 sm:top-4">
+                  <div className="flex items-center gap-1 rounded-full border border-white/30 bg-white/95 px-2.5 py-1 text-[9px] font-black tracking-wider text-[#082B5C] shadow-md backdrop-blur-md">
+                    <CheckCircle2 size={11} className="text-[#12BCEB]" />
                     VERIFIED
                   </div>
                 </div>
               )}
 
               {/* COVER ACTIONS */}
-              <div className="absolute bottom-4 right-4 z-10 flex items-center gap-2">
+              <div className="absolute bottom-3.5 right-3.5 z-10 flex items-center gap-2 sm:bottom-4 sm:right-4">
                 <button
                   type="button"
                   onClick={onShare}
                   aria-label="Share profile"
                   title="Share Profile"
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/30 bg-black/25 text-white shadow-lg backdrop-blur-md transition active:scale-95"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/35 bg-black/35 text-white shadow-md backdrop-blur-md transition-all hover:bg-black/55 hover:scale-105 active:scale-95"
                 >
-                  <Share2 size={16} />
+                  <Share2 size={15} />
                 </button>
 
                 <button
@@ -297,19 +573,19 @@ const MinimalLuxury = ({
                   onClick={onOpenQr}
                   aria-label="Scan profile QR"
                   title="Scan Profile QR"
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/30 bg-[#12BCEB] text-white shadow-lg transition active:scale-95"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/35 bg-[#12BCEB] text-white shadow-md backdrop-blur-md transition-all hover:bg-[#0FAADC] hover:scale-105 active:scale-95"
                 >
-                  <ScanLine size={17} />
+                  <QrCode size={16} />
                 </button>
               </div>
             </div>
 
             {/* PROFILE */}
-            <div className="relative px-4 pb-4">
-              <div className="relative -mt-[4px]">
+            <div className="relative px-4 pb-4 sm:px-5 sm:pb-5">
+              <div className="relative -mt-[5px] min-h-[96px]">
                 {/* AVATAR */}
-                <div className="relative h-[84px] w-[84px] rounded-[17px] border-[3px] border-white bg-white shadow-[0_8px_20px_rgba(8,43,92,0.18)]">
-                  <div className="h-full w-full overflow-hidden rounded-[13px] bg-[#E8F8FD]">
+                <div className="relative h-[86px] w-[86px] shrink-0 rounded-2xl border-[3.5px] border-white bg-white shadow-[0_10px_25px_-5px_rgba(8,43,92,0.22)] ring-1 ring-black/5">
+                  <div className="h-full w-full overflow-hidden rounded-[12px] bg-[#E8F8FD]">
                     {avatar ? (
                       <img
                         src={avatar}
@@ -324,7 +600,7 @@ const MinimalLuxury = ({
                   </div>
 
                   {isVerified && (
-                    <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-[#12BCEB] text-white">
+                    <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-[#12BCEB] text-white shadow">
                       <CheckCircle2 size={11} />
                     </span>
                   )}
@@ -332,10 +608,10 @@ const MinimalLuxury = ({
 
                 {/* PROFILE INFO */}
                 {(name || role || location) && (
-                  <div className="absolute left-[96px] right-0 top-[12px]">
+                  <div className="absolute left-[98px] right-0 top-[2px]">
                     {name && (
                       <div className="flex items-center gap-1">
-                        <h1 className="truncate text-[15px] font-black tracking-[-0.02em] text-[#082B5C]">
+                        <h1 className="truncate text-[16px] font-black tracking-[-0.02em] text-[#082B5C] sm:text-[18px]">
                           {name}
                         </h1>
 
@@ -349,14 +625,48 @@ const MinimalLuxury = ({
                     )}
 
                     {role && (
-                      <p className="mt-0.5 truncate text-[14px] font-semibold text-[#304D6C]">
+                      <p className="mt-0.5 truncate text-[13px] font-semibold text-[#486581] sm:text-[14px]">
                         {role}
                       </p>
                     )}
 
+                    {/* RATING STARS */}
+                    <a
+                      href="#minimal-reviews"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        document
+                          .getElementById("minimal-reviews")
+                          ?.scrollIntoView({ behavior: "smooth" });
+                      }}
+                      className="mt-0.5 inline-flex items-center gap-1.5 text-[12px] cursor-pointer transition hover:opacity-85"
+                      title="View reviews and ratings"
+                    >
+                      <div className="flex items-center gap-0.5 text-amber-400">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            size={12}
+                            className={
+                              star <= Math.round(Number(displayRating))
+                                ? "fill-amber-400 text-amber-400"
+                                : "fill-transparent text-slate-300"
+                            }
+                          />
+                        ))}
+                      </div>
+                      <span className="font-bold text-[#082B5C]">
+                        {displayRating}
+                      </span>
+                      <span className="font-medium text-[#71839A]">
+                        ({reviewsCount}{" "}
+                        {reviewsCount === 1 ? "review" : "reviews"})
+                      </span>
+                    </a>
+
                     {location && (
-                      <div className="mt-1 flex items-center gap-1 text-[14px] font-medium text-[#71839A]">
-                        <MapPin size={10} className="shrink-0 text-[#12BCEB]" />
+                      <div className="mt-0.5 flex items-center gap-1 text-[12px] font-medium text-[#627D98]">
+                        <MapPin size={11} className="shrink-0 text-[#12BCEB]" />
                         <span className="truncate">{location}</span>
                       </div>
                     )}
@@ -366,7 +676,7 @@ const MinimalLuxury = ({
 
               {/* SOCIAL ICONS */}
               {firstSocialLinks.length > 0 && (
-                <div className="mt-2 flex items-center gap-2 overflow-x-auto pb-1">
+                <div className="mt-2.5 flex flex-wrap items-center gap-2">
                   {firstSocialLinks.map((social, index) => {
                     const Icon = getSocialIcon(social);
                     const platform = normalizePlatform(social);
@@ -379,13 +689,16 @@ const MinimalLuxury = ({
                         target="_blank"
                         rel="noopener noreferrer"
                         title={
-                          social.platform ||
                           social.platformName ||
+                          social.platform ||
                           "Social link"
                         }
-                        className={`flex h-[31px] w-[31px] shrink-0 items-center justify-center rounded-full text-white transition active:scale-95 ${brandColor}`}
+                        className={`group relative flex h-[31px] w-[31px] shrink-0 cursor-pointer items-center justify-center rounded-full text-white shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-110 hover:shadow-lg hover:shadow-black/20 hover:brightness-110 active:scale-95 active:translate-y-0 ${brandColor}`}
                       >
-                        <Icon size={13} />
+                        <Icon
+                          size={13}
+                          className="transition-transform duration-300 ease-out group-hover:scale-110"
+                        />
                       </a>
                     );
                   })}
@@ -393,34 +706,79 @@ const MinimalLuxury = ({
               )}
 
               {/* QUICK ACTIONS */}
-              <div className="mt-2 ">
-                {contactButtons.length > 0 && (
-                  <div className=" flex flex-wrap gap-2  border-[#E8EFF4]">
-                    {contactButtons.map((button, index) => (
-                      <button
-                        key={button._id || button.id || index}
-                        type="button"
-                        onClick={() => onConfiguredButton(button)}
-                        className="flex min-h-[38px] items-center gap-1.5 rounded-[10px] border border-[#D9E5EF] bg-white px-3 py-2 text-[11px] font-bold text-[#24415F] transition active:scale-[0.98]"
-                      >
-                        {button.actionType === "whatsapp" && (
-                          <FaWhatsapp size={13} />
-                        )}
-                        {button.actionType === "call" && <Phone size={13} />}
-                        {button.label}
-                        <ArrowUpRight size={12} />
-                      </button>
-                    ))}
+              {contactButtons.length > 0 && (
+                <div className="mt-3.5">
+                  <div
+                    className={`grid gap-2 ${
+                      contactButtons.length <= 3 ? "grid-cols-3" : "grid-cols-4"
+                    }`}
+                  >
+                    {contactButtons.map((button, index) => {
+                      const type = (
+                        button.actionType ||
+                        button.value ||
+                        button.type ||
+                        ""
+                      ).toLowerCase();
+                      const label = (button.label || "").toLowerCase();
+                      const isSave =
+                        type === "savecontact" ||
+                        type === "save" ||
+                        label.includes("save") ||
+                        button.buttonId === "save-contact";
+
+                      const hasSaveInList = contactButtons.some((b) => {
+                        const bType = (
+                          b.actionType ||
+                          b.value ||
+                          b.type ||
+                          ""
+                        ).toLowerCase();
+                        const bLabel = (b.label || "").toLowerCase();
+                        return (
+                          bType === "savecontact" ||
+                          bType === "save" ||
+                          bLabel.includes("save") ||
+                          b.buttonId === "save-contact"
+                        );
+                      });
+
+                      const isHighlighted =
+                        isSave || (index === 0 && !hasSaveInList);
+
+                      return (
+                        <button
+                          key={button._id || button.id || index}
+                          type="button"
+                          onClick={() => onConfiguredButton(button)}
+                          className={`group flex min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-2xl border p-2 transition-all duration-200 active:scale-95 ${
+                            isHighlighted
+                              ? "border-transparent bg-gradient-to-br from-[#12BCEB] to-[#0BA8D6] text-white shadow-md shadow-[#12BCEB]/25 hover:brightness-105"
+                              : "border-[#E1EAF2] bg-[#F8FBFC] text-[#1E3A5F] shadow-sm hover:border-[#12BCEB]/50 hover:bg-white hover:text-[#082B5C] hover:shadow-sm"
+                          }`}
+                        >
+                          <div className="flex h-5 items-center justify-center">
+                            {renderContactButtonIcon(button, isHighlighted)}
+                          </div>
+                          <span className="w-full truncate px-0.5 text-center text-[10.5px] font-bold leading-tight">
+                            {button.label}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </section>
 
           {/* ABOUT */}
           {about && (
-            <section className="mx-0 mt-3 rounded-[15px] border border-[#D6E4ED] bg-[#F4F8FB] px-3.5 py-3.5">
-              <p className="whitespace-pre-line text-[15px] leading-[1.7] text-[#526A82]">
+            <section className="mx-0 mt-3 rounded-2xl border border-[#E2EAF1] bg-white p-4 shadow-sm">
+              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#12BCEB]">
+                About
+              </p>
+              <p className="mt-2 whitespace-pre-line text-[13.5px] leading-relaxed text-[#4A6480]">
                 {about}
               </p>
             </section>
@@ -433,11 +791,11 @@ const MinimalLuxury = ({
             email ||
             hasWebsite ||
             address) && (
-            <section className="mx-0 mt-3 rounded-[15px] border border-[#E0E9F1] bg-white p-3.5">
+            <section className="mx-0 mt-3 rounded-2xl border border-[#E2EAF1] bg-white p-4 shadow-sm">
               <div className="flex items-center justify-between gap-2">
                 <div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#12BCEB]">
-                    Business
+                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#12BCEB]">
+                    Business Details
                   </p>
 
                   {hasBusinessName && (
@@ -448,22 +806,24 @@ const MinimalLuxury = ({
                 </div>
 
                 {industry && (
-                  <span className="rounded-full bg-[#E8F8FD] px-2.5 py-1 text-[12px] font-bold text-[#087DA1]">
+                  <span className="rounded-full border border-[#CDEEF9] bg-[#E8F8FD] px-3 py-1 text-[11px] font-bold text-[#087DA1]">
                     {industry}
                   </span>
                 )}
               </div>
 
-              <div className="mt-3 grid grid-cols-2 gap-2">
+              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {phone && (
                   <button
                     type="button"
                     onClick={() => onContactClick({ actionType: "call" })}
-                    className="flex min-w-0 items-center gap-2 rounded-[14px] bg-[#F6FAFC] p-2.5 text-left"
+                    className="group flex min-w-0 items-center gap-3 rounded-xl border border-[#E9F0F6] bg-[#F8FBFC] p-2.5 sm:p-3 text-left transition duration-200 hover:border-[#12BCEB]/40 hover:bg-white hover:shadow-sm active:scale-[0.98]"
                   >
-                    <Phone size={13} className="shrink-0 text-[#12BCEB]" />
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#E8F8FD] text-[#12BCEB] transition group-hover:scale-105 group-hover:bg-[#12BCEB] group-hover:text-white">
+                      <Phone size={13} />
+                    </div>
 
-                    <span className="truncate text-[12px] font-bold text-[#405B75]">
+                    <span className="truncate text-[12px] font-bold text-[#3E5771] transition group-hover:text-[#082B5C]">
                       {phone}
                     </span>
                   </button>
@@ -473,11 +833,13 @@ const MinimalLuxury = ({
                   <button
                     type="button"
                     onClick={() => onContactClick({ actionType: "email" })}
-                    className="flex min-w-0 items-center gap-2 rounded-[14px] bg-[#F6FAFC] p-2.5 text-left"
+                    className="group flex min-w-0 items-center gap-3 rounded-xl border border-[#E9F0F6] bg-[#F8FBFC] p-2.5 sm:p-3 text-left transition duration-200 hover:border-[#12BCEB]/40 hover:bg-white hover:shadow-sm active:scale-[0.98]"
                   >
-                    <Mail size={13} className="shrink-0 text-[#12BCEB]" />
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#E8F8FD] text-[#12BCEB] transition group-hover:scale-105 group-hover:bg-[#12BCEB] group-hover:text-white">
+                      <Mail size={13} />
+                    </div>
 
-                    <span className="truncate text-[12px] font-bold text-[#405B75]">
+                    <span className="truncate text-[12px] font-bold text-[#3E5771] transition group-hover:text-[#082B5C]">
                       {email}
                     </span>
                   </button>
@@ -486,12 +848,19 @@ const MinimalLuxury = ({
                 {hasWebsite && (
                   <button
                     type="button"
-                    onClick={() => onContactClick({ actionType: "website" })}
-                    className="flex min-w-0 items-center gap-2 rounded-[14px] bg-[#F6FAFC] p-2.5 text-left"
+                    onClick={() =>
+                      onContactClick({
+                        actionType: "website",
+                        customUrl: website || websiteUrl,
+                      })
+                    }
+                    className="group flex min-w-0 items-center gap-3 rounded-xl border border-[#E9F0F6] bg-[#F8FBFC] p-2.5 sm:p-3 text-left transition duration-200 hover:border-[#12BCEB]/40 hover:bg-white hover:shadow-sm active:scale-[0.98]"
                   >
-                    <Globe size={13} className="shrink-0 text-[#12BCEB]" />
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#E8F8FD] text-[#12BCEB] transition group-hover:scale-105 group-hover:bg-[#12BCEB] group-hover:text-white">
+                      <Globe size={13} />
+                    </div>
 
-                    <span className="truncate text-[12px] font-bold text-[#405B75]">
+                    <span className="truncate text-[12px] font-bold text-[#3E5771] transition group-hover:text-[#082B5C]">
                       {website || websiteUrl}
                     </span>
                   </button>
@@ -500,54 +869,18 @@ const MinimalLuxury = ({
                 {address && (
                   <button
                     type="button"
-                    onClick={() => onContactClick({ actionType: "address" })}
-                    className="flex min-w-0 items-center gap-2 rounded-[14px] bg-[#F6FAFC] p-2.5 text-left"
+                    onClick={() => onContactClick({ actionType: "directions" })}
+                    className="group flex min-w-0 items-center gap-3 rounded-xl border border-[#E9F0F6] bg-[#F8FBFC] p-2.5 sm:p-3 text-left transition duration-200 hover:border-[#12BCEB]/40 hover:bg-white hover:shadow-sm active:scale-[0.98]"
                   >
-                    <MapPin size={13} className="shrink-0 text-[#12BCEB]" />
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#E8F8FD] text-[#12BCEB] transition group-hover:scale-105 group-hover:bg-[#12BCEB] group-hover:text-white">
+                      <MapPin size={13} />
+                    </div>
 
-                    <span className="truncate text-[12px] font-bold text-[#405B75]">
+                    <span className="min-w-0 whitespace-normal break-words text-[12px] font-bold leading-relaxed text-[#405B75]">
                       {address}
                     </span>
                   </button>
                 )}
-              </div>
-            </section>
-          )}
-
-          {/* UPI */}
-          {upiId && (
-            <section className="mx-0 mt-3 rounded-[15px] border border-[#E0E9F1] bg-white p-4">
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-[#E8F8FD] text-[#12BCEB]">
-                  <CreditCard size={15} />
-                </div>
-
-                <h3 className="text-[15px] font-black text-[#082B5C]">
-                  UPI Payment
-                </h3>
-              </div>
-
-              <div className="mt-3">
-                <div className="text-xl font-black italic text-[#64748B]">
-                  UPI
-                </div>
-
-                <p className="mt-1 text-[8px] font-semibold text-[#71839A]">
-                  UPI ID
-                </p>
-
-                <p className="mt-2 break-all text-[12px] font-semibold text-[#3C5877]">
-                  {upiId}
-                </p>
-
-                <button
-                  type="button"
-                  onClick={handleCopyUpi}
-                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-[10px] bg-[#082B5C] py-2.5 text-[11px] font-bold text-white"
-                >
-                  <Copy size={13} />
-                  {copiedUpi ? "Copied!" : "Copy UPI ID"}
-                </button>
               </div>
             </section>
           )}
@@ -569,8 +902,8 @@ const MinimalLuxury = ({
 
               <Swiper
                 modules={[Autoplay, Pagination]}
-                spaceBetween={9}
-                slidesPerView={1.2}
+                spaceBetween={12}
+                slidesPerView={1}
                 breakpoints={{
                   640: {
                     slidesPerView: 2,
@@ -581,13 +914,25 @@ const MinimalLuxury = ({
                     spaceBetween: 14,
                   },
                 }}
-                loop={products.length > 3}
+                loop={products.length > 1}
                 speed={600}
-                autoplay={products.length > 1 ? swiperAutoplay : false}
-                pagination={{
-                  clickable: true,
-                  dynamicBullets: true,
-                }}
+                autoplay={
+                  products.length > 1
+                    ? {
+                        delay: 3500,
+                        disableOnInteraction: false,
+                        pauseOnMouseEnter: true,
+                      }
+                    : false
+                }
+                pagination={
+                  products.length > 1
+                    ? {
+                        clickable: true,
+                        dynamicBullets: true,
+                      }
+                    : false
+                }
                 className="mobile-product-swiper !pb-7"
               >
                 {products.map((product, index) => {
@@ -595,20 +940,20 @@ const MinimalLuxury = ({
 
                   return (
                     <SwiperSlide key={product._id || index}>
-                      <div className="overflow-hidden rounded-[12px] border border-[#E1EAF2] bg-white">
+                      <div className="overflow-hidden rounded-2xl border border-[#E1EAF2] bg-white shadow-sm transition-all duration-300 hover:border-[#12BCEB]/50 hover:shadow-md">
                         {/* Product Click Area */}
                         <button
                           type="button"
                           onClick={() => onProductClick(product)}
-                          className="w-full text-left"
+                          className="group block w-full text-left"
                         >
-                          <div className="relative h-[150px] overflow-hidden bg-[#EEF5F9]">
+                          <div className="relative h-[175px] overflow-hidden bg-[#EEF5F9] sm:h-[150px]">
                             {cover ? (
                               <img
                                 src={cover}
                                 alt={product.name || "Product"}
                                 loading="lazy"
-                                className="h-full w-full object-cover"
+                                className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                               />
                             ) : (
                               <div className="flex h-full items-center justify-center">
@@ -618,17 +963,23 @@ const MinimalLuxury = ({
                                 />
                               </div>
                             )}
+
+                            {product.category && (
+                              <span className="absolute bottom-2 left-2 rounded-md bg-[#082B5C]/80 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
+                                {product.category}
+                              </span>
+                            )}
                           </div>
 
-                          <div className="p-2.5">
+                          <div className="p-3 sm:p-3.5">
                             {product.name && (
-                              <h3 className="truncate text-[14px] font-black text-[#183250]">
+                              <h3 className="truncate text-[14px] font-black text-[#183250] sm:text-[15px]">
                                 {product.name}
                               </h3>
                             )}
 
                             {product.description && (
-                              <p className="mt-1 line-clamp-2 text-[14px] leading-4 text-[#7C8EA2]">
+                              <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-[#7C8EA2]">
                                 {product.description}
                               </p>
                             )}
@@ -636,11 +987,11 @@ const MinimalLuxury = ({
                         </button>
 
                         {/* Price + WhatsApp Icon */}
-                        <div className="flex items-center justify-between px-2.5 pb-2.5">
+                        <div className="flex items-center justify-between px-3 pb-3 sm:px-3.5 sm:pb-3.5">
                           {product.price !== undefined &&
                             product.price !== null &&
                             product.price !== "" && (
-                              <span className="text-[14px] font-black text-[#082B5C]">
+                              <span className="text-[16px] font-black text-[#082B5C]">
                                 ₹{Number(product.price).toLocaleString("en-IN")}
                               </span>
                             )}
@@ -649,18 +1000,19 @@ const MinimalLuxury = ({
                             type="button"
                             onClick={() => onProductWhatsAppInquiry(product)}
                             aria-label="WhatsApp Inquiry"
-                            className="flex items-center justify-center text-[#25D366] transition hover:scale-110 active:scale-[0.95]"
+                            title="WhatsApp Inquiry"
+                            className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#25D366]/10 text-[#25D366] transition hover:bg-[#25D366] hover:text-white active:scale-95"
                           >
-                            <FaWhatsapp size={20} />
+                            <FaWhatsapp size={18} />
                           </button>
                         </div>
 
                         {/* PAY NOW BUTTON */}
-                        <div className="px-2.5 pb-2.5">
+                        <div className="px-3 pb-3 sm:px-3.5 sm:pb-3.5">
                           <button
                             type="button"
                             onClick={() => onProductClick(product)}
-                            className="flex w-full items-center justify-center rounded-[10px] bg-[#082B5C] py-2.5 text-[12px] font-bold text-white transition hover:bg-[#123F78] active:scale-[0.98]"
+                            className="flex w-full items-center justify-center rounded-xl bg-[#082B5C] py-2.5 text-[12px] font-bold text-white transition hover:bg-[#12BCEB] active:scale-[0.98]"
                           >
                             Pay Now
                           </button>
@@ -694,8 +1046,8 @@ const MinimalLuxury = ({
 
               <Swiper
                 modules={[Autoplay, Pagination]}
-                spaceBetween={9}
-                slidesPerView={1.35}
+                spaceBetween={12}
+                slidesPerView={1}
                 breakpoints={{
                   640: {
                     slidesPerView: 2,
@@ -706,100 +1058,427 @@ const MinimalLuxury = ({
                     spaceBetween: 14,
                   },
                 }}
-                loop={gallery.length > 3}
+                loop={gallery.length > 1}
                 speed={600}
-                autoplay={gallery.length > 1 ? swiperAutoplay : false}
-                pagination={{
-                  clickable: true,
-                  dynamicBullets: true,
-                }}
+                autoplay={
+                  gallery.length > 1
+                    ? {
+                        delay: 3800,
+                        disableOnInteraction: false,
+                        pauseOnMouseEnter: true,
+                      }
+                    : false
+                }
+                pagination={
+                  gallery.length > 1
+                    ? {
+                        clickable: true,
+                        dynamicBullets: true,
+                      }
+                    : false
+                }
                 className="mobile-gallery-swiper !pb-6"
               >
                 {gallery.map((image, index) => (
                   <SwiperSlide key={image._id || `${image.url}-${index}`}>
-                    <button
-                      type="button"
-                      onClick={() => onGalleryClick(image)}
-                      className="relative block aspect-[4/3] w-full overflow-hidden rounded-[11px] bg-[#EEF5F9] lg:aspect-[16/10]"
-                    >
-                      <img
-                        src={image.url}
-                        alt={image.alt || image.title || "Gallery image"}
-                        loading="lazy"
-                        className="h-full w-full object-cover"
-                      />
+                    <div className="overflow-hidden rounded-2xl border border-[#E1EAF2] bg-white p-2.5 shadow-sm transition-all duration-300 hover:border-[#12BCEB]/50 hover:shadow-md">
+                      <button
+                        type="button"
+                        onClick={() => onGalleryClick(image)}
+                        className="group relative block aspect-[4/3] w-full overflow-hidden rounded-xl bg-[#EEF5F9] lg:aspect-[16/10]"
+                      >
+                        <img
+                          src={image.url}
+                          alt={image.alt || image.title || "Gallery image"}
+                          loading="lazy"
+                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                        />
 
-                      <span className="absolute bottom-2 left-2 rounded-full bg-[#082B5C]/80 px-2 py-1 text-[7px] font-bold text-white">
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                    </button>
+                        <span className="absolute bottom-2 left-2 rounded-full bg-[#082B5C]/80 px-2 py-0.5 text-[8px] font-bold text-white backdrop-blur-sm">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                      </button>
 
-                    {/* WhatsApp Gallery Inquiry */}
-                    <button
-                      type="button"
-                      onClick={() => onGalleryWhatsAppInquiry(image)}
-                      className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-3 py-2.5 text-[11px] font-bold text-white transition hover:bg-[#1DA851] active:scale-[0.98]"
-                    >
-                      <FaWhatsapp size={16} />
-                      WhatsApp Inquiry
-                    </button>
+                      {/* WhatsApp Gallery Inquiry */}
+                      <div className="mt-2.5">
+                        <button
+                          type="button"
+                          onClick={() => onGalleryWhatsAppInquiry(image)}
+                          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] py-2.5 text-[11px] font-bold text-white transition hover:bg-[#1DA851] active:scale-[0.98]"
+                        >
+                          <FaWhatsapp size={16} />
+                          WhatsApp Inquiry
+                        </button>
+                      </div>
+                    </div>
                   </SwiperSlide>
                 ))}
               </Swiper>
             </section>
           )}
 
-          {/* SOCIAL MEDIA */}
-          {socials.length > 0 && (
-            <section className="mx-0 mt-3 rounded-[15px] border border-[#E0E9F1] bg-white p-3.5">
-              <p className="text-[8px] font-black uppercase tracking-[0.16em] text-[#12BCEB]">
-                Stay Connected
-              </p>
+          {/* ================================== */}
+          {/* REVIEWS — SLIDE ANIMATION CAROUSEL */}
+          {/* ================================== */}
+          <section
+            id="minimal-reviews"
+            className="mx-0 mt-3 rounded-2xl border border-[#E2EAF1] bg-white p-4 shadow-sm"
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#12BCEB]">
+                  Client Reviews
+                </p>
+                <div className="mt-0.5 flex items-center gap-1.5">
+                  <h2 className="text-[15px] font-black text-[#082B5C]">
+                    Reviews & Ratings
+                  </h2>
+                  <div className="flex items-center gap-1 rounded-full border border-[#CDEEF9] bg-[#E8F8FD] px-2.5 py-0.5 text-[11px] font-bold text-[#082B5C]">
+                    <Star size={11} className="fill-amber-400 text-amber-400" />
+                    <span>{displayRating}</span>
+                    <span className="text-[#71839A]">({reviewsCount})</span>
+                  </div>
+                </div>
+              </div>
 
-              <h2 className="mt-1 text-[14px] font-black text-[#082B5C]">
-                Social Media
-              </h2>
+              <button
+                type="button"
+                onClick={onWriteReview}
+                className="flex items-center justify-center gap-1.5 rounded-xl bg-[#082B5C] px-3.5 py-2 text-[11px] font-bold text-white shadow-sm transition hover:bg-[#12BCEB] active:scale-[0.98]"
+              >
+                <Star size={12} className="fill-white" />
+                <span>Write Review</span>
+              </button>
+            </div>
 
-              <div className="mt-3 flex flex-wrap gap-2">
-                {socials.map((social, index) => {
-                  const Icon = getSocialIcon(social);
+            {/* SLIDE ANIMATION */}
+            <div className="minimal-reviews-swiper relative">
+              <Swiper
+                modules={[Autoplay, Pagination]}
+                slidesPerView={1}
+                spaceBetween={10}
+                loop={displayReviews.length > 1}
+                speed={600}
+                autoplay={{
+                  delay: 3500,
+                  disableOnInteraction: false,
+                  pauseOnMouseEnter: true,
+                }}
+                breakpoints={{
+                  640: { slidesPerView: 2, spaceBetween: 12 },
+                  1024: { slidesPerView: 2, spaceBetween: 12 },
+                }}
+                pagination={{ clickable: true, dynamicBullets: true }}
+                className="!pb-7"
+              >
+                {displayReviews.map((review, index) => {
+                  const initial = (review.reviewerName || "U")
+                    .charAt(0)
+                    .toUpperCase();
+                  const ratingVal = Number(review.rating) || 5;
 
                   return (
-                    <a
-                      key={
-                        social._id || `${normalizePlatform(social)}-${index}`
-                      }
-                      href={normalizeUrl(social.url)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title={
-                        social.platform || social.platformName || "Social link"
-                      }
-                      className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E8F8FD] text-[#087DA1]"
-                    >
-                      <Icon size={15} />
-                    </a>
+                    <SwiperSlide key={review._id || index} className="!h-auto">
+                      <div className="flex h-full flex-col justify-between rounded-xl border border-[#E2EAF1] bg-[#F8FBFC] p-3.5 transition duration-200 hover:border-[#12BCEB]/40 hover:bg-white hover:shadow-sm">
+                        <div>
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E8F8FD] text-[#12BCEB] font-bold text-xs border border-[#CDEEF9]">
+                                {initial}
+                              </div>
+                              <div className="min-w-0">
+                                <h3 className="truncate text-xs font-bold text-[#082B5C]">
+                                  {review.reviewerName}
+                                </h3>
+                                <p className="text-[10px] text-[#71839A]">
+                                  {review.createdAt
+                                    ? new Date(
+                                        review.createdAt,
+                                      ).toLocaleDateString("en-US", {
+                                        month: "short",
+                                        day: "numeric",
+                                        year: "numeric",
+                                      })
+                                    : "Verified Client"}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-0.5 shrink-0 text-amber-400">
+                              {[1, 2, 3, 4, 5].map((s) => (
+                                <Star
+                                  key={s}
+                                  size={11}
+                                  className={
+                                    s <= ratingVal
+                                      ? "fill-amber-400 text-amber-400"
+                                      : "text-slate-300 fill-transparent"
+                                  }
+                                />
+                              ))}
+                            </div>
+                          </div>
+
+                          <p className="mt-2 text-xs leading-relaxed text-[#304D6C] line-clamp-3">
+                            "{review.comment}"
+                          </p>
+                        </div>
+
+                        <div className="mt-2.5 flex items-center gap-1 text-[10px] font-bold text-[#12BCEB]">
+                          <CheckCircle2 size={11} className="text-[#12BCEB]" />
+                          <span>Verified Review</span>
+                        </div>
+                      </div>
+                    </SwiperSlide>
                   );
                 })}
+              </Swiper>
+            </div>
+
+            <style>{`
+              .minimal-reviews-swiper .swiper-pagination {
+                bottom: 0 !important;
+              }
+              .minimal-reviews-swiper .swiper-pagination-bullet {
+                background: #082B5C;
+                opacity: 0.25;
+              }
+              .minimal-reviews-swiper .swiper-pagination-bullet-active {
+                background: #12BCEB;
+                opacity: 1;
+              }
+            `}</style>
+          </section>
+
+          {/* SOCIAL MEDIA */}
+          {socials.length > 0 && (
+            <section className="mx-0 mt-3 rounded-2xl border border-[#E2EAF1] bg-white p-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#12BCEB]">
+                    Stay Connected
+                  </p>
+                  <h2 className="mt-1 text-[15px] font-black text-[#082B5C]">
+                    Social Media
+                  </h2>
+                </div>
+                <span className="rounded-full border border-[#E2EAF1] bg-[#F8FBFC] px-2.5 py-0.5 text-[9px] font-bold text-[#12BCEB]">
+                  {socials.length} account{socials.length !== 1 ? "s" : ""}
+                </span>
               </div>
+
+              <div className="mt-3 minimal-social-swiper">
+                <Swiper
+                  modules={[Autoplay, Pagination]}
+                  slidesPerView={1}
+                  spaceBetween={12}
+                  loop={socials.length > 1}
+                  speed={500}
+                  autoplay={{
+                    delay: 3500,
+                    disableOnInteraction: false,
+                    pauseOnMouseEnter: true,
+                  }}
+                  pagination={socials.length > 1 ? { clickable: true } : false}
+                  className={socials.length > 1 ? "pb-7" : ""}
+                >
+                  {socials.map((social, index) => {
+                    const Icon = getSocialIcon(social);
+                    const platform = normalizePlatform(social);
+                    const platformCtaBg =
+                      {
+                        instagram:
+                          "linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)",
+                        youtube: "#FF0000",
+                        facebook: "#1877F2",
+                        whatsapp: "#25D366",
+                        linkedin: "#0A66C2",
+                        telegram: "#26A5E4",
+                        twitter: "#1a1a2e",
+                        x: "#1a1a2e",
+                        github: "#24292e",
+                        pinterest: "#E60023",
+                        discord: "#5865F2",
+                        snapchat: "#FFFC00",
+                        tiktok: "#010101",
+                        reddit: "#FF4500",
+                        threads: "#000000",
+                        twitch: "#9146FF",
+                        spotify: "#1DB954",
+                      }[platform] || "#12BCEB";
+                    const platformIconColor =
+                      {
+                        instagram: "#E4405F",
+                        youtube: "#FF0000",
+                        facebook: "#1877F2",
+                        whatsapp: "#25D366",
+                        linkedin: "#0A66C2",
+                        telegram: "#26A5E4",
+                        twitter: "#000000",
+                        x: "#000000",
+                        github: "#24292e",
+                        pinterest: "#E60023",
+                        discord: "#5865F2",
+                        snapchat: "#FFFC00",
+                        tiktok: "#EE1D52",
+                        reddit: "#FF4500",
+                        threads: "#000000",
+                        twitch: "#9146FF",
+                        spotify: "#1DB954",
+                      }[platform] || "#12BCEB";
+                    const displayName =
+                      social.platformName && social.platformName.trim()
+                        ? social.platformName.trim()
+                        : social.platform && social.platform !== "custom"
+                          ? social.platform
+                          : platform !== "link"
+                            ? platform.charAt(0).toUpperCase() +
+                              platform.slice(1)
+                            : "Social";
+                    const ctaLabel =
+                      social.ctaLabel ||
+                      (platform === "telegram" ? "Join Channel" : "Visit");
+                    const isLightBadge = [
+                      "github",
+                      "twitter",
+                      "x",
+                      "threads",
+                      "snapchat",
+                    ].includes(platform);
+                    const badgeBg =
+                      {
+                        snapchat: "#FFFC00",
+                        github: "#ffffff",
+                        twitter: "#ffffff",
+                        x: "#ffffff",
+                        threads: "#ffffff",
+                      }[platform] || platformIconColor;
+                    const badgeIconColor = isLightBadge ? "#000000" : "#ffffff";
+
+                    return (
+                      <SwiperSlide key={social._id || `${platform}-${index}`}>
+                        <a
+                          href={normalizeUrl(social.url)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex flex-col rounded-xl border border-[#E2EAF1] bg-[#F8FBFC] p-3.5 transition duration-200 hover:border-[#12BCEB]/40 hover:bg-white hover:shadow-sm active:scale-[0.98]"
+                        >
+                          {/* Top row: avatar + info */}
+                          <div className="flex items-center gap-3">
+                            <div className="relative h-12 w-12 shrink-0">
+                              {social.profileImage ? (
+                                <img
+                                  src={social.profileImage}
+                                  alt={displayName}
+                                  className="h-12 w-12 rounded-full object-cover ring-2 ring-[#E0E9F1]"
+                                />
+                              ) : (
+                                <div
+                                  className="flex h-12 w-12 items-center justify-center rounded-full"
+                                  style={{
+                                    background: `${platformIconColor}18`,
+                                  }}
+                                >
+                                  <Icon
+                                    size={20}
+                                    style={{ color: platformIconColor }}
+                                  />
+                                </div>
+                              )}
+                              <div
+                                className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white"
+                                style={{ background: badgeBg }}
+                              >
+                                <Icon
+                                  size={10}
+                                  style={{ color: badgeIconColor }}
+                                />
+                              </div>
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1">
+                                <p className="truncate text-xs font-black text-[#082B5C]">
+                                  {displayName}
+                                </p>
+                                {social.verifiedTick && (
+                                  <CheckCircle2
+                                    size={11}
+                                    className="shrink-0 text-[#12BCEB]"
+                                  />
+                                )}
+                              </div>
+                              {social.handle && (
+                                <p className="truncate text-[10px] font-semibold text-[#12BCEB]">
+                                  {social.handle}
+                                </p>
+                              )}
+                              {social.audience && (
+                                <p className="mt-0.5 text-[9px] text-[#71839A]">
+                                  {social.audience}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          {/* Description */}
+                          {social.description && (
+                            <p className="mt-2.5 line-clamp-2 text-[10px] leading-relaxed text-[#405B75]">
+                              {social.description}
+                            </p>
+                          )}
+                          {/* CTA Button */}
+                          <div
+                            className="mt-2.5 flex w-full items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-[11px] font-bold text-white shadow-sm"
+                            style={{ background: platformCtaBg }}
+                          >
+                            <Icon size={11} />
+                            <span>{ctaLabel}</span>
+                            <ExternalLink
+                              size={10}
+                              className="ml-auto opacity-80"
+                            />
+                          </div>
+                        </a>
+                      </SwiperSlide>
+                    );
+                  })}
+                </Swiper>
+              </div>
+
+              {socials.length > 1 && (
+                <style>{`
+                  .minimal-social-swiper .swiper-pagination {
+                    bottom: 0 !important;
+                  }
+                  .minimal-social-swiper .swiper-pagination-bullet {
+                    background: #12BCEB;
+                    opacity: 0.3;
+                  }
+                  .minimal-social-swiper .swiper-pagination-bullet-active {
+                    background: #12BCEB;
+                    opacity: 1;
+                    width: 16px;
+                    border-radius: 8px;
+                  }
+                `}</style>
+              )}
             </section>
           )}
 
           {/* BUSINESS HOURS */}
           {businessHours && (
-            <section className="mx-0 mt-3 rounded-[15px] border border-[#E0E9F1] bg-white p-4">
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-[#E8F8FD] text-[#12BCEB]">
+            <section className="mx-0 mt-3 rounded-2xl border border-[#E2EAF1] bg-white p-4 shadow-sm">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#E8F8FD] text-[#12BCEB]">
                   <Clock size={15} />
                 </div>
 
-                <h3 className="text-[18px] font-black text-[#082B5C]">
+                <h3 className="text-[16px] font-black text-[#082B5C]">
                   Business Hours
                 </h3>
               </div>
 
-              <div className="mt-3 rounded-[10px] bg-[#E8F8FD] p-3">
-                <p className="whitespace-pre-line text-[12px] font-semibold leading-6 text-[#183250]">
+              <div className="mt-3 rounded-xl border border-[#DCEAF5] bg-[#F4F9FD] p-3.5">
+                <p className="whitespace-pre-line text-[12.5px] font-semibold leading-relaxed text-[#183250]">
                   {businessHours}
                 </p>
               </div>
@@ -809,19 +1488,19 @@ const MinimalLuxury = ({
           {/* CONTACT FORM */}
           <section
             id="premium-contact"
-            className="mx-0 mt-3 overflow-hidden rounded-[15px] border border-[#E0E9F1] bg-white"
+            className="mx-0 mt-3 overflow-hidden rounded-2xl border border-[#E2EAF1] bg-white shadow-sm"
           >
-            <div className="bg-[#082B5C] p-4 text-white">
-              <p className="text-[8px] font-black uppercase tracking-[0.16em] text-[#12BCEB]">
+            <div className="bg-gradient-to-r from-[#082B5C] via-[#0A346E] to-[#0D448C] p-4 text-white">
+              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#12BCEB]">
                 Contact
               </p>
 
-              <h2 className="mt-2 text-[17px] font-black leading-tight">
+              <h2 className="mt-1.5 text-[17px] font-black leading-tight">
                 {businessName ? `Contact ${businessName}` : "Send an Inquiry"}
               </h2>
             </div>
 
-            <div className="p-3.5">
+            <div className="p-4">
               {formSubmitted ? (
                 <div className="flex min-h-[180px] flex-col items-center justify-center text-center">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#E8F8FD] text-[#12BCEB]">
@@ -833,9 +1512,9 @@ const MinimalLuxury = ({
                   </h3>
                 </div>
               ) : (
-                <form onSubmit={onFormSubmit} className="space-y-2.5">
+                <form onSubmit={onFormSubmit} className="space-y-3">
                   {inquirySubmitError && (
-                    <div className="rounded-[10px] border border-red-200 bg-red-50 p-2.5 text-[9px] text-red-600">
+                    <div className="rounded-xl border border-red-200 bg-red-50 p-2.5 text-[11px] text-red-600">
                       {inquirySubmitError}
                     </div>
                   )}
@@ -902,7 +1581,7 @@ const MinimalLuxury = ({
                   <button
                     type="submit"
                     disabled={inquirySubmitting}
-                    className="flex w-full items-center justify-center gap-2 rounded-[11px] bg-[#082B5C] py-3 text-[10px] font-bold text-white disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#082B5C] py-3 text-[12px] font-bold text-white shadow-sm transition hover:bg-[#12BCEB] hover:shadow-md disabled:opacity-50 active:scale-[0.98]"
                   >
                     {inquirySubmitting ? (
                       "Submitting..."
@@ -921,23 +1600,23 @@ const MinimalLuxury = ({
           {/* QR CODE */}
           <section
             id="premium-qr"
-            className="mx-0 mt-3 rounded-[15px] border border-[#E0E9F1] bg-white p-4 text-center"
+            className="mx-0 mt-3 rounded-2xl border border-[#E2EAF1] bg-white p-5 shadow-sm text-center"
           >
-            <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-[10px] bg-[#E8F8FD] text-[#12BCEB]">
+            <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-[#E8F8FD] text-[#12BCEB]">
               <ScanLine size={17} />
             </div>
 
-            <h3 className="mt-2 text-[13px] font-black text-[#082B5C]">
+            <h3 className="mt-2 text-[14px] font-black text-[#082B5C]">
               Scan to Connect
             </h3>
 
-            <p className="mt-1 text-[8px] text-[#71839A]">
+            <p className="mt-1 text-[10px] text-[#71839A]">
               Scan the QR code to visit this profile
             </p>
 
-            <div className="mx-auto mt-3 flex w-fit items-center justify-center rounded-[11px] border border-[#E5EDF4] bg-white p-2">
+            <div className="mx-auto mt-3.5 flex w-fit items-center justify-center rounded-2xl border border-[#E2EAF1] bg-white p-3 shadow-sm">
               {qrFetching ? (
-                <div className="flex h-[130px] w-[130px] items-center justify-center text-[9px] text-[#71839A]">
+                <div className="flex h-[130px] w-[130px] items-center justify-center text-[10px] text-[#71839A]">
                   Loading QR...
                 </div>
               ) : qrTargetUrl ? (
@@ -949,7 +1628,7 @@ const MinimalLuxury = ({
                   includeMargin
                 />
               ) : (
-                <div className="flex h-[130px] w-[130px] items-center justify-center text-[9px] text-[#71839A]">
+                <div className="flex h-[130px] w-[130px] items-center justify-center text-[10px] text-[#71839A]">
                   QR unavailable
                 </div>
               )}
@@ -959,13 +1638,39 @@ const MinimalLuxury = ({
               <button
                 type="button"
                 onClick={handleDownloadQr}
-                className="mx-auto mt-3 flex w-full items-center justify-center gap-2 rounded-[10px] bg-[#E8F8FD] py-2.5 text-[11px] font-bold text-[#087DA1]"
+                className="mx-auto mt-3.5 flex w-full items-center justify-center gap-2 rounded-xl border border-[#CDEEF9] bg-[#E8F8FD] py-2.5 text-[11.5px] font-bold text-[#087DA1] transition-all hover:border-[#12BCEB] hover:bg-[#12BCEB] hover:text-white active:scale-[0.98]"
               >
                 <Download size={13} />
                 Download QR
               </button>
             )}
           </section>
+
+          {/* CREATE YOUR BIO SITES BUTTON */}
+          <div className="flex justify-center px-5 py-6">
+            <a
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-[#12BCEB]/40 bg-gradient-to-r from-[#12BCEB]/10 to-[#0891b2]/10 px-6 py-2.5 text-xs font-bold tracking-wide text-[#12BCEB] shadow-md shadow-[#12BCEB]/10 transition-all duration-200 hover:border-[#12BCEB]/70 hover:from-[#12BCEB]/20 hover:to-[#0891b2]/20 hover:text-[#0FAADC] hover:shadow-[#12BCEB]/20"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
+              </svg>
+              Create Your BIO SITES
+            </a>
+          </div>
         </main>
       </div>
 
@@ -997,6 +1702,8 @@ const MinimalLuxury = ({
         .mobile-gallery-swiper .swiper-pagination-bullet-active {
           background: #12BCEB;
           opacity: 1;
+          width: 16px;
+          border-radius: 8px;
         }
       `}</style>
     </div>

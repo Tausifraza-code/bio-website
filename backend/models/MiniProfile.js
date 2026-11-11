@@ -112,6 +112,7 @@ const miniProfileSchema = new mongoose.Schema(
               "saveContact",
               "upi",
               "customLink",
+              "googleBusiness",
             ],
           },
           enabled: {

@@ -34,7 +34,7 @@ const createReview = async (req, res) => {
     if (!profile) {
       return res.status(404).json({
         success: false,
-        message: "Mini website not found",
+        message: "BIO SITES not found",
       });
     }
 
@@ -74,7 +74,7 @@ const getPublicReviews = async (req, res) => {
     if (!profile) {
       return res.status(404).json({
         success: false,
-        message: "Mini website not found",
+        message: "BIO SITES not found",
       });
     }
 

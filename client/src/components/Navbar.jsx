@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { ArrowRight, ContactRound, Menu, Moon, Sun, X } from "lucide-react";
 import { fetchPublicBranding } from "../redux/slice/adminSlice";
 
 const Navbar = ({ theme, onToggleTheme }) => {
+  const location = useLocation();
   const dispatch = useDispatch();
   const branding = useSelector((state) => state.admin.branding);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -18,11 +19,22 @@ const Navbar = ({ theme, onToggleTheme }) => {
 
   const navLinks = [
     { name: "Home", href: "/" },
-    { name: "About", href: "/#about" },
+    { name: "About", href: "/about" },
     { name: "Features", href: "/#services" },
-    { name: "Industries", href: "/#industries" },
-    { name: "Contact", href: "/#contact" },
+    // { name: "Industries", href: "/#industries" },
+    { name: "Contact", href: "/contact" },
+    { name: "Privacy Policy", href: "/privacy-policy" },
   ];
+
+  const isLinkActive = (href) => {
+    const [path, hash] = href.split("#");
+    const targetPath = path || "/";
+
+    return (
+      location.pathname === targetPath &&
+      (hash ? location.hash === `#${hash}` : !location.hash)
+    );
+  };
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 12);
@@ -119,7 +131,7 @@ const Navbar = ({ theme, onToggleTheme }) => {
             {branding?.websiteLogo ? (
               <img
                 src={branding.websiteLogo}
-                alt={branding.websiteName || "BIO SITE"}
+                alt={branding.websiteName || "BIO SITES"}
                 className="h-11 w-11 shrink-0 rounded-lg bg-white object-contain p-1"
               />
             ) : (
@@ -139,21 +151,32 @@ const Navbar = ({ theme, onToggleTheme }) => {
                 isDark ? "text-white" : "text-[#0b1b30]"
               }`}
             >
-              BIO SITE
+              BIO SITES
             </span>
           </Link>
 
           {/* Desktop navigation */}
-          <div className="hidden min-w-0 flex-1 items-center justify-center gap-5 lg:flex xl:gap-8 2xl:gap-10">
-            {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                className={`relative whitespace-nowrap py-2 text-sm font-medium transition-colors duration-200 after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:rounded-full after:bg-cyan-300 after:transition-all after:duration-200 hover:after:w-full ${linkColor}`}
-              >
-                {link.name}
-              </a>
-            ))}
+          <div className="hidden min-w-0 flex-1 items-center justify-center gap-3 lg:flex xl:gap-5 2xl:gap-6">
+            {navLinks.map((link) => {
+              const isActive = isLinkActive(link.href);
+
+              return (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  aria-current={isActive ? "page" : undefined}
+                  className={`relative whitespace-nowrap py-2 text-sm font-medium transition-colors duration-200 after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:rounded-full after:bg-cyan-300 after:transition-all after:duration-200 hover:after:w-full ${
+                    isActive
+                      ? isDark
+                        ? "text-cyan-300 after:w-full"
+                        : "text-cyan-700 after:w-full"
+                      : linkColor
+                  }`}
+                >
+                  {link.name}
+                </a>
+              );
+            })}
           </div>
 
           {/* Desktop actions */}
@@ -234,21 +257,30 @@ const Navbar = ({ theme, onToggleTheme }) => {
               }`}
             >
               <div className="flex flex-col">
-                {navLinks.map((link) => (
-                  <a
-                    key={link.name}
-                    href={link.href}
-                    onClick={closeMenu}
-                    className={`flex min-h-12 items-center justify-between border-b text-sm font-medium transition-colors touch-manipulation ${
-                      isDark
-                        ? "border-[#29435f]/70 text-slate-200 hover:text-cyan-300"
-                        : "border-[#e2eaf0] text-[#29435f] hover:text-cyan-700"
-                    }`}
-                  >
-                    {link.name}
-                    <ArrowRight size={15} className="opacity-60" />
-                  </a>
-                ))}
+                {navLinks.map((link) => {
+                  const isActive = isLinkActive(link.href);
+
+                  return (
+                    <a
+                      key={link.name}
+                      href={link.href}
+                      onClick={closeMenu}
+                      aria-current={isActive ? "page" : undefined}
+                      className={`flex min-h-12 items-center justify-between border-b text-sm font-medium transition-colors touch-manipulation ${
+                        isActive
+                          ? isDark
+                            ? "border-cyan-300/50 bg-cyan-300/10 text-cyan-300"
+                            : "border-cyan-600/30 bg-cyan-50 text-cyan-700"
+                          : isDark
+                            ? "border-[#29435f]/70 text-slate-200 hover:text-cyan-300"
+                            : "border-[#e2eaf0] text-[#29435f] hover:text-cyan-700"
+                      }`}
+                    >
+                      {link.name}
+                      <ArrowRight size={15} className="opacity-60" />
+                    </a>
+                  );
+                })}
               </div>
 
               <div className="mt-4 grid grid-cols-1 gap-2.5 min-[380px]:grid-cols-2 min-[380px]:gap-3">

@@ -5,7 +5,7 @@ const { uploadToImgBB } = require("../utils/imgbb");
 const sharp = require("sharp");
 const { handleUploadError } = require("../middleware/upload.middleware");
 const MiniProfile = require("../models/MiniProfile");
-const User = require("../models/User");
+const User = require("../models/user");
 
 const handleProductError = (res, error, action) => {
   console.error(`${action} error:`, error);
@@ -599,7 +599,7 @@ const updateAdminUserProduct = async (req, res) => {
     const updatedProduct = await Product.findOneAndUpdate(
       { _id: product._id, userId: user._id },
       { $set: updates },
-      { new: true, runValidators: true },
+      { returnDocument: "after", runValidators: true },
     );
 
     return res.status(200).json({

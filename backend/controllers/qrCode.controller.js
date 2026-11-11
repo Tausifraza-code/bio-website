@@ -123,7 +123,7 @@ const activateQRCodeByCode = async (req, res) => {
           status: "assigned",
         },
         { $set: { assignedSlot: slotNumber } },
-        { new: true, runValidators: true },
+        { returnDocument: "after", runValidators: true },
       );
 
       if (!migratedQR) {
@@ -155,7 +155,7 @@ const activateQRCodeByCode = async (req, res) => {
           businessName: profile.businessName || null,
         },
       },
-      { new: true, runValidators: true },
+      { returnDocument: "after", runValidators: true },
     );
 
     if (!claimedQR) {
@@ -305,7 +305,7 @@ const bindQRCodeToProfile = async (req, res) => {
           status: "assigned",
         },
         { $set: { assignedSlot: slotNumber } },
-        { new: true, runValidators: true },
+        { returnDocument: "after", runValidators: true },
       );
 
       if (!migratedQR) {
@@ -337,7 +337,7 @@ const bindQRCodeToProfile = async (req, res) => {
           businessName: profile.businessName || null,
         },
       },
-      { new: true, runValidators: true },
+      { returnDocument: "after", runValidators: true },
     );
 
     if (!claimedQR) {

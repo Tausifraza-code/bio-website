@@ -119,9 +119,7 @@ const getInitialTheme = () => {
 const WebsiteThemes = () => {
   const [activeTheme, setActiveTheme] = useState(getInitialTheme);
 
-  const activeThemeData = THEMES.find(
-    (theme) => theme.id === activeTheme
-  );
+  const activeThemeData = THEMES.find((theme) => theme.id === activeTheme);
 
   useEffect(() => {
     try {
@@ -143,7 +141,6 @@ const WebsiteThemes = () => {
     // Background wrapper completely transparent, removed blur/grid effects
     <div className="relative min-h-screen bg-transparent font-sans text-slate-200">
       <main className="relative mx-auto max-w-7xl px-1 py-8 sm:px-6 lg:px-8">
-        
         {/* PAGE HEADER */}
         <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-4">
@@ -163,8 +160,8 @@ const WebsiteThemes = () => {
               </div>
 
               <p className="max-w-2xl text-sm leading-relaxed text-slate-400">
-                Customize your mini website with a professional theme.
-                Choose a design to personalize your public business card.
+                Customize your BIO SITES with a professional theme. Choose a
+                design to personalize your public business card.
               </p>
             </div>
           </div>
@@ -354,7 +351,9 @@ const WebsiteThemes = () => {
 
           <div className="mb-5 flex items-center">
             <div>
-              <h2 className="text-lg font-bold text-white">Active Theme Details</h2>
+              <h2 className="text-lg font-bold text-white">
+                Active Theme Details
+              </h2>
               <p className="mt-1 text-sm text-slate-400">
                 Information about your currently selected design.
               </p>
@@ -425,9 +424,8 @@ const WebsiteThemes = () => {
               </p>
 
               <p className="mt-2 text-sm leading-relaxed text-slate-400">
-                Your selection is stored in this browser. Make sure your
-                public card reads the same theme setting to apply it to
-                visitors.
+                Your selection is stored in this browser. Make sure your public
+                card reads the same theme setting to apply it to visitors.
               </p>
             </div>
           </div>

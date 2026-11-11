@@ -96,7 +96,7 @@ const productSchema = new mongoose.Schema(
       },
     },
 
-    // Visibility on the public Mini Website
+    // Visibility on the public BIO SITES
     status: {
       type: String,
       enum: ["active", "inactive"],

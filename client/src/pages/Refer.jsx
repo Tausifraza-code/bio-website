@@ -19,10 +19,7 @@ import {
   AlertCircle,
   Share2,
 } from "lucide-react";
-import {
-  getMyReferrals,
-  clearReferralError,
-} from "../redux/slice/referSlice";
+import { getMyReferrals, clearReferralError } from "../redux/slice/referSlice";
 
 const Refer = () => {
   const dispatch = useDispatch();
@@ -58,7 +55,7 @@ const Refer = () => {
     if (!referralCode) return "";
 
     return `${window.location.origin}/register?referralCode=${encodeURIComponent(
-      referralCode
+      referralCode,
     )}`;
   }, [referralCode]);
 
@@ -149,14 +146,14 @@ const Refer = () => {
 
     const message =
       `Hey! 👋\n\n` +
-      `Create your own professional digital business card and mini website.\n\n` +
+      `Create your own professional digital business card and BIO SITES.\n\n` +
       `Use my referral link to get started:\n${referralLink}\n\n` +
       `Build your online business presence today! 🚀`;
 
     window.open(
       `https://wa.me/?text=${encodeURIComponent(message)}`,
       "_blank",
-      "noopener,noreferrer"
+      "noopener,noreferrer",
     );
   };
 
@@ -199,7 +196,6 @@ const Refer = () => {
   return (
     <main className="min-h-screen bg-transparent text-slate-200">
       <div className="mx-auto max-w-6xl px-3 py-6 sm:px-6 sm:py-9 lg:px-8">
-
         {/* Page header */}
         <header className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-4">
@@ -235,10 +231,7 @@ const Refer = () => {
             disabled={loading}
             className="inline-flex w-fit items-center justify-center gap-2 rounded-xl border border-[#29435f] bg-[#0b1b30] px-4 py-3 text-xs font-semibold text-slate-300 transition hover:border-cyan-400/40 hover:text-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <RefreshCw
-              size={15}
-              className={loading ? "animate-spin" : ""}
-            />
+            <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
             Refresh data
           </button>
         </header>
@@ -264,7 +257,7 @@ const Refer = () => {
 
                 <p className="mt-2 max-w-xl text-xs leading-6 text-slate-400 sm:text-sm">
                   Share your unique link with shop owners, freelancers, and
-                  businesses interested in creating a mini website.
+                  businesses interested in creating a BIO SITES.
                 </p>
               </div>
             </div>
@@ -272,7 +265,7 @@ const Refer = () => {
             <div className="flex w-fit items-center gap-2 rounded-xl border border-[#29435f] bg-[#0b1b30]/80 px-3.5 py-2.5">
               <ShieldCheck size={16} className="text-cyan-400" />
               <span className="text-xs font-semibold text-slate-300">
-                Personal referral link
+                Personal referral code:{" "}
               </span>
             </div>
           </div>
@@ -282,10 +275,7 @@ const Refer = () => {
         {error && (
           <div className="mb-6 flex flex-col gap-3 rounded-xl border border-red-400/20 bg-red-400/5 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
-              <AlertCircle
-                size={18}
-                className="mt-0.5 shrink-0 text-red-400"
-              />
+              <AlertCircle size={18} className="mt-0.5 shrink-0 text-red-400" />
               <div>
                 <p className="text-sm font-semibold text-red-300">
                   Unable to load referral data
@@ -411,7 +401,7 @@ const Refer = () => {
                   Referred Businesses
                 </h2>
                 <p className="mt-1 text-xs text-slate-400">
-                  People who registered through your referral link.
+                  People who registered through your referral code.
                 </p>
               </div>
             </div>
@@ -464,10 +454,7 @@ const Refer = () => {
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-400/20 bg-[#132942]">
-                              <UserRound
-                                size={17}
-                                className="text-cyan-400"
-                              />
+                              <UserRound size={17} className="text-cyan-400" />
                             </div>
 
                             <span className="text-sm font-semibold text-slate-200">

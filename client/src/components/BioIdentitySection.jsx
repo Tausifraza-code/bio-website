@@ -415,10 +415,11 @@ function CountUp({ value, suffix, label }) {
 export default function BioIdentitySection() {
   return (
     <section
-      id="bio-identity"
+      id="industries"
       aria-labelledby="bio-identity-heading"
       className="relative isolate w-full overflow-hidden bg-[#eaf8f4] py-6 text-[#0b1b30] dark:bg-[#0b1b30] dark:text-white sm:py-6 lg:py-6"
     >
+      <span id="bio-identity" className="sr-only" />
       {/* Subtle dotted background pattern */}
       <div
         aria-hidden="true"
@@ -461,9 +462,9 @@ export default function BioIdentitySection() {
 
           {/* 2. Short descriptive paragraph */}
           <p className="mt-4 max-w-[560px] text-base leading-relaxed text-[#64748b] dark:text-[#a6b7c8] sm:mt-5 sm:text-lg">
-            Create a professional mini website to showcase your identity,
-            connect with customers and share your business details through one
-            simple link.
+            Create a professional BIO SITES to showcase your identity, connect
+            with customers and share your business details through one simple
+            link.
           </p>
 
           {/* 3. Two horizontally arranged statistics/highlight blocks */}
@@ -479,7 +480,7 @@ export default function BioIdentitySection() {
               to="/register"
               className="group inline-flex min-h-[52px] max-w-full items-center justify-center gap-2.5 whitespace-nowrap rounded-full bg-cyan-400 px-8 py-3.5 text-base font-bold text-white hover:text-[#0b1b30] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#0b1b30]"
             >
-              <span>Create Your Bio Site</span>
+              <span>Create Your BIO SITES</span>
               <ArrowRight
                 size={18}
                 aria-hidden="true"

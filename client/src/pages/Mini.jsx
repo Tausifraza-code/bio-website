@@ -6,6 +6,7 @@ import { QRCodeCanvas } from "qrcode.react";
 import api from "../redux/api";
 
 import { downloadStandeePNG } from "../utils/downloadStandeePNG";
+import { downloadVCardContact } from "../utils/vcard";
 import {
   getLayoutComponent,
   normalizeLayoutId,
@@ -21,6 +22,7 @@ import {
 import { getMyProducts } from "../redux/slice/productSlice";
 import { getMyGallery } from "../redux/slice/gallerySlice";
 import { createInquiry } from "../redux/slice/inquirySlice";
+import { fetchPublicReviews } from "../redux/slice/reviewSlice";
 
 import Payment from "./Payment";
 import PlanPaymentModal from "../components/PlanPaymentModel";
@@ -56,8 +58,25 @@ const drawPosterCanvas = async ({
   qrCanvas,
   publicUrl,
   width = 1050,
-  height = 600,
 }) => {
+  const phone = profile.phone?.trim() || "";
+  const email = profile.email?.trim() || "";
+  const address = [
+    profile.shopUnit,
+    profile.area,
+    profile.landmark,
+    profile.city,
+    profile.state,
+    profile.pincode,
+  ]
+    .filter(Boolean)
+    .join(", ");
+  const website = profile.website?.trim() || profile.websiteUrl?.trim();
+  const about = profile.bio?.trim() || profile.headline?.trim() || "";
+
+  // Fixed visiting card size
+  const height = 600;
+
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -75,22 +94,6 @@ const drawPosterCanvas = async ({
     .join(" ");
 
   const businessName = profile.businessName?.trim() || "";
-
-  const address = [
-    profile.shopUnit,
-    profile.area,
-    profile.landmark,
-    profile.city,
-    profile.state,
-    profile.pincode,
-  ]
-    .filter(Boolean)
-    .join(", ");
-
-  const phone = profile.phone?.trim() || "";
-  const email = profile.email?.trim() || "";
-  const website = profile.website?.trim() || profile.websiteUrl?.trim();
-  const about = profile.bio?.trim() || profile.headline?.trim() || "";
 
   // Logo
   if (profile.logo) {
@@ -134,27 +137,27 @@ const drawPosterCanvas = async ({
     ctx.fillText(about.slice(0, 65), textX, 185);
   }
 
-  // Information section
-  let y = 275;
+  // Information section — compact spacing to fit all in 600px card
+  let y = 260;
 
   const drawInfo = (label, value) => {
     if (!value) return;
 
     ctx.fillStyle = "#22d3ee";
-    ctx.font = "bold 17px Arial";
+    ctx.font = "bold 15px Arial";
     ctx.fillText(label.toUpperCase(), 75, y);
 
     ctx.fillStyle = "#ffffff";
-    ctx.font = "19px Arial";
+    ctx.font = "17px Arial";
 
     const maxLength = label === "Address" ? 65 : 43;
     ctx.fillText(
       value.length > maxLength ? `${value.slice(0, maxLength - 3)}...` : value,
       75,
-      y + 27,
+      y + 22,
     );
 
-    y += 76;
+    y += 52;
   };
 
   drawInfo("Mobile", phone);
@@ -169,8 +172,8 @@ const drawPosterCanvas = async ({
   // Public profile URL
   if (publicUrl) {
     ctx.fillStyle = "#22d3ee";
-    ctx.font = "bold 17px Arial";
-    ctx.fillText("PUBLIC PROFILE", 75, 505);
+    ctx.font = "bold 15px Arial";
+    ctx.fillText("PUBLIC PROFILE", 75, y);
 
     ctx.fillStyle = "#ffffff";
     ctx.font = "16px Arial";
@@ -178,8 +181,10 @@ const drawPosterCanvas = async ({
     ctx.fillText(
       publicUrl.length > 65 ? `${publicUrl.slice(0, 62)}...` : publicUrl,
       75,
-      530,
+      y + 22,
     );
+
+    y += 52;
   }
 
   // QR code
@@ -199,8 +204,8 @@ const drawPosterCanvas = async ({
 
   ctx.textAlign = "left";
   ctx.fillStyle = "#22d3ee";
-  ctx.font = "bold 18px Arial";
-  ctx.fillText("BIO SITE", 75, 590);
+  ctx.font = "bold 16px Arial";
+  ctx.fillText("BIO SITES", 75, 585);
 
   return canvas;
 };
@@ -418,6 +423,12 @@ const Mini = () => {
     submitSuccess: inquirySubmitSuccess = false,
   } = useSelector((state) => state.inquiry || {});
 
+  const {
+    reviews = [],
+    totalReviews = 0,
+    averageRating = 0,
+  } = useSelector((state) => state.review || {});
+
   /* -------- LOCAL STATES -------- */
 
   const [profileChecked, setProfileChecked] = useState(false);
@@ -502,6 +513,14 @@ const Mini = () => {
     dispatch(resetContactButtons());
     dispatch(fetchContactButtons());
   }, [dispatch]);
+
+  // Fetch reviews whenever the profile subdomain becomes available
+  useEffect(() => {
+    const subdomain = profile?.subdomain;
+    if (subdomain) {
+      dispatch(fetchPublicReviews(subdomain));
+    }
+  }, [dispatch, profile?.subdomain]);
 
   /* ==========================================
      PROFILE DATA
@@ -714,7 +733,7 @@ const Mini = () => {
 
         currency: orderData.orderCurrency || "INR",
 
-        name: "Bio Site",
+        name: "BIO SITES",
 
         description: `${orderData.planName || selectedPlan.name} Plan`,
 
@@ -1035,115 +1054,22 @@ const Mini = () => {
      SAVE CONTACT
   ========================================== */
 
-  const handleSaveContact = () => {
-    const esc = (value = "") =>
-      String(value)
-        .trim()
-        .replace(/\\/g, "\\\\")
-        .replace(/\n/g, "\\n")
-        .replace(/,/g, "\\,")
-        .replace(/;/g, "\\;");
+  const handleSaveContact = async () => {
+    if (!profile) return;
 
-    const lines = ["BEGIN:VCARD", "VERSION:3.0"];
+    try {
+      await downloadVCardContact({
+        profile: profileData,
+        businessInfo,
+        publicProfileUrl: qrTargetUrl || profileData.qrUrl,
+      });
 
-    const fullName = [profileData.firstName, profileData.lastName]
-      .filter((value) => value?.trim())
-      .join(" ")
-      .trim();
-
-    const displayName = fullName || profileData.businessName?.trim() || "";
-
-    if (displayName) {
-      lines.push(`FN:${esc(displayName)}`);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (error) {
+      console.error("Save contact failed:", error);
+      alert("Contact download nahi ho paaya. Please try again.");
     }
-
-    if (profileData.businessName?.trim()) {
-      lines.push(`ORG:${esc(profileData.businessName)}`);
-    }
-
-    if (profileData.jobTitle?.trim()) {
-      lines.push(`TITLE:${esc(profileData.jobTitle)}`);
-    }
-
-    if (profileData.phone?.trim()) {
-      lines.push(`TEL;TYPE=CELL:${esc(profileData.phone)}`);
-    }
-
-    if (profileData.email?.trim()) {
-      lines.push(`EMAIL:${esc(profileData.email)}`);
-    }
-
-    const website =
-      profileData.website?.trim() || profileData.websiteUrl?.trim();
-
-    if (website) {
-      lines.push(
-        `URL:${esc(
-          /^https?:\/\//i.test(website) ? website : `https://${website}`,
-        )}`,
-      );
-    }
-
-    const address = [
-      profileData.shopUnit,
-      profileData.area,
-      profileData.landmark,
-      profileData.city,
-      profileData.state,
-      profileData.pincode,
-    ]
-      .filter((value) => value?.trim())
-      .join(", ");
-
-    if (address) {
-      lines.push(`ADR;TYPE=WORK:;;${esc(address)};;;;`);
-    }
-
-    const note = profileData.bio?.trim() || profileData.headline?.trim();
-
-    if (note) {
-      lines.push(`NOTE:${esc(note)}`);
-    }
-
-    if (
-      !displayName &&
-      !profileData.phone?.trim() &&
-      !profileData.email?.trim()
-    ) {
-      return alert(
-        "Contact download karne ke liye pehle profile details add karein.",
-      );
-    }
-
-    lines.push("END:VCARD");
-
-    const blob = new Blob([`${lines.join("\r\n")}\r\n`], {
-      type: "text/vcard;charset=utf-8",
-    });
-
-    const url = URL.createObjectURL(blob);
-
-    const anchor = document.createElement("a");
-
-    anchor.href = url;
-
-    anchor.download =
-      (displayName || "contact")
-        .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-")
-        .trim() || "contact";
-
-    anchor.download += ".vcf";
-
-    document.body.appendChild(anchor);
-
-    anchor.click();
-    anchor.remove();
-
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-    setSaved(true);
-
-    window.setTimeout(() => setSaved(false), 2000);
   };
 
   /* ==========================================
@@ -1151,15 +1077,21 @@ const Mini = () => {
   ========================================== */
 
   const handleContactClick = (type) => {
-    if (type === "phone") {
+    const action = typeof type === "object" ? type.actionType : type;
+
+    if (action === "saveContact" || action === "save") {
+      return handleSaveContact();
+    }
+
+    if (action === "phone" || action === "call") {
       return handleCall();
     }
 
-    if (type === "whatsapp") {
+    if (action === "whatsapp") {
       return handleWhatsApp();
     }
 
-    if (type === "email") {
+    if (action === "email") {
       if (businessInfo.email) {
         window.location.href = `mailto:${businessInfo.email}`;
       } else {
@@ -1169,7 +1101,7 @@ const Mini = () => {
       return;
     }
 
-    if (type === "website") {
+    if (action === "website") {
       if (!businessInfo.website) return;
 
       window.open(
@@ -1183,7 +1115,7 @@ const Mini = () => {
       return;
     }
 
-    if (type === "address") {
+    if (action === "address" || action === "directions") {
       window.open(
         `https://maps.google.com/?q=${encodeURIComponent(
           businessInfo.address,
@@ -1195,7 +1127,7 @@ const Mini = () => {
       return;
     }
 
-    if (type === "upi") {
+    if (action === "upi") {
       if (!profileData.upiId?.trim()) {
         return alert("UPI ID is not available.");
       }
@@ -1211,26 +1143,37 @@ const Mini = () => {
   const handleConfiguredButton = (button) => {
     if (!button) return;
 
-    switch (button.actionType) {
+    const action =
+      typeof button === "string"
+        ? button
+        : button.actionType ||
+          (button.buttonId === "save-contact" ? "saveContact" : "");
+
+    switch (action) {
       case "call":
+      case "phone":
         return handleCall();
 
       case "whatsapp":
         return handleWhatsApp();
 
-      case "email":
-        if (businessInfo.email) {
-          window.location.href = `mailto:${businessInfo.email}`;
+      case "email": {
+        const targetEmail = businessInfo?.email || profileData?.email;
+        if (targetEmail) {
+          window.location.href = `mailto:${targetEmail}`;
         } else {
           alert("Email address is not available.");
         }
         return;
+      }
 
       case "directions":
+      case "address":
+      case "location":
         return window.open(
           profileData.mapLink ||
             `https://maps.google.com/?q=${encodeURIComponent(
-              businessInfo.address,
+              businessInfo.address || profileData?.address || "",
             )}`,
           "_blank",
           "noopener,noreferrer",
@@ -1241,17 +1184,24 @@ const Mini = () => {
 
       case "website":
       case "customLink":
-        if (!button.customUrl) {
+      case "googleBusiness": {
+        const rawUrl =
+          (typeof button === "object" && button.customUrl) ||
+          businessInfo?.website ||
+          businessInfo?.websiteUrl ||
+          profileData?.website ||
+          profileData?.websiteUrl;
+
+        if (!rawUrl) {
           return alert("This button has no link configured.");
         }
 
         return window.open(
-          /^https?:\/\//i.test(button.customUrl)
-            ? button.customUrl
-            : `https://${button.customUrl}`,
+          /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`,
           "_blank",
           "noopener,noreferrer",
         );
+      }
 
       case "saveContact":
         return handleSaveContact();
@@ -1411,31 +1361,11 @@ const Mini = () => {
                 onGalleryClick={(image) => setSelectedGalleryImage(image)}
                 onContactClick={handleContactClick}
                 theme={theme}
+                reviews={reviews}
+                totalReviews={totalReviews}
+                averageRating={averageRating}
+                onWriteReview={() => setShowReviewModal(true)}
               />
-            </div>
-
-            {/* REVIEWS */}
-
-            <div className="mx-auto mt-5 flex max-w-6xl flex-col gap-3 rounded-2xl border border-[#29435f] bg-[#0b1b30] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-400">
-                  Customer feedback
-                </p>
-
-                <h3 className="mt-1 text-lg font-bold text-white">Reviews</h3>
-
-                <p className="mt-1 text-sm text-slate-400">
-                  Be the first to share your experience with this business.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setShowReviewModal(true)}
-                className="inline-flex shrink-0 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-5 py-3 text-sm font-bold text-cyan-300 transition hover:bg-cyan-400/20"
-              >
-                Write Review
-              </button>
             </div>
           </section>
         )}
@@ -1652,7 +1582,7 @@ const Mini = () => {
                           )}
 
                           <p className="mt-auto pt-2 text-[clamp(7px,1.1vw,10px)] font-bold tracking-widest text-cyan-300">
-                            BIO SITE
+                            BIO SITES
                           </p>
                         </div>
 

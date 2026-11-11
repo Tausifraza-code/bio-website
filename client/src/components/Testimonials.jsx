@@ -99,9 +99,11 @@ export default function Testimonials() {
 
   return (
     <section
+      id="testimonials"
       className="relative overflow-hidden bg-[#eaf8f4] px-0 py-0 text-[#0b1b30] transition-colors duration-300 dark:bg-[#0b1b30] dark:text-white"
       style={{ contain: "layout paint" }}
     >
+      <span id="reviews" className="sr-only" />
       {/* ────────────────────────────────────────────────────────
           TOP BAND — heading + subtext (padded)
       ──────────────────────────────────────────────────────── */}
@@ -381,7 +383,7 @@ export default function Testimonials() {
               href="/register"
               className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-cyan-400 px-7 py-3.5 text-sm font-bold text-white hover:text-[#0b1b30] shadow-sm shadow-[#0891b2]/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-cyan-300 dark:bg-[#22d3ee] dark:text-[#0b1b30] dark:hover:bg-[#67e8f9]"
             >
-              Create your bio site
+              Create your BIO SITES
               <ArrowUpRight
                 size={15}
                 className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"

@@ -219,7 +219,7 @@ const updateAdminGeneralSettings = async (req, res) => {
         $set: updates,
       },
       {
-        new: true,
+        returnDocument: "after",
         runValidators: true,
       },
     ).select("adminSettings");
@@ -285,7 +285,7 @@ const uploadAdminWebsiteLogo = async (req, res) => {
         },
       },
       {
-        new: true,
+        returnDocument: "after",
         runValidators: true,
       },
     ).select("adminSettings");
@@ -332,7 +332,7 @@ const getPublicBranding = async (req, res) => {
     return res.status(200).json({
       success: true,
       settings: {
-        websiteName: settings.websiteName || "BIO SITE",
+        websiteName: settings.websiteName || "BIO SITES",
         websiteLogo: settings.websiteLogo || "",
         websiteUrl: settings.websiteUrl || "",
       },

@@ -22,6 +22,19 @@ import {
   Upload,
   ImagePlus,
 } from "lucide-react";
+import {
+  FaTelegram,
+  FaGithub,
+  FaPinterest,
+  FaDiscord,
+  FaSnapchat,
+  FaTiktok,
+  FaThreads,
+  FaReddit,
+  FaTwitch,
+  FaSpotify,
+  FaMedium,
+} from "react-icons/fa6";
 
 /* ==================== BRAND ICONS ==================== */
 
@@ -153,6 +166,66 @@ const PLATFORMS = {
     placeholderHandle: "@yourhandle",
     description: "Join the conversation.",
   },
+  telegram: {
+    id: "telegram",
+    name: "Telegram",
+    icon: FaTelegram,
+    color: "#26A5E4",
+    placeholderUrl: "https://t.me/",
+    placeholderHandle: "@yourchannel",
+    description: "Join our Telegram community.",
+    ctaLabel: "Join Channel",
+  },
+  snapchat: {
+    id: "snapchat",
+    name: "Snapchat",
+    icon: FaSnapchat,
+    color: "#FFFC00",
+    placeholderUrl: "https://snapchat.com/add/",
+    placeholderHandle: "@yourhandle",
+    description: "Connect on Snapchat.",
+    ctaLabel: "Add on Snapchat",
+  },
+  threads: {
+    id: "threads",
+    name: "Threads",
+    icon: FaThreads,
+    color: "#FFFFFF",
+    placeholderUrl: "https://threads.net/@",
+    placeholderHandle: "@yourhandle",
+    description: "Follow updates on Threads.",
+    ctaLabel: "Follow on Threads",
+  },
+  pinterest: {
+    id: "pinterest",
+    name: "Pinterest",
+    icon: FaPinterest,
+    color: "#E60023",
+    placeholderUrl: "https://pinterest.com/",
+    placeholderHandle: "@username",
+    description: "Discover creative ideas.",
+    ctaLabel: "Follow on Pinterest",
+  },
+  tiktok: {
+    id: "tiktok",
+    name: "TikTok",
+    icon: FaTiktok,
+    color: "#EE1D52",
+    placeholderUrl: "https://tiktok.com/@",
+    placeholderHandle: "@yourhandle",
+    description: "Watch short videos.",
+    ctaLabel: "Follow on TikTok",
+  },
+  github: {
+    id: "github",
+    name: "GitHub",
+    icon: FaGithub,
+    color: "#ffffff",
+    placeholderUrl: "https://github.com/",
+    placeholderHandle: "@username",
+    description: "Explore my code & projects.",
+    ctaLabel: "Follow on GitHub",
+  },
   custom: {
     id: "custom",
     name: "Custom Platform",
@@ -162,6 +235,116 @@ const PLATFORMS = {
     placeholderHandle: "@username",
     description: "Connect your online profile.",
   },
+};
+
+const resolvePlatformForCard = (card = {}) => {
+  // If platform is already a recognized standard key (not "custom")
+  if (card.platform && card.platform !== "custom" && PLATFORMS[card.platform]) {
+    return {
+      ...PLATFORMS[card.platform],
+      name: card.platformName || PLATFORMS[card.platform].name,
+    };
+  }
+
+  const name = String(card.platformName || "").toLowerCase();
+  const url = String(card.url || "").toLowerCase();
+  const rawPlatform = String(card.platform || "").toLowerCase();
+  const target = `${name} ${url} ${rawPlatform}`;
+
+  // Robust regex matching for typos like "pintrest" and domain names
+  if (/pinter|pintr|pin\.it/.test(target)) {
+    const base = PLATFORMS.pinterest || {
+      name: "Pinterest",
+      icon: FaPinterest,
+      color: "#E60023",
+    };
+    return { ...base, name: card.platformName || base.name };
+  }
+  if (/telegr|t\.me|tg\b/.test(target)) {
+    const base = PLATFORMS.telegram || {
+      name: "Telegram",
+      icon: FaTelegram,
+      color: "#26A5E4",
+    };
+    return { ...base, name: card.platformName || base.name };
+  }
+  if (/snapchat|snap\b/.test(target)) {
+    const base = PLATFORMS.snapchat || {
+      name: "Snapchat",
+      icon: FaSnapchat,
+      color: "#FFFC00",
+    };
+    return { ...base, name: card.platformName || base.name };
+  }
+  if (/threads?|threads\.net/.test(target)) {
+    const base = PLATFORMS.threads || {
+      name: "Threads",
+      icon: FaThreads,
+      color: "#FFFFFF",
+    };
+    return { ...base, name: card.platformName || base.name };
+  }
+  if (/tiktok|tik\s*tok/.test(target)) {
+    const base = PLATFORMS.tiktok || {
+      name: "TikTok",
+      icon: FaTiktok,
+      color: "#EE1D52",
+    };
+    return { ...base, name: card.platformName || base.name };
+  }
+  if (/githu?b/.test(target)) {
+    const base = PLATFORMS.github || {
+      name: "GitHub",
+      icon: FaGithub,
+      color: "#ffffff",
+    };
+    return { ...base, name: card.platformName || base.name };
+  }
+  if (/discord/.test(target)) {
+    return {
+      name: card.platformName || "Discord",
+      icon: FaDiscord,
+      color: "#5865F2",
+    };
+  }
+  if (/reddit/.test(target)) {
+    return {
+      name: card.platformName || "Reddit",
+      icon: FaReddit,
+      color: "#FF4500",
+    };
+  }
+  if (/twitch/.test(target)) {
+    return {
+      name: card.platformName || "Twitch",
+      icon: FaTwitch,
+      color: "#9146FF",
+    };
+  }
+  if (/spotify/.test(target)) {
+    return {
+      name: card.platformName || "Spotify",
+      icon: FaSpotify,
+      color: "#1DB954",
+    };
+  }
+  if (/medium/.test(target)) {
+    return {
+      name: card.platformName || "Medium",
+      icon: FaMedium,
+      color: "#000000",
+    };
+  }
+
+  return {
+    name:
+      card.platformName ||
+      (card.platform !== "custom" && card.platform
+        ? card.platform
+        : "Custom Platform"),
+    icon: Globe,
+    color: "#22d3ee",
+  };
 };
 
 const QUICK_PLATFORMS = Object.values(PLATFORMS);
@@ -217,15 +400,18 @@ const SocialCards = () => {
     }
   }, [dispatch, loaded, loading]);
 
-  const currentPlatform = PLATFORMS[formData.platform] || {
-    id: formData.platform,
-    name: formData.platformName || "Custom Platform",
-    icon: Globe,
-    color: "#22d3ee",
-    placeholderUrl: "https://",
-    placeholderHandle: "@username",
-    description: "Connect your online profile.",
-  };
+  const currentPlatform =
+    formData.platform === "custom"
+      ? resolvePlatformForCard(formData)
+      : PLATFORMS[formData.platform] || {
+          id: formData.platform,
+          name: formData.platformName || "Custom Platform",
+          icon: Globe,
+          color: "#22d3ee",
+          placeholderUrl: "https://",
+          placeholderHandle: "@username",
+          description: "Connect your online profile.",
+        };
 
   const CurrentIcon = currentPlatform.icon;
 
@@ -412,9 +598,7 @@ const SocialCards = () => {
       }, 800);
     } catch (err) {
       const message =
-        typeof err === "string"
-          ? err
-          : err?.message || "Please try again.";
+        typeof err === "string" ? err : err?.message || "Please try again.";
 
       setError(
         cardAlreadySaved
@@ -454,18 +638,24 @@ const SocialCards = () => {
 
   return (
     <main className="relative min-h-screen bg-transparent text-slate-200">
-      
       {/* Custom Delete Modal */}
       {deleteConfirmId && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#020817]/80 p-4 backdrop-blur-md" onClick={() => setDeleteConfirmId(null)}>
-          <div className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-[#29435f] bg-[#0b1b30] p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#020817]/80 p-4 backdrop-blur-md"
+          onClick={() => setDeleteConfirmId(null)}
+        >
+          <div
+            className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-[#29435f] bg-[#0b1b30] p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-red-400/20 bg-red-400/10">
               <AlertTriangle size={24} className="text-red-400" />
             </div>
-            
+
             <h3 className="text-lg font-bold text-white">Delete Profile?</h3>
             <p className="mt-2 text-sm leading-6 text-slate-400">
-              Are you sure you want to delete this social media profile card? This action cannot be undone.
+              Are you sure you want to delete this social media profile card?
+              This action cannot be undone.
             </p>
 
             <div className="mt-6 flex gap-3">
@@ -482,7 +672,11 @@ const SocialCards = () => {
                 disabled={saving || reduxSaving}
                 className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-red-500 py-2.5 text-xs font-bold text-white transition hover:bg-red-400 disabled:opacity-50"
               >
-                {saving || reduxSaving ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
+                {saving || reduxSaving ? (
+                  <Loader2 size={15} className="animate-spin" />
+                ) : (
+                  <Trash2 size={15} />
+                )}
                 {saving || reduxSaving ? "Deleting..." : "Delete"}
               </button>
             </div>
@@ -491,7 +685,6 @@ const SocialCards = () => {
       )}
 
       <div className="relative mx-auto max-w-6xl px-1 py-7 sm:px-6 sm:py-9 lg:px-8">
-        
         {/* Header */}
         <section className="relative overflow-hidden rounded-3xl border border-[#29435f] bg-[#0b1b30] shadow-2xl shadow-black/20">
           <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
@@ -510,7 +703,8 @@ const SocialCards = () => {
                     </span>
 
                     <span className="rounded-full border border-[#29435f] bg-[#132942] px-2.5 py-1 text-[10px] font-semibold text-slate-400">
-                      {cards.length} {cards.length === 1 ? "Profile" : "Profiles"}
+                      {cards.length}{" "}
+                      {cards.length === 1 ? "Profile" : "Profiles"}
                     </span>
                   </div>
 
@@ -616,7 +810,7 @@ const SocialCards = () => {
               </h2>
 
               <p className="mt-1 text-xs text-slate-400">
-                Manage the social accounts displayed on your mini website.
+                Manage the social accounts displayed on your BIO SITES.
               </p>
             </div>
 
@@ -671,11 +865,7 @@ const SocialCards = () => {
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               {cards.map((card) => {
-                const platform = PLATFORMS[card.platform] || {
-                  name: card.platformName || card.platform || "Social Profile",
-                  icon: Globe,
-                  color: "#22d3ee",
-                };
+                const platform = resolvePlatformForCard(card);
                 const Icon = platform.icon;
 
                 return (

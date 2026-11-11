@@ -179,7 +179,8 @@ function StepCard({ step }) {
 
 export default function HowItWorks() {
   return (
-    <section className="bg-[#eaf8f4] px-5 py-6 text-[#0b1b30] transition-colors duration-300 dark:bg-[#0b1b30] dark:text-white sm:px-6 sm:py-6 lg:px-6 lg:py-6">
+    <section id="how-it-works" className="bg-[#eaf8f4] px-5 py-6 text-[#0b1b30] transition-colors duration-300 dark:bg-[#0b1b30] dark:text-white sm:px-6 sm:py-6 lg:px-6 lg:py-6">
+      <span id="about" className="sr-only" />
       <div className="mx-auto grid max-w-[1240px] grid-cols-1 gap-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-16 xl:gap-20">
         {/* LEFT: Native Sticky Heading (Stays sticky while Cards 1-4 scroll on desktop, then naturally releases after card 4) */}
         <div className="lg:sticky lg:top-24 lg:h-fit lg:self-start">

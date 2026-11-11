@@ -57,7 +57,7 @@ const saveProfile = async (req, res) => {
         $setOnInsert: { userId: req.user._id },
       },
       {
-        new: true,
+        returnDocument: "after",
         upsert: true,
         runValidators: true,
         setDefaultsOnInsert: true,
@@ -78,7 +78,7 @@ const saveProfile = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Mini website profile saved successfully",
+      message: "BIO SITES profile saved successfully",
       profile,
     });
   } catch (error) {
@@ -188,7 +188,7 @@ const uploadProfileImage = async (req, res) => {
           $set: { [field]: uploadResult.url },
         },
         {
-          new: true,
+          returnDocument: "after",
           runValidators: true,
         },
       );

@@ -47,7 +47,7 @@ const services = [
   {
     title: "Products & Services",
     description:
-      "Showcase your products, services, prices and offers in one organised mini website that customers can browse.",
+      "Showcase your products, services, prices and offers in one organised BIO SITES that customers can browse.",
     image:
       "https://i.pinimg.com/736x/7b/51/22/7b5122ca12037fd94a1fad87bd61b4c5.jpg?auto=format&fit=crop&w=900&q=85",
     icon: ShoppingBag,
@@ -223,7 +223,7 @@ export default function BioServicesGallery() {
             to="/register"
             className="inline-flex items-center justify-center gap-2 rounded-full bg-cyan-400 px-7 py-3 text-sm font-bold text-white shadow-lg shadow-cyan-400/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-cyan-300 hover:text-[#0b1b30] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 dark:bg-[#22d3ee] dark:text-white dark:hover:bg-[#67e8f9] dark:hover:text-[#0b1b30]"
           >
-            <span>Create your BIO SITE</span>
+            <span>Create your BIO SITES</span>
             <ArrowUpRight size={17} />
           </Link>
         </div>
@@ -245,7 +245,7 @@ function NextStepCard() {
       <span className="text-xl font-extrabold leading-tight tracking-tight sm:text-3xl">
         Create your
         <br />
-        BIO SITE.
+        BIO SITES.
       </span>
 
       <span className="flex h-7 w-7 items-center justify-center self-end rounded-full bg-[#0b1b30] text-white transition-transform duration-300 group-hover:translate-x-1 group-hover:scale-105 sm:h-12 sm:w-12">

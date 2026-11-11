@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -203,7 +202,7 @@ const DashboardLayout = () => {
       <DashboardNavbar
         subdomain={subdomain}
         ownerName="Your Business"
-        businessName="Bio Site"
+        businessName="BIO SITES"
         role="Business Owner / Professional"
         onMenuClick={() => setSidebarOpen(true)}
         onPreview={handlePreview}

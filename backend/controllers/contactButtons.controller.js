@@ -77,6 +77,7 @@ exports.saveContactButtons = async (req, res) => {
       "website",
       "upi",
       "customLink",
+      "googleBusiness",
     ];
 
     const buttonIds = new Set();
@@ -103,7 +104,7 @@ exports.saveContactButtons = async (req, res) => {
       buttonIds.add(button.buttonId);
 
       if (
-        ["website", "customLink"].includes(button.actionType) &&
+        ["website", "customLink", "googleBusiness"].includes(button.actionType) &&
         button.enabled &&
         !button.customUrl?.trim()
       ) {

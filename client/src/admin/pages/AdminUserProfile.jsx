@@ -806,9 +806,9 @@ export default function AdminUserProfile() {
             <button
               type="button"
               onClick={() => navigate("/admin/users")}
-              className="mb-3 text-sm text-cyan-600 hover:underline"
+              className="mb-3 text-sm font-semibold text-white py-2 px-2 rounded-lg bg-cyan-600 hover:bg-cyan-700"
             >
-              ← Back to Users
+              Back to Users
             </button>
 
             <h1 className="truncate text-xl font-semibold">
@@ -1189,6 +1189,7 @@ export default function AdminUserProfile() {
                         ["saveContact", "Save Contact"],
                         ["website", "Website"],
                         ["upi", "UPI"],
+                        ["googleBusiness", "Google My Business"],
                         ["customLink", "Custom Link"],
                       ].map(([value, label]) => (
                         <option key={value} value={value}>
@@ -1249,7 +1250,7 @@ export default function AdminUserProfile() {
                     <div>
                       <p className="font-semibold">{item.label}</p>
                       <p className="text-xs text-slate-500">
-                        {item.actionType} ·{" "}
+                        {item.actionType} Â·{" "}
                         {item.enabled ? "Enabled" : "Disabled"}
                       </p>
                     </div>
@@ -1282,7 +1283,7 @@ export default function AdminUserProfile() {
               </div>
             </Section>
 
-            <Section title="Protected Information — Read Only">
+            <Section title="Protected Information â€” Read Only">
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field
                   label="Subdomain"
@@ -1328,7 +1329,7 @@ export default function AdminUserProfile() {
               <div className="border-b border-slate-200 px-4 py-3 dark:border-[#294560]">
                 <h2 className="text-sm font-semibold">Website Preview</h2>
                 <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                  User's public mini website
+                  User's public BIO SITES
                 </p>
               </div>
 
@@ -1352,19 +1353,19 @@ export default function AdminUserProfile() {
                 <div className="space-y-3 text-sm">
                   <p>
                     <span className="text-slate-500">Business:</span>{" "}
-                    {profile?.businessName || "—"}
+                    {profile?.businessName || "â€”"}
                   </p>
                   <p>
                     <span className="text-slate-500">Job Title:</span>{" "}
-                    {profile?.jobTitle || "—"}
+                    {profile?.jobTitle || "â€”"}
                   </p>
                   <p>
                     <span className="text-slate-500">Address:</span>{" "}
-                    {address || "—"}
+                    {address || "â€”"}
                   </p>
                   <p>
                     <span className="text-slate-500">Website:</span>{" "}
-                    {profile?.websiteUrl || profile?.website || "—"}
+                    {profile?.websiteUrl || profile?.website || "â€”"}
                   </p>
                   <p>
                     <span className="text-slate-500">Verification:</span>{" "}
@@ -1678,8 +1679,8 @@ export default function AdminUserProfile() {
                           </span>
                         </div>
                         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                          {product.type || "product"} ·{" "}
-                          {product.category || "General"} ·{" "}
+                          {product.type || "product"} Â·{" "}
+                          {product.category || "General"} Â·{" "}
                           {product.status || "active"}
                         </p>
                         <p className="mt-2 line-clamp-2 whitespace-pre-wrap text-sm text-slate-600 dark:text-slate-300">

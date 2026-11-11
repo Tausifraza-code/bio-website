@@ -416,7 +416,7 @@ const updateAdminUserProfile = async (req, res) => {
       updatedUser = await User.findOneAndUpdate(
         { _id: existingUser._id, role: "user" },
         { $set: userUpdates },
-        { new: true, runValidators: true },
+        { returnDocument: "after", runValidators: true },
       );
     }
 
@@ -510,7 +510,7 @@ const uploadAdminUserProfileImages = async (req, res) => {
         $setOnInsert: { userId: user._id },
       },
       {
-        new: true,
+        returnDocument: "after",
         upsert: true,
         runValidators: true,
         setDefaultsOnInsert: true,
@@ -560,20 +560,58 @@ const exportAdminUsers = async (req, res) => {
       .sort({ createdAt: -1 })
       .lean();
 
-    // Prepare user records
-    const userRows = users.map((user) => ({
-      userId: user._id?.toString() || "",
-      fullName: user.fullName || "",
-      email: user.email || "",
-      phone: user.phone || "",
-      referralCode: user.referralCode || "",
-      referredByName: user.referredBy?.fullName || "",
-      referredByEmail: user.referredBy?.email || "",
-      referredByCode: user.referredBy?.referralCode || "",
-      role: user.role || "",
-      registrationDate: user.createdAt || "",
-      lastUpdated: user.updatedAt || "",
-    }));
+    // Group orders by userId
+    const ordersByUser = new Map();
+
+    orders.forEach((order) => {
+      const userId = order.userId?._id?.toString();
+
+      if (!userId) return;
+
+      if (!ordersByUser.has(userId)) {
+        ordersByUser.set(userId, []);
+      }
+
+      ordersByUser.get(userId).push(order);
+    });
+
+    // Prepare combined user + order records
+    const userRows = users.flatMap((user) => {
+      const userId = user._id?.toString() || "";
+      const userOrders = ordersByUser.get(userId) || [];
+
+      // If user has no orders, still export the user
+      const ordersToExport = userOrders.length ? userOrders : [null];
+
+      return ordersToExport.map((order) => ({
+        // USER DETAILS
+        userId,
+        fullName: user.fullName || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        referralCode: user.referralCode || "",
+        referredByName: user.referredBy?.fullName || "",
+        referredByEmail: user.referredBy?.email || "",
+        referredByCode: user.referredBy?.referralCode || "",
+        role: user.role || "",
+        registrationDate: user.createdAt || "",
+        lastUpdated: user.updatedAt || "",
+
+        // ORDER DETAILS
+        orderId: order?._id?.toString() || "",
+        planName: order?.planName || order?.planId?.name || "",
+        amount: order?.amount ?? "",
+        durationValue: order?.durationValue ?? "",
+        durationUnit: order?.durationUnit || "",
+        orderStatus: order?.status || "",
+        purchaseDate: order?.purchaseDate || "",
+        expiryDate: order?.expiryDate || "",
+        razorpayOrderId: order?.razorpayOrderId || "",
+        razorpayPaymentId: order?.razorpayPaymentId || "",
+        orderCreatedAt: order?.createdAt || "",
+        orderUpdatedAt: order?.updatedAt || "",
+      }));
+    });
 
     // Prepare mini profile records
     const profileRows = profiles.map((profile) => ({
@@ -620,39 +658,17 @@ const exportAdminUsers = async (req, res) => {
       updatedAt: profile.updatedAt || "",
     }));
 
-    // Prepare order records
-    const orderRows = orders.map((order) => ({
-      orderId: order._id?.toString() || "",
-      userId: order.userId?._id?.toString() || "",
-      customerName: order.userId?.fullName || "",
-      customerEmail: order.userId?.email || "",
-      customerPhone: order.userId?.phone || "",
-      referralCode: order.userId?.referralCode || "",
-      planName: order.planName || order.planId?.name || "",
-      amount: order.amount ?? 0,
-      durationValue: order.durationValue ?? "",
-      durationUnit: order.durationUnit || "",
-      status: order.status || "",
-      purchaseDate: order.purchaseDate || "",
-      expiryDate: order.expiryDate || "",
-      razorpayOrderId: order.razorpayOrderId || "",
-      razorpayPaymentId: order.razorpayPaymentId || "",
-      createdAt: order.createdAt || "",
-      updatedAt: order.updatedAt || "",
-    }));
-
     return res.status(200).json({
       success: true,
-      message: "User records exported successfully.",
+      message: "User and order records exported successfully.",
       counts: {
-        users: userRows.length,
+        users: users.length,
         profiles: profileRows.length,
-        orders: orderRows.length,
+        orders: orders.length,
       },
       data: {
         users: userRows,
         profiles: profileRows,
-        orders: orderRows,
       },
     });
   } catch (error) {
@@ -665,6 +681,65 @@ const exportAdminUsers = async (req, res) => {
   }
 };
 
+// DELETE /api/admin/users/:userId
+const deleteAdminUser = async (req, res) => {
+  const session = await mongoose.startSession();
+
+  try {
+    const { userId } = req.params;
+
+    if (!mongoose.isValidObjectId(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID.",
+      });
+    }
+
+    await session.withTransaction(async () => {
+      const user = await User.findOne({
+        _id: userId,
+        role: "user",
+      }).session(session);
+
+      if (!user) {
+        const error = new Error("User not found.");
+        error.statusCode = 404;
+        throw error;
+      }
+
+      // Delete user's mini profile
+      await MiniProfile.deleteMany({ userId: user._id }, { session });
+
+      // Delete user's plan purchase records
+      await PlanPurchase.deleteMany({ userId: user._id }, { session });
+
+      // Remove referral references to this user
+      await User.updateMany(
+        { referredBy: user._id },
+        { $set: { referredBy: null } },
+        { session },
+      );
+
+      // Finally delete the user account
+      await User.deleteOne({ _id: user._id, role: "user" }, { session });
+    });
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "User and associated profile and plan purchase records deleted successfully.",
+    });
+  } catch (error) {
+    console.error("Admin delete user error:", error);
+
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Unable to delete user.",
+    });
+  } finally {
+    await session.endSession();
+  }
+};
 module.exports = {
   getAdminUsers,
   verifyUserProfile,
@@ -673,4 +748,5 @@ module.exports = {
   updateAdminUserProfile,
   uploadAdminUserProfileImages,
   exportAdminUsers,
+  deleteAdminUser,
 };
