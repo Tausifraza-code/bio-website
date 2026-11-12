@@ -22,7 +22,7 @@ import {
 import { getMyProducts } from "../redux/slice/productSlice";
 import { getMyGallery } from "../redux/slice/gallerySlice";
 import { createInquiry } from "../redux/slice/inquirySlice";
-import { fetchPublicReviews } from "../redux/slice/reviewSlice";
+import { createReview, fetchPublicReviews } from "../redux/slice/reviewSlice";
 
 import Payment from "./Payment";
 import PlanPaymentModal from "../components/PlanPaymentModel";
@@ -38,6 +38,7 @@ import {
   Copy,
   FileImage,
   Share2,
+  MessageCircle,
 } from "lucide-react";
 
 const loadPosterImage = (src) =>
@@ -74,7 +75,6 @@ const drawPosterCanvas = async ({
   const website = profile.website?.trim() || profile.websiteUrl?.trim();
   const about = profile.bio?.trim() || profile.headline?.trim() || "";
 
-  // Fixed visiting card size
   const height = 600;
 
   const canvas = document.createElement("canvas");
@@ -95,7 +95,6 @@ const drawPosterCanvas = async ({
 
   const businessName = profile.businessName?.trim() || "";
 
-  // Logo
   if (profile.logo) {
     try {
       const logo = await loadPosterImage(profile.logo);
@@ -113,7 +112,6 @@ const drawPosterCanvas = async ({
 
   const textX = profile.logo ? 245 : 75;
 
-  // Business name
   ctx.textAlign = "left";
   ctx.fillStyle = "#22d3ee";
   ctx.font = "bold 43px Arial";
@@ -123,21 +121,18 @@ const drawPosterCanvas = async ({
     105,
   );
 
-  // Personal name
   if (personalName && personalName !== businessName) {
     ctx.fillStyle = "#ffffff";
     ctx.font = "27px Arial";
     ctx.fillText(personalName.slice(0, 32), textX, 150);
   }
 
-  // About / tagline
   if (about) {
     ctx.fillStyle = "#cbd5e1";
     ctx.font = "19px Arial";
     ctx.fillText(about.slice(0, 65), textX, 185);
   }
 
-  // Information section — compact spacing to fit all in 600px card
   let y = 260;
 
   const drawInfo = (label, value) => {
@@ -164,12 +159,10 @@ const drawPosterCanvas = async ({
   drawInfo("Email", email);
   drawInfo("Address", address);
 
-  // Website
   if (website) {
     drawInfo("Website", website);
   }
 
-  // Public profile URL
   if (publicUrl) {
     ctx.fillStyle = "#22d3ee";
     ctx.font = "bold 15px Arial";
@@ -187,7 +180,6 @@ const drawPosterCanvas = async ({
     y += 52;
   }
 
-  // QR code
   if (qrCanvas) {
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
@@ -246,10 +238,10 @@ const normalizeGalleryImages = (raw) => {
 
         return url
           ? {
-              url,
-              alt: `Gallery image ${index + 1}`,
-              caption: "",
-            }
+            url,
+            alt: `Gallery image ${index + 1}`,
+            caption: "",
+          }
           : null;
       }
 
@@ -282,11 +274,9 @@ const normalizeGalleryImages = (raw) => {
 
 const Overlay = ({ onClose, children, higher, darker }) => (
   <div
-    className={`fixed inset-0 ${
-      higher ? "z-[110]" : "z-[100]"
-    } flex items-center justify-center ${
-      darker ? "bg-[#020817]/85" : "bg-[#020817]/80"
-    } p-4 backdrop-blur-md`}
+    className={`fixed inset-0 ${higher ? "z-[110]" : "z-[100]"
+      } flex items-center justify-center ${darker ? "bg-[#020817]/85" : "bg-[#020817]/80"
+      } p-4 backdrop-blur-md`}
     onClick={(event) => {
       if (event.target === event.currentTarget) onClose();
     }}
@@ -451,6 +441,7 @@ const Mini = () => {
 
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
 
   const [reviewData, setReviewData] = useState({
@@ -514,9 +505,9 @@ const Mini = () => {
     dispatch(fetchContactButtons());
   }, [dispatch]);
 
-  // Fetch reviews whenever the profile subdomain becomes available
   useEffect(() => {
     const subdomain = profile?.subdomain;
+
     if (subdomain) {
       dispatch(fetchPublicReviews(subdomain));
     }
@@ -599,6 +590,9 @@ const Mini = () => {
       industry: profileData.industry || "",
       businessName: profileData.businessName || "",
 
+      // Added for CorporateExecutive review submission
+      subdomain: profileData.subdomain || "",
+
       businessHours: profileData.businessHours || "",
       upiId: profileData.upiId || "",
 
@@ -617,9 +611,9 @@ const Mini = () => {
 
     return normalizeGalleryImages(
       profileData.gallery ||
-        profileData.galleryImages ||
-        profileData.businessGallery ||
-        profileData.images,
+      profileData.galleryImages ||
+      profileData.businessGallery ||
+      profileData.images,
     );
   }, [
     gallery,
@@ -728,32 +722,22 @@ const Mini = () => {
 
       const checkout = new window.Razorpay({
         key: orderData.razorpayKeyId,
-
         amount: orderData.orderAmount,
-
         currency: orderData.orderCurrency || "INR",
-
         name: "BIO SITES",
-
         description: `${orderData.planName || selectedPlan.name} Plan`,
-
         order_id: orderData.orderId,
-
         theme: {
           color: "#22d3ee",
         },
-
         handler: async (razorpayResponse) => {
           try {
             const verifyResponse = await api.post(
               "/plan-purchases/verify-payment",
               {
                 razorpay_order_id: razorpayResponse.razorpay_order_id,
-
                 razorpay_payment_id: razorpayResponse.razorpay_payment_id,
-
                 razorpay_signature: razorpayResponse.razorpay_signature,
-
                 subdomain: profileSubdomain,
               },
             );
@@ -761,7 +745,7 @@ const Mini = () => {
             if (!verifyResponse.data?.success) {
               throw new Error(
                 verifyResponse.data?.message ||
-                  "Payment verification fail ho gayi.",
+                "Payment verification fail ho gayi.",
               );
             }
 
@@ -775,13 +759,12 @@ const Mini = () => {
               reject,
               new Error(
                 error?.response?.data?.message ||
-                  error?.message ||
-                  "Payment verify nahi ho paayi. Please payment status check karein.",
+                error?.message ||
+                "Payment verify nahi ho paayi. Please payment status check karein.",
               ),
             );
           }
         },
-
         modal: {
           ondismiss: () => {
             finish(reject, new Error("Payment window close kar di gayi."));
@@ -794,7 +777,7 @@ const Mini = () => {
           reject,
           new Error(
             event?.error?.description ||
-              "Payment fail ho gayi. Please dobara try karein.",
+            "Payment fail ho gayi. Please dobara try karein.",
           ),
         );
       });
@@ -821,6 +804,7 @@ const Mini = () => {
       "noopener,noreferrer",
     );
   };
+
   /* ==========================================
      WHATSAPP
   ========================================== */
@@ -879,6 +863,7 @@ const Mini = () => {
 
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
+
   /* ==========================================
      CALL
   ========================================== */
@@ -898,11 +883,8 @@ const Mini = () => {
   const handleShare = async () => {
     const shareData = {
       title: businessInfo.name || businessInfo.businessName,
-
-      text: `Check out ${
-        businessInfo.name || businessInfo.businessName
-      }'s business`,
-
+      text: `Check out ${businessInfo.name || businessInfo.businessName
+        }'s business`,
       url: window.location.href,
     };
 
@@ -1035,12 +1017,10 @@ const Mini = () => {
     try {
       await downloadStandeePNG({
         qrValue: qrTargetUrl,
-
         shopName:
           profileData.businessName?.trim() ||
           businessInfo.name?.trim() ||
           "My Business",
-
         socialLinks,
       });
     } catch (error) {
@@ -1147,7 +1127,7 @@ const Mini = () => {
       typeof button === "string"
         ? button
         : button.actionType ||
-          (button.buttonId === "save-contact" ? "saveContact" : "");
+        (button.buttonId === "save-contact" ? "saveContact" : "");
 
     switch (action) {
       case "call":
@@ -1172,9 +1152,9 @@ const Mini = () => {
       case "location":
         return window.open(
           profileData.mapLink ||
-            `https://maps.google.com/?q=${encodeURIComponent(
-              businessInfo.address || profileData?.address || "",
-            )}`,
+          `https://maps.google.com/?q=${encodeURIComponent(
+            businessInfo.address || profileData?.address || "",
+          )}`,
           "_blank",
           "noopener,noreferrer",
         );
@@ -1257,22 +1237,122 @@ const Mini = () => {
      REVIEW SUBMIT
   ========================================== */
 
-  const handleReviewSubmit = (event) => {
+  const handleReviewSubmit = async (event) => {
     event.preventDefault();
 
-    setReviewSubmitted(true);
+    if (reviewSubmitting) return;
 
-    window.setTimeout(() => {
-      setShowReviewModal(false);
-      setReviewSubmitted(false);
+    const subdomain = String(profileData.subdomain || "")
+      .trim()
+      .toLowerCase();
 
-      setReviewData({
-        name: "",
-        review: "",
-      });
+    const reviewerName = reviewData.name.trim();
+    const comment = reviewData.review.trim();
 
-      setReviewRating(5);
-    }, 2000);
+    if (!subdomain) {
+      return alert("Business subdomain is missing.");
+    }
+
+    if (!reviewerName || !comment) {
+      return alert("Please complete your review.");
+    }
+
+    setReviewSubmitting(true);
+
+    try {
+      await dispatch(
+        createReview({
+          subdomain,
+          reviewerName,
+          reviewerEmail: "",
+          rating: Number(reviewRating),
+          comment,
+        }),
+      ).unwrap();
+
+      setReviewSubmitted(true);
+
+      dispatch(fetchPublicReviews(subdomain))
+        .unwrap()
+        .catch((error) => {
+          console.error("Review refresh failed:", error);
+        });
+
+      window.setTimeout(() => {
+        setShowReviewModal(false);
+        setReviewSubmitted(false);
+
+        setReviewData({
+          name: "",
+          review: "",
+        });
+
+        setReviewRating(5);
+      }, 2000);
+    } catch (error) {
+      console.error("Review submission failed:", error);
+
+      alert(
+        typeof error === "string"
+          ? error
+          : "Unable to submit review. Please try again.",
+      );
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
+  /* ==========================================
+     CORPORATE EXECUTIVE REVIEW SUBMIT
+  ========================================== */
+
+  const handleLayoutReviewSubmit = async (payload) => {
+    if (reviewSubmitting) {
+      throw new Error("Review submission is already in progress.");
+    }
+
+    const subdomain = String(
+      payload?.subdomain || profileData.subdomain || "",
+    )
+      .trim()
+      .toLowerCase();
+
+    const reviewPayload = {
+      ...payload,
+      subdomain,
+      reviewerName: String(payload?.reviewerName || "").trim(),
+      reviewerEmail: String(payload?.reviewerEmail || "").trim(),
+      rating: Number(payload?.rating),
+      comment: String(payload?.comment || "").trim(),
+    };
+
+    if (!subdomain) {
+      throw new Error("Business subdomain is missing.");
+    }
+
+    if (
+      !reviewPayload.reviewerName ||
+      !reviewPayload.comment ||
+      !Number.isInteger(reviewPayload.rating) ||
+      reviewPayload.rating < 1 ||
+      reviewPayload.rating > 5
+    ) {
+      throw new Error("Please complete all review details.");
+    }
+
+    setReviewSubmitting(true);
+
+    try {
+      await dispatch(createReview(reviewPayload)).unwrap();
+
+      dispatch(fetchPublicReviews(subdomain))
+        .unwrap()
+        .catch((error) => {
+          console.error("Review refresh failed:", error);
+        });
+    } finally {
+      setReviewSubmitting(false);
+    }
   };
 
   /* ==========================================
@@ -1365,15 +1445,15 @@ const Mini = () => {
                 totalReviews={totalReviews}
                 averageRating={averageRating}
                 onWriteReview={() => setShowReviewModal(true)}
+                onReviewSubmit={handleLayoutReviewSubmit}
+                reviewSubmitting={reviewSubmitting}
               />
             </div>
           </section>
         )}
       </main>
 
-      {/* ==========================================
-          QR MODAL
-      ========================================== */}
+      {/* QR MODAL */}
 
       {showQrModal && (
         <Overlay higher darker onClose={() => setShowQrModal(false)}>
@@ -1401,18 +1481,15 @@ const Mini = () => {
                   key={tab.id}
                   type="button"
                   onClick={() => setQrModalTab(tab.id)}
-                  className={`rounded-lg border px-3 py-2 text-sm font-semibold ${
-                    qrModalTab === tab.id
+                  className={`rounded-lg border px-3 py-2 text-sm font-semibold ${qrModalTab === tab.id
                       ? "border-cyan-400 bg-cyan-400/10 text-cyan-300"
                       : "border-[#29435f] bg-[#132942] text-slate-400"
-                  }`}
+                    }`}
                 >
                   {tab.label}
                 </button>
               ))}
             </div>
-
-            {/* SHARE TAB */}
 
             {qrModalTab === "share" && (
               <div className="space-y-3">
@@ -1435,8 +1512,6 @@ const Mini = () => {
                 </button>
               </div>
             )}
-
-            {/* MY QR TAB */}
 
             {qrModalTab === "myqr" && (
               <div className="flex flex-col items-center">
@@ -1473,8 +1548,6 @@ const Mini = () => {
               </div>
             )}
 
-            {/* POSTER TAB */}
-
             {qrModalTab === "poster" && (
               <div className="space-y-5">
                 <div className="text-center">
@@ -1492,7 +1565,6 @@ const Mini = () => {
                   </div>
                 ) : (
                   <>
-                    {/* QR used for high-resolution export */}
                     <div className="hidden">
                       <QRCodeCanvas
                         id="poster-export-qr"
@@ -1503,7 +1575,6 @@ const Mini = () => {
                       />
                     </div>
 
-                    {/* LIVE POSTER PREVIEW */}
                     <div className="w-full overflow-hidden rounded-xl border border-cyan-400/30 bg-[#0b1b30] shadow-xl">
                       <div
                         className="relative flex aspect-[3.5/2] w-full items-center overflow-hidden"
@@ -1551,24 +1622,23 @@ const Mini = () => {
                             profileData.city ||
                             profileData.state ||
                             profileData.pincode) && (
-                            <p className="mt-2 line-clamp-2 break-words text-[clamp(7px,1.3vw,12px)] text-slate-300">
-                              <span className="font-bold text-cyan-300">
-                                Address:
-                              </span>{" "}
-                              {[
-                                profileData.shopUnit,
-                                profileData.area,
-                                profileData.landmark,
-                                profileData.city,
-                                profileData.state,
-                                profileData.pincode,
-                              ]
-                                .filter(Boolean)
-                                .join(", ")}
-                            </p>
-                          )}
+                              <p className="mt-2 line-clamp-2 break-words text-[clamp(7px,1.3vw,12px)] text-slate-300">
+                                <span className="font-bold text-cyan-300">
+                                  Address:
+                                </span>{" "}
+                                {[
+                                  profileData.shopUnit,
+                                  profileData.area,
+                                  profileData.landmark,
+                                  profileData.city,
+                                  profileData.state,
+                                  profileData.pincode,
+                                ]
+                                  .filter(Boolean)
+                                  .join(", ")}
+                              </p>
+                            )}
 
-                          {/* PUBLIC PROFILE LINK */}
                           {qrTargetUrl && (
                             <div className="mt-2">
                               <p className="text-[clamp(6px,1vw,10px)] font-bold text-cyan-300">
@@ -1613,7 +1683,6 @@ const Mini = () => {
                       inches.
                     </p>
 
-                    {/* DOWNLOAD ACTIONS */}
                     <div className="grid grid-cols-2 gap-3">
                       <button
                         type="button"
@@ -1641,9 +1710,7 @@ const Mini = () => {
         </Overlay>
       )}
 
-      {/* ==========================================
-          PRODUCT MODAL
-      ========================================== */}
+      {/* PRODUCT MODAL */}
 
       {selectedProduct && (
         <Overlay onClose={() => setSelectedProduct(null)}>
@@ -1697,13 +1764,15 @@ const Mini = () => {
         </Overlay>
       )}
 
-      {/* ==========================================
-          GALLERY MODAL
-      ========================================== */}
+      {/* GALLERY MODAL */}
+
+
+      {/* GALLERY MODAL */}
 
       {selectedGalleryImage && (
         <Overlay darker onClose={() => setSelectedGalleryImage(null)}>
-          <div className="relative w-full max-w-3xl overflow-hidden rounded-[24px] border border-[#45414a] bg-[#17171c]">
+          <div className="relative w-full max-w-3xl overflow-hidden rounded-[24px] border border-[#45414a] bg-[#17171c] shadow-2xl">
+
             <button
               type="button"
               onClick={() => setSelectedGalleryImage(null)}
@@ -1719,20 +1788,31 @@ const Mini = () => {
               className="max-h-[75vh] w-full object-contain"
             />
 
-            {selectedGalleryImage.caption && (
-              <div className="border-t border-white/10 px-5 py-4">
-                <p className="text-sm font-semibold text-white">
+            <div className="border-t border-white/10 px-5 py-4">
+
+              {selectedGalleryImage.caption && (
+                <p className="mb-4 text-sm font-semibold text-white">
                   {selectedGalleryImage.caption}
                 </p>
-              </div>
-            )}
+              )}
+
+              <button
+                type="button"
+                onClick={() =>
+                  handleGalleryWhatsAppInquiry(selectedGalleryImage)
+                }
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-5 py-3.5 text-sm font-extrabold text-white transition hover:bg-[#1ebe5d]"
+              >
+                <MessageCircle size={19} />
+                WhatsApp Inquiry
+              </button>
+
+            </div>
           </div>
         </Overlay>
       )}
 
-      {/* ==========================================
-          REVIEW MODAL
-      ========================================== */}
+      {/* REVIEW MODAL */}
 
       {showReviewModal && (
         <Overlay onClose={() => setShowReviewModal(false)}>
@@ -1835,10 +1915,11 @@ const Mini = () => {
 
                 <button
                   type="submit"
-                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 px-4 py-3.5 font-bold text-[#0b1b30]"
+                  disabled={reviewSubmitting}
+                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 px-4 py-3.5 font-bold text-[#0b1b30] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <Send size={17} />
-                  Submit Review
+                  {reviewSubmitting ? "Submitting..." : "Submit Review"}
                 </button>
               </form>
             )}
@@ -1846,9 +1927,7 @@ const Mini = () => {
         </Overlay>
       )}
 
-      {/* ==========================================
-          PLAN PAYMENT MODAL
-      ========================================== */}
+      {/* PLAN PAYMENT MODAL */}
 
       <PlanPaymentModal
         isOpen={showPlanPayment}
@@ -1857,9 +1936,7 @@ const Mini = () => {
         onProceed={handlePlanProceed}
       />
 
-      {/* ==========================================
-          UPI PAYMENT
-      ========================================== */}
+      {/* UPI PAYMENT */}
 
       <Payment
         isOpen={showPayment || Boolean(productPayment)}

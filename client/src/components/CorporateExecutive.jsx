@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
@@ -21,13 +21,19 @@ import {
   FaArrowUpRightFromSquare,
   FaClock,
   FaCheck,
+  FaStar,
+  FaXmark,
+  FaPen,
+  FaSpinner,
 } from "react-icons/fa6";
 
 const CorporateExecutive = ({
   businessInfo = {},
   visibleButtons = [],
   socialLinks = [],
-  reviewList = [],
+  reviews: reviewList = [],
+  totalReviews = 0,
+  averageRating = 0,
   productList = [],
   galleryImages = [],
   qrTargetUrl = "",
@@ -44,7 +50,31 @@ const CorporateExecutive = ({
   onProductClick = () => {},
   onGalleryClick = () => {},
   onContactClick = () => {},
+  onReviewSubmit = null,
+  reviewSubmitting = false,
+  reviewSubmitError = null,
 }) => {
+  const [showAllSocialLinks, setShowAllSocialLinks] = useState(false);
+
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewForm, setReviewForm] = useState({
+    reviewerName: "",
+    reviewerEmail: "",
+    rating: 5,
+    comment: "",
+  });
+  const [reviewToast, setReviewToast] = useState(null);
+
+  useEffect(() => {
+    if (!reviewToast) return;
+
+    const timer = setTimeout(() => {
+      setReviewToast(null);
+    }, 3500);
+
+    return () => clearTimeout(timer);
+  }, [reviewToast]);
+
   const {
     name = "Your Name",
     role = "Business Professional",
@@ -62,6 +92,7 @@ const CorporateExecutive = ({
     businessName = "",
     businessHours = "",
     isVerified = false,
+    subdomain = "",
   } = businessInfo;
 
   const GOLD = "#FFB703";
@@ -69,21 +100,38 @@ const CorporateExecutive = ({
 
   const displayName = name || businessName || "Your Name";
   const displayRole = role || industry || "Business Professional";
-  const reviews = reviewList.length
-    ? reviewList
-    : Array.isArray(businessInfo.reviews)
-      ? businessInfo.reviews
-      : [];
+
+  // UPDATED: Parent se aane wale reviews use honge
+  const reviews =
+    Array.isArray(reviewList) && reviewList.length
+      ? reviewList
+      : Array.isArray(businessInfo.reviews)
+        ? businessInfo.reviews
+        : [];
+
+  // UPDATED: API averageRating ko priority di gayi hai
   const reviewAverage = Number(
-    businessInfo.rating ||
+    averageRating ||
+      businessInfo.rating ||
       businessInfo.averageRating ||
       (reviews.length
-        ? reviews.reduce((total, item) => total + Number(item.rating || 0), 0) /
-          reviews.length
-        : 0),
+        ? reviews.reduce(
+            (total, item) => total + Number(item.rating || 0),
+            0
+          ) / reviews.length
+        : 0)
   );
+
+  // UPDATED: API totalReviews ko priority di gayi hai
   const reviewTotal =
-    businessInfo.reviewCount || businessInfo.reviewsCount || reviews.length;
+    totalReviews ||
+    businessInfo.reviewCount ||
+    businessInfo.reviewsCount ||
+    reviews.length;
+
+  const visibleSocialLinks = showAllSocialLinks
+    ? socialLinks
+    : socialLinks.slice(0, 4);
 
   const getSocialIcon = (platform) => {
     const value = String(platform || "").toLowerCase();
@@ -117,8 +165,108 @@ const CorporateExecutive = ({
     });
   };
 
+  const openReviewModal = () => {
+    setReviewForm({
+      reviewerName: "",
+      reviewerEmail: "",
+      rating: 5,
+      comment: "",
+    });
+
+    setShowReviewModal(true);
+  };
+
+  const handleReviewSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!onReviewSubmit) {
+      setReviewToast({
+        type: "error",
+        message: "Review submission is not connected yet.",
+      });
+      return;
+    }
+
+    if (!subdomain?.trim()) {
+      setReviewToast({
+        type: "error",
+        message: "Business subdomain is missing. Please try again.",
+      });
+      return;
+    }
+
+    if (!reviewForm.reviewerName.trim()) {
+      setReviewToast({
+        type: "error",
+        message: "Please enter your name.",
+      });
+      return;
+    }
+
+    if (!reviewForm.reviewerEmail.trim()) {
+      setReviewToast({
+        type: "error",
+        message: "Please enter your email.",
+      });
+      return;
+    }
+
+    if (!reviewForm.comment.trim()) {
+      setReviewToast({
+        type: "error",
+        message: "Please write your review.",
+      });
+      return;
+    }
+
+    if (
+      !Number.isInteger(Number(reviewForm.rating)) ||
+      Number(reviewForm.rating) < 1 ||
+      Number(reviewForm.rating) > 5
+    ) {
+      setReviewToast({
+        type: "error",
+        message: "Please select a valid rating.",
+      });
+      return;
+    }
+
+    try {
+      await onReviewSubmit({
+        subdomain: subdomain.trim().toLowerCase(),
+        reviewerName: reviewForm.reviewerName.trim(),
+        reviewerEmail: reviewForm.reviewerEmail.trim(),
+        rating: Number(reviewForm.rating),
+        comment: reviewForm.comment.trim(),
+      });
+
+      setShowReviewModal(false);
+
+      setReviewForm({
+        reviewerName: "",
+        reviewerEmail: "",
+        rating: 5,
+        comment: "",
+      });
+
+      setReviewToast({
+        type: "success",
+        message: "Your review has been submitted successfully!",
+      });
+    } catch (error) {
+      setReviewToast({
+        type: "error",
+        message:
+          error?.message ||
+          reviewSubmitError ||
+          "Unable to submit your review. Please try again.",
+      });
+    }
+  };
+
   const handleCopyQrLink = async () => {
     if (!qrTargetUrl) return;
+
     try {
       await navigator.clipboard.writeText(qrTargetUrl);
     } catch (error) {
@@ -134,9 +282,13 @@ const CorporateExecutive = ({
   const handleDownloadQr = () => {
     const canvas = document.querySelector(".corporate-profile-qr canvas");
     if (!canvas) return;
+
     const link = document.createElement("a");
     link.href = canvas.toDataURL("image/png");
-    link.download = `${(businessName || name || "business").replace(/[^a-z0-9-_]/gi, "-")}-qr.png`;
+    link.download = `${(businessName || name || "business").replace(
+      /[^a-z0-9-_]/gi,
+      "-"
+    )}-qr.png`;
     link.click();
   };
 
@@ -160,12 +312,216 @@ const CorporateExecutive = ({
 
   return (
     <main className="min-h-screen w-full overflow-hidden bg-[#0b1224] text-slate-100">
-      {/* =====================================================
-          HERO / COVER - PART 1 SCREENSHOT DESIGN
-      ===================================================== */}
+
+      {/* REVIEW TOAST */}
+      {reviewToast && (
+        <div
+          role="status"
+          className={`fixed right-4 top-4 z-[10000] flex max-w-[calc(100%-32px)] items-center gap-3 rounded-xl border px-4 py-3 shadow-2xl ${
+            reviewToast.type === "success"
+              ? "border-emerald-500/40 bg-[#102c25] text-emerald-300"
+              : "border-rose-500/40 bg-[#321b25] text-rose-300"
+          }`}
+        >
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10">
+            {reviewToast.type === "success" ? <FaCheck /> : <FaXmark />}
+          </span>
+
+          <span className="text-xs font-bold">
+            {reviewToast.message}
+          </span>
+
+          <button
+            type="button"
+            onClick={() => setReviewToast(null)}
+            className="ml-2 text-sm opacity-70 hover:opacity-100"
+            aria-label="Close notification"
+          >
+            <FaXmark />
+          </button>
+        </div>
+      )}
+
+      {/* WRITE REVIEW MODAL */}
+      {showReviewModal && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto bg-black/75 px-3 py-6 backdrop-blur-sm"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setShowReviewModal(false);
+            }
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="review-modal-title"
+            className="relative my-auto w-full max-w-[430px] overflow-hidden rounded-[22px] border border-slate-700 bg-[#101a2d] shadow-[0_25px_80px_rgba(0,0,0,0.55)]"
+          >
+            <div className="flex items-center justify-between border-b border-slate-700 px-5 py-4">
+              <div>
+                <p className="text-[9px] font-extrabold uppercase tracking-[0.2em] text-amber-400">
+                  Customer Feedback
+                </p>
+
+                <h2
+                  id="review-modal-title"
+                  className="mt-1 text-lg font-black text-white"
+                >
+                  Write a Review
+                </h2>
+
+                <p className="mt-1 text-[10px] text-slate-400">
+                  Share your experience with {businessName || displayName}.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowReviewModal(false)}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-700 bg-[#192538] text-slate-300 transition hover:border-rose-400 hover:text-rose-400"
+                aria-label="Close review form"
+              >
+                <FaXmark />
+              </button>
+            </div>
+
+            <form onSubmit={handleReviewSubmit} className="space-y-4 p-5">
+              {reviewSubmitError && (
+                <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-[10px] text-rose-300">
+                  {reviewSubmitError}
+                </div>
+              )}
+
+              <div>
+                <label className="mb-1.5 block text-[10px] font-bold text-slate-300">
+                  Your Name *
+                </label>
+
+                <input
+                  type="text"
+                  required
+                  maxLength={80}
+                  value={reviewForm.reviewerName}
+                  onChange={(event) =>
+                    setReviewForm((previous) => ({
+                      ...previous,
+                      reviewerName: event.target.value,
+                    }))
+                  }
+                  placeholder="Enter your full name"
+                  className="w-full rounded-xl border border-slate-700 bg-[#192538] px-3.5 py-3 text-xs text-white outline-none transition placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/15"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-[10px] font-bold text-slate-300">
+                  Email Address *
+                </label>
+
+                <input
+                  type="email"
+                  required
+                  maxLength={120}
+                  value={reviewForm.reviewerEmail}
+                  onChange={(event) =>
+                    setReviewForm((previous) => ({
+                      ...previous,
+                      reviewerEmail: event.target.value,
+                    }))
+                  }
+                  placeholder="name@example.com"
+                  className="w-full rounded-xl border border-slate-700 bg-[#192538] px-3.5 py-3 text-xs text-white outline-none transition placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/15"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-[10px] font-bold text-slate-300">
+                  Your Rating *
+                </label>
+
+                <div className="flex items-center gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() =>
+                        setReviewForm((previous) => ({
+                          ...previous,
+                          rating: star,
+                        }))
+                      }
+                      aria-label={`Rate ${star} out of 5`}
+                      className={`text-[28px] transition hover:scale-110 ${
+                        star <= reviewForm.rating
+                          ? "text-amber-400"
+                          : "text-slate-600"
+                      }`}
+                    >
+                      <FaStar />
+                    </button>
+                  ))}
+
+                  <span className="ml-1 text-[11px] font-bold text-amber-300">
+                    {reviewForm.rating}/5
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-[10px] font-bold text-slate-300">
+                  Write Your Review *
+                </label>
+
+                <textarea
+                  required
+                  rows={4}
+                  maxLength={1000}
+                  value={reviewForm.comment}
+                  onChange={(event) =>
+                    setReviewForm((previous) => ({
+                      ...previous,
+                      comment: event.target.value,
+                    }))
+                  }
+                  placeholder="Tell others about your experience..."
+                  className="w-full resize-y rounded-xl border border-slate-700 bg-[#192538] px-3.5 py-3 text-xs leading-relaxed text-white outline-none transition placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/15"
+                />
+
+                <p className="mt-1 text-right text-[9px] text-slate-500">
+                  {reviewForm.comment.length}/1000
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                disabled={reviewSubmitting}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 px-4 py-3.5 text-xs font-black text-[#172B3A] shadow-lg shadow-amber-950/20 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {reviewSubmitting ? (
+                  <>
+                    <FaSpinner className="animate-spin" />
+                    Submitting Review...
+                  </>
+                ) : (
+                  <>
+                    <FaPen />
+                    Submit Review
+                  </>
+                )}
+              </button>
+
+              <p className="text-center text-[9px] leading-relaxed text-slate-500">
+                Your feedback helps other customers make better decisions.
+              </p>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* HERO / COVER */}
       <section className="w-full bg-[#0b1224] px-3 pb-0 pt-4 text-slate-100 sm:px-4">
         <div className="mx-auto w-full max-w-[520px] overflow-hidden rounded-t-[20px] border border-slate-700/80 bg-[#10182b] shadow-[0_18px_50px_rgba(0,0,0,0.35)]">
-          {/* Banner */}
           <div className="relative h-[158px] overflow-hidden sm:h-[190px]">
             {heroImage ? (
               <img
@@ -176,6 +532,7 @@ const CorporateExecutive = ({
             ) : (
               <div className="absolute inset-0 bg-gradient-to-br from-[#24364d] via-[#172235] to-[#080f1e]" />
             )}
+
             <div className="absolute inset-0 bg-gradient-to-t from-[#10182b]/80 via-transparent to-black/20" />
 
             <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-[#111827]/85 px-3 py-1 text-[10px] font-bold text-white backdrop-blur">
@@ -193,6 +550,7 @@ const CorporateExecutive = ({
               >
                 <FaQrcode className="text-xs" />
               </button>
+
               <button
                 type="button"
                 onClick={onShare}
@@ -205,7 +563,6 @@ const CorporateExecutive = ({
             </div>
           </div>
 
-          {/* Profile identity and details */}
           <div className="relative px-4 pb-4 sm:px-5">
             <div className="relative -mt-[62px] mb-3 flex h-[92px] w-[92px] items-end">
               <div className="h-[92px] w-[92px] overflow-hidden rounded-[15px] border-[3px] border-[#10182b] bg-slate-700 shadow-xl">
@@ -221,6 +578,7 @@ const CorporateExecutive = ({
                   </div>
                 )}
               </div>
+
               {isVerified && (
                 <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#10182b] bg-emerald-500 text-[10px] text-white">
                   <FaCheck />
@@ -232,6 +590,7 @@ const CorporateExecutive = ({
               <h1 className="text-[22px] font-black leading-tight tracking-tight text-white sm:text-[25px]">
                 {displayName}
               </h1>
+
               {isVerified && (
                 <span className="inline-flex items-center gap-1 rounded-full border border-indigo-400/70 bg-indigo-500/10 px-2.5 py-1 text-[9px] font-bold text-indigo-200">
                   <FaCheck className="text-amber-400" /> Verified Business
@@ -257,17 +616,14 @@ const CorporateExecutive = ({
               )}
             </p>
 
-            {(businessInfo.rating ||
-              businessInfo.reviewCount ||
-              businessInfo.reviewsCount) && (
+            {(reviewAverage || reviewTotal) > 0 && (
               <div className="mt-2 flex items-center gap-1.5 text-[10px]">
                 <span className="tracking-[1px] text-amber-400">★★★★★</span>
                 <strong className="text-white">
-                  {Number(businessInfo.rating || 5).toFixed(1)}
+                  {reviewAverage.toFixed(1)}
                 </strong>
                 <span className="text-slate-400">
-                  ({businessInfo.reviewCount || businessInfo.reviewsCount || 0}{" "}
-                  reviews)
+                  ({reviewTotal} reviews)
                 </span>
               </div>
             )}
@@ -290,7 +646,6 @@ const CorporateExecutive = ({
               ● Open for Inquiries
             </p>
 
-            {/* Main contact actions */}
             <div className="mt-4 grid grid-cols-7 gap-1.5 sm:gap-2">
               <button
                 type="button"
@@ -300,6 +655,7 @@ const CorporateExecutive = ({
                 <FaCheck className="text-sm" />
                 <span>Save Contact</span>
               </button>
+
               <button
                 type="button"
                 onClick={() => handleContact("phone")}
@@ -308,6 +664,7 @@ const CorporateExecutive = ({
                 <FaPhone className="text-sm text-emerald-400" />
                 <span>Call</span>
               </button>
+
               <button
                 type="button"
                 onClick={() => handleContact("whatsapp")}
@@ -316,6 +673,7 @@ const CorporateExecutive = ({
                 <FaWhatsapp className="text-sm text-emerald-400" />
                 <span>WhatsApp</span>
               </button>
+
               <button
                 type="button"
                 onClick={() => handleContact("upi")}
@@ -324,6 +682,7 @@ const CorporateExecutive = ({
                 <span className="text-base leading-none">₹</span>
                 <span>Pay UPI</span>
               </button>
+
               <button
                 type="button"
                 onClick={() => handleContact("email")}
@@ -332,6 +691,7 @@ const CorporateExecutive = ({
                 <FaEnvelope className="text-sm text-blue-400" />
                 <span>Email</span>
               </button>
+
               <button
                 type="button"
                 onClick={() => handleContact("directions")}
@@ -340,6 +700,7 @@ const CorporateExecutive = ({
                 <FaLocationDot className="text-sm text-rose-400" />
                 <span>Directions</span>
               </button>
+
               <button
                 type="button"
                 onClick={onShare}
@@ -350,7 +711,6 @@ const CorporateExecutive = ({
               </button>
             </div>
 
-            {/* Compact social profile links */}
             {socialLinks.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {socialLinks.map((social, index) => (
@@ -372,9 +732,7 @@ const CorporateExecutive = ({
         </div>
       </section>
 
-      {/* =====================================================
-          ABOUT OUR BUSINESS - PART 2
-      ===================================================== */}
+      {/* ABOUT OUR BUSINESS */}
       {about && (
         <section className="mx-auto w-full max-w-[520px] border-x border-slate-700/70 bg-[#0e1729] px-5 py-4">
           <div className="flex items-center gap-2">
@@ -383,15 +741,14 @@ const CorporateExecutive = ({
               About Our Business
             </h2>
           </div>
+
           <p className="mt-3 text-[11px] leading-[1.65] text-slate-300">
             {about}
           </p>
         </section>
       )}
 
-      {/* =====================================================
-          FEATURED PRODUCTS & SERVICES - PART 2
-      ===================================================== */}
+      {/* FEATURED PRODUCTS & SERVICES */}
       {productList.length > 0 && (
         <section className="mx-auto w-full max-w-[520px] border-x border-t border-slate-700/70 bg-[#0e1729] px-4 py-4">
           <div className="mb-3 flex items-center justify-between gap-3">
@@ -401,6 +758,7 @@ const CorporateExecutive = ({
                 Featured Products & Services
               </h2>
             </div>
+
             <span className="shrink-0 text-[9px] font-semibold text-slate-400">
               {productList.length} items
             </span>
@@ -409,8 +767,10 @@ const CorporateExecutive = ({
           <div className="space-y-2.5">
             {productList.map((product, index) => {
               const image = getImageUrl(product?.images?.[0] || product?.image);
+
               const productType =
                 product.category || product.type || product.label || "PRODUCTS";
+
               const actionLabel =
                 product.buttonText ||
                 product.actionLabel ||
@@ -455,6 +815,7 @@ const CorporateExecutive = ({
                         >
                           {product.name || "Product"}
                         </button>
+
                         {product.price !== undefined &&
                           product.price !== null &&
                           product.price !== "" && (
@@ -474,6 +835,7 @@ const CorporateExecutive = ({
                         <span className="text-[8px] font-bold uppercase tracking-wide text-slate-400">
                           {productType}
                         </span>
+
                         <button
                           type="button"
                           onClick={() => onProductClick(product)}
@@ -494,6 +856,7 @@ const CorporateExecutive = ({
                     >
                       Pay with UPI
                     </button>
+
                     <button
                       type="button"
                       onClick={() => handleContact("whatsapp")}
@@ -502,6 +865,7 @@ const CorporateExecutive = ({
                       <FaWhatsapp className="mr-1 inline" />
                       WhatsApp
                     </button>
+
                     <button
                       type="button"
                       onClick={handleBookChair}
@@ -518,9 +882,7 @@ const CorporateExecutive = ({
         </section>
       )}
 
-      {/* =====================================================
-          WORK GALLERY - COMPACT DARK PROFILE STYLE
-      ===================================================== */}
+      {/* WORK GALLERY */}
       {galleryImages.length > 0 && (
         <section className="mx-auto box-border w-full max-w-[520px] min-w-0 overflow-hidden border-x border-t border-slate-700/70 bg-[#0e1729] px-4 py-4">
           <div className="mb-3 flex min-w-0 items-center justify-between gap-3">
@@ -528,10 +890,12 @@ const CorporateExecutive = ({
               <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-indigo-300">
                 Portfolio
               </p>
+
               <h2 className="mt-1 text-[12px] font-extrabold uppercase tracking-wide text-slate-100">
                 Our Work Gallery
               </h2>
             </div>
+
             <span className="shrink-0 text-[9px] font-semibold text-slate-400">
               {galleryImages.length} photos
             </span>
@@ -607,12 +971,11 @@ const CorporateExecutive = ({
         </section>
       )}
 
-      {/* =====================================================
-          CONTACT & BUSINESS HOURS - PART 3
-      ===================================================== */}
+      {/* CONTACT & BUSINESS HOURS */}
       <section className="mx-auto w-full max-w-[520px] border-x border-t border-slate-700/70 bg-[#0e1729] px-4 py-4">
         <div className="mb-3 flex items-center gap-2">
           <FaPhone className="text-[12px] text-indigo-400" />
+
           <h2 className="text-[12px] font-extrabold uppercase tracking-wide text-slate-200">
             Contact & Business Hours
           </h2>
@@ -628,10 +991,12 @@ const CorporateExecutive = ({
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
                 <FaPhone className="text-[11px]" />
               </span>
+
               <span className="min-w-0">
                 <span className="block text-[9px] text-slate-400">
                   Phone Number
                 </span>
+
                 <span className="block truncate text-[10px] font-bold text-slate-100">
                   {phone}
                 </span>
@@ -648,10 +1013,12 @@ const CorporateExecutive = ({
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border border-blue-500/30 bg-blue-500/10 text-blue-400">
                 <FaEnvelope className="text-[11px]" />
               </span>
+
               <span className="min-w-0">
                 <span className="block text-[9px] text-slate-400">
                   Email Address
                 </span>
+
                 <span className="block truncate text-[10px] font-bold text-slate-100">
                   {email}
                 </span>
@@ -669,13 +1036,16 @@ const CorporateExecutive = ({
             <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border border-rose-500/30 bg-rose-500/10 text-rose-400">
               <FaLocationDot className="text-[12px]" />
             </span>
+
             <span className="min-w-0">
               <span className="block text-[9px] text-slate-400">
                 Physical Address
               </span>
+
               <span className="block text-[10px] font-bold leading-[1.45] text-slate-100">
                 {address || location}
               </span>
+
               {location && address && location !== address && (
                 <span className="mt-0.5 block text-[9px] leading-[1.4] text-slate-400">
                   {location}
@@ -690,10 +1060,12 @@ const CorporateExecutive = ({
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border border-amber-500/30 bg-amber-500/10 text-amber-400">
               <FaClock className="text-[12px]" />
             </span>
+
             <span className="min-w-0">
               <span className="block text-[9px] text-slate-400">
                 Operating Hours
               </span>
+
               <span className="block whitespace-pre-line text-[10px] font-bold leading-[1.45] text-slate-100">
                 {businessHours}
               </span>
@@ -710,62 +1082,70 @@ const CorporateExecutive = ({
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border border-indigo-500/30 bg-indigo-500/10 text-indigo-400">
               <FaGlobe className="text-[12px]" />
             </span>
+
             <span className="min-w-0 flex-1">
               <span className="block text-[9px] text-slate-400">
                 Official Website
               </span>
+
               <span className="block truncate text-[10px] font-bold text-slate-100">
                 {website}
               </span>
             </span>
+
             <FaArrowUpRightFromSquare className="shrink-0 text-[10px] text-slate-400" />
           </button>
         )}
       </section>
 
-      {/* =====================================================
-          SOCIAL MEDIA & PROFILES - PART 3
-      ===================================================== */}
+      {/* SOCIAL MEDIA & PROFILES */}
       {socialLinks.length > 0 && (
         <section className="mx-auto w-full max-w-[520px] border-x border-t border-slate-700/70 bg-[#0e1729] px-4 py-4">
           <div className="mb-3 flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2">
               <FaShareNodes className="shrink-0 text-[12px] text-indigo-400" />
+
               <h2 className="truncate text-[12px] font-extrabold uppercase tracking-wide text-slate-200">
                 Social Media & Profiles
               </h2>
             </div>
+
             <span className="shrink-0 text-[9px] font-semibold text-slate-400">
               {socialLinks.length} accounts
             </span>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            {socialLinks.map((social, index) => {
+            {visibleSocialLinks.map((social, index) => {
               const platform = String(
-                social.platform || social.name || "Social",
+                social.platform || social.name || "Social"
               ).toLowerCase();
+
               const image = getImageUrl(
                 social.profileImage ||
                   social.image ||
                   social.avatar ||
                   social.logo ||
-                  social.thumbnail,
+                  social.thumbnail
               );
+
               const username =
                 social.username ||
                 social.handle ||
                 social.userName ||
                 social.accountName ||
                 "";
+
               const followers =
                 social.followers ||
                 social.subscribers ||
                 social.members ||
                 social.likes ||
                 "";
+
               const description =
                 social.description || social.bio || social.caption || "";
+
               const platformColor = platform.includes("instagram")
                 ? "from-fuchsia-500 to-pink-600"
                 : platform.includes("youtube")
@@ -775,6 +1155,7 @@ const CorporateExecutive = ({
                     : platform.includes("whatsapp")
                       ? "from-emerald-500 to-teal-600"
                       : "from-indigo-500 to-violet-600";
+
               const buttonText =
                 social.buttonText ||
                 social.ctaText ||
@@ -794,6 +1175,7 @@ const CorporateExecutive = ({
                   <div
                     className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r ${platformColor}`}
                   />
+
                   <div className="flex min-w-0 items-center gap-2">
                     {image ? (
                       <img
@@ -808,16 +1190,20 @@ const CorporateExecutive = ({
                         {getSocialIcon(social.platform)}
                       </span>
                     )}
+
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1">
                         <h3 className="truncate text-[10px] font-extrabold capitalize text-slate-100">
                           {social.platform || social.name || "Social Profile"}
                         </h3>
+
                         <FaCheck className="shrink-0 text-[9px] text-sky-400" />
                       </div>
+
                       <p className="truncate text-[9px] font-semibold text-slate-300">
                         {username || social.url || ""}
                       </p>
+
                       {followers && (
                         <span className="mt-1 inline-flex max-w-full items-center gap-1 truncate rounded-full border border-slate-600 bg-slate-800/70 px-1.5 py-0.5 text-[8px] font-semibold text-slate-300">
                           <FaShareNodes className="text-amber-400" />
@@ -847,140 +1233,260 @@ const CorporateExecutive = ({
               );
             })}
           </div>
+
+          {socialLinks.length > 4 && (
+            <button
+              type="button"
+              onClick={() =>
+                setShowAllSocialLinks((previous) => !previous)
+              }
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-indigo-500/40 bg-indigo-500/10 px-4 py-3 text-[10px] font-extrabold text-indigo-300 transition hover:border-indigo-400 hover:bg-indigo-500/20"
+            >
+              {showAllSocialLinks
+                ? "Show Less"
+                : `Load More (${socialLinks.length - 4} More)`}
+
+              <FaArrowUpRightFromSquare className="text-[9px]" />
+            </button>
+          )}
         </section>
       )}
 
-      {/* =====================================================
-          CUSTOMER REVIEWS & TRUST - PART 4
-      ===================================================== */}
-      {(reviews.length > 0 || reviewAverage > 0 || reviewTotal > 0) && (
-        <section className="mx-auto w-full max-w-[520px] border-x border-t border-slate-700/70 bg-[#0e1729] px-4 py-4">
-          <div className="mb-3 flex items-center gap-2">
+      {/* CUSTOMER REVIEWS & TRUST - AUTOMATIC SLIDER */}
+      <section className="mx-auto w-full max-w-[520px] border-x border-t border-slate-700/70 bg-[#0e1729] px-4 py-4">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
             <span className="text-[13px] text-amber-400">★</span>
+
             <h2 className="text-[12px] font-extrabold uppercase tracking-wide text-slate-200">
               Customer Reviews & Trust
             </h2>
           </div>
-          <div className="mb-3 flex items-center justify-between gap-3 rounded-[14px] border border-amber-500/30 bg-[#192538] px-3 py-2.5">
-            <div className="flex items-center gap-2">
-              <strong className="text-[19px] font-black text-white">
-                {reviewAverage ? reviewAverage.toFixed(1) : "—"}
-              </strong>
-              <div>
-                <div className="text-[13px] leading-none tracking-[1px] text-amber-400">
-                  ★★★★★
-                </div>
-                <p className="mt-1 text-[8px] text-slate-400">
-                  Based on {reviewTotal} customer{" "}
-                  {reviewTotal === 1 ? "review" : "reviews"}
-                </p>
-              </div>
-            </div>
-            <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[8px] font-bold text-emerald-400">
-              <FaCheck className="mr-1 inline" />
-              {businessInfo.isVerified ? "100% Verified" : "Verified Reviews"}
-            </span>
-          </div>
-          <div className="space-y-2">
-            {reviews.map((review, index) => {
-              const customerName =
-                review.name ||
-                review.customerName ||
-                review.author ||
-                "Customer";
-              const customerRole =
-                review.role ||
-                review.designation ||
-                review.company ||
-                "Verified Customer";
-              const reviewText =
-                review.comment ||
-                review.message ||
-                review.text ||
-                review.review ||
-                "";
-              const customerPhoto = getImageUrl(
-                review.avatar || review.photo || review.image,
-              );
-              return (
-                <article
-                  key={review._id || review.id || index}
-                  className="rounded-[14px] border border-slate-700 bg-[#192538] p-3"
-                >
-                  <div className="mb-2 flex items-center justify-between gap-2">
-                    <span className="text-[13px] leading-none tracking-[1px] text-amber-400">
-                      {"★".repeat(
-                        Math.max(
-                          0,
-                          Math.min(5, Math.round(Number(review.rating || 5))),
-                        ),
-                      )}
-                    </span>
-                    {review.verified !== false && (
-                      <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-[8px] font-bold text-emerald-400">
-                        Verified Client
-                      </span>
-                    )}
-                  </div>
-                  {reviewText && (
-                    <p className="text-[10px] italic leading-[1.55] text-slate-200">
-                      “{reviewText}”
-                    </p>
-                  )}
-                  <div className="mt-2.5 flex items-center gap-2">
-                    {customerPhoto ? (
-                      <img
-                        src={customerPhoto}
-                        alt={customerName}
-                        className="h-7 w-7 shrink-0 rounded-full border border-slate-600 object-cover"
-                      />
-                    ) : (
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-700 text-[10px] font-bold text-white">
-                        {customerName.charAt(0).toUpperCase()}
-                      </span>
-                    )}
-                    <div className="min-w-0">
-                      <p className="truncate text-[9px] font-extrabold text-slate-100">
-                        {customerName}
-                      </p>
-                      <p className="truncate text-[8px] text-slate-400">
-                        {customerRole}
-                      </p>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </section>
-      )}
 
-      {/* =====================================================
-          SHARE YOUR CONTACT / SEND INQUIRY - PART 4
-      ===================================================== */}
+          <span className="shrink-0 text-[9px] font-semibold text-slate-400">
+            {reviewTotal} reviews
+          </span>
+        </div>
+
+        <div className="mb-3 flex items-center justify-between gap-3 rounded-[14px] border border-amber-500/30 bg-[#192538] px-3 py-2.5">
+          <div className="flex items-center gap-2">
+            <strong className="text-[19px] font-black text-white">
+              {reviewAverage ? reviewAverage.toFixed(1) : "—"}
+            </strong>
+
+            <div>
+              <div className="text-[13px] leading-none tracking-[1px] text-amber-400">
+                ★★★★★
+              </div>
+
+              <p className="mt-1 text-[8px] text-slate-400">
+                Based on {reviewTotal} customer{" "}
+                {reviewTotal === 1 ? "review" : "reviews"}
+              </p>
+            </div>
+          </div>
+
+          <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[8px] font-bold text-emerald-400">
+            <FaCheck className="mr-1 inline" />
+            {businessInfo.isVerified
+              ? "100% Verified"
+              : "Verified Reviews"}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={openReviewModal}
+          className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 px-4 py-3 text-[11px] font-black text-[#172B3A] shadow-lg shadow-amber-950/20 transition hover:-translate-y-0.5 hover:brightness-110"
+        >
+          <FaPen />
+          Write a Review
+        </button>
+
+        {reviews.length > 0 ? (
+          <>
+            <div className="relative min-w-0 overflow-hidden">
+              <Swiper
+                modules={[Autoplay]}
+                slidesPerView={1}
+                spaceBetween={10}
+                loop={reviews.length > 1}
+                loopAdditionalSlides={Math.min(reviews.length, 5)}
+                speed={700}
+                watchSlidesProgress
+                autoplay={
+                  reviews.length > 1
+                    ? {
+                        delay: 3000,
+                        disableOnInteraction: false,
+                        pauseOnMouseEnter: true,
+                      }
+                    : false
+                }
+                breakpoints={{
+                  480: {
+                    slidesPerView: 2,
+                    spaceBetween: 10,
+                  },
+                  768: {
+                    slidesPerView: 3,
+                    spaceBetween: 12,
+                  },
+                }}
+                className="!w-full !overflow-hidden"
+              >
+                {reviews.map((review, index) => {
+                  const customerName =
+                    review.reviewerName ||
+                    review.name ||
+                    review.customerName ||
+                    review.author ||
+                    "Customer";
+
+                  const customerRole =
+                    review.reviewerEmail ||
+                    review.role ||
+                    review.designation ||
+                    review.company ||
+                    "Verified Customer";
+
+                  const reviewText =
+                    review.comment ||
+                    review.message ||
+                    review.text ||
+                    review.review ||
+                    "";
+
+                  const customerPhoto = getImageUrl(
+                    review.avatar || review.photo || review.image
+                  );
+
+                  const reviewDate = review.createdAt
+                    ? new Date(review.createdAt).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })
+                    : "";
+
+                  const rating = Math.max(
+                    0,
+                    Math.min(5, Math.round(Number(review.rating || 5)))
+                  );
+
+                  return (
+                    <SwiperSlide
+                      key={review._id || review.id || index}
+                      className="!h-auto"
+                    >
+                      <article className="flex h-full min-h-[165px] flex-col rounded-[14px] border border-slate-700 bg-[#192538] p-3">
+                        <div className="mb-2 flex items-center justify-between gap-2">
+                          <span className="text-[13px] leading-none tracking-[1px] text-amber-400">
+                            {"★".repeat(rating)}
+                            <span className="text-slate-600">
+                              {"★".repeat(5 - rating)}
+                            </span>
+                          </span>
+
+                          {review.verified !== false && (
+                            <span className="shrink-0 rounded-full bg-emerald-500/10 px-2 py-1 text-[8px] font-bold text-emerald-400">
+                              Verified
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="min-h-[55px] flex-1 text-[10px] italic leading-[1.6] text-slate-200">
+                          {reviewText
+                            ? `“${reviewText}”`
+                            : "Customer review"}
+                        </p>
+
+                        <div className="mt-3 flex items-center gap-2 border-t border-slate-700 pt-2.5">
+                          {customerPhoto ? (
+                            <img
+                              src={customerPhoto}
+                              alt={customerName}
+                              className="h-8 w-8 shrink-0 rounded-full border border-slate-600 object-cover"
+                            />
+                          ) : (
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-700 text-[10px] font-bold text-white">
+                              {customerName.charAt(0).toUpperCase()}
+                            </span>
+                          )}
+
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-[9px] font-extrabold text-slate-100">
+                              {customerName}
+                            </p>
+
+                            <p className="truncate text-[8px] text-slate-400">
+                              {customerRole}
+                            </p>
+                          </div>
+
+                          {reviewDate && (
+                            <span className="shrink-0 text-[8px] text-slate-500">
+                              {reviewDate}
+                            </span>
+                          )}
+                        </div>
+                      </article>
+                    </SwiperSlide>
+                  );
+                })}
+              </Swiper>
+            </div>
+
+            {reviews.length > 1 && (
+              <p className="mt-3 text-center text-[9px] text-slate-500">
+                Reviews automatically slide · Swipe to explore
+              </p>
+            )}
+          </>
+        ) : (
+          <div className="rounded-[14px] border border-dashed border-slate-700 bg-[#192538] px-4 py-7 text-center">
+            <span className="text-2xl text-amber-400">★</span>
+
+            <p className="mt-2 text-[11px] font-bold text-slate-200">
+              No customer reviews yet
+            </p>
+
+            <p className="mt-1 text-[9px] text-slate-400">
+              Be the first customer to share your experience.
+            </p>
+          </div>
+        )}
+      </section>
+
+      {/* SHARE YOUR CONTACT / SEND INQUIRY */}
       <section
         id="send-inquiry-section"
         className="mx-auto w-full max-w-[520px] scroll-mt-6 border-x border-t border-slate-700/70 bg-[#0e1729] px-4 py-4"
       >
         <div className="mb-1 flex items-center gap-2">
           <FaShareNodes className="text-[12px] text-indigo-400" />
+
           <h2 className="text-[12px] font-extrabold uppercase tracking-wide text-slate-200">
             Share Your Contact / Send Inquiry
           </h2>
         </div>
+
         <p className="mb-3 text-[9px] leading-[1.5] text-slate-400">
           Share your contact number or leave a message for {displayName} to
           receive a fast response.
         </p>
+
         <form onSubmit={onFormSubmit} className="space-y-2.5">
           {formSubmitted ? (
             <div className="flex min-h-[170px] flex-col items-center justify-center rounded-[14px] border border-emerald-500/30 bg-[#192538] px-4 text-center">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-400">
                 <FaCheck />
               </span>
+
               <h3 className="mt-3 text-sm font-extrabold text-white">
                 Message Sent
               </h3>
+
               <p className="mt-1 text-[10px] text-slate-400">
                 Thank you. Your inquiry has been submitted successfully.
               </p>
@@ -992,26 +1498,33 @@ const CorporateExecutive = ({
                   {inquirySubmitError}
                 </div>
               )}
+
               <div>
                 <label className="mb-1 block text-[9px] font-bold text-slate-300">
                   Your Name *
                 </label>
+
                 <input
                   type="text"
                   required
                   value={formData.name}
                   onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, name: e.target.value }))
+                    setFormData((prev) => ({
+                      ...prev,
+                      name: e.target.value,
+                    }))
                   }
                   placeholder="e.g. Rahul Sharma"
                   className="w-full rounded-[12px] border border-slate-700 bg-[#101a2d] px-3 py-3 text-[10px] text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15"
                 />
               </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="mb-1 block text-[9px] font-bold text-slate-300">
                     Email Address
                   </label>
+
                   <input
                     type="email"
                     value={formData.email}
@@ -1025,10 +1538,12 @@ const CorporateExecutive = ({
                     className="w-full min-w-0 rounded-[12px] border border-slate-700 bg-[#101a2d] px-3 py-3 text-[10px] text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15"
                   />
                 </div>
+
                 <div>
                   <label className="mb-1 block text-[9px] font-bold text-slate-300">
                     Phone Number *
                   </label>
+
                   <input
                     type="tel"
                     required
@@ -1044,10 +1559,12 @@ const CorporateExecutive = ({
                   />
                 </div>
               </div>
+
               <div>
                 <label className="mb-1 block text-[9px] font-bold text-slate-300">
                   Your Requirements / Message
                 </label>
+
                 <textarea
                   rows={4}
                   value={formData.message}
@@ -1061,6 +1578,7 @@ const CorporateExecutive = ({
                   className="w-full resize-y rounded-[12px] border border-slate-700 bg-[#101a2d] px-3 py-3 text-[10px] leading-[1.5] text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15"
                 />
               </div>
+
               <button
                 type="submit"
                 disabled={inquirySubmitting}
@@ -1076,15 +1594,14 @@ const CorporateExecutive = ({
         </form>
       </section>
 
-      {/* =====================================================
-          QR CODE TO SHARE OR SAVE
-      ===================================================== */}
+      {/* QR CODE TO SHARE OR SAVE */}
       <section className="mx-auto w-full max-w-[520px] border-x border-t border-slate-700/70 bg-[#0e1729] px-4 py-5">
         <div className="rounded-[20px] border border-slate-700 bg-[#101a2e] px-4 py-5 text-center sm:px-6">
           <div className="flex items-center justify-center gap-2">
             <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-indigo-500/30 bg-indigo-500/10 text-indigo-300">
               <FaQrcode className="text-sm" />
             </span>
+
             <h2 className="text-[13px] font-extrabold text-slate-100">
               Scan QR Code to Share or Save
             </h2>
@@ -1124,6 +1641,7 @@ const CorporateExecutive = ({
               <FaShareNodes />
               Copy Link
             </button>
+
             <button
               type="button"
               onClick={handleDownloadQr}
@@ -1137,19 +1655,19 @@ const CorporateExecutive = ({
         </div>
       </section>
 
-      {/* =====================================================
-          FOOTER
-      ===================================================== */}
+      {/* FOOTER */}
       <footer className="mx-auto flex w-full max-w-[520px] flex-wrap items-center justify-between gap-2 border-x border-t border-slate-700/80 bg-[#0b1426] px-3 py-3 text-[8px]">
         <div className="flex flex-wrap items-center gap-2 text-slate-400">
           <span>
             Powered by <strong className="text-slate-300">BIO Website</strong>
           </span>
+
           <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-1 font-bold text-emerald-400">
             <FaCheck className="mr-1 inline" />
             Active Member (1 Year Plan)
           </span>
         </div>
+
         <span className="font-semibold text-indigo-300">
           Create Your Own Mini Website →
         </span>

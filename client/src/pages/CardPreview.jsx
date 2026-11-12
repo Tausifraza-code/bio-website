@@ -1320,54 +1320,7 @@ function CardPreview() {
             FALLBACK REVIEWS SECTION (Only for layouts without built-in reviews)
         ============================================================ */}
 
-        {!["modern-business", "minimal-card", "creator-portfolio"].includes(
-          activeLayout,
-        ) && (
-          <section
-            className="mt-5 rounded-2xl border p-5 shadow-xl sm:p-7"
-            style={{
-              background: theme.surface,
-              borderColor: theme.border,
-              color: theme.text,
-            }}
-          >
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="flex items-center gap-2">
-                  <MessageSquareText
-                    size={21}
-                    style={{ color: theme.primary }}
-                  />
-
-                  <h2 className="text-xl font-bold sm:text-2xl">
-                    Reviews & Ratings
-                  </h2>
-                </div>
-
-                <p className="mt-2 text-sm" style={{ color: theme.muted }}>
-                  Share your experience with this business.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setReviewError("");
-                  setReviewRating(5);
-                  setShowReviewModal(true);
-                }}
-                className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition hover:opacity-90"
-                style={{
-                  background: accentGradient,
-                  color: "#ffffff",
-                }}
-              >
-                <Star size={17} />
-                Write a Review
-              </button>
-            </div>
-          </section>
-        )}
+       
       </div>
 
       {/* ============================================================
