@@ -14,6 +14,7 @@ import {
   QrCode,
   CreditCard,
 } from "lucide-react";
+import GoogleBusinessIcon from "./icons/GoogleBusinessIcon";
 
 import "swiper/css";
 
@@ -60,6 +61,8 @@ const CorporateExecutive = ({
   onShare = () => {},
   onOpenQr = () => {},
   onProductClick = () => {},
+  onProductWhatsAppInquiry = () => {},
+  onGalleryWhatsAppInquiry = () => {},
   onGalleryClick = () => {},
   onContactClick = () => {},
   onReviewSubmit = null,
@@ -161,7 +164,19 @@ const CorporateExecutive = ({
     );
 
   // DYNAMIC BUTTON ICONS
-  const getButtonIcon = (icon) => {
+  const getButtonIcon = (icon, actionType) => {
+    const iconKey = String(icon || "").toLowerCase();
+    const actionKey = String(actionType || "").toLowerCase();
+
+    // Google My Business gets its own branded icon
+    if (
+      actionKey === "googlebusiness" ||
+      iconKey === "google" ||
+      iconKey === "googlebusiness"
+    ) {
+      return <GoogleBusinessIcon size={21} className="shrink-0" />;
+    }
+
     const iconMap = {
       "user-round-plus": UserRoundPlus,
       contact: UserRoundPlus,
@@ -173,7 +188,6 @@ const CorporateExecutive = ({
       "message-circle": MessageCircle,
       whatsapp: MessageCircle,
 
-      google: Globe,
       website: Globe,
       globe: Globe,
 
@@ -194,8 +208,7 @@ const CorporateExecutive = ({
       payment: CreditCard,
     };
 
-    const IconComponent =
-      iconMap[String(icon || "").toLowerCase()] || Globe;
+    const IconComponent = iconMap[iconKey] || Globe;
 
     return (
       <IconComponent
@@ -794,7 +807,7 @@ const CorporateExecutive = ({
                     className="flex min-h-[49px] min-w-0 flex-col items-center justify-center gap-1 rounded-xl border border-slate-700 bg-[#1a2639] px-1.5 py-2 text-[8px] font-bold text-white transition hover:-translate-y-0.5 hover:border-cyan-400 hover:bg-[#22344c] active:translate-y-0"
                     title={button.label}
                   >
-                    {getButtonIcon(button.icon)}
+                    {getButtonIcon(button.icon, button.actionType)}
 
                     <span className="w-full truncate text-center">
                       {button.label || "Button"}
@@ -957,7 +970,7 @@ const CorporateExecutive = ({
 
                     <button
                       type="button"
-                      onClick={() => handleContact("whatsapp")}
+                      onClick={(e) => { e.stopPropagation(); onProductWhatsAppInquiry(product); }}
                       className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold text-emerald-300 transition hover:bg-emerald-500/20"
                     >
                       <FaWhatsapp className="mr-1 inline" />
@@ -1057,6 +1070,18 @@ const CorporateExecutive = ({
                         <FaArrowUpRightFromSquare />
                       </span>
                     </button>
+
+                      {/* WhatsApp Gallery Inquiry */}
+                      <div className="p-2.5 pb-0">
+                        <button
+                          type="button"
+                          onClick={() => onGalleryWhatsAppInquiry(image)}
+                          className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 py-2.5 text-[10px] font-bold text-white shadow-sm shadow-emerald-500/20 transition hover:brightness-105 active:scale-[0.98]"
+                        >
+                          <FaWhatsapp size={14} className="shrink-0" />
+                          <span>WhatsApp Inquiry</span>
+                        </button>
+                      </div>
                   </SwiperSlide>
                 );
               })}
