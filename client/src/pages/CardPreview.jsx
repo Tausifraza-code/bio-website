@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
+
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { QRCodeCanvas } from "qrcode.react";
@@ -9,6 +10,7 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 
 import api from "../redux/api";
+import { getMe } from "../redux/slice/authSlice";
 import { createInquiry } from "../redux/slice/inquirySlice";
 import { createReview, fetchPublicReviews } from "../redux/slice/reviewSlice";
 import { getPublicQRUrl } from "../utils/qrUrl";
@@ -341,6 +343,26 @@ function CardPreview() {
   // Logged-in user information
   const { user, isAuthenticated } = useSelector((state) => state.auth);
 
+  // Prevent repeated authentication restore calls
+  const authRestoreAttempted = useRef(false);
+
+  /* ============================================================
+     RESTORE LOGIN USER AFTER PAGE REFRESH
+  ============================================================ */
+
+  useEffect(() => {
+    const savedToken = localStorage.getItem("bioToken");
+
+    if (
+      savedToken &&
+      (!user || !isAuthenticated) &&
+      !authRestoreAttempted.current
+    ) {
+      authRestoreAttempted.current = true;
+      dispatch(getMe());
+    }
+  }, [dispatch, user, isAuthenticated]);
+
   const [profile, setProfile] = useState(null);
   const [qrPath, setQrPath] = useState("");
   const [products, setProducts] = useState([]);
@@ -534,9 +556,9 @@ function CardPreview() {
 
   const isProfileOwner = Boolean(
     isAuthenticated &&
-    loggedInUserId &&
-    profileOwnerId &&
-    String(loggedInUserId) === String(profileOwnerId),
+      loggedInUserId &&
+      profileOwnerId &&
+      String(loggedInUserId) === String(profileOwnerId),
   );
 
   const handleEditProfile = () => {
@@ -1316,11 +1338,7 @@ function CardPreview() {
           />
         </article>
 
-        {/* ============================================================
-            FALLBACK REVIEWS SECTION (Only for layouts without built-in reviews)
-        ============================================================ */}
-
-       
+        {/* FALLBACK REVIEWS SECTION */}
       </div>
 
       {/* ============================================================

@@ -1,7 +1,19 @@
+
 import React, { useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
+import {
+  UserRoundPlus,
+  Phone,
+  MessageCircle,
+  Globe,
+  Mail,
+  MapPin,
+  Share2,
+  QrCode,
+  CreditCard,
+} from "lucide-react";
 
 import "swiper/css";
 
@@ -57,12 +69,14 @@ const CorporateExecutive = ({
   const [showAllSocialLinks, setShowAllSocialLinks] = useState(false);
 
   const [showReviewModal, setShowReviewModal] = useState(false);
+
   const [reviewForm, setReviewForm] = useState({
     reviewerName: "",
     reviewerEmail: "",
     rating: 5,
     comment: "",
   });
+
   const [reviewToast, setReviewToast] = useState(null);
 
   useEffect(() => {
@@ -101,7 +115,7 @@ const CorporateExecutive = ({
   const displayName = name || businessName || "Your Name";
   const displayRole = role || industry || "Business Professional";
 
-  // UPDATED: Parent se aane wale reviews use honge
+  // REVIEWS
   const reviews =
     Array.isArray(reviewList) && reviewList.length
       ? reviewList
@@ -109,7 +123,6 @@ const CorporateExecutive = ({
         ? businessInfo.reviews
         : [];
 
-  // UPDATED: API averageRating ko priority di gayi hai
   const reviewAverage = Number(
     averageRating ||
       businessInfo.rating ||
@@ -122,12 +135,133 @@ const CorporateExecutive = ({
         : 0)
   );
 
-  // UPDATED: API totalReviews ko priority di gayi hai
   const reviewTotal =
     totalReviews ||
     businessInfo.reviewCount ||
     businessInfo.reviewsCount ||
     reviews.length;
+
+  // DYNAMIC BACKEND BUTTONS
+  // Supports both visibleButtons array and API response { buttons: [] }
+  const configuredButtons = Array.isArray(visibleButtons)
+    ? visibleButtons
+    : Array.isArray(visibleButtons?.buttons)
+      ? visibleButtons.buttons
+      : [];
+
+  const activeButtons = configuredButtons
+    .filter(
+      (button) =>
+        button &&
+        button.enabled === true &&
+        button.actionType
+    )
+    .sort(
+      (a, b) => Number(a.order ?? 0) - Number(b.order ?? 0)
+    );
+
+  // DYNAMIC BUTTON ICONS
+  const getButtonIcon = (icon) => {
+    const iconMap = {
+      "user-round-plus": UserRoundPlus,
+      contact: UserRoundPlus,
+      "save-contact": UserRoundPlus,
+
+      phone: Phone,
+      call: Phone,
+
+      "message-circle": MessageCircle,
+      whatsapp: MessageCircle,
+
+      google: Globe,
+      website: Globe,
+      globe: Globe,
+
+      email: Mail,
+      mail: Mail,
+
+      location: MapPin,
+      map: MapPin,
+      directions: MapPin,
+
+      share: Share2,
+      "share-2": Share2,
+
+      qrcode: QrCode,
+      "qr-code": QrCode,
+
+      upi: CreditCard,
+      payment: CreditCard,
+    };
+
+    const IconComponent =
+      iconMap[String(icon || "").toLowerCase()] || Globe;
+
+    return (
+      <IconComponent
+        size={21}
+        strokeWidth={2.2}
+        className="shrink-0"
+      />
+    );
+  };
+
+  // DYNAMIC BUTTON ACTIONS
+  const handleDynamicButton = (button) => {
+    if (!button) return;
+
+    const actionType = String(button.actionType || "").toLowerCase();
+
+    const customUrl = String(button.customUrl || "").trim();
+
+    const actions = {
+      savecontact: () => handleContact("save"),
+
+      call: () => handleContact("phone"),
+
+      whatsapp: () => handleContact("whatsapp"),
+
+      upi: () => handleContact("upi"),
+
+      email: () => handleContact("email"),
+
+      directions: () => handleContact("directions"),
+
+      website: () => {
+        const url = customUrl || website;
+
+        if (url) {
+          const finalUrl = /^https?:\/\//i.test(url)
+            ? url
+            : `https://${url}`;
+
+          window.open(finalUrl, "_blank", "noopener,noreferrer");
+        } else {
+          handleContact("website");
+        }
+      },
+
+      googlebusiness: () => {
+        if (customUrl) {
+          const finalUrl = /^https?:\/\//i.test(customUrl)
+            ? customUrl
+            : `https://${customUrl}`;
+
+          window.open(finalUrl, "_blank", "noopener,noreferrer");
+        } else {
+          onConfiguredButton(button);
+        }
+      },
+
+      share: () => onShare(),
+    };
+
+    if (actions[actionType]) {
+      actions[actionType]();
+    } else {
+      onConfiguredButton(button);
+    }
+  };
 
   const visibleSocialLinks = showAllSocialLinks
     ? socialLinks
@@ -149,6 +283,7 @@ const CorporateExecutive = ({
   const getImageUrl = (image) => {
     if (!image) return "";
     if (typeof image === "string") return image;
+
     return image.url || image.imageUrl || image.src || "";
   };
 
@@ -199,14 +334,6 @@ const CorporateExecutive = ({
       setReviewToast({
         type: "error",
         message: "Please enter your name.",
-      });
-      return;
-    }
-
-    if (!reviewForm.reviewerEmail.trim()) {
-      setReviewToast({
-        type: "error",
-        message: "Please enter your email.",
       });
       return;
     }
@@ -289,6 +416,7 @@ const CorporateExecutive = ({
       /[^a-z0-9-_]/gi,
       "-"
     )}-qr.png`;
+
     link.click();
   };
 
@@ -416,12 +544,11 @@ const CorporateExecutive = ({
 
               <div>
                 <label className="mb-1.5 block text-[10px] font-bold text-slate-300">
-                  Email Address *
+                  Email Address (Optional)
                 </label>
 
                 <input
                   type="email"
-                  required
                   maxLength={120}
                   value={reviewForm.reviewerEmail}
                   onChange={(event) =>
@@ -646,70 +773,36 @@ const CorporateExecutive = ({
               ● Open for Inquiries
             </p>
 
-            <div className="mt-4 grid grid-cols-7 gap-1.5 sm:gap-2">
-              <button
-                type="button"
-                onClick={() => handleContact("save")}
-                className="flex min-h-[49px] flex-col items-center justify-center gap-1 rounded-xl bg-gradient-to-br from-violet-600 to-blue-600 px-1 text-[8px] font-bold text-white shadow-lg shadow-indigo-900/30 transition hover:-translate-y-0.5"
+            {/* DYNAMIC BACKEND CONTACT BUTTONS */}
+            {activeButtons.length > 0 && (
+              <div
+                className={`mt-4 grid gap-1.5 sm:gap-2 ${
+                  activeButtons.length === 1
+                    ? "grid-cols-1"
+                    : activeButtons.length === 2
+                      ? "grid-cols-2"
+                      : activeButtons.length === 3
+                        ? "grid-cols-3"
+                        : "grid-cols-4 sm:grid-cols-8"
+                }`}
               >
-                <FaCheck className="text-sm" />
-                <span>Save Contact</span>
-              </button>
+                {activeButtons.map((button) => (
+                  <button
+                    key={button.buttonId || button._id}
+                    type="button"
+                    onClick={() => handleDynamicButton(button)}
+                    className="flex min-h-[49px] min-w-0 flex-col items-center justify-center gap-1 rounded-xl border border-slate-700 bg-[#1a2639] px-1.5 py-2 text-[8px] font-bold text-white transition hover:-translate-y-0.5 hover:border-cyan-400 hover:bg-[#22344c] active:translate-y-0"
+                    title={button.label}
+                  >
+                    {getButtonIcon(button.icon)}
 
-              <button
-                type="button"
-                onClick={() => handleContact("phone")}
-                className="flex min-h-[49px] flex-col items-center justify-center gap-1 rounded-xl border border-slate-700 bg-[#1a2639] px-1 text-[8px] font-bold text-white transition hover:border-emerald-400"
-              >
-                <FaPhone className="text-sm text-emerald-400" />
-                <span>Call</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleContact("whatsapp")}
-                className="flex min-h-[49px] flex-col items-center justify-center gap-1 rounded-xl border border-slate-700 bg-[#1a2639] px-1 text-[8px] font-bold text-white transition hover:border-emerald-400"
-              >
-                <FaWhatsapp className="text-sm text-emerald-400" />
-                <span>WhatsApp</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleContact("upi")}
-                className="flex min-h-[49px] flex-col items-center justify-center gap-1 rounded-xl border border-emerald-500/30 bg-[#102b31] px-1 text-[8px] font-bold text-emerald-300 transition hover:bg-emerald-500/15"
-              >
-                <span className="text-base leading-none">₹</span>
-                <span>Pay UPI</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleContact("email")}
-                className="flex min-h-[49px] flex-col items-center justify-center gap-1 rounded-xl border border-slate-700 bg-[#1a2639] px-1 text-[8px] font-bold text-white transition hover:border-blue-400"
-              >
-                <FaEnvelope className="text-sm text-blue-400" />
-                <span>Email</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleContact("directions")}
-                className="flex min-h-[49px] flex-col items-center justify-center gap-1 rounded-xl border border-slate-700 bg-[#1a2639] px-1 text-[8px] font-bold text-white transition hover:border-rose-400"
-              >
-                <FaLocationDot className="text-sm text-rose-400" />
-                <span>Directions</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={onShare}
-                className="flex min-h-[49px] flex-col items-center justify-center gap-1 rounded-xl border border-slate-700 bg-[#1a2639] px-1 text-[8px] font-bold text-white transition hover:border-amber-400"
-              >
-                <FaShareNodes className="text-sm text-amber-400" />
-                <span>Share</span>
-              </button>
-            </div>
+                    <span className="w-full truncate text-center">
+                      {button.label || "Button"}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
 
             {socialLinks.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-1.5">
@@ -766,10 +859,15 @@ const CorporateExecutive = ({
 
           <div className="space-y-2.5">
             {productList.map((product, index) => {
-              const image = getImageUrl(product?.images?.[0] || product?.image);
+              const image = getImageUrl(
+                product?.images?.[0] || product?.image
+              );
 
               const productType =
-                product.category || product.type || product.label || "PRODUCTS";
+                product.category ||
+                product.type ||
+                product.label ||
+                "PRODUCTS";
 
               const actionLabel =
                 product.buttonText ||
