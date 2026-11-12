@@ -41,6 +41,9 @@ import {
 } from "react-icons/fa6";
 
 const CorporateExecutive = ({
+  // Accept subdomain directly from CardPreview
+  subdomain: receivedSubdomain = "",
+
   businessInfo = {},
   visibleButtons = [],
   socialLinks = [],
@@ -70,7 +73,6 @@ const CorporateExecutive = ({
   reviewSubmitError = null,
 }) => {
   const [showAllSocialLinks, setShowAllSocialLinks] = useState(false);
-
   const [showReviewModal, setShowReviewModal] = useState(false);
 
   const [reviewForm, setReviewForm] = useState({
@@ -109,8 +111,20 @@ const CorporateExecutive = ({
     businessName = "",
     businessHours = "",
     isVerified = false,
-    subdomain = "",
   } = businessInfo;
+
+  // FIX: Resolve subdomain from all supported sources.
+  // Top-level prop gets priority, followed by businessInfo fields.
+  const subdomain = String(
+    receivedSubdomain ||
+      businessInfo?.subdomain ||
+      businessInfo?.subDomain ||
+      businessInfo?.slug ||
+      businessInfo?.username ||
+      ""
+  )
+    .trim()
+    .toLowerCase();
 
   const GOLD = "#FFB703";
   const DARK = "#172B3A";
@@ -145,7 +159,6 @@ const CorporateExecutive = ({
     reviews.length;
 
   // DYNAMIC BACKEND BUTTONS
-  // Supports both visibleButtons array and API response { buttons: [] }
   const configuredButtons = Array.isArray(visibleButtons)
     ? visibleButtons
     : Array.isArray(visibleButtons?.buttons)
@@ -168,7 +181,6 @@ const CorporateExecutive = ({
     const iconKey = String(icon || "").toLowerCase();
     const actionKey = String(actionType || "").toLowerCase();
 
-    // Google My Business gets its own branded icon
     if (
       actionKey === "googlebusiness" ||
       iconKey === "google" ||
@@ -181,29 +193,21 @@ const CorporateExecutive = ({
       "user-round-plus": UserRoundPlus,
       contact: UserRoundPlus,
       "save-contact": UserRoundPlus,
-
       phone: Phone,
       call: Phone,
-
       "message-circle": MessageCircle,
       whatsapp: MessageCircle,
-
       website: Globe,
       globe: Globe,
-
       email: Mail,
       mail: Mail,
-
       location: MapPin,
       map: MapPin,
       directions: MapPin,
-
       share: Share2,
       "share-2": Share2,
-
       qrcode: QrCode,
       "qr-code": QrCode,
-
       upi: CreditCard,
       payment: CreditCard,
     };
@@ -219,25 +223,22 @@ const CorporateExecutive = ({
     );
   };
 
+  // CONTACT HANDLER
+  const handleContact = (type) => onContactClick(type);
+
   // DYNAMIC BUTTON ACTIONS
   const handleDynamicButton = (button) => {
     if (!button) return;
 
     const actionType = String(button.actionType || "").toLowerCase();
-
     const customUrl = String(button.customUrl || "").trim();
 
     const actions = {
       savecontact: () => handleContact("save"),
-
       call: () => handleContact("phone"),
-
       whatsapp: () => handleContact("whatsapp"),
-
       upi: () => handleContact("upi"),
-
       email: () => handleContact("email"),
-
       directions: () => handleContact("directions"),
 
       website: () => {
@@ -276,6 +277,7 @@ const CorporateExecutive = ({
     }
   };
 
+  // SOCIAL LINKS
   const visibleSocialLinks = showAllSocialLinks
     ? socialLinks
     : socialLinks.slice(0, 4);
@@ -293,6 +295,7 @@ const CorporateExecutive = ({
     return <FaGlobe />;
   };
 
+  // IMAGE URL
   const getImageUrl = (image) => {
     if (!image) return "";
     if (typeof image === "string") return image;
@@ -304,8 +307,7 @@ const CorporateExecutive = ({
   const profileImage = getImageUrl(avatar);
   const businessLogo = getImageUrl(logo);
 
-  const handleContact = (type) => onContactClick(type);
-
+  // SCROLL TO INQUIRY
   const handleBookChair = () => {
     document.getElementById("send-inquiry-section")?.scrollIntoView({
       behavior: "smooth",
@@ -313,6 +315,7 @@ const CorporateExecutive = ({
     });
   };
 
+  // OPEN REVIEW MODAL
   const openReviewModal = () => {
     setReviewForm({
       reviewerName: "",
@@ -324,6 +327,7 @@ const CorporateExecutive = ({
     setShowReviewModal(true);
   };
 
+  // REVIEW SUBMISSION
   const handleReviewSubmit = async (event) => {
     event.preventDefault();
 
@@ -335,7 +339,14 @@ const CorporateExecutive = ({
       return;
     }
 
-    if (!subdomain?.trim()) {
+    // FIX: Check resolved subdomain
+    if (!subdomain) {
+      console.error("CorporateExecutive: Business subdomain missing.", {
+        receivedSubdomain,
+        businessInfoSubdomain: businessInfo?.subdomain,
+        businessInfo,
+      });
+
       setReviewToast({
         type: "error",
         message: "Business subdomain is missing. Please try again.",
@@ -373,7 +384,7 @@ const CorporateExecutive = ({
 
     try {
       await onReviewSubmit({
-        subdomain: subdomain.trim().toLowerCase(),
+        subdomain,
         reviewerName: reviewForm.reviewerName.trim(),
         reviewerEmail: reviewForm.reviewerEmail.trim(),
         rating: Number(reviewForm.rating),
@@ -404,6 +415,7 @@ const CorporateExecutive = ({
     }
   };
 
+  // COPY QR LINK
   const handleCopyQrLink = async () => {
     if (!qrTargetUrl) return;
 
@@ -419,16 +431,21 @@ const CorporateExecutive = ({
     }
   };
 
+  // DOWNLOAD QR
   const handleDownloadQr = () => {
-    const canvas = document.querySelector(".corporate-profile-qr canvas");
+    const canvas = document.querySelector(
+      ".corporate-profile-qr canvas"
+    );
+
     if (!canvas) return;
 
     const link = document.createElement("a");
     link.href = canvas.toDataURL("image/png");
-    link.download = `${(businessName || name || "business").replace(
-      /[^a-z0-9-_]/gi,
-      "-"
-    )}-qr.png`;
+    link.download = `${(
+      businessName ||
+      name ||
+      "business"
+    ).replace(/[^a-z0-9-_]/gi, "-")}-qr.png`;
 
     link.click();
   };
@@ -808,7 +825,6 @@ const CorporateExecutive = ({
                     title={button.label}
                   >
                     {getButtonIcon(button.icon, button.actionType)}
-
                     <span className="w-full truncate text-center">
                       {button.label || "Button"}
                     </span>
@@ -871,125 +887,109 @@ const CorporateExecutive = ({
           </div>
 
           <div className="space-y-2.5">
-            {productList.map((product, index) => {
-              const image = getImageUrl(
-                product?.images?.[0] || product?.image
-              );
+  {productList.map((product, index) => {
+    const image = getImageUrl(
+      product?.images?.[0] || product?.image
+    );
 
-              const productType =
-                product.category ||
-                product.type ||
-                product.label ||
-                "PRODUCTS";
+    const productType =
+      product.category ||
+      product.type ||
+      product.label ||
+      "PRODUCTS";
 
-              const actionLabel =
-                product.buttonText ||
-                product.actionLabel ||
-                product.ctaLabel ||
-                (productType.toLowerCase().includes("package")
-                  ? "Book Combo"
-                  : productType.toLowerCase().includes("product")
-                    ? "Reserve Bottle"
-                    : "Book Chair");
+    return (
+      <article
+        key={product._id || product.id || index}
+        className="rounded-[14px] border border-slate-700/90 bg-[#192538] p-2.5 shadow-[0_5px_15px_rgba(0,0,0,0.16)]"
+      >
+        <div className="flex gap-2.5">
+          <button
+            type="button"
+            onClick={() => onProductClick(product)}
+            aria-label={`View ${product.name || "product"} photo`}
+            className="h-[84px] w-[84px] shrink-0 overflow-hidden rounded-[10px] bg-slate-700"
+          >
+            {image ? (
+              <img
+                src={image}
+                alt={product.name || "Product"}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <span className="flex h-full items-center justify-center text-[9px] text-slate-400">
+                No Image
+              </span>
+            )}
+          </button>
 
-              return (
-                <article
-                  key={product._id || product.id || index}
-                  className="rounded-[14px] border border-slate-700/90 bg-[#192538] p-2.5 shadow-[0_5px_15px_rgba(0,0,0,0.16)]"
-                >
-                  <div className="flex gap-2.5">
-                    <button
-                      type="button"
-                      onClick={() => onProductClick(product)}
-                      aria-label={`View ${product.name || "product"} photo`}
-                      className="h-[84px] w-[84px] shrink-0 overflow-hidden rounded-[10px] bg-slate-700"
-                    >
-                      {image ? (
-                        <img
-                          src={image}
-                          alt={product.name || "Product"}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <span className="flex h-full items-center justify-center text-[9px] text-slate-400">
-                          No Image
-                        </span>
-                      )}
-                    </button>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => onProductClick(product)}
+                className="min-w-0 text-left text-[10px] font-extrabold leading-[1.4] text-slate-100"
+              >
+                {product.name || "Product"}
+              </button>
 
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <button
-                          type="button"
-                          onClick={() => onProductClick(product)}
-                          className="min-w-0 text-left text-[10px] font-extrabold leading-[1.4] text-slate-100"
-                        >
-                          {product.name || "Product"}
-                        </button>
+              {product.price !== undefined &&
+                product.price !== null &&
+                product.price !== "" && (
+                  <span className="shrink-0 rounded-full border border-indigo-400/70 bg-indigo-500/10 px-2 py-0.5 text-[9px] font-bold text-indigo-200">
+                    ₹{product.price}
+                  </span>
+                )}
+            </div>
 
-                        {product.price !== undefined &&
-                          product.price !== null &&
-                          product.price !== "" && (
-                            <span className="shrink-0 rounded-full border border-indigo-400/70 bg-indigo-500/10 px-2 py-0.5 text-[9px] font-bold text-indigo-200">
-                              ₹{product.price}
-                            </span>
-                          )}
-                      </div>
+            {product.description && (
+              <p className="mt-1.5 line-clamp-2 text-[9px] leading-[1.5] text-slate-300">
+                {product.description}
+              </p>
+            )}
 
-                      {product.description && (
-                        <p className="mt-1.5 line-clamp-2 text-[9px] leading-[1.5] text-slate-300">
-                          {product.description}
-                        </p>
-                      )}
+            <div className="mt-2 flex items-center gap-2 border-t border-slate-600/60 pt-1.5">
+              <span className="text-[8px] font-bold uppercase tracking-wide text-slate-400">
+                {productType}
+              </span>
 
-                      <div className="mt-2 flex items-center gap-2 border-t border-slate-600/60 pt-1.5">
-                        <span className="text-[8px] font-bold uppercase tracking-wide text-slate-400">
-                          {productType}
-                        </span>
-
-                        <button
-                          type="button"
-                          onClick={() => onProductClick(product)}
-                          className="text-[8px] font-semibold text-indigo-300"
-                        >
-                          <FaQrcode className="mr-1 inline text-[7px]" />
-                          View Photo
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-2 flex flex-wrap items-center justify-end gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => onProductClick(product)}
-                      className="rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-extrabold text-white transition hover:bg-emerald-500"
-                    >
-                      Pay with UPI
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); onProductWhatsAppInquiry(product); }}
-                      className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold text-emerald-300 transition hover:bg-emerald-500/20"
-                    >
-                      <FaWhatsapp className="mr-1 inline" />
-                      WhatsApp
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleBookChair}
-                      className="rounded-full bg-gradient-to-r from-violet-600 to-blue-600 px-2.5 py-1 text-[10px] font-extrabold text-white transition hover:brightness-110"
-                    >
-                      {actionLabel}
-                      <FaArrowUpRightFromSquare className="ml-1 inline text-[7px]" />
-                    </button>
-                  </div>
-                </article>
-              );
-            })}
+              <button
+                type="button"
+                onClick={() => onProductClick(product)}
+                className="text-[8px] font-semibold text-indigo-300"
+              >
+                <FaQrcode className="mr-1 inline text-[7px]" />
+                View Photo
+              </button>
+            </div>
           </div>
+        </div>
+
+        <div className="mt-2 flex flex-wrap items-center justify-end gap-1.5">
+          <button
+            type="button"
+            onClick={() => onProductClick(product)}
+            className="rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-extrabold text-white transition hover:bg-emerald-500"
+          >
+            Pay with UPI
+          </button>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onProductWhatsAppInquiry(product);
+            }}
+            className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold text-emerald-300 transition hover:bg-emerald-500/20"
+          >
+            <FaWhatsapp className="mr-1 inline" />
+            WhatsApp
+          </button>
+        </div>
+      </article>
+    );
+  })}
+</div>
         </section>
       )}
 
@@ -1071,17 +1071,16 @@ const CorporateExecutive = ({
                       </span>
                     </button>
 
-                      {/* WhatsApp Gallery Inquiry */}
-                      <div className="p-2.5 pb-0">
-                        <button
-                          type="button"
-                          onClick={() => onGalleryWhatsAppInquiry(image)}
-                          className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 py-2.5 text-[10px] font-bold text-white shadow-sm shadow-emerald-500/20 transition hover:brightness-105 active:scale-[0.98]"
-                        >
-                          <FaWhatsapp size={14} className="shrink-0" />
-                          <span>WhatsApp Inquiry</span>
-                        </button>
-                      </div>
+                    <div className="p-2.5 pb-0">
+                      <button
+                        type="button"
+                        onClick={() => onGalleryWhatsAppInquiry(image)}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 py-2.5 text-[10px] font-bold text-white shadow-sm shadow-emerald-500/20 transition hover:brightness-105 active:scale-[0.98]"
+                      >
+                        <FaWhatsapp size={14} className="shrink-0" />
+                        <span>WhatsApp Inquiry</span>
+                      </button>
+                    </div>
                   </SwiperSlide>
                 );
               })}
@@ -1098,7 +1097,6 @@ const CorporateExecutive = ({
       <section className="mx-auto w-full max-w-[520px] border-x border-t border-slate-700/70 bg-[#0e1729] px-4 py-4">
         <div className="mb-3 flex items-center gap-2">
           <FaPhone className="text-[12px] text-indigo-400" />
-
           <h2 className="text-[12px] font-extrabold uppercase tracking-wide text-slate-200">
             Contact & Business Hours
           </h2>
@@ -1119,7 +1117,6 @@ const CorporateExecutive = ({
                 <span className="block text-[9px] text-slate-400">
                   Phone Number
                 </span>
-
                 <span className="block truncate text-[10px] font-bold text-slate-100">
                   {phone}
                 </span>
@@ -1141,7 +1138,6 @@ const CorporateExecutive = ({
                 <span className="block text-[9px] text-slate-400">
                   Email Address
                 </span>
-
                 <span className="block truncate text-[10px] font-bold text-slate-100">
                   {email}
                 </span>
@@ -1164,7 +1160,6 @@ const CorporateExecutive = ({
               <span className="block text-[9px] text-slate-400">
                 Physical Address
               </span>
-
               <span className="block text-[10px] font-bold leading-[1.45] text-slate-100">
                 {address || location}
               </span>
@@ -1188,7 +1183,6 @@ const CorporateExecutive = ({
               <span className="block text-[9px] text-slate-400">
                 Operating Hours
               </span>
-
               <span className="block whitespace-pre-line text-[10px] font-bold leading-[1.45] text-slate-100">
                 {businessHours}
               </span>
@@ -1210,7 +1204,6 @@ const CorporateExecutive = ({
               <span className="block text-[9px] text-slate-400">
                 Official Website
               </span>
-
               <span className="block truncate text-[10px] font-bold text-slate-100">
                 {website}
               </span>
@@ -1227,7 +1220,6 @@ const CorporateExecutive = ({
           <div className="mb-3 flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2">
               <FaShareNodes className="shrink-0 text-[12px] text-indigo-400" />
-
               <h2 className="truncate text-[12px] font-extrabold uppercase tracking-wide text-slate-200">
                 Social Media & Profiles
               </h2>
@@ -1319,7 +1311,6 @@ const CorporateExecutive = ({
                         <h3 className="truncate text-[10px] font-extrabold capitalize text-slate-100">
                           {social.platform || social.name || "Social Profile"}
                         </h3>
-
                         <FaCheck className="shrink-0 text-[9px] text-sky-400" />
                       </div>
 
@@ -1368,19 +1359,17 @@ const CorporateExecutive = ({
               {showAllSocialLinks
                 ? "Show Less"
                 : `Load More (${socialLinks.length - 4} More)`}
-
               <FaArrowUpRightFromSquare className="text-[9px]" />
             </button>
           )}
         </section>
       )}
 
-      {/* CUSTOMER REVIEWS & TRUST - AUTOMATIC SLIDER */}
+      {/* CUSTOMER REVIEWS & TRUST */}
       <section className="mx-auto w-full max-w-[520px] border-x border-t border-slate-700/70 bg-[#0e1729] px-4 py-4">
         <div className="mb-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="text-[13px] text-amber-400">★</span>
-
             <h2 className="text-[12px] font-extrabold uppercase tracking-wide text-slate-200">
               Customer Reviews & Trust
             </h2>
@@ -1401,7 +1390,6 @@ const CorporateExecutive = ({
               <div className="text-[13px] leading-none tracking-[1px] text-amber-400">
                 ★★★★★
               </div>
-
               <p className="mt-1 text-[8px] text-slate-400">
                 Based on {reviewTotal} customer{" "}
                 {reviewTotal === 1 ? "review" : "reviews"}
@@ -1541,7 +1529,6 @@ const CorporateExecutive = ({
                             <p className="truncate text-[9px] font-extrabold text-slate-100">
                               {customerName}
                             </p>
-
                             <p className="truncate text-[8px] text-slate-400">
                               {customerRole}
                             </p>
@@ -1569,11 +1556,9 @@ const CorporateExecutive = ({
         ) : (
           <div className="rounded-[14px] border border-dashed border-slate-700 bg-[#192538] px-4 py-7 text-center">
             <span className="text-2xl text-amber-400">★</span>
-
             <p className="mt-2 text-[11px] font-bold text-slate-200">
               No customer reviews yet
             </p>
-
             <p className="mt-1 text-[9px] text-slate-400">
               Be the first customer to share your experience.
             </p>
@@ -1588,7 +1573,6 @@ const CorporateExecutive = ({
       >
         <div className="mb-1 flex items-center gap-2">
           <FaShareNodes className="text-[12px] text-indigo-400" />
-
           <h2 className="text-[12px] font-extrabold uppercase tracking-wide text-slate-200">
             Share Your Contact / Send Inquiry
           </h2>

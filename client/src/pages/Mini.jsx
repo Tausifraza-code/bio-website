@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -238,10 +239,10 @@ const normalizeGalleryImages = (raw) => {
 
         return url
           ? {
-            url,
-            alt: `Gallery image ${index + 1}`,
-            caption: "",
-          }
+              url,
+              alt: `Gallery image ${index + 1}`,
+              caption: "",
+            }
           : null;
       }
 
@@ -274,9 +275,11 @@ const normalizeGalleryImages = (raw) => {
 
 const Overlay = ({ onClose, children, higher, darker }) => (
   <div
-    className={`fixed inset-0 ${higher ? "z-[110]" : "z-[100]"
-      } flex items-center justify-center ${darker ? "bg-[#020817]/85" : "bg-[#020817]/80"
-      } p-4 backdrop-blur-md`}
+    className={`fixed inset-0 ${
+      higher ? "z-[110]" : "z-[100]"
+    } flex items-center justify-center ${
+      darker ? "bg-[#020817]/85" : "bg-[#020817]/80"
+    } p-4 backdrop-blur-md`}
     onClick={(event) => {
       if (event.target === event.currentTarget) onClose();
     }}
@@ -426,6 +429,9 @@ const Mini = () => {
   const [showPayment, setShowPayment] = useState(false);
   const [showPlanPayment, setShowPlanPayment] = useState(false);
 
+  // Plan payment status
+  const [planPaymentCompleted, setPlanPaymentCompleted] = useState(false);
+
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [productPayment, setProductPayment] = useState(null);
 
@@ -525,6 +531,53 @@ const Mini = () => {
   const productList = Array.isArray(products) ? products : [];
 
   /* ==========================================
+     PLAN PAYMENT STATUS
+  ========================================== */
+
+  const planPaymentStorageKey = profileData.subdomain
+    ? `bio_plan_paid_${String(profileData.subdomain).trim().toLowerCase()}`
+    : "";
+
+  useEffect(() => {
+    if (!profileData.subdomain) return;
+
+    const paymentStatus = String(
+      profileData.paymentStatus ||
+        profileData.planPaymentStatus ||
+        profileData.subscription?.status ||
+        profileData.planPurchase?.status ||
+        "",
+    ).toLowerCase();
+
+    const isPaidOnServer =
+      profileData.isPaid === true ||
+      profileData.isPublished === true ||
+      profileData.hasActivePlan === true ||
+      ["paid", "success", "completed", "active"].includes(paymentStatus);
+
+    let isPaidLocally = false;
+
+    try {
+      isPaidLocally =
+        localStorage.getItem(planPaymentStorageKey) === "true";
+    } catch (error) {
+      console.warn("Could not read payment status from local storage:", error);
+    }
+
+    setPlanPaymentCompleted(isPaidOnServer || isPaidLocally);
+  }, [
+    planPaymentStorageKey,
+    profileData.subdomain,
+    profileData.paymentStatus,
+    profileData.planPaymentStatus,
+    profileData.subscription,
+    profileData.planPurchase,
+    profileData.isPaid,
+    profileData.isPublished,
+    profileData.hasActivePlan,
+  ]);
+
+  /* ==========================================
      VISIBLE CONTACT BUTTONS
   ========================================== */
 
@@ -590,7 +643,6 @@ const Mini = () => {
       industry: profileData.industry || "",
       businessName: profileData.businessName || "",
 
-      // Added for CorporateExecutive review submission
       subdomain: profileData.subdomain || "",
 
       businessHours: profileData.businessHours || "",
@@ -611,9 +663,9 @@ const Mini = () => {
 
     return normalizeGalleryImages(
       profileData.gallery ||
-      profileData.galleryImages ||
-      profileData.businessGallery ||
-      profileData.images,
+        profileData.galleryImages ||
+        profileData.businessGallery ||
+        profileData.images,
     );
   }, [
     gallery,
@@ -679,9 +731,15 @@ const Mini = () => {
   ========================================== */
 
   const handlePlanProceed = async (selectedPlan, subdomain) => {
+    if (planPaymentCompleted) {
+      throw new Error("Your profile has already been published.");
+    }
+
     const profileSubdomain = String(
       subdomain || profileData.subdomain || "",
-    ).trim();
+    )
+      .trim()
+      .toLowerCase();
 
     if (!profileSubdomain) {
       throw new Error("Profile subdomain configure nahi hai.");
@@ -745,22 +803,38 @@ const Mini = () => {
             if (!verifyResponse.data?.success) {
               throw new Error(
                 verifyResponse.data?.message ||
-                "Payment verification fail ho gayi.",
+                  "Payment verification fail ho gayi.",
               );
             }
 
-            finish(resolve, true);
+            // Payment verified successfully
+            try {
+              localStorage.setItem(
+                `bio_plan_paid_${profileSubdomain}`,
+                "true",
+              );
+            } catch (storageError) {
+              console.warn(
+                "Could not save payment status locally:",
+                storageError,
+              );
+            }
 
+            setPlanPaymentCompleted(true);
             setShowPlanPayment(false);
 
-            navigate(`/card-preview/${encodeURIComponent(profileSubdomain)}`);
+            finish(resolve, true);
+
+            navigate(
+              `/card-preview/${encodeURIComponent(profileSubdomain)}`,
+            );
           } catch (error) {
             finish(
               reject,
               new Error(
                 error?.response?.data?.message ||
-                error?.message ||
-                "Payment verify nahi ho paayi. Please payment status check karein.",
+                  error?.message ||
+                  "Payment verify nahi ho paayi. Please payment status check karein.",
               ),
             );
           }
@@ -777,7 +851,7 @@ const Mini = () => {
           reject,
           new Error(
             event?.error?.description ||
-            "Payment fail ho gayi. Please dobara try karein.",
+              "Payment fail ho gayi. Please dobara try karein.",
           ),
         );
       });
@@ -883,8 +957,9 @@ const Mini = () => {
   const handleShare = async () => {
     const shareData = {
       title: businessInfo.name || businessInfo.businessName,
-      text: `Check out ${businessInfo.name || businessInfo.businessName
-        }'s business`,
+      text: `Check out ${
+        businessInfo.name || businessInfo.businessName
+      }'s business`,
       url: window.location.href,
     };
 
@@ -1127,7 +1202,7 @@ const Mini = () => {
       typeof button === "string"
         ? button
         : button.actionType ||
-        (button.buttonId === "save-contact" ? "saveContact" : "");
+          (button.buttonId === "save-contact" ? "saveContact" : "");
 
     switch (action) {
       case "call":
@@ -1152,9 +1227,9 @@ const Mini = () => {
       case "location":
         return window.open(
           profileData.mapLink ||
-          `https://maps.google.com/?q=${encodeURIComponent(
-            businessInfo.address || profileData?.address || "",
-          )}`,
+            `https://maps.google.com/?q=${encodeURIComponent(
+              businessInfo.address || profileData?.address || "",
+            )}`,
           "_blank",
           "noopener,noreferrer",
         );
@@ -1393,11 +1468,28 @@ const Mini = () => {
 
             <button
               type="button"
-              onClick={() => setShowPlanPayment(true)}
-              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 text-sm font-extrabold text-[#0b1b30] transition hover:bg-cyan-300 hover:shadow-lg hover:shadow-cyan-400/20"
+              onClick={() => {
+                if (planPaymentCompleted) return;
+                setShowPlanPayment(true);
+              }}
+              disabled={planPaymentCompleted}
+              className={`inline-flex shrink-0 items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-extrabold transition ${
+                planPaymentCompleted
+                  ? "cursor-not-allowed border border-emerald-400/30 bg-emerald-500/15 text-emerald-300"
+                  : "bg-cyan-400 text-[#0b1b30] hover:bg-cyan-300 hover:shadow-lg hover:shadow-cyan-400/20"
+              }`}
             >
-              Pay & Publish
-              <span aria-hidden="true">→</span>
+              {planPaymentCompleted ? (
+                <>
+                  <CheckCircle2 size={18} />
+                  Already Published
+                </>
+              ) : (
+                <>
+                  Pay & Publish
+                  <span aria-hidden="true">→</span>
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -1481,10 +1573,11 @@ const Mini = () => {
                   key={tab.id}
                   type="button"
                   onClick={() => setQrModalTab(tab.id)}
-                  className={`rounded-lg border px-3 py-2 text-sm font-semibold ${qrModalTab === tab.id
+                  className={`rounded-lg border px-3 py-2 text-sm font-semibold ${
+                    qrModalTab === tab.id
                       ? "border-cyan-400 bg-cyan-400/10 text-cyan-300"
                       : "border-[#29435f] bg-[#132942] text-slate-400"
-                    }`}
+                  }`}
                 >
                   {tab.label}
                 </button>
@@ -1622,22 +1715,22 @@ const Mini = () => {
                             profileData.city ||
                             profileData.state ||
                             profileData.pincode) && (
-                              <p className="mt-2 line-clamp-2 break-words text-[clamp(7px,1.3vw,12px)] text-slate-300">
-                                <span className="font-bold text-cyan-300">
-                                  Address:
-                                </span>{" "}
-                                {[
-                                  profileData.shopUnit,
-                                  profileData.area,
-                                  profileData.landmark,
-                                  profileData.city,
-                                  profileData.state,
-                                  profileData.pincode,
-                                ]
-                                  .filter(Boolean)
-                                  .join(", ")}
-                              </p>
-                            )}
+                            <p className="mt-2 line-clamp-2 break-words text-[clamp(7px,1.3vw,12px)] text-slate-300">
+                              <span className="font-bold text-cyan-300">
+                                Address:
+                              </span>{" "}
+                              {[
+                                profileData.shopUnit,
+                                profileData.area,
+                                profileData.landmark,
+                                profileData.city,
+                                profileData.state,
+                                profileData.pincode,
+                              ]
+                                .filter(Boolean)
+                                .join(", ")}
+                            </p>
+                          )}
 
                           {qrTargetUrl && (
                             <div className="mt-2">
@@ -1766,13 +1859,9 @@ const Mini = () => {
 
       {/* GALLERY MODAL */}
 
-
-      {/* GALLERY MODAL */}
-
       {selectedGalleryImage && (
         <Overlay darker onClose={() => setSelectedGalleryImage(null)}>
           <div className="relative w-full max-w-3xl overflow-hidden rounded-[24px] border border-[#45414a] bg-[#17171c] shadow-2xl">
-
             <button
               type="button"
               onClick={() => setSelectedGalleryImage(null)}
@@ -1789,7 +1878,6 @@ const Mini = () => {
             />
 
             <div className="border-t border-white/10 px-5 py-4">
-
               {selectedGalleryImage.caption && (
                 <p className="mb-4 text-sm font-semibold text-white">
                   {selectedGalleryImage.caption}
@@ -1806,7 +1894,6 @@ const Mini = () => {
                 <MessageCircle size={19} />
                 WhatsApp Inquiry
               </button>
-
             </div>
           </div>
         </Overlay>
@@ -1930,7 +2017,7 @@ const Mini = () => {
       {/* PLAN PAYMENT MODAL */}
 
       <PlanPaymentModal
-        isOpen={showPlanPayment}
+        isOpen={showPlanPayment && !planPaymentCompleted}
         onClose={() => setShowPlanPayment(false)}
         subdomain={profileData.subdomain || ""}
         onProceed={handlePlanProceed}

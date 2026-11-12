@@ -1,10 +1,10 @@
-
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { QRCodeCanvas } from "qrcode.react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
+
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -141,6 +141,14 @@ const defaultBanner =
    HELPERS
    ============================================================ */
 
+const normalizeSubdomain = (...values) => {
+  const resolved = values.find(
+    (value) => typeof value === "string" && value.trim(),
+  );
+
+  return resolved ? resolved.trim().toLowerCase() : "";
+};
+
 const normalizeGalleryImages = (raw) => {
   if (!Array.isArray(raw)) return [];
 
@@ -208,6 +216,7 @@ const drawBusinessPoster = async ({ profile, qrCanvas, publicUrl }) => {
 
   const phone = profile.phone?.trim() || "";
   const email = profile.email?.trim() || "";
+
   const address = [
     profile.shopUnit,
     profile.area,
@@ -218,6 +227,7 @@ const drawBusinessPoster = async ({ profile, qrCanvas, publicUrl }) => {
   ]
     .filter(Boolean)
     .join(", ");
+
   const website = profile.website?.trim() || profile.websiteUrl?.trim() || "";
   const about = profile.bio?.trim() || profile.headline?.trim() || "";
 
@@ -231,12 +241,14 @@ const drawBusinessPoster = async ({ profile, qrCanvas, publicUrl }) => {
     try {
       const logo = await loadPosterImage(profile.logo);
 
-      ctx.save();
-      ctx.beginPath();
-      ctx.roundRect(65, 55, 145, 145, 20);
-      ctx.clip();
-      ctx.drawImage(logo, 65, 55, 145, 145);
-      ctx.restore();
+      if (logo) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(65, 55, 145, 145, 20);
+        ctx.clip();
+        ctx.drawImage(logo, 65, 55, 145, 145);
+        ctx.restore();
+      }
     } catch (error) {
       console.warn("Poster logo could not be loaded:", error);
     }
@@ -247,6 +259,7 @@ const drawBusinessPoster = async ({ profile, qrCanvas, publicUrl }) => {
   ctx.textAlign = "left";
   ctx.fillStyle = "#22d3ee";
   ctx.font = "bold 43px Arial";
+
   ctx.fillText(
     (businessName || personalName || "My Business").slice(0, 26),
     textX,
@@ -264,6 +277,7 @@ const drawBusinessPoster = async ({ profile, qrCanvas, publicUrl }) => {
     ctx.font = "19px Arial";
 
     const tagline = about.length > 62 ? `${about.slice(0, 59)}...` : about;
+
     ctx.fillText(tagline, textX, 185);
   }
 
@@ -301,8 +315,8 @@ const drawBusinessPoster = async ({ profile, qrCanvas, publicUrl }) => {
 
     const displayUrl =
       publicUrl.length > 65 ? `${publicUrl.slice(0, 62)}...` : publicUrl;
-    ctx.fillText(displayUrl, 75, y + 22);
 
+    ctx.fillText(displayUrl, 75, y + 22);
     y += 52;
   }
 
@@ -333,22 +347,32 @@ const drawBusinessPoster = async ({ profile, qrCanvas, publicUrl }) => {
    ============================================================ */
 
 function CardPreview() {
-  const { subdomain } = useParams();
+  const routeParams = useParams();
+
+  /*
+   * Route parameter aliases.
+   * Different routes mein parameter ka naam alag ho sakta hai.
+   */
+  const routeSubdomain = normalizeSubdomain(
+    routeParams.subdomain,
+    routeParams.slug,
+    routeParams.username,
+  );
+
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
 
-  const isQRVisit = new URLSearchParams(location.search).get("source") === "qr";
+  const isQRVisit =
+    new URLSearchParams(location.search).get("source") === "qr";
 
-  // Logged-in user information
   const { user, isAuthenticated } = useSelector((state) => state.auth);
 
-  // Prevent repeated authentication restore calls
   const authRestoreAttempted = useRef(false);
 
   /* ============================================================
      RESTORE LOGIN USER AFTER PAGE REFRESH
-  ============================================================ */
+     ============================================================ */
 
   useEffect(() => {
     const savedToken = localStorage.getItem("bioToken");
@@ -391,7 +415,10 @@ function CardPreview() {
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
-  // QR Lead Capture Popup
+  /* ============================================================
+     QR LEAD CAPTURE POPUP
+     ============================================================ */
+
   const [showQRLeadPopup, setShowQRLeadPopup] = useState(false);
 
   const [qrLeadForm, setQRLeadForm] = useState({
@@ -406,7 +433,7 @@ function CardPreview() {
 
   /* ============================================================
      REVIEW FORM STATE
-  ============================================================ */
+     ============================================================ */
 
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
@@ -432,15 +459,49 @@ function CardPreview() {
     averageRating = 0,
   } = useSelector((state) => state.review || {});
 
+  /* ============================================================
+     RESOLVE BUSINESS SUBDOMAIN
+     ============================================================ */
+
+  const businessSubdomain = useMemo(() => {
+    return normalizeSubdomain(
+      routeSubdomain,
+
+      profile?.subdomain,
+      profile?.slug,
+      profile?.username,
+
+      profile?.businessInfo?.subdomain,
+      profile?.businessInfo?.slug,
+      profile?.businessInfo?.username,
+
+      profile?.miniProfile?.subdomain,
+      profile?.miniProfile?.slug,
+
+      profile?.publicProfile?.subdomain,
+      profile?.profile?.subdomain,
+    );
+  }, [routeSubdomain, profile]);
+
+  /*
+   * Canonical subdomain ko business info ke saath pass karenge.
+   * Isse layouts ko subdomain missing nahi milega.
+   */
+  const resolvedSubdomain = businessSubdomain;
+
+  /* ============================================================
+     FETCH PUBLIC REVIEWS
+     ============================================================ */
+
   useEffect(() => {
-    if (subdomain) {
-      dispatch(fetchPublicReviews(subdomain));
-    }
-  }, [dispatch, subdomain]);
+    if (!businessSubdomain) return;
+
+    dispatch(fetchPublicReviews(businessSubdomain));
+  }, [dispatch, businessSubdomain]);
 
   /* ============================================================
      FETCH PUBLIC PROFILE
-  ============================================================ */
+     ============================================================ */
 
   useEffect(() => {
     let cancelled = false;
@@ -455,12 +516,16 @@ function CardPreview() {
       setContactButtons([]);
 
       try {
-        if (!subdomain) {
-          throw new Error("Business profile URL is missing.");
+        if (!routeSubdomain) {
+          throw new Error(
+            "Business profile URL is missing. Please check the profile route.",
+          );
         }
 
+        const normalizedRouteSubdomain = routeSubdomain.trim().toLowerCase();
+
         const response = await api.get(
-          `/profile/public/${encodeURIComponent(subdomain)}`,
+          `/profile/public/${encodeURIComponent(normalizedRouteSubdomain)}`,
         );
 
         const data = response.data;
@@ -522,28 +587,28 @@ function CardPreview() {
     return () => {
       cancelled = true;
     };
-  }, [subdomain]);
+  }, [routeSubdomain]);
 
   /* ============================================================
      SHOW LEAD POPUP ONLY IF CUSTOMER HAS NOT SUBMITTED BEFORE
-  ============================================================ */
+     ============================================================ */
 
   useEffect(() => {
-    if (!isQRVisit || !profile?.leadCapture?.enabled || !subdomain) {
+    if (!isQRVisit || !profile?.leadCapture?.enabled || !businessSubdomain) {
       return;
     }
 
-    const leadKey = `bio_lead_submitted_${subdomain}`;
+    const leadKey = `bio_lead_submitted_${businessSubdomain}`;
     const alreadySubmitted = localStorage.getItem(leadKey) === "true";
 
     if (!alreadySubmitted) {
       setShowQRLeadPopup(true);
     }
-  }, [isQRVisit, profile, subdomain]);
+  }, [isQRVisit, profile, businessSubdomain]);
 
   /* ============================================================
      CHECK PROFILE OWNER
-  ============================================================ */
+     ============================================================ */
 
   const loggedInUserId = user?._id || user?.id;
 
@@ -563,13 +628,12 @@ function CardPreview() {
 
   const handleEditProfile = () => {
     if (!isProfileOwner) return;
-
     navigate("/dashboard");
   };
 
   /* ============================================================
      THEME + ACTIVE LAYOUT
-  ============================================================ */
+     ============================================================ */
 
   const theme = themes[profile?.activeTheme] || themes.sunset;
 
@@ -585,11 +649,12 @@ function CardPreview() {
       : "modern-business";
   }, [profile?.activeLayout]);
 
-  const ActiveLayoutComponent = LAYOUT_COMPONENTS[activeLayout] || ExecutivePro;
+  const ActiveLayoutComponent =
+    LAYOUT_COMPONENTS[activeLayout] || ExecutivePro;
 
   /* ============================================================
      DERIVED DATA
-  ============================================================ */
+     ============================================================ */
 
   const businessInfo = useMemo(() => {
     if (!profile) return null;
@@ -605,6 +670,8 @@ function CardPreview() {
       .join(", ");
 
     return {
+      subdomain: resolvedSubdomain,
+
       name:
         [profile.firstName, profile.lastName].filter(Boolean).join(" ") ||
         "Your Name",
@@ -621,34 +688,21 @@ function CardPreview() {
         }! Contact us for business inquiries.`,
 
       phone: profile.phone || "",
-
       whatsapp: profile.whatsapp || profile.phone || "",
-
       email: profile.email || "",
-
       website: profile.website || profile.websiteUrl || "",
-
       address: address || "India",
-
       logo: profile.logo || "",
-
       avatar: profile.avatar || "",
-
       banner: profile.banner || defaultBanner,
-
       industry: profile.industry || "",
-
       businessName: profile.businessName || "My Business",
-
       businessHours: profile.businessHours || "",
-
       upiId: profile.upiId || "",
-
       isVerified: profile.isVerified !== false,
-
       mapLink: profile.mapLink || "",
     };
-  }, [profile]);
+  }, [profile, resolvedSubdomain]);
 
   const galleryImages = useMemo(
     () => normalizeGalleryImages(galleryRaw),
@@ -671,7 +725,7 @@ function CardPreview() {
 
   /* ============================================================
      CONTACT HANDLERS
-  ============================================================ */
+     ============================================================ */
 
   const openWhatsApp = () => {
     const number = (businessInfo?.whatsapp || "").replace(/\D/g, "");
@@ -746,7 +800,9 @@ function CardPreview() {
       "Please send more details.",
     ].join("\n");
 
-    const whatsappUrl = `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/${number}?text=${encodeURIComponent(
+      message,
+    )}`;
 
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
@@ -771,14 +827,12 @@ function CardPreview() {
 
   /* ============================================================
      SHARE + QR HANDLERS
-  ============================================================ */
+     ============================================================ */
 
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(qrValue);
-
       setCopied(true);
-
       setTimeout(() => setCopied(false), 2000);
     } catch {
       window.prompt("Copy your business card link:", qrValue);
@@ -805,7 +859,6 @@ function CardPreview() {
     }
 
     const link = document.createElement("a");
-
     link.href = canvas.toDataURL("image/png");
     link.download = filename;
 
@@ -835,7 +888,6 @@ function CardPreview() {
       const link = document.createElement("a");
       link.download = "bio-business-poster.png";
       link.href = canvas.toDataURL("image/png");
-
       link.click();
     } catch (error) {
       console.error("Poster PNG download failed:", error);
@@ -915,7 +967,7 @@ function CardPreview() {
 
   /* ============================================================
      SAVE CONTACT
-  ============================================================ */
+     ============================================================ */
 
   const handleSaveContact = async () => {
     if (!profile) return;
@@ -937,7 +989,7 @@ function CardPreview() {
 
   /* ============================================================
      CONFIGURED BUTTON HANDLER
-  ============================================================ */
+     ============================================================ */
 
   const handleConfiguredButton = (button) => {
     if (!button) return;
@@ -981,8 +1033,7 @@ function CardPreview() {
           (typeof button === "object" && button.customUrl) ||
           profile?.website ||
           profile?.websiteUrl ||
-          businessInfo?.website ||
-          businessInfo?.websiteUrl;
+          businessInfo?.website;
 
         if (!rawUrl) {
           return alert("This button has no link configured.");
@@ -1010,7 +1061,6 @@ function CardPreview() {
         });
 
         window.location.href = `upi://pay?${params.toString()}`;
-
         return;
       }
 
@@ -1021,10 +1071,15 @@ function CardPreview() {
 
   /* ============================================================
      INQUIRY SUBMIT
-  ============================================================ */
+     ============================================================ */
 
   const submitInquiry = async (event) => {
     event.preventDefault();
+
+    if (!resolvedSubdomain) {
+      alert("Business subdomain is missing. Please try again.");
+      return;
+    }
 
     try {
       await dispatch(
@@ -1033,7 +1088,7 @@ function CardPreview() {
           phone: form.phone.trim(),
           email: form.email.trim(),
           message: form.message.trim(),
-          subdomain,
+          subdomain: resolvedSubdomain,
         }),
       ).unwrap();
 
@@ -1049,7 +1104,6 @@ function CardPreview() {
       setShowToast(true);
 
       setTimeout(() => setShowToast(false), 3000);
-
       setTimeout(() => setFormSubmitted(false), 4000);
     } catch (error) {
       const message =
@@ -1063,13 +1117,18 @@ function CardPreview() {
 
   /* ============================================================
      SUBMIT QR LEAD
-  ============================================================ */
+     ============================================================ */
 
   const submitQRLead = async (event) => {
     event.preventDefault();
 
     if (!qrLeadForm.name.trim() || !qrLeadForm.phone.trim()) {
       setQRLeadError("Please enter your name and mobile number.");
+      return;
+    }
+
+    if (!resolvedSubdomain) {
+      setQRLeadError("Business subdomain is missing. Please try again.");
       return;
     }
 
@@ -1082,13 +1141,13 @@ function CardPreview() {
           name: qrLeadForm.name.trim(),
           phone: qrLeadForm.phone.trim(),
           email: qrLeadForm.email.trim(),
-          subdomain,
+          subdomain: resolvedSubdomain,
           source: "qr",
           subject: "QR Scan Lead",
         }),
       ).unwrap();
 
-      const leadKey = `bio_lead_submitted_${subdomain}`;
+      const leadKey = `bio_lead_submitted_${resolvedSubdomain}`;
       localStorage.setItem(leadKey, "true");
 
       setQRLeadSuccess(true);
@@ -1105,11 +1164,127 @@ function CardPreview() {
   };
 
   /* ============================================================
-     SUBMIT REVIEW
-  ============================================================ */
+     REFRESH REVIEWS AFTER SUBMISSION
+     ============================================================ */
+
+  const refreshPublicReviews = async () => {
+    if (!resolvedSubdomain) return;
+
+    await dispatch(fetchPublicReviews(resolvedSubdomain));
+  };
+
+  /* ============================================================
+     REVIEW SUBMIT — LAYOUT REVIEW FORM
+     ============================================================ */
+
+  const handleLayoutReviewSubmit = async (reviewData) => {
+    /*
+     * Canonical subdomain route/profile se aayega.
+     * Layout se aaye subdomain ko fallback rakha hai.
+     */
+    const currentSubdomain = normalizeSubdomain(
+      resolvedSubdomain,
+      reviewData?.subdomain,
+      businessInfo?.subdomain,
+    );
+
+    const reviewerName = reviewData?.reviewerName?.trim() || "";
+    const reviewerEmail = reviewData?.reviewerEmail?.trim() || "";
+    const comment = reviewData?.comment?.trim() || "";
+    const rating = Number(reviewData?.rating ?? 5);
+
+    console.log("Layout review submission:", {
+      routeParams,
+      routeSubdomain,
+      profileSubdomain: profile?.subdomain,
+      currentSubdomain,
+      reviewData,
+    });
+
+    if (!currentSubdomain) {
+      setReviewError("Business subdomain is missing. Please try again.");
+
+      console.error(
+        "Review submission stopped: business subdomain could not be resolved.",
+      );
+
+      return;
+    }
+
+    if (!reviewerName) {
+      setReviewError("Please enter your name.");
+      return;
+    }
+
+    if (!comment) {
+      setReviewError("Please write your review.");
+      return;
+    }
+
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+      setReviewError("Please select a valid rating.");
+      return;
+    }
+
+    try {
+      setReviewLoading(true);
+      setReviewError("");
+
+      await dispatch(
+        createReview({
+          subdomain: currentSubdomain,
+          reviewerName,
+          reviewerEmail,
+          rating,
+          comment,
+        }),
+      ).unwrap();
+
+      await dispatch(fetchPublicReviews(currentSubdomain));
+
+      setReviewToast({
+        show: true,
+        message: "Review submitted successfully!",
+        type: "success",
+      });
+
+      setTimeout(() => {
+        setReviewToast({
+          show: false,
+          message: "",
+          type: "success",
+        });
+      }, 3000);
+
+      return true;
+    } catch (error) {
+      const message =
+        typeof error === "string"
+          ? error
+          : error?.message || "Unable to submit review.";
+
+      setReviewError(message);
+      console.error("Layout review submission failed:", error);
+
+      throw error;
+    } finally {
+      setReviewLoading(false);
+    }
+  };
+
+  /* ============================================================
+     REVIEW SUBMIT — CARD PREVIEW POPUP
+     ============================================================ */
 
   const submitReview = async (event) => {
     event.preventDefault();
+
+    const currentSubdomain = resolvedSubdomain;
+
+    if (!currentSubdomain) {
+      setReviewError("Business subdomain is missing. Please try again.");
+      return;
+    }
 
     if (!reviewForm.reviewerName.trim()) {
       setReviewError("Please enter your name.");
@@ -1127,13 +1302,15 @@ function CardPreview() {
 
       await dispatch(
         createReview({
-          subdomain,
+          subdomain: currentSubdomain,
           reviewerName: reviewForm.reviewerName.trim(),
           reviewerEmail: reviewForm.reviewerEmail.trim(),
-          rating: reviewRating,
+          rating: Number(reviewRating),
           comment: reviewForm.comment.trim(),
         }),
       ).unwrap();
+
+      await refreshPublicReviews();
 
       setReviewForm({
         reviewerName: "",
@@ -1150,10 +1327,6 @@ function CardPreview() {
         type: "success",
       });
 
-      if (subdomain) {
-        dispatch(fetchPublicReviews(subdomain));
-      }
-
       setTimeout(() => {
         setReviewToast({
           show: false,
@@ -1162,11 +1335,13 @@ function CardPreview() {
         });
       }, 3000);
     } catch (error) {
-      setReviewError(
+      const message =
         typeof error === "string"
           ? error
-          : error?.message || "Unable to submit review.",
-      );
+          : error?.message || "Unable to submit review.";
+
+      setReviewError(message);
+      console.error("Review submission failed:", error);
     } finally {
       setReviewLoading(false);
     }
@@ -1174,7 +1349,7 @@ function CardPreview() {
 
   /* ============================================================
      LOADING
-  ============================================================ */
+     ============================================================ */
 
   if (loading) {
     return (
@@ -1186,7 +1361,7 @@ function CardPreview() {
 
   /* ============================================================
      ERROR
-  ============================================================ */
+     ============================================================ */
 
   if (profileError || !profile || !businessInfo) {
     return (
@@ -1204,13 +1379,13 @@ function CardPreview() {
 
   /* ============================================================
      ACCENT STYLE
-  ============================================================ */
+     ============================================================ */
 
   const accentGradient = `linear-gradient(100deg, ${theme.primary}, ${theme.accent})`;
 
   /* ============================================================
      RENDER
-  ============================================================ */
+     ============================================================ */
 
   return (
     <main
@@ -1303,7 +1478,11 @@ function CardPreview() {
           )}
 
           <ActiveLayoutComponent
-            businessInfo={businessInfo}
+            businessInfo={{
+              ...businessInfo,
+              subdomain: resolvedSubdomain,
+            }}
+            subdomain={resolvedSubdomain}
             visibleButtons={contactButtons}
             socialLinks={socialLinks}
             productList={productList}
@@ -1330,6 +1509,8 @@ function CardPreview() {
             reviews={reviews}
             totalReviews={totalReviews}
             averageRating={averageRating}
+            onReviewSubmit={handleLayoutReviewSubmit}
+            reviewSubmitting={reviewLoading}
             onWriteReview={() => {
               setReviewError("");
               setReviewRating(5);
@@ -1337,13 +1518,11 @@ function CardPreview() {
             }}
           />
         </article>
-
-        {/* FALLBACK REVIEWS SECTION */}
       </div>
 
       {/* ============================================================
           QR LEAD CAPTURE POPUP
-      ============================================================ */}
+          ============================================================ */}
 
       {showQRLeadPopup && (
         <div
@@ -1519,7 +1698,7 @@ function CardPreview() {
 
       {/* ============================================================
           REVIEW POPUP
-      ============================================================ */}
+          ============================================================ */}
 
       {showReviewModal && (
         <div
@@ -1558,7 +1737,6 @@ function CardPreview() {
             <div className="pr-10">
               <div className="flex items-center gap-2">
                 <MessageSquareText size={22} style={{ color: theme.primary }} />
-
                 <h2 className="text-xl font-bold">Write a Review</h2>
               </div>
 
@@ -1583,6 +1761,7 @@ function CardPreview() {
                       ...prev,
                       reviewerName: event.target.value,
                     }));
+
                     setReviewError("");
                   }}
                   placeholder="Enter your name"
@@ -1675,6 +1854,7 @@ function CardPreview() {
                       ...prev,
                       comment: event.target.value,
                     }));
+
                     setReviewError("");
                   }}
                   placeholder="Write your experience..."
@@ -1718,7 +1898,7 @@ function CardPreview() {
 
       {/* ============================================================
           SHARE / MY QR / POSTER MODAL
-      ============================================================ */}
+          ============================================================ */}
 
       {showQrModal && (
         <div
@@ -1817,7 +1997,6 @@ function CardPreview() {
                   }}
                 >
                   <Copy size={17} />
-
                   {copied ? "Link Copied!" : "Copy Profile Link"}
                 </button>
               </div>
@@ -2111,7 +2290,7 @@ function CardPreview() {
 
       {/* ============================================================
           PRODUCT MODAL
-      ============================================================ */}
+          ============================================================ */}
 
       {selectedProduct &&
         (() => {
@@ -2230,9 +2409,7 @@ function CardPreview() {
                               tn: `${selectedProduct.name} payment`,
                             });
 
-                            const upiUrl = `upi://pay?${params.toString()}`;
-
-                            window.location.href = upiUrl;
+                            window.location.href = `upi://pay?${params.toString()}`;
                           }}
                           className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold"
                           style={{
@@ -2277,7 +2454,7 @@ function CardPreview() {
 
       {/* ============================================================
           GALLERY MODAL
-      ============================================================ */}
+          ============================================================ */}
 
       {selectedGalleryImage && (
         <div
