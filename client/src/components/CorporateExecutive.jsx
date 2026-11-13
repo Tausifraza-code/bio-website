@@ -1051,7 +1051,7 @@ const CorporateExecutive = ({
                     target="_blank"
                     rel="noreferrer"
                     title={social.platform || "Social"}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-[#1a2639] px-2.5 py-1.5 text-[8px] font-semibold text-slate-200 transition hover:border-indigo-400 hover:text-white"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-[#1a2639] px-2.5 py-1.5 text-[12px] font-semibold text-slate-200 transition hover:border-indigo-400 hover:text-white"
                   >
                     {getSocialIcon(social.platform, social.url)}
                     <span>{social.platform || "Social"}</span>

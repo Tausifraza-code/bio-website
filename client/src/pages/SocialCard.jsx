@@ -1281,33 +1281,37 @@ const SocialCards = () => {
               </Field>
 
               {/* Thumbnail choice */}
-              <Field label="Profile Thumbnail Preference">
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                  {[
-                    { id: "my-photo", label: "My Photo" },
-                    { id: "business-logo", label: "Business Logo" },
-                    { id: "custom", label: "Custom Photo" },
-                  ].map((option) => {
-                    const active = formData.thumbnail === option.id;
+           
+<Field label="Profile Thumbnail Preference">
+  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+    {[
+      { id: "my-photo", label: "My Photo" },
 
-                    return (
-                      <button
-                        key={option.id}
-                        type="button"
-                        onClick={() => handleChange("thumbnail", option.id)}
-                        className={`flex min-h-11 items-center justify-center gap-2 rounded-xl border px-3 py-3 text-xs font-bold transition ${
-                          active
-                            ? "border-cyan-400/50 bg-cyan-400/[0.08] text-cyan-400"
-                            : "border-[#29435f] bg-[#132942] text-slate-300 hover:border-[#38516e] hover:bg-[#1a3658]"
-                        }`}
-                      >
-                        {active && <Check size={13} strokeWidth={3} />}
-                        {option.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </Field>
+      // Temporarily disabled
+      // { id: "business-logo", label: "Business Logo" },
+      // { id: "custom", label: "Custom Photo" },
+    ].map((option) => {
+      const active = formData.thumbnail === option.id;
+
+      return (
+        <button
+          key={option.id}
+          type="button"
+          onClick={() => handleChange("thumbnail", option.id)}
+          className={`flex min-h-11 items-center justify-center gap-2 rounded-xl border px-3 py-3 text-xs font-bold transition ${
+            active
+              ? "border-cyan-400/50 bg-cyan-400/[0.08] text-cyan-400"
+              : "border-[#29435f] bg-[#132942] text-slate-300 hover:border-[#38516e] hover:bg-[#1a3658]"
+          }`}
+        >
+          {active && <Check size={13} strokeWidth={3} />}
+          {option.label}
+        </button>
+      );
+    })}
+  </div>
+</Field>
+
 
               {/* CTA and verified */}
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">

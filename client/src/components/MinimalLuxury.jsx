@@ -682,11 +682,18 @@ const MinimalLuxury = ({
                         title="Open in Google Maps"
                         className="group mt-0.5 inline-flex items-center gap-1 text-[12px] font-medium text-[#627D98] transition hover:text-[#12BCEB] cursor-pointer"
                       >
-                        <MapPin
-                          size={11}
-                          className="shrink-0 text-[#12BCEB] transition-transform group-hover:scale-110"
-                        />
-                        <span className="truncate group-hover:underline">{location}</span>
+                       
+<div className="flex w-full min-w-0 items-start gap-2">
+  <MapPin
+    size={13}
+    className="mt-0.5 shrink-0 text-[#12BCEB] transition-transform group-hover:scale-110"
+  />
+
+  <span className="min-w-0 flex-1 whitespace-normal break-words text-left leading-relaxed group-hover:underline">
+    {location}
+  </span>
+</div>
+
                       </a>
                     )}
                   </div>
@@ -695,7 +702,7 @@ const MinimalLuxury = ({
 
               {/* SOCIAL ICONS */}
               {firstSocialLinks.length > 0 && (
-                <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                <div className="mt-4.5 flex flex-wrap items-center gap-2">
                   {firstSocialLinks.map((social, index) => {
                     const Icon = getSocialIcon(social);
                     const platform = normalizePlatform(social);

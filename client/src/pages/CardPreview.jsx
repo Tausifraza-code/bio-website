@@ -2316,165 +2316,193 @@ function CardPreview() {
           PRODUCT MODAL
           ============================================================ */}
 
-      {selectedProduct &&
-        (() => {
-          const imgs = Array.isArray(selectedProduct.images)
-            ? selectedProduct.images.filter((image) => image?.url)
-            : [];
+  
+{selectedProduct &&
+  (() => {
+    const imgs = Array.isArray(selectedProduct.images)
+      ? selectedProduct.images.filter((image) => image?.url)
+      : [];
 
-          return (
-            <div
-              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md"
-              onClick={(event) => {
-                if (event.target === event.currentTarget) {
-                  setSelectedProduct(null);
-                }
+    return (
+      <div
+        className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/80 p-3 backdrop-blur-md sm:p-4"
+        onClick={(event) => {
+          if (event.target === event.currentTarget) {
+            setSelectedProduct(null);
+          }
+        }}
+      >
+        <div
+          className="relative my-auto max-h-[94vh] w-full max-w-2xl overflow-y-auto rounded-[26px]"
+          style={{
+            background: theme.surface,
+            border: `1px solid ${theme.border}`,
+          }}
+        >
+          {/* Close Button */}
+          <button
+            type="button"
+            onClick={() => setSelectedProduct(null)}
+            aria-label="Close product"
+            className="absolute right-3 top-3 z-30 flex h-10 w-10 items-center justify-center rounded-xl shadow-lg"
+            style={{
+              background: theme.card,
+              color: theme.text,
+            }}
+          >
+            <X size={18} />
+          </button>
+
+          {/* Product Images */}
+          {imgs.length > 0 ? (
+            <Swiper
+              modules={[Navigation, Pagination]}
+              navigation={imgs.length > 1}
+              pagination={{ clickable: true }}
+              slidesPerView={1}
+              loop={imgs.length > 1}
+              autoHeight={false}
+              className="w-full"
+              style={{
+                background: theme.card,
               }}
             >
-              <div
-                className="relative max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-[26px]"
+              {imgs.map((image, index) => (
+                <SwiperSlide key={image._id || index}>
+                  <div
+                    className="flex w-full items-center justify-center p-3 sm:p-5"
+                    style={{
+                      height: "min(65vh, 560px)",
+                      minHeight: "240px",
+                      background: theme.card,
+                    }}
+                  >
+                    <img
+                      src={image.url}
+                      alt={image.alt || selectedProduct.name || "Product image"}
+                      className="block h-full w-full object-contain"
+                      style={{
+                        objectFit: "contain",
+                        objectPosition: "center",
+                      }}
+                    />
+                  </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          ) : (
+            <div
+              className="flex h-60 items-center justify-center text-7xl sm:h-80"
+              style={{ background: theme.card }}
+            >
+              📦
+            </div>
+          )}
+
+          {/* Product Details */}
+          <div className="p-5 sm:p-7">
+            <h3
+              className="text-2xl font-bold"
+              style={{ color: theme.text }}
+            >
+              {selectedProduct.name}
+            </h3>
+
+            <p className="mt-2 font-bold" style={{ color: theme.primary }}>
+              ₹
+              {Number(selectedProduct.price || 0).toLocaleString("en-IN")}
+            </p>
+
+            {selectedProduct.description && (
+              <p
+                className="mt-4 whitespace-pre-line text-sm leading-7"
+                style={{ color: theme.text }}
+              >
+                {selectedProduct.description}
+              </p>
+            )}
+
+            {/* Product Status & Actions */}
+            <div className="mt-5 flex flex-wrap gap-3">
+              <span
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-bold"
                 style={{
-                  background: theme.surface,
-                  border: `1px solid ${theme.border}`,
+                  border: `1px solid ${theme.primary}33`,
+                  background: theme.card,
+                  color: theme.primary,
                 }}
               >
-                <button
-                  type="button"
-                  onClick={() => setSelectedProduct(null)}
-                  aria-label="Close product"
-                  className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-xl"
-                  style={{
-                    background: theme.card,
-                    color: theme.text,
-                  }}
-                >
-                  <X size={18} />
-                </button>
+                <CheckCircle2 size={16} />
 
-                {imgs.length > 0 ? (
-                  <Swiper
-                    modules={[Navigation, Pagination]}
-                    navigation={imgs.length > 1}
-                    pagination={{ clickable: true }}
-                    slidesPerView={1}
-                    loop={imgs.length > 1}
-                    className="h-60 w-full sm:h-80"
+                {selectedProduct.status === "active"
+                  ? "Available"
+                  : "Unavailable"}
+              </span>
+
+              {/* UPI Payment */}
+              {businessInfo.upiId &&
+                selectedProduct.status === "active" && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const amount = Number(selectedProduct.price);
+
+                      if (!Number.isFinite(amount) || amount <= 0) {
+                        return alert(
+                          "Valid product price is not available.",
+                        );
+                      }
+
+                      const params = new URLSearchParams({
+                        pa: businessInfo.upiId,
+                        pn: businessInfo.businessName || "Business",
+                        am: amount.toFixed(2),
+                        cu: "INR",
+                        tn: `${selectedProduct.name} payment`,
+                      });
+
+                      window.location.href = `upi://pay?${params.toString()}`;
+                    }}
+                    className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold"
+                    style={{
+                      border: `1px solid ${theme.primary}`,
+                      background: theme.card,
+                      color: theme.primary,
+                    }}
                   >
-                    {imgs.map((image, index) => (
-                      <SwiperSlide key={image._id || index}>
-                        <img
-                          src={image.url}
-                          alt={image.alt || selectedProduct.name}
-                          className="h-full w-full object-cover"
-                        />
-                      </SwiperSlide>
-                    ))}
-                  </Swiper>
-                ) : (
-                  <div className="flex h-60 items-center justify-center text-7xl sm:h-80">
-                    📦
-                  </div>
+                    <IndianRupee size={16} />
+                    Pay ₹
+                    {Number(selectedProduct.price).toLocaleString("en-IN")}{" "}
+                    with UPI
+                  </button>
                 )}
 
-                <div className="p-5 sm:p-7">
-                  <h3
-                    className="text-2xl font-bold"
-                    style={{ color: theme.text }}
-                  >
-                    {selectedProduct.name}
-                  </h3>
-
-                  <p className="mt-2" style={{ color: theme.primary }}>
-                    ₹
-                    {Number(selectedProduct.price || 0).toLocaleString("en-IN")}
-                  </p>
-
-                  <p
-                    className="mt-4 text-sm leading-7"
-                    style={{ color: theme.text }}
-                  >
-                    {selectedProduct.description}
-                  </p>
-
-                  <div className="mt-5 flex flex-wrap gap-3">
-                    <span
-                      className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-bold"
-                      style={{
-                        border: `1px solid ${theme.primary}33`,
-                        background: theme.card,
-                        color: theme.primary,
-                      }}
-                    >
-                      <CheckCircle2 size={16} />
-
-                      {selectedProduct.status === "active"
-                        ? "Available"
-                        : "Unavailable"}
-                    </span>
-
-                    {businessInfo.upiId &&
-                      selectedProduct.status === "active" && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const amount = Number(selectedProduct.price);
-
-                            if (!Number.isFinite(amount) || amount <= 0) {
-                              return alert(
-                                "Valid product price is not available.",
-                              );
-                            }
-
-                            const params = new URLSearchParams({
-                              pa: businessInfo.upiId,
-                              pn: businessInfo.businessName || "Business",
-                              am: amount.toFixed(2),
-                              cu: "INR",
-                              tn: `${selectedProduct.name} payment`,
-                            });
-
-                            window.location.href = `upi://pay?${params.toString()}`;
-                          }}
-                          className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold"
-                          style={{
-                            border: `1px solid ${theme.primary}`,
-                            background: theme.card,
-                            color: theme.primary,
-                          }}
-                        >
-                          <IndianRupee size={16} />
-                          Pay ₹
-                          {Number(selectedProduct.price).toLocaleString(
-                            "en-IN",
-                          )}{" "}
-                          with UPI
-                        </button>
-                      )}
-
-                    {(businessInfo.whatsapp || businessInfo.phone) && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const product = selectedProduct;
-                          handleProductWhatsAppInquiry(product);
-                          setSelectedProduct(null);
-                        }}
-                        className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold"
-                        style={{
-                          background: accentGradient,
-                          color: "#ffffff",
-                        }}
-                      >
-                        <FaWhatsapp size={16} />
-                        Enquire on WhatsApp
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
+              {/* WhatsApp Inquiry */}
+              {(businessInfo.whatsapp || businessInfo.phone) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const product = selectedProduct;
+                    handleProductWhatsAppInquiry(product);
+                    setSelectedProduct(null);
+                  }}
+                  className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold"
+                  style={{
+                    background: accentGradient,
+                    color: "#ffffff",
+                  }}
+                >
+                  <FaWhatsapp size={16} />
+                  Enquire on WhatsApp
+                </button>
+              )}
             </div>
-          );
-        })()}
+          </div>
+        </div>
+      </div>
+    );
+  })()}
+
 
       {/* ============================================================
           GALLERY MODAL
