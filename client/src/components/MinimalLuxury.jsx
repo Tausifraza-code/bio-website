@@ -702,7 +702,7 @@ const MinimalLuxury = ({
 
               {/* SOCIAL ICONS */}
               {firstSocialLinks.length > 0 && (
-                <div className="mt-4.5 flex flex-wrap items-center gap-2">
+                <div className="mt-12 flex flex-wrap items-center gap-2">
                   {firstSocialLinks.map((social, index) => {
                     const Icon = getSocialIcon(social);
                     const platform = normalizePlatform(social);
