@@ -192,62 +192,73 @@ export const getImageBase64 = async (imageUrl, maxDim = 400) => {
   const cleanUrl = imageUrl.trim();
   if (!cleanUrl) return null;
 
-  // 1. Data URL
-  if (cleanUrl.startsWith("data:image/")) {
-    try {
-      const match = cleanUrl.match(
-        /^data:image\/([a-zA-Z0-9+.-]+);base64,(.+)$/,
-      );
-      if (match) {
-        let type = match[1].toUpperCase();
-        if (type === "JPG") type = "JPEG";
+  const fetchPromise = (async () => {
+    // 1. Data URL
+    if (cleanUrl.startsWith("data:image/")) {
+      try {
+        const match = cleanUrl.match(
+          /^data:image\/([a-zA-Z0-9+.-]+);base64,(.+)$/,
+        );
+        if (match) {
+          let type = match[1].toUpperCase();
+          if (type === "JPG") type = "JPEG";
 
-        // If it's already standard JPEG or PNG and not overly giant, return it
-        if (type === "JPEG" || type === "PNG") {
-          return {
-            imageType: type,
-            base64: match[2].replace(/\s+/g, ""),
-          };
+          // If it's already standard JPEG or PNG and not overly giant, return it
+          if (type === "JPEG" || type === "PNG") {
+            return {
+              imageType: type,
+              base64: match[2].replace(/\s+/g, ""),
+            };
+          }
+          // Otherwise resize/convert to JPEG via Image+Canvas
+          return await convertImageSrcToBase64(cleanUrl, maxDim);
         }
-        // Otherwise resize/convert to JPEG via Image+Canvas
-        return await convertImageSrcToBase64(cleanUrl, maxDim);
+      } catch {
+        // Ignore parsing error
+      }
+    }
+
+    // 2. Resolve relative URL if needed
+    let resolvedUrl = cleanUrl;
+    if (typeof window !== "undefined") {
+      if (cleanUrl.startsWith("//")) {
+        resolvedUrl = `${window.location.protocol}${cleanUrl}`;
+      } else if (cleanUrl.startsWith("/")) {
+        resolvedUrl = `${window.location.origin}${cleanUrl}`;
+      }
+    }
+
+    // 3. Try fetch with CORS
+    try {
+      const res = await fetch(resolvedUrl, { mode: "cors" });
+      if (res.ok) {
+        const blob = await res.blob();
+        const result = await resizeBlobToBase64(blob, maxDim);
+        if (result) return result;
       }
     } catch {
-      // Ignore parsing error
+      // Fetch failed (e.g. CORS restrictions on remote asset), continue to fallback
     }
-  }
 
-  // 2. Resolve relative URL if needed
-  let resolvedUrl = cleanUrl;
-  if (typeof window !== "undefined") {
-    if (cleanUrl.startsWith("//")) {
-      resolvedUrl = `${window.location.protocol}${cleanUrl}`;
-    } else if (cleanUrl.startsWith("/")) {
-      resolvedUrl = `${window.location.origin}${cleanUrl}`;
-    }
-  }
-
-  // 3. Try fetch with CORS
-  try {
-    const res = await fetch(resolvedUrl, { mode: "cors" });
-    if (res.ok) {
-      const blob = await res.blob();
-      const result = await resizeBlobToBase64(blob, maxDim);
+    // 4. Fallback via Image element
+    try {
+      const result = await convertImageSrcToBase64(resolvedUrl, maxDim);
       if (result) return result;
+    } catch {
+      // Image fallback failed
     }
-  } catch {
-    // Fetch failed (e.g. CORS restrictions on remote asset), continue to fallback
-  }
 
-  // 4. Fallback via Image element
+    return null;
+  })();
+
   try {
-    const result = await convertImageSrcToBase64(resolvedUrl, maxDim);
-    if (result) return result;
+    const timeoutPromise = new Promise((resolve) =>
+      setTimeout(() => resolve(null), 2500),
+    );
+    return await Promise.race([fetchPromise, timeoutPromise]);
   } catch {
-    // Image fallback failed
+    return null;
   }
-
-  return null;
 };
 
 /**

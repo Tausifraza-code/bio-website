@@ -4,7 +4,7 @@ const paymentSettingsSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "user",
+      ref: "User",
       required: true,
       unique: true,
       index: true,
@@ -48,7 +48,7 @@ const paymentSettingsSchema = new mongoose.Schema(
 
     reviewedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "user",
+      ref: "User",
       default: null,
     },
 

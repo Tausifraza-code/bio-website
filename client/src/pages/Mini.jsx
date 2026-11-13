@@ -894,6 +894,9 @@ const Mini = () => {
       return alert("Product details are not available.");
     }
 
+    const productImageUrl =
+      product.images?.[0]?.url || product.image || "";
+
     const message = [
       "Hi, I'm interested in the following product/service:",
       "",
@@ -901,12 +904,12 @@ const Mini = () => {
       `Price: ₹${Number(product.price || 0).toLocaleString("en-IN")}`,
       `Category: ${product.category || "General"}`,
       `Type: ${product.type || "product"}`,
+      productImageUrl ? `\nProduct Image:\n${productImageUrl}` : "",
       "",
       "Please share more details.",
     ].join("\n");
 
     const whatsappUrl = `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
-
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
 
@@ -924,17 +927,18 @@ const Mini = () => {
     const businessName =
       businessInfo?.businessName || businessInfo?.name || "your business";
 
+    const imageUrl = image.url || image.imageUrl || image.src || "";
+
     const message = [
       `Hi, I'm interested in this gallery image from ${businessName}.`,
       "",
       `Image: ${image.caption || image.alt || "Gallery Image"}`,
-      `Image URL: ${image.url}`,
+      imageUrl ? `\nImage URL:\n${imageUrl}` : "",
       "",
       "Please share more details.",
     ].join("\n");
 
     const whatsappUrl = `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
-
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
 
@@ -1202,7 +1206,27 @@ const Mini = () => {
       typeof button === "string"
         ? button
         : button.actionType ||
+          button.value ||
+          button.type ||
           (button.buttonId === "save-contact" ? "saveContact" : "");
+
+    const norm = String(action || "").toLowerCase().trim();
+    const btnLabel =
+      typeof button === "object"
+        ? String(button.label || "").toLowerCase().trim()
+        : "";
+
+    if (
+      norm === "savecontact" ||
+      norm === "save-contact" ||
+      norm === "save_contact" ||
+      norm === "save" ||
+      norm === "contact" ||
+      (typeof button === "object" && button.buttonId === "save-contact") ||
+      (btnLabel.includes("save") && !button?.customUrl && norm !== "share")
+    ) {
+      return handleSaveContact();
+    }
 
     switch (action) {
       case "call":

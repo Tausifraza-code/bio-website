@@ -58,6 +58,7 @@ import {
   FaLink,
 } from "react-icons/fa6";
 import GoogleBusinessIcon from "./icons/GoogleBusinessIcon";
+import SnapchatIcon from "./icons/SnapchatIcon";
 
 const CreativePortfolio = ({
   businessInfo = {},
@@ -150,6 +151,7 @@ const CreativePortfolio = ({
     businessName = "",
     businessHours = "",
     isVerified = false,
+    mapLink = "",
   } = businessInfo;
 
   // SOCIAL ICONS
@@ -165,7 +167,7 @@ const CreativePortfolio = ({
     github: FaGithub,
     pinterest: FaPinterest,
     discord: FaDiscord,
-    snapchat: FaSnapchat,
+    snapchat: SnapchatIcon,
     tiktok: FaTiktok,
     reddit: FaReddit,
     threads: FaThreads,
@@ -286,7 +288,7 @@ const CreativePortfolio = ({
     if (key.includes("github")) return "#24292e";
     if (key.includes("pinterest")) return "#E60023";
     if (key.includes("discord")) return "#5865F2";
-    if (key.includes("snapchat")) return "#FFFC00";
+    if (key.includes("snapchat")) return "#000000";
     if (key.includes("threads")) return "#000000";
     if (key.includes("tiktok")) return "#000000";
     if (key.includes("reddit")) return "#FF4500";
@@ -607,10 +609,27 @@ const CreativePortfolio = ({
                 {(location || industry) && (
                   <div className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs text-[#8C6D50] sm:justify-start">
                     {location && (
-                      <span className="inline-flex items-center gap-1">
-                        <MapPin size={13} className="shrink-0 text-[#D95D08]" />
-                        {location}
-                      </span>
+                      <a
+                        href={
+                          mapLink ||
+                          `https://maps.google.com/?q=${encodeURIComponent(
+                            location,
+                          )}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() =>
+                          onContactClick && onContactClick("directions")
+                        }
+                        title="Open in Google Maps"
+                        className="group inline-flex items-center gap-1 transition hover:text-[#D95D08] cursor-pointer"
+                      >
+                        <MapPin
+                          size={13}
+                          className="shrink-0 text-[#D95D08] transition-transform group-hover:scale-110"
+                        />
+                        <span className="group-hover:underline">{location}</span>
+                      </a>
                     )}
 
                     {industry && (
@@ -628,14 +647,14 @@ const CreativePortfolio = ({
             </div>
 
             {/* PROFILE ACTIONS */}
-            <div className="mt-5 grid grid-cols-3 gap-2.5 sm:flex sm:flex-wrap sm:justify-start sm:gap-2.5">
+            <div className="mt-5 flex flex-wrap gap-2 sm:gap-2.5">
               {visibleButtons.length > 0 ? (
                 visibleButtons.map((button, index) => (
                   <button
                     key={button._id || button.id || index}
                     type="button"
                     onClick={() => onConfiguredButton(button)}
-                    className={`flex h-11 min-w-0 w-full items-center justify-center gap-1.5 rounded-full px-2 text-[10px] font-bold shadow-sm transition hover:-translate-y-0.5 sm:h-auto sm:w-auto sm:px-5 sm:py-3 sm:text-xs active:scale-95 ${
+                    className={`flex h-11 flex-1 min-w-[calc(50%-6px)] sm:flex-initial sm:min-w-0 sm:w-auto items-center justify-center gap-1.5 rounded-full px-3 py-2.5 sm:px-5 sm:py-3 text-[11px] font-bold shadow-sm transition hover:-translate-y-0.5 sm:text-xs active:scale-95 ${
                       button.actionType === "whatsapp"
                         ? "bg-[#25D366] text-white hover:bg-[#1DA851] shadow-emerald-600/10"
                         : button.actionType === "call"
@@ -643,9 +662,9 @@ const CreativePortfolio = ({
                           : "border border-[#E4D2BC] bg-white text-[#C2410C] hover:border-[#EA580C] hover:bg-[#FAF3EA]"
                     }`}
                   >
-                    <span className="truncate flex items-center gap-1.5">
+                    <span className="flex items-center gap-1.5 text-center leading-tight">
                       {renderContactButtonIcon(button)}
-                      {button.label}
+                      <span>{button.label}</span>
                     </span>
                     <ArrowUpRight size={13} className="shrink-0" />
                   </button>
@@ -655,28 +674,28 @@ const CreativePortfolio = ({
                   <button
                     type="button"
                     onClick={() => onContactClick("phone")}
-                    className={`${primaryButton} h-11 w-full min-w-0 gap-1.5 px-2 text-[10px] sm:h-auto sm:w-auto sm:px-5 sm:py-3 sm:text-xs`}
+                    className="flex h-11 flex-1 min-w-[calc(50%-6px)] sm:flex-initial sm:min-w-0 sm:w-auto items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-[#EA580C] to-[#C2410C] px-3 py-2.5 sm:px-5 sm:py-3 text-[11px] sm:text-xs font-bold text-white shadow-md shadow-orange-900/15 transition hover:-translate-y-0.5 hover:brightness-105 active:scale-95"
                   >
-                    <Phone size={14} className="shrink-0" />
-                    <span className="truncate">Call Now</span>
+                    <Phone size={14} className="shrink-0 text-white" />
+                    <span>Call Now</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => onContactClick("whatsapp")}
-                    className={`${secondaryButton} h-11 w-full min-w-0 gap-1.5 px-2 text-[10px] sm:h-auto sm:w-auto sm:px-5 sm:py-3 sm:text-xs`}
+                    className="flex h-11 flex-1 min-w-[calc(50%-6px)] sm:flex-initial sm:min-w-0 sm:w-auto items-center justify-center gap-1.5 rounded-full bg-[#25D366] px-3 py-2.5 sm:px-5 sm:py-3 text-[11px] sm:text-xs font-bold text-white shadow-md shadow-emerald-600/15 transition hover:-translate-y-0.5 hover:bg-[#1DA851] active:scale-95"
                   >
-                    <MessageCircle size={14} className="shrink-0" />
-                    <span className="truncate">WhatsApp</span>
+                    <FaWhatsapp size={15} className="shrink-0 text-white" />
+                    <span>WhatsApp</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={onShare}
-                    className={`${secondaryButton} h-11 w-full min-w-0 gap-1.5 px-2 text-[10px] sm:h-auto sm:w-auto sm:px-5 sm:py-3 sm:text-xs`}
+                    className="flex h-11 flex-1 min-w-full sm:min-w-0 sm:w-auto items-center justify-center gap-1.5 rounded-full border border-[#E4D2BC] bg-white px-3 py-2.5 sm:px-5 sm:py-3 text-[11px] sm:text-xs font-bold text-[#C2410C] shadow-sm transition hover:border-[#EA580C] hover:bg-[#FAF3EA] active:scale-95"
                   >
                     <Share2 size={14} className="shrink-0" />
-                    <span className="truncate">Share Profile</span>
+                    <span>Share Profile</span>
                   </button>
                 </>
               )}
@@ -1572,7 +1591,7 @@ const CreativePortfolio = ({
                           github: "#24292e",
                           pinterest: "#E60023",
                           discord: "#5865F2",
-                          snapchat: "#FFFC00",
+                          snapchat: "#000000",
                           tiktok: "#EE1D52",
                           reddit: "#FF4500",
                           threads: "#000000",

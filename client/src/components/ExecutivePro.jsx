@@ -57,6 +57,7 @@ import {
   FaLink,
 } from "react-icons/fa6";
 import GoogleBusinessIcon from "./icons/GoogleBusinessIcon";
+import SnapchatIcon from "./icons/SnapchatIcon";
 
 // ============================================
 // EXECUTIVE PRO LAYOUT
@@ -167,6 +168,7 @@ const ExecutivePro = ({
     businessName = "",
     businessHours = "",
     isVerified = false,
+    mapLink = "",
   } = businessInfo;
 
   const primaryColor = "#22D3EE";
@@ -183,7 +185,7 @@ const ExecutivePro = ({
     github: FaGithub,
     pinterest: FaPinterest,
     discord: FaDiscord,
-    snapchat: FaSnapchat,
+    snapchat: SnapchatIcon,
     tiktok: FaTiktok,
     reddit: FaReddit,
     threads: FaThreads,
@@ -566,22 +568,42 @@ const ExecutivePro = ({
               {businessName || "My Business"}
             </p>
 
-            <p className="mt-2 flex items-center justify-center gap-1.5 text-xs text-slate-400 sm:justify-start">
-              <MapPin size={14} className="text-cyan-400 shrink-0" />
-              <span>{location || "Location not added"}</span>
-            </p>
+            {location ? (
+              <a
+                href={
+                  mapLink ||
+                  `https://maps.google.com/?q=${encodeURIComponent(location)}`
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => onContactClick && onContactClick("directions")}
+                title="Open in Google Maps"
+                className="mt-2 group flex items-center justify-center gap-1.5 text-xs text-slate-400 transition hover:text-cyan-300 sm:justify-start cursor-pointer"
+              >
+                <MapPin
+                  size={14}
+                  className="text-cyan-400 shrink-0 transition-transform group-hover:scale-110"
+                />
+                <span className="group-hover:underline">{location}</span>
+              </a>
+            ) : (
+              <p className="mt-2 flex items-center justify-center gap-1.5 text-xs text-slate-400 sm:justify-start">
+                <MapPin size={14} className="text-cyan-400 shrink-0" />
+                <span>Location not added</span>
+              </p>
+            )}
           </div>
         </div>
 
         {/* CONTACT BUTTONS */}
 
-        <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-2.5">
+        <div className="mt-6 flex flex-wrap gap-2 sm:gap-2.5">
           {visibleButtons.map((button, index) => (
             <button
               key={button._id || button.id || index}
               type="button"
               onClick={() => onConfiguredButton(button)}
-              className={`flex items-center justify-center gap-1.5 rounded-xl px-2.5 py-2.5 text-[11px] font-bold transition-all duration-200 active:scale-[0.98] sm:text-xs ${
+              className={`flex flex-1 min-w-[calc(50%-6px)] sm:flex-initial sm:min-w-0 sm:w-auto items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 sm:px-4 sm:py-2.5 text-[11px] font-bold transition-all duration-200 active:scale-[0.98] sm:text-xs ${
                 button.actionType === "call"
                   ? "bg-gradient-to-r from-cyan-400 to-cyan-300 text-[#071326] shadow-md shadow-cyan-400/20 hover:brightness-105"
                   : button.actionType === "whatsapp"
@@ -590,7 +612,7 @@ const ExecutivePro = ({
               }`}
             >
               {renderContactButtonIcon(button)}
-              <span className="truncate">{button.label}</span>
+              <span className="text-center leading-tight">{button.label}</span>
               <ArrowUpRight size={12} className="shrink-0 opacity-70" />
             </button>
           ))}
@@ -599,7 +621,7 @@ const ExecutivePro = ({
         {/* SOCIAL ICONS */}
 
         {socialLinks.length > 0 && (
-          <div className="mt-5 grid grid-cols-5 gap-2 sm:flex sm:flex-wrap sm:justify-center sm:gap-2.5">
+          <div className="mt-5 grid grid-cols-5 gap-2 sm:flex sm:flex-wrap sm:justify-start sm:gap-2.5">
             {socialLinks.map((social, index) => {
               const Icon = getSocialIcon(social);
               const platform = resolveSocialPlatform(social);
@@ -626,7 +648,7 @@ const ExecutivePro = ({
                 discord:
                   "text-[#5865F2] hover:border-[#5865F2]/60 hover:bg-[#5865F2]/10",
                 snapchat:
-                  "text-[#FFFC00] hover:border-[#FFFC00]/60 hover:bg-[#FFFC00]/10",
+                  "text-[#000000] bg-[#FFFC00] hover:brightness-110",
                 tiktok: "text-white hover:border-white/60 hover:bg-white/10",
                 reddit:
                   "text-[#FF4500] hover:border-[#FF4500]/60 hover:bg-[#FF4500]/10",
@@ -1159,7 +1181,7 @@ const ExecutivePro = ({
                         github: "#ffffff",
                         pinterest: "#E60023",
                         discord: "#5865F2",
-                        snapchat: "#FFFC00",
+                        snapchat: "#000000",
                         tiktok: "#EE1D52",
                         reddit: "#FF4500",
                         threads: "#ffffff",

@@ -757,6 +757,9 @@ function CardPreview() {
       return alert("Product details are not available.");
     }
 
+    const productImageUrl =
+      product.images?.[0]?.url || product.image || "";
+
     const message = [
       "Hi, I'm interested in the following product/service:",
       "",
@@ -764,14 +767,12 @@ function CardPreview() {
       `Price: ₹${Number(product.price || 0).toLocaleString("en-IN")}`,
       `Category: ${product.category || "General"}`,
       `Type: ${product.type || "product"}`,
+      productImageUrl ? `\nProduct Image:\n${productImageUrl}` : "",
       "",
       "Please share more details.",
     ].join("\n");
 
-    const whatsappUrl = `https://wa.me/${number}?text=${encodeURIComponent(
-      message,
-    )}`;
-
+    const whatsappUrl = `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
 
@@ -790,20 +791,18 @@ function CardPreview() {
       businessInfo?.businessName || businessInfo?.name || "your business";
 
     const productName = image.caption || image.alt || "Gallery Product";
+    const imageUrl = image.url || image.imageUrl || image.src || "";
 
     const message = [
       `Hi, I'm interested in this product from ${businessName}:`,
       "",
-      productName,
-      `Product Image: ${image.url}`,
+      `Name: ${productName}`,
+      imageUrl ? `\nProduct Image:\n${imageUrl}` : "",
       "",
       "Please send more details.",
     ].join("\n");
 
-    const whatsappUrl = `https://wa.me/${number}?text=${encodeURIComponent(
-      message,
-    )}`;
-
+    const whatsappUrl = `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
 
@@ -970,12 +969,12 @@ function CardPreview() {
      ============================================================ */
 
   const handleSaveContact = async () => {
-    if (!profile) return;
+    if (!profile && !businessInfo) return;
 
     try {
       await downloadVCardContact({
-        profile,
-        businessInfo,
+        profile: profile || {},
+        businessInfo: businessInfo || {},
         publicProfileUrl: qrValue,
       });
 
@@ -998,7 +997,27 @@ function CardPreview() {
       typeof button === "string"
         ? button
         : button.actionType ||
+          button.value ||
+          button.type ||
           (button.buttonId === "save-contact" ? "saveContact" : "");
+
+    const norm = String(action || "").toLowerCase().trim();
+    const btnLabel =
+      typeof button === "object"
+        ? String(button.label || "").toLowerCase().trim()
+        : "";
+
+    if (
+      norm === "savecontact" ||
+      norm === "save-contact" ||
+      norm === "save_contact" ||
+      norm === "save" ||
+      norm === "contact" ||
+      (typeof button === "object" && button.buttonId === "save-contact") ||
+      (btnLabel.includes("save") && !button?.customUrl && norm !== "share")
+    ) {
+      return handleSaveContact();
+    }
 
     switch (action) {
       case "call":
@@ -1047,6 +1066,11 @@ function CardPreview() {
       }
 
       case "saveContact":
+      case "savecontact":
+      case "save-contact":
+      case "save_contact":
+      case "save":
+      case "contact":
         return handleSaveContact();
 
       case "upi": {

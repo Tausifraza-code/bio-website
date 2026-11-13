@@ -5,7 +5,7 @@ const { uploadToImgBB } = require("../utils/imgbb");
 const sharp = require("sharp");
 const { handleUploadError } = require("../middleware/upload.middleware");
 const MiniProfile = require("../models/MiniProfile");
-const User = require("../models/user");
+const User = require("../models/User");
 
 const handleProductError = (res, error, action) => {
   console.error(`${action} error:`, error);

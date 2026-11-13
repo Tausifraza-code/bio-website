@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-// Structured schema for the user's BIO SITE profile
+// Structured schema for the user's BIO SITES profile
 const miniProfileSchema = new mongoose.Schema(
   {
     firstName: {
@@ -254,7 +254,7 @@ const userSchema = new mongoose.Schema(
         type: String,
         trim: true,
         maxlength: 150,
-        default: "BIO SITE",
+        default: "BIO SITES",
       },
       websiteLogo: {
         type: String,

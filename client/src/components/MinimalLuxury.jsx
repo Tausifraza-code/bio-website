@@ -54,6 +54,7 @@ import {
   FaLink,
 } from "react-icons/fa6";
 import GoogleBusinessIcon from "./icons/GoogleBusinessIcon";
+import SnapchatIcon from "./icons/SnapchatIcon";
 
 const MinimalLuxury = ({
   businessInfo = {},
@@ -153,6 +154,7 @@ const MinimalLuxury = ({
     businessHours = "",
     isVerified = false,
     upiId = "",
+    mapLink = "",
   } = businessInfo;
 
   const [copiedUpi, setCopiedUpi] = React.useState(false);
@@ -169,7 +171,7 @@ const MinimalLuxury = ({
     github: FaGithub,
     pinterest: FaPinterest,
     discord: FaDiscord,
-    snapchat: FaSnapchat,
+    snapchat: SnapchatIcon,
     tiktok: FaTiktok,
     reddit: FaReddit,
     threads: FaThreads,
@@ -665,10 +667,27 @@ const MinimalLuxury = ({
                     </a>
 
                     {location && (
-                      <div className="mt-0.5 flex items-center gap-1 text-[12px] font-medium text-[#627D98]">
-                        <MapPin size={11} className="shrink-0 text-[#12BCEB]" />
-                        <span className="truncate">{location}</span>
-                      </div>
+                      <a
+                        href={
+                          mapLink ||
+                          `https://maps.google.com/?q=${encodeURIComponent(
+                            location,
+                          )}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() =>
+                          onContactClick && onContactClick("directions")
+                        }
+                        title="Open in Google Maps"
+                        className="group mt-0.5 inline-flex items-center gap-1 text-[12px] font-medium text-[#627D98] transition hover:text-[#12BCEB] cursor-pointer"
+                      >
+                        <MapPin
+                          size={11}
+                          className="shrink-0 text-[#12BCEB] transition-transform group-hover:scale-110"
+                        />
+                        <span className="truncate group-hover:underline">{location}</span>
+                      </a>
                     )}
                   </div>
                 )}
@@ -710,7 +729,11 @@ const MinimalLuxury = ({
                 <div className="mt-3.5">
                   <div
                     className={`grid gap-2 ${
-                      contactButtons.length <= 3 ? "grid-cols-3" : "grid-cols-4"
+                      contactButtons.length <= 2
+                        ? "grid-cols-2"
+                        : contactButtons.length === 3
+                          ? "grid-cols-3"
+                          : "grid-cols-2 xs:grid-cols-3 sm:grid-cols-4"
                     }`}
                   >
                     {contactButtons.map((button, index) => {
@@ -760,7 +783,7 @@ const MinimalLuxury = ({
                           <div className="flex h-5 items-center justify-center">
                             {renderContactButtonIcon(button, isHighlighted)}
                           </div>
-                          <span className="w-full truncate px-0.5 text-center text-[10.5px] font-bold leading-tight">
+                          <span className="w-full px-0.5 text-center text-[10.5px] font-bold leading-tight break-words">
                             {button.label}
                           </span>
                         </button>
@@ -1319,7 +1342,7 @@ const MinimalLuxury = ({
                         github: "#24292e",
                         pinterest: "#E60023",
                         discord: "#5865F2",
-                        snapchat: "#FFFC00",
+                        snapchat: "#000000",
                         tiktok: "#EE1D52",
                         reddit: "#FF4500",
                         threads: "#000000",

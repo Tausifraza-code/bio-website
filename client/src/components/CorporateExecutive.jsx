@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -13,6 +12,7 @@ import {
   Share2,
   QrCode,
   CreditCard,
+  IndianRupee,
 } from "lucide-react";
 import GoogleBusinessIcon from "./icons/GoogleBusinessIcon";
 
@@ -38,7 +38,19 @@ import {
   FaXmark,
   FaPen,
   FaSpinner,
+  FaTelegram,
+  FaThreads,
+  FaSnapchat,
+  FaTiktok,
+  FaPinterest,
+  FaGithub,
+  FaDiscord,
+  FaReddit,
+  FaTwitch,
+  FaSpotify,
+  FaMedium,
 } from "react-icons/fa6";
+import SnapchatIcon from "./icons/SnapchatIcon";
 
 const CorporateExecutive = ({
   // Accept subdomain directly from CardPreview
@@ -111,6 +123,7 @@ const CorporateExecutive = ({
     businessName = "",
     businessHours = "",
     isVerified = false,
+    mapLink = "",
   } = businessInfo;
 
   // FIX: Resolve subdomain from all supported sources.
@@ -121,7 +134,7 @@ const CorporateExecutive = ({
       businessInfo?.subDomain ||
       businessInfo?.slug ||
       businessInfo?.username ||
-      ""
+      "",
   )
     .trim()
     .toLowerCase();
@@ -145,11 +158,9 @@ const CorporateExecutive = ({
       businessInfo.rating ||
       businessInfo.averageRating ||
       (reviews.length
-        ? reviews.reduce(
-            (total, item) => total + Number(item.rating || 0),
-            0
-          ) / reviews.length
-        : 0)
+        ? reviews.reduce((total, item) => total + Number(item.rating || 0), 0) /
+          reviews.length
+        : 0),
   );
 
   const reviewTotal =
@@ -166,18 +177,26 @@ const CorporateExecutive = ({
       : [];
 
   const activeButtons = configuredButtons
-    .filter(
-      (button) =>
-        button &&
-        button.enabled === true &&
-        button.actionType
-    )
-    .sort(
-      (a, b) => Number(a.order ?? 0) - Number(b.order ?? 0)
+    .filter((button) => button && button.enabled === true && button.actionType)
+    .sort((a, b) => Number(a.order ?? 0) - Number(b.order ?? 0));
+
+  const isSaveButton = (button) => {
+    const actionType = String(button?.actionType || "").toLowerCase();
+    const icon = String(button?.icon || "").toLowerCase();
+    const label = String(button?.label || "").toLowerCase();
+    const buttonId = String(button?.buttonId || "").toLowerCase();
+    return (
+      actionType === "savecontact" ||
+      actionType === "save" ||
+      buttonId === "save-contact" ||
+      icon === "save-contact" ||
+      icon === "user-round-plus" ||
+      label.includes("save")
     );
+  };
 
   // DYNAMIC BUTTON ICONS
-  const getButtonIcon = (icon, actionType) => {
+  const getButtonIcon = (icon, actionType, isSave = false) => {
     const iconKey = String(icon || "").toLowerCase();
     const actionKey = String(actionType || "").toLowerCase();
 
@@ -189,14 +208,25 @@ const CorporateExecutive = ({
       return <GoogleBusinessIcon size={21} className="shrink-0" />;
     }
 
+    if (
+      actionKey === "whatsapp" ||
+      iconKey === "whatsapp" ||
+      actionKey === "message-circle" ||
+      iconKey === "message-circle"
+    ) {
+      return <FaWhatsapp size={22} className="shrink-0 text-[#22c55e]" />;
+    }
+
     const iconMap = {
       "user-round-plus": UserRoundPlus,
       contact: UserRoundPlus,
       "save-contact": UserRoundPlus,
+      savecontact: UserRoundPlus,
+      save: UserRoundPlus,
       phone: Phone,
       call: Phone,
-      "message-circle": MessageCircle,
-      whatsapp: MessageCircle,
+      "message-circle": FaWhatsapp,
+      whatsapp: FaWhatsapp,
       website: Globe,
       globe: Globe,
       email: Mail,
@@ -208,17 +238,101 @@ const CorporateExecutive = ({
       "share-2": Share2,
       qrcode: QrCode,
       "qr-code": QrCode,
-      upi: CreditCard,
-      payment: CreditCard,
+      upi: IndianRupee,
+      payment: IndianRupee,
+      pay: IndianRupee,
+      rupee: IndianRupee,
+      wallet: IndianRupee,
+      card: IndianRupee,
+      "credit-card": IndianRupee,
     };
 
-    const IconComponent = iconMap[iconKey] || Globe;
+    const getIconColorClass = () => {
+      if (
+        isSave ||
+        actionKey === "savecontact" ||
+        actionKey === "save" ||
+        iconKey === "user-round-plus" ||
+        iconKey === "save-contact"
+      ) {
+        return "text-indigo-200";
+      }
+      if (
+        actionKey === "call" ||
+        actionKey === "phone" ||
+        iconKey === "phone" ||
+        iconKey === "call"
+      ) {
+        return "text-[#10b981]";
+      }
+      if (
+        actionKey === "whatsapp" ||
+        iconKey === "whatsapp" ||
+        iconKey === "message-circle"
+      ) {
+        return "text-[#22c55e]";
+      }
+      if (
+        actionKey === "email" ||
+        actionKey === "mail" ||
+        iconKey === "email" ||
+        iconKey === "mail"
+      ) {
+        return "text-[#3b82f6]";
+      }
+      if (
+        actionKey === "directions" ||
+        actionKey === "address" ||
+        actionKey === "location" ||
+        actionKey === "map" ||
+        iconKey === "location" ||
+        iconKey === "map" ||
+        iconKey === "directions"
+      ) {
+        return "text-[#f43f5e]";
+      }
+      if (
+        actionKey === "share" ||
+        iconKey === "share" ||
+        iconKey === "share-2"
+      ) {
+        return "text-[#f97316]";
+      }
+      if (
+        actionKey === "website" ||
+        actionKey === "customlink" ||
+        iconKey === "website" ||
+        iconKey === "globe"
+      ) {
+        return "text-[#06b6d4]";
+      }
+      if (
+        actionKey === "upi" ||
+        actionKey === "payment" ||
+        actionKey === "pay" ||
+        iconKey === "upi" ||
+        iconKey === "payment" ||
+        iconKey === "wallet" ||
+        iconKey === "rupee" ||
+        iconKey === "card" ||
+        iconKey === "credit-card"
+      ) {
+        return "text-[#a855f7]";
+      }
+      return "text-indigo-300";
+    };
+
+    const IconComponent =
+      (isSave ? UserRoundPlus : null) ||
+      iconMap[actionKey] ||
+      iconMap[iconKey] ||
+      Globe;
 
     return (
       <IconComponent
         size={21}
         strokeWidth={2.2}
-        className="shrink-0"
+        className={`shrink-0 ${getIconColorClass()}`}
       />
     );
   };
@@ -234,7 +348,20 @@ const CorporateExecutive = ({
     const customUrl = String(button.customUrl || "").trim();
 
     const actions = {
-      savecontact: () => handleContact("save"),
+      savecontact: () => {
+        if (typeof onConfiguredButton === "function") {
+          onConfiguredButton(button);
+        } else {
+          handleContact("saveContact");
+        }
+      },
+      save: () => {
+        if (typeof onConfiguredButton === "function") {
+          onConfiguredButton(button);
+        } else {
+          handleContact("saveContact");
+        }
+      },
       call: () => handleContact("phone"),
       whatsapp: () => handleContact("whatsapp"),
       upi: () => handleContact("upi"),
@@ -245,9 +372,7 @@ const CorporateExecutive = ({
         const url = customUrl || website;
 
         if (url) {
-          const finalUrl = /^https?:\/\//i.test(url)
-            ? url
-            : `https://${url}`;
+          const finalUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`;
 
           window.open(finalUrl, "_blank", "noopener,noreferrer");
         } else {
@@ -282,17 +407,70 @@ const CorporateExecutive = ({
     ? socialLinks
     : socialLinks.slice(0, 4);
 
-  const getSocialIcon = (platform) => {
-    const value = String(platform || "").toLowerCase();
+  const getSocialIcon = (platform, url = "") => {
+    let combined = "";
+    if (typeof platform === "object" && platform !== null) {
+      combined =
+        `${platform.platform || ""} ${platform.platformName || ""} ${platform.name || ""} ${platform.url || ""}`.toLowerCase();
+    } else {
+      combined = `${platform || ""} ${url || ""}`.toLowerCase();
+    }
 
-    if (value.includes("facebook")) return <FaFacebookF />;
-    if (value.includes("instagram")) return <FaInstagram />;
-    if (value.includes("linkedin")) return <FaLinkedinIn />;
-    if (value.includes("twitter") || value.includes("x.com"))
+    if (combined.includes("whatsapp") || combined.includes("wa.me"))
+      return <FaWhatsapp />;
+    if (combined.includes("instagram") || combined.includes("insta"))
+      return <FaInstagram />;
+    if (combined.includes("facebook") || combined.includes("fb.com"))
+      return <FaFacebookF />;
+    if (combined.includes("youtube") || combined.includes("youtu.be"))
+      return <FaYoutube />;
+    if (combined.includes("linkedin")) return <FaLinkedinIn />;
+    if (combined.includes("twitter") || combined.includes("x.com"))
       return <FaXTwitter />;
-    if (value.includes("youtube")) return <FaYoutube />;
+    if (combined.includes("telegram") || combined.includes("t.me"))
+      return <FaTelegram />;
+    if (combined.includes("threads")) return <FaThreads />;
+    if (combined.includes("snapchat"))
+      return <SnapchatIcon size={14} className="shrink-0" />;
+    if (combined.includes("tiktok")) return <FaTiktok />;
+    if (combined.includes("pinterest") || combined.includes("pin.it"))
+      return <FaPinterest />;
+    if (combined.includes("github")) return <FaGithub />;
+    if (combined.includes("discord")) return <FaDiscord />;
+    if (combined.includes("reddit")) return <FaReddit />;
+    if (combined.includes("twitch")) return <FaTwitch />;
+    if (combined.includes("spotify")) return <FaSpotify />;
+    if (combined.includes("medium")) return <FaMedium />;
 
     return <FaGlobe />;
+  };
+
+  const getSocialBadgeColors = (platform = "") => {
+    const p = String(platform || "").toLowerCase();
+    if (p.includes("instagram") || p.includes("insta"))
+      return { bg: "#E4405F", color: "#ffffff" };
+    if (p.includes("youtube") || p.includes("youtu"))
+      return { bg: "#FF0000", color: "#ffffff" };
+    if (p.includes("facebook") || p.includes("fb"))
+      return { bg: "#1877F2", color: "#ffffff" };
+    if (p.includes("whatsapp") || p.includes("wa.me"))
+      return { bg: "#25D366", color: "#ffffff" };
+    if (p.includes("linkedin")) return { bg: "#0A66C2", color: "#ffffff" };
+    if (p.includes("telegram") || p.includes("t.me"))
+      return { bg: "#26A5E4", color: "#ffffff" };
+    if (p.includes("twitter") || p.includes("x.com"))
+      return { bg: "#000000", color: "#ffffff" };
+    if (p.includes("threads")) return { bg: "#000000", color: "#ffffff" };
+    if (p.includes("snapchat")) return { bg: "#FFFC00", color: "#000000" };
+    if (p.includes("tiktok")) return { bg: "#000000", color: "#ffffff" };
+    if (p.includes("pinterest") || p.includes("pin.it"))
+      return { bg: "#E60023", color: "#ffffff" };
+    if (p.includes("github")) return { bg: "#24292e", color: "#ffffff" };
+    if (p.includes("discord")) return { bg: "#5865F2", color: "#ffffff" };
+    if (p.includes("reddit")) return { bg: "#FF4500", color: "#ffffff" };
+    if (p.includes("twitch")) return { bg: "#9146FF", color: "#ffffff" };
+    if (p.includes("spotify")) return { bg: "#1DB954", color: "#ffffff" };
+    return { bg: "#6366f1", color: "#ffffff" };
   };
 
   // IMAGE URL
@@ -433,19 +611,16 @@ const CorporateExecutive = ({
 
   // DOWNLOAD QR
   const handleDownloadQr = () => {
-    const canvas = document.querySelector(
-      ".corporate-profile-qr canvas"
-    );
+    const canvas = document.querySelector(".corporate-profile-qr canvas");
 
     if (!canvas) return;
 
     const link = document.createElement("a");
     link.href = canvas.toDataURL("image/png");
-    link.download = `${(
-      businessName ||
-      name ||
-      "business"
-    ).replace(/[^a-z0-9-_]/gi, "-")}-qr.png`;
+    link.download = `${(businessName || name || "business").replace(
+      /[^a-z0-9-_]/gi,
+      "-",
+    )}-qr.png`;
 
     link.click();
   };
@@ -470,7 +645,6 @@ const CorporateExecutive = ({
 
   return (
     <main className="min-h-screen w-full overflow-hidden bg-[#0b1224] text-slate-100">
-
       {/* REVIEW TOAST */}
       {reviewToast && (
         <div
@@ -485,9 +659,7 @@ const CorporateExecutive = ({
             {reviewToast.type === "success" ? <FaCheck /> : <FaXmark />}
           </span>
 
-          <span className="text-xs font-bold">
-            {reviewToast.message}
-          </span>
+          <span className="text-xs font-bold">{reviewToast.message}</span>
 
           <button
             type="button"
@@ -721,25 +893,39 @@ const CorporateExecutive = ({
           </div>
 
           <div className="relative px-4 pb-4 sm:px-5">
-            <div className="relative -mt-[62px] mb-3 flex h-[92px] w-[92px] items-end">
-              <div className="h-[92px] w-[92px] overflow-hidden rounded-[15px] border-[3px] border-[#10182b] bg-slate-700 shadow-xl">
-                {profileImage ? (
-                  <img
-                    src={profileImage}
-                    alt={displayName}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-3xl font-black text-white">
-                    {displayName.charAt(0).toUpperCase()}
-                  </div>
+            <div className="relative -mt-[62px] mb-3 flex items-end justify-between">
+              {/* Profile Image with verification tick */}
+              <div className="relative flex h-[92px] w-[92px] items-end">
+                <div className="h-[92px] w-[92px] overflow-hidden rounded-[15px] border-[3px] border-[#10182b] bg-slate-700 shadow-xl">
+                  {profileImage ? (
+                    <img
+                      src={profileImage}
+                      alt={displayName}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-3xl font-black text-white">
+                      {displayName.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+
+                {isVerified && (
+                  <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#10182b] bg-emerald-500 text-[10px] text-white">
+                    <FaCheck />
+                  </span>
                 )}
               </div>
 
-              {isVerified && (
-                <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#10182b] bg-emerald-500 text-[10px] text-white">
-                  <FaCheck />
-                </span>
+              {/* BUSINESS LOGO — bottom aligned with profile image bottom */}
+              {businessLogo && (
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-[#10182b] bg-white shadow-xl ring-1 ring-white/20 sm:h-16 sm:w-16">
+                  <img
+                    src={businessLogo}
+                    alt="Business logo"
+                    className="h-full w-full object-contain"
+                  />
+                </div>
               )}
             </div>
 
@@ -779,9 +965,7 @@ const CorporateExecutive = ({
                 <strong className="text-white">
                   {reviewAverage.toFixed(1)}
                 </strong>
-                <span className="text-slate-400">
-                  ({reviewTotal} reviews)
-                </span>
+                <span className="text-slate-400">({reviewTotal} reviews)</span>
               </div>
             )}
 
@@ -792,11 +976,23 @@ const CorporateExecutive = ({
             )}
 
             {(address || location) && (
-              <div className="mt-2 flex items-start gap-1.5 text-[9px] leading-[1.5] text-slate-300">
-                <FaLocationDot className="mt-0.5 shrink-0 text-rose-500" />
-                <span className="line-clamp-2">{address || location}</span>
+              <a
+                href={
+                  mapLink ||
+                  `https://maps.google.com/?q=${encodeURIComponent(
+                    address || location || "",
+                  )}`
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => onContactClick && onContactClick("directions")}
+                title="Open in Google Maps"
+                className="mt-2 group inline-flex items-start gap-1.5 text-[9px] leading-[1.5] text-slate-300 transition hover:text-indigo-300 cursor-pointer"
+              >
+                <FaLocationDot className="mt-0.5 shrink-0 text-rose-500 transition-transform group-hover:scale-110" />
+                <span className="line-clamp-2 group-hover:underline">{address || location}</span>
                 <span className="text-slate-500">·</span>
-              </div>
+              </a>
             )}
 
             <p className="mt-2 text-[9px] font-bold text-emerald-400">
@@ -813,23 +1009,36 @@ const CorporateExecutive = ({
                       ? "grid-cols-2"
                       : activeButtons.length === 3
                         ? "grid-cols-3"
-                        : "grid-cols-4 sm:grid-cols-8"
+                        : activeButtons.length === 4
+                          ? "grid-cols-2 sm:grid-cols-4"
+                          : activeButtons.length === 5
+                            ? "grid-cols-3 sm:grid-cols-5"
+                            : activeButtons.length === 6
+                              ? "grid-cols-3 sm:grid-cols-6"
+                              : "grid-cols-3 sm:grid-cols-4 md:grid-cols-8"
                 }`}
               >
-                {activeButtons.map((button) => (
-                  <button
-                    key={button.buttonId || button._id}
-                    type="button"
-                    onClick={() => handleDynamicButton(button)}
-                    className="flex min-h-[49px] min-w-0 flex-col items-center justify-center gap-1 rounded-xl border border-slate-700 bg-[#1a2639] px-1.5 py-2 text-[8px] font-bold text-white transition hover:-translate-y-0.5 hover:border-cyan-400 hover:bg-[#22344c] active:translate-y-0"
-                    title={button.label}
-                  >
-                    {getButtonIcon(button.icon, button.actionType)}
-                    <span className="w-full truncate text-center">
-                      {button.label || "Button"}
-                    </span>
-                  </button>
-                ))}
+                {activeButtons.map((button) => {
+                  const isSave = isSaveButton(button);
+                  return (
+                    <button
+                      key={button.buttonId || button._id}
+                      type="button"
+                      onClick={() => handleDynamicButton(button)}
+                      className={`flex min-h-[58px] sm:min-h-[64px] min-w-0 flex-col items-center justify-center gap-1.5 rounded-2xl px-1 py-2 sm:px-1.5 sm:py-2.5 text-[8.5px] sm:text-[9.5px] font-bold transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 ${
+                        isSave
+                          ? "border border-indigo-400/40 bg-gradient-to-b from-[#2e3760] to-[#1c2342] text-white shadow-md shadow-indigo-950/50 hover:brightness-110"
+                          : "border border-[#22314d] bg-[#131d30] text-white shadow-sm hover:border-slate-500/80 hover:bg-[#18243c]"
+                      }`}
+                      title={button.label}
+                    >
+                      {getButtonIcon(button.icon, button.actionType, isSave)}
+                      <span className="w-full px-0.5 text-center leading-tight break-words">
+                        {button.label || "Button"}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             )}
 
@@ -844,7 +1053,7 @@ const CorporateExecutive = ({
                     title={social.platform || "Social"}
                     className="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-[#1a2639] px-2.5 py-1.5 text-[8px] font-semibold text-slate-200 transition hover:border-indigo-400 hover:text-white"
                   >
-                    {getSocialIcon(social.platform)}
+                    {getSocialIcon(social.platform, social.url)}
                     <span>{social.platform || "Social"}</span>
                   </a>
                 ))}
@@ -887,109 +1096,104 @@ const CorporateExecutive = ({
           </div>
 
           <div className="space-y-2.5">
-  {productList.map((product, index) => {
-    const image = getImageUrl(
-      product?.images?.[0] || product?.image
-    );
+            {productList.map((product, index) => {
+              const image = getImageUrl(product?.images?.[0] || product?.image);
 
-    const productType =
-      product.category ||
-      product.type ||
-      product.label ||
-      "PRODUCTS";
+              const productType =
+                product.category || product.type || product.label || "PRODUCTS";
 
-    return (
-      <article
-        key={product._id || product.id || index}
-        className="rounded-[14px] border border-slate-700/90 bg-[#192538] p-2.5 shadow-[0_5px_15px_rgba(0,0,0,0.16)]"
-      >
-        <div className="flex gap-2.5">
-          <button
-            type="button"
-            onClick={() => onProductClick(product)}
-            aria-label={`View ${product.name || "product"} photo`}
-            className="h-[84px] w-[84px] shrink-0 overflow-hidden rounded-[10px] bg-slate-700"
-          >
-            {image ? (
-              <img
-                src={image}
-                alt={product.name || "Product"}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <span className="flex h-full items-center justify-center text-[9px] text-slate-400">
-                No Image
-              </span>
-            )}
-          </button>
+              return (
+                <article
+                  key={product._id || product.id || index}
+                  className="rounded-[14px] border border-slate-700/90 bg-[#192538] p-2.5 shadow-[0_5px_15px_rgba(0,0,0,0.16)]"
+                >
+                  <div className="flex gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => onProductClick(product)}
+                      aria-label={`View ${product.name || "product"} photo`}
+                      className="h-[84px] w-[84px] shrink-0 overflow-hidden rounded-[10px] bg-slate-700"
+                    >
+                      {image ? (
+                        <img
+                          src={image}
+                          alt={product.name || "Product"}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <span className="flex h-full items-center justify-center text-[9px] text-slate-400">
+                          No Image
+                        </span>
+                      )}
+                    </button>
 
-          <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-2">
-              <button
-                type="button"
-                onClick={() => onProductClick(product)}
-                className="min-w-0 text-left text-[10px] font-extrabold leading-[1.4] text-slate-100"
-              >
-                {product.name || "Product"}
-              </button>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onProductClick(product)}
+                          className="min-w-0 text-left text-[10px] font-extrabold leading-[1.4] text-slate-100"
+                        >
+                          {product.name || "Product"}
+                        </button>
 
-              {product.price !== undefined &&
-                product.price !== null &&
-                product.price !== "" && (
-                  <span className="shrink-0 rounded-full border border-indigo-400/70 bg-indigo-500/10 px-2 py-0.5 text-[9px] font-bold text-indigo-200">
-                    ₹{product.price}
-                  </span>
-                )}
-            </div>
+                        {product.price !== undefined &&
+                          product.price !== null &&
+                          product.price !== "" && (
+                            <span className="shrink-0 rounded-full border border-indigo-400/70 bg-indigo-500/10 px-2 py-0.5 text-[9px] font-bold text-indigo-200">
+                              ₹{product.price}
+                            </span>
+                          )}
+                      </div>
 
-            {product.description && (
-              <p className="mt-1.5 line-clamp-2 text-[9px] leading-[1.5] text-slate-300">
-                {product.description}
-              </p>
-            )}
+                      {product.description && (
+                        <p className="mt-1.5 line-clamp-2 text-[9px] leading-[1.5] text-slate-300">
+                          {product.description}
+                        </p>
+                      )}
 
-            <div className="mt-2 flex items-center gap-2 border-t border-slate-600/60 pt-1.5">
-              <span className="text-[8px] font-bold uppercase tracking-wide text-slate-400">
-                {productType}
-              </span>
+                      <div className="mt-2 flex items-center gap-2 border-t border-slate-600/60 pt-1.5">
+                        <span className="text-[8px] font-bold uppercase tracking-wide text-slate-400">
+                          {productType}
+                        </span>
 
-              <button
-                type="button"
-                onClick={() => onProductClick(product)}
-                className="text-[8px] font-semibold text-indigo-300"
-              >
-                <FaQrcode className="mr-1 inline text-[7px]" />
-                View Photo
-              </button>
-            </div>
+                        <button
+                          type="button"
+                          onClick={() => onProductClick(product)}
+                          className="text-[8px] font-semibold text-indigo-300"
+                        >
+                          <FaQrcode className="mr-1 inline text-[7px]" />
+                          View Photo
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-2 flex flex-wrap items-center justify-end gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => onProductClick(product)}
+                      className="rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-extrabold text-white transition hover:bg-emerald-500"
+                    >
+                      Pay with UPI
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onProductWhatsAppInquiry(product);
+                      }}
+                      className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold text-emerald-300 transition hover:bg-emerald-500/20"
+                    >
+                      <FaWhatsapp className="mr-1 inline" />
+                      WhatsApp
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
           </div>
-        </div>
-
-        <div className="mt-2 flex flex-wrap items-center justify-end gap-1.5">
-          <button
-            type="button"
-            onClick={() => onProductClick(product)}
-            className="rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-extrabold text-white transition hover:bg-emerald-500"
-          >
-            Pay with UPI
-          </button>
-
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onProductWhatsAppInquiry(product);
-            }}
-            className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold text-emerald-300 transition hover:bg-emerald-500/20"
-          >
-            <FaWhatsapp className="mr-1 inline" />
-            WhatsApp
-          </button>
-        </div>
-      </article>
-    );
-  })}
-</div>
         </section>
       )}
 
@@ -1233,7 +1437,7 @@ const CorporateExecutive = ({
           <div className="grid grid-cols-2 gap-2">
             {visibleSocialLinks.map((social, index) => {
               const platform = String(
-                social.platform || social.name || "Social"
+                social.platform || social.name || "Social",
               ).toLowerCase();
 
               const image = getImageUrl(
@@ -1241,7 +1445,7 @@ const CorporateExecutive = ({
                   social.image ||
                   social.avatar ||
                   social.logo ||
-                  social.thumbnail
+                  social.thumbnail,
               );
 
               const username =
@@ -1282,6 +1486,10 @@ const CorporateExecutive = ({
                       ? "Join Channel"
                       : "Follow");
 
+              const badgeColors = getSocialBadgeColors(
+                social.platform || platform,
+              );
+
               return (
                 <article
                   key={social._id || social.id || index}
@@ -1292,19 +1500,34 @@ const CorporateExecutive = ({
                   />
 
                   <div className="flex min-w-0 items-center gap-2">
-                    {image ? (
-                      <img
-                        src={image}
-                        alt={social.platform || "Social profile"}
-                        className="h-10 w-10 shrink-0 rounded-[9px] object-cover"
-                      />
-                    ) : (
-                      <span
-                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[9px] bg-gradient-to-br ${platformColor} text-white`}
-                      >
-                        {getSocialIcon(social.platform)}
-                      </span>
-                    )}
+                    <div className="relative h-10 w-10 shrink-0">
+                      {image ? (
+                        <img
+                          src={image}
+                          alt={social.platform || "Social profile"}
+                          className="h-10 w-10 shrink-0 rounded-[9px] object-cover ring-1 ring-slate-700"
+                        />
+                      ) : (
+                        <span
+                          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[9px] bg-gradient-to-br ${platformColor} text-white`}
+                        >
+                          {getSocialIcon(social.platform, social.url)}
+                        </span>
+                      )}
+
+                      {/* Social Platform Logo Badge on Profile Photo */}
+                      {image && (
+                        <div
+                          className="absolute -bottom-1 -right-1 flex h-[18px] w-[18px] items-center justify-center rounded-full border-2 border-[#192538] text-[9px] shadow-md [&>svg]:h-2.5 [&>svg]:w-2.5"
+                          style={{
+                            background: badgeColors.bg,
+                            color: badgeColors.color,
+                          }}
+                        >
+                          {getSocialIcon(social.platform, social.url)}
+                        </div>
+                      )}
+                    </div>
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1">
@@ -1339,7 +1562,7 @@ const CorporateExecutive = ({
                     rel="noreferrer"
                     className={`mt-2 flex h-7 w-full items-center justify-center gap-1 rounded-full bg-gradient-to-r ${platformColor} px-2 text-[9px] font-extrabold text-white`}
                   >
-                    {getSocialIcon(social.platform)}
+                    {getSocialIcon(social.platform, social.url)}
                     <span className="truncate">{buttonText}</span>
                     <FaArrowUpRightFromSquare className="shrink-0 text-[8px]" />
                   </a>
@@ -1351,9 +1574,7 @@ const CorporateExecutive = ({
           {socialLinks.length > 4 && (
             <button
               type="button"
-              onClick={() =>
-                setShowAllSocialLinks((previous) => !previous)
-              }
+              onClick={() => setShowAllSocialLinks((previous) => !previous)}
               className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-indigo-500/40 bg-indigo-500/10 px-4 py-3 text-[10px] font-extrabold text-indigo-300 transition hover:border-indigo-400 hover:bg-indigo-500/20"
             >
               {showAllSocialLinks
@@ -1399,9 +1620,7 @@ const CorporateExecutive = ({
 
           <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[8px] font-bold text-emerald-400">
             <FaCheck className="mr-1 inline" />
-            {businessInfo.isVerified
-              ? "100% Verified"
-              : "Verified Reviews"}
+            {businessInfo.isVerified ? "100% Verified" : "Verified Reviews"}
           </span>
         </div>
 
@@ -1469,7 +1688,7 @@ const CorporateExecutive = ({
                     "";
 
                   const customerPhoto = getImageUrl(
-                    review.avatar || review.photo || review.image
+                    review.avatar || review.photo || review.image,
                   );
 
                   const reviewDate = review.createdAt
@@ -1482,7 +1701,7 @@ const CorporateExecutive = ({
 
                   const rating = Math.max(
                     0,
-                    Math.min(5, Math.round(Number(review.rating || 5)))
+                    Math.min(5, Math.round(Number(review.rating || 5))),
                   );
 
                   return (
@@ -1507,9 +1726,7 @@ const CorporateExecutive = ({
                         </div>
 
                         <p className="min-h-[55px] flex-1 text-[10px] italic leading-[1.6] text-slate-200">
-                          {reviewText
-                            ? `“${reviewText}”`
-                            : "Customer review"}
+                          {reviewText ? `“${reviewText}”` : "Customer review"}
                         </p>
 
                         <div className="mt-3 flex items-center gap-2 border-t border-slate-700 pt-2.5">
@@ -1766,7 +1983,7 @@ const CorporateExecutive = ({
       <footer className="mx-auto flex w-full max-w-[520px] flex-wrap items-center justify-between gap-2 border-x border-t border-slate-700/80 bg-[#0b1426] px-3 py-3 text-[8px]">
         <div className="flex flex-wrap items-center gap-2 text-slate-400">
           <span>
-            Powered by <strong className="text-slate-300">BIO Website</strong>
+            Powered by <strong className="text-slate-300">BIO SITES</strong>
           </span>
 
           <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-1 font-bold text-emerald-400">
@@ -1775,9 +1992,9 @@ const CorporateExecutive = ({
           </span>
         </div>
 
-        <span className="font-semibold text-indigo-300">
-          Create Your Own Mini Website →
-        </span>
+        <a href="/" className="font-semibold text-indigo-300">
+          Create Your Own Bio Sites →
+        </a>
       </footer>
     </main>
   );

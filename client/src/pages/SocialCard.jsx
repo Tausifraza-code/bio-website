@@ -21,6 +21,7 @@ import {
   AlertTriangle,
   Upload,
   ImagePlus,
+  Pencil,
 } from "lucide-react";
 import {
   FaTelegram,
@@ -35,6 +36,7 @@ import {
   FaSpotify,
   FaMedium,
 } from "react-icons/fa6";
+import SnapchatIcon from "../components/icons/SnapchatIcon";
 
 /* ==================== BRAND ICONS ==================== */
 
@@ -179,7 +181,7 @@ const PLATFORMS = {
   snapchat: {
     id: "snapchat",
     name: "Snapchat",
-    icon: FaSnapchat,
+    icon: SnapchatIcon,
     color: "#FFFC00",
     placeholderUrl: "https://snapchat.com/add/",
     placeholderHandle: "@yourhandle",
@@ -271,7 +273,7 @@ const resolvePlatformForCard = (card = {}) => {
   if (/snapchat|snap\b/.test(target)) {
     const base = PLATFORMS.snapchat || {
       name: "Snapchat",
-      icon: FaSnapchat,
+      icon: SnapchatIcon,
       color: "#FFFC00",
     };
     return { ...base, name: card.platformName || base.name };
@@ -381,6 +383,7 @@ const SocialCards = () => {
   const [imagePreview, setImagePreview] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
   const [pendingImageCardId, setPendingImageCardId] = useState(null);
+  const [editCardId, setEditCardId] = useState(null);
   const imagePreviewUrl = useRef("");
 
   // Custom Delete Modal State
@@ -432,6 +435,36 @@ const SocialCards = () => {
     });
 
     clearImageSelection();
+    setEditCardId(null);
+    setPendingImageCardId(null);
+    setError("");
+    setSaved(false);
+    setModalOpen(true);
+  };
+
+  const openEditModal = (card) => {
+    const platform = PLATFORMS[card.platform] ? card.platform : "custom";
+
+    setFormData({
+      ...INITIAL_FORM,
+      ...card,
+      platform,
+      platformName: card.platformName || "",
+      icon: card.icon || "link",
+      handle: card.handle || "",
+      audience: card.audience || "",
+      url: card.url || "",
+      description: card.description || "",
+      thumbnail: card.thumbnail || "my-photo",
+      ctaLabel: card.ctaLabel || "Follow",
+      verifiedTick: card.verifiedTick ?? true,
+    });
+
+    clearImageSelection();
+    if (card.profileImage) {
+      setImagePreview(card.profileImage);
+    }
+    setEditCardId(String(card._id || card.id));
     setPendingImageCardId(null);
     setError("");
     setSaved(false);
@@ -443,6 +476,7 @@ const SocialCards = () => {
 
     clearImageSelection();
     setPendingImageCardId(null);
+    setEditCardId(null);
     setModalOpen(false);
     setError("");
     setSaved(false);
@@ -541,6 +575,58 @@ const SocialCards = () => {
     try {
       let socialCardId = pendingImageCardId;
 
+      if (editCardId) {
+        const updatedCards = cards.map((card) => {
+          const cardId = String(card._id || card.id);
+
+          if (cardId !== String(editCardId)) {
+            return card;
+          }
+
+          const platform = PLATFORMS[formData.platform];
+
+          return {
+            ...card,
+            ...formData,
+
+            platformName:
+              formData.platform === "custom"
+                ? formData.platformName.trim()
+                : platform?.name || formData.platformName,
+
+            icon:
+              formData.platform === "custom"
+                ? formData.icon || "link"
+                : formData.platform,
+
+            handle: formData.handle.trim(),
+            audience: formData.audience.trim(),
+            url: formData.url.trim(),
+            description: formData.description.trim(),
+            ctaLabel: formData.ctaLabel.trim(),
+          };
+        });
+
+        const savedCards = await dispatch(
+          saveSocialCards(updatedCards),
+        ).unwrap();
+
+        cardAlreadySaved = true;
+
+        const updatedCard = savedCards.find(
+          (card) => String(card._id || card.id) === String(editCardId),
+        );
+
+        socialCardId = updatedCard?._id || updatedCard?.id;
+
+        if (!socialCardId) {
+          throw new Error("Updated social card ID could not be verified.");
+        }
+
+        socialCardId = String(socialCardId);
+        setPendingImageCardId(socialCardId);
+      }
+
       if (!socialCardId) {
         const platform = PLATFORMS[formData.platform];
         const newCard = {
@@ -587,6 +673,7 @@ const SocialCards = () => {
       }
 
       setPendingImageCardId(null);
+      setEditCardId(null);
       setSaved(true);
 
       setTimeout(() => {
@@ -595,6 +682,7 @@ const SocialCards = () => {
         setFormData({ ...INITIAL_FORM });
         clearImageSelection();
         setPendingImageCardId(null);
+        setEditCardId(null);
       }, 800);
     } catch (err) {
       const message =
@@ -925,15 +1013,27 @@ const SocialCards = () => {
                           )}
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={() => triggerDelete(card.id || card._id)}
-                          aria-label={`Delete ${platform.name} profile`}
-                          title="Delete profile"
-                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#38516e] bg-[#132942] text-slate-400 transition hover:border-red-400/40 hover:bg-red-400/10 hover:text-red-400"
-                        >
-                          <Trash2 size={15} />
-                        </button>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(card)}
+                            aria-label={`Edit ${platform.name} profile`}
+                            title="Edit profile"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#38516e] bg-[#132942] text-cyan-400 transition hover:border-cyan-400/40 hover:bg-cyan-400/10"
+                          >
+                            <Pencil size={15} />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => triggerDelete(card.id || card._id)}
+                            aria-label={`Delete ${platform.name} profile`}
+                            title="Delete profile"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#38516e] bg-[#132942] text-slate-400 transition hover:border-red-400/40 hover:bg-red-400/10 hover:text-red-400"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
                       </div>
 
                       {card.description && (
@@ -1005,7 +1105,7 @@ const SocialCards = () => {
 
                   <div>
                     <h2 className="text-base font-bold text-white sm:text-lg">
-                      Add Social Profile
+                      {editCardId ? "Edit Social Profile" : "Add Social Profile"}
                     </h2>
 
                     <p className="mt-1 text-xs leading-5 text-slate-400">
@@ -1287,14 +1387,16 @@ const SocialCards = () => {
                 ) : saved ? (
                   <>
                     <Check size={15} strokeWidth={3} />
-                    Profile Added
+                    {editCardId ? "Profile Updated" : "Profile Added"}
                   </>
                 ) : (
                   <>
                     <Plus size={15} />
                     {pendingImageCardId && imageFile
                       ? "Retry Image Upload"
-                      : "Add Profile Card"}
+                      : editCardId
+                        ? "Update Profile"
+                        : "Add Profile Card"}
                     <ArrowUpRight size={14} />
                   </>
                 )}

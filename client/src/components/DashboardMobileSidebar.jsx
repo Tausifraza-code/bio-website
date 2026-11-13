@@ -103,7 +103,7 @@ const sidebarItems = [
   },
   {
     id: "refer",
-    label: "Refer & Earn",
+    label: "Referrals",
     description: "Invite and earn rewards",
     icon: Gift,
     path: "/refer",

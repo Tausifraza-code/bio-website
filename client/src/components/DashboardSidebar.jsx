@@ -103,7 +103,7 @@ const sidebarItems = [
   },
   {
     id: "refer",
-    label: "Refer & Earn",
+    label: "Referrals",
     icon: Gift,
     path: "/refer",
     // badge: { text: "New", color: "emerald" },
